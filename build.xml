@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="FOX" default="all" basedir=".">
+  <property environment="env"/>
+  <property file="build.properties"/>
+
+  <property name="input.lib" value="lib/main"/>
+  <property name="input.lib-test" value="lib/test"/>
+  <property name="input.source_java" value="src/main/java"/>
+  <property name="input.source_tests" value="src/test/java"/>
+  <property name="input.source_sql" value="src/main/sql"/>
+  <property name="input.source_web" value="src/main/webapp"/>
+
+  <property name="output.javadoc_dir" value="target/docs/api"/>
+  <property name="output.build_dir" value="target"/>
+  <property name="output.classes_dir" value="${output.build_dir}/classes"/>
+  <property name="output.deploy_dir" value="${output.build_dir}/deploy"/>
+  <property name="output.default_war_name" value="FOX.war"/>
+
+  <!-- Set up PluginAPI properties-->
+  <property name="output.plugin.jar_name" value="FOXPluginAPI"/>
+  <property file="src/main/java/net/foxopen/fox/plugin/api/version.properties"/>
+
+  <tstamp>
+    <format property="time" pattern="yyyy/MM/dd HH:mm:ss"/>
+  </tstamp>
+    <property name="nl"  value="&#13;&#10;"/>
+  <path id="library.JUnit">
+    <fileset dir="${input.lib-test}">
+      <include name="*.jar" />
+    </fileset>
+  </path>
+  <path id="library.Container">
+    <pathelement location="${libs.servlet}"/>
+    <pathelement location="${libs.jsp}"/>
+  </path>
+  <path id="library.FOXLibs">
+    <fileset dir="${input.lib}">
+      <include name="*.jar" />
+    </fileset>
+  </path>
+  <path id="classpath.main">
+    <path refid="library.Container"/>
+    <path refid="library.FOXLibs"/>
+  </path>
+  <path id="classpath.tests">
+    <path refid="library.JUnit"/>
+    <path refid="library.Container"/>
+    <path refid="library.FOXLibs"/>
+  </path>
+
+  <target name="init" depends="check-libs">
+    <mkdir dir="${output.classes_dir}"/>
+    <mkdir dir="${output.deploy_dir}"/>
+  </target>
+
+  <target name="clean" description="Clean the project">
+    <delete dir="${output.build_dir}" includeemptydirs="true" quiet="true"/>
+    <delete dir="${output.javadoc_dir}" includeemptydirs="true" quiet="true"/>
+  </target>
+
+  <target name="all" description="Build FOX and run all tests" depends="build,test"/>
+  <target name="all-clean" description="Build FOX fresh and run all tests" depends="clean,build,test"/>
+  <target name="all-generic" description="Build FOX for any context and run all tests" depends="build-generic,test"/>
+  <target name="all-generic-clean" description="Build FOX fresh for any context and run all tests" depends="clean,build-generic,test"/>
+  <target name="build" description="Build FOX with context specific logging file" depends="init,compile,war"/>
+  <target name="build-generic" description="Build FOX without context specific logging file" depends="init,compile,war"/>
+  <target name="test" description="Compile and run AllTests JUnit suite" depends="init,compile-tests,run-all-tests"/>
+
+  <target name="javadoc" description="Generate javadoc for FOX">
+    <javadoc packagenames="net.foxopen.fox.*"
+             sourcepath="${input.source_java}"
+             defaultexcludes="yes"
+             destdir="${output.javadoc_dir}"
+             author="true"
+             version="true"
+             use="true"
+             windowtitle="FOXOpen"
+             classpathref="classpath.main">
+      <doctitle><![CDATA[<h1>FOXOpen</h1>]]></doctitle>
+      <bottom><![CDATA[<i>Copyright &#169; FOXOpen. All Rights Reserved.</i>]]></bottom>
+      <tag name="todo" scope="all" description="To do:"/>
+      <link href="http://www.foxopen.net/docs/api/"/>
+    </javadoc>
+  </target>
+
+  <target name="compile" description="Compile Java source files" depends="init">
+    <javac destdir="${output.classes_dir}" classpathref="classpath.main" nowarn="off" source="1.8" target="1.8"
+           failonerror="on" debug="on" debuglevel="lines,vars,source">
+      <src path="${input.source_java}"/>
+    </javac>
+    <copy todir="${output.classes_dir}">
+      <fileset dir="${input.source_java}" includes="**/*.mustache, **/*.properties" />
+      <fileset dir="${input.source_sql}" includes="**/*.sql" />
+    </copy>
+  </target>
+
+  <target name="war" depends="">
+    <antcall target="war-env-name" />
+    <antcall target="war-prompt-name" />
+  </target>
+  <target name="war-env-name" description="Set the name for the WAR file if it's not passed in" if="env.WAR_NAME">
+    <war destfile="${output.deploy_dir}/${env.WAR_NAME}" webxml="${input.source_web}/WEB-INF/web.xml" compress="on">
+      <fileset dir="${input.source_web}"/>
+      <fileset dir="../../">
+        <include name="schematron/**" if="release.development"/>
+      </fileset>
+      <lib dir="${input.lib}" excludes="junit*.jar mockito*.jar"/>
+      <classes dir="${output.classes_dir}" includes="**/*"/>
+      <manifest>
+        <attribute name="FOX-Version" value="${env.FOX_VERSION}" />
+        <attribute name="Build-Tag" value="${env.BUILD_TAG}" />
+        <attribute name="Build-Time" value="${time}" />
+      </manifest>
+    </war>
+  </target>
+  <target name="war-prompt-name" description="Set the name for the WAR file if it's not passed in" unless="env.WAR_NAME">
+    <input message="Please enter WAR name (default=${output.default_war_name}):" addproperty="fox.war_name" defaultvalue="${output.default_war_name}"/>
+    <input message="Please enter FOX Version (default=FOXr??.??.??):" addproperty="fox.version" defaultvalue="FOXr??.??.??"/>
+    <war destfile="${output.deploy_dir}/${fox.war_name}" webxml="${input.source_web}/WEB-INF/web.xml" compress="on">
+      <fileset dir="${input.source_web}"/>
+      <fileset dir="../../">
+        <include name="schematron/**" if="release.development"/>
+      </fileset>
+      <lib dir="${input.lib}" excludes="junit*.jar mockito*.jar"/>
+      <classes dir="${output.classes_dir}" includes="**/*"/>
+      <manifest>
+        <attribute name="FOX-Version" value="${fox.version}" />
+        <attribute name="Build-Tag" value="Local Build: ${env.COMPUTERNAME}-${env.OS}" />
+        <attribute name="Build-Time" value="${time}" />
+      </manifest>
+    </war>
+  </target>
+
+  <target name="compile-tests" description="Compile JUnit Test source files" depends="init">
+    <javac destdir="${output.classes_dir}" classpathref="classpath.tests" nowarn="off" debug="on" debuglevel="lines,vars,source">
+      <src path="${input.source_java}"/>
+      <src path="${input.source_tests}"/>
+    </javac>
+    <copy todir="${output.classes_dir}">
+      <fileset dir="${input.source_tests}">
+        <include name="**/*.pdf"/>
+        <include name="**/*.pkcs8"/>
+        <include name="**/*.p7b"/>
+        <include name="**/*.pkipath"/>
+        <include name="**/*.xml"/>
+        <include name="**/*.cer"/>
+        <include name="**/*.xls"/>
+        <include name="**/*.xlsx"/>
+        <include name="**/*.doc"/>
+        <include name="**/*.docx"/>
+        <include name="**/*.exe"/>
+        <include name="**/*.gif"/>
+        <include name="**/*.htm"/>
+        <include name="**/*.jpg"/>
+        <include name="**/*.png"/>
+        <include name="**/*.ppt"/>
+        <include name="**/*.txt"/>
+        <include name="**/*.unknown"/>
+        <include name="**/*.properties"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="run-all-tests" description="Run all JUnit tests" depends="compile-tests">
+    <junit fork="yes" printsummary="yes" haltonfailure="yes" showoutput="yes">
+      <jvmarg value="-Djava.awt.headless=true"/>
+      <classpath refid="classpath.tests"/>
+      <classpath path="${output.classes_dir}"/>
+      <formatter type="xml"/>
+      <batchtest fork="no" todir="${output.build_dir}">
+        <fileset dir="${input.source_tests}">
+          <include name="**/*.java"/>
+        </fileset>
+      </batchtest>
+    </junit>
+  </target>
+
+  <target name="check-libs" description="Check the required libraries are present">
+    <condition property="fox.libs_ok">
+      <and>
+        <available file="${libs.servlet}"/>
+        <available file="${libs.jsp}"/>
+      </and>
+    </condition>
+    <fail message="Container libraries missing or not found at the paths defined in your build.properties, or build.properties file not found: ${libs.servlet} or ${libs.jsp}" unless="fox.libs_ok"/>
+  </target>
+
+  <target name="PluginAPI" description="Compile and build FOX Plugin API" depends="clean, compile">
+    <!-- Generate API jar -->
+    <jar file="${output.deploy_dir}/${output.plugin.jar_name}-${plugin-api.version}.jar" compress="on">
+      <fileset dir="${output.classes_dir}">
+        <include name="net/foxopen/fox/plugin/api/**" />
+        <include name="net/foxopen/fox/ex/*.*" />
+        <!-- TODO PN - Sort out XFUtil -->
+        <include name="net/foxopen/fox/XFUtil.class" />
+      </fileset>
+      <manifest>
+        <attribute name="FOX-Plugin-API-version" value="${plugin-api.version}"/>
+      </manifest>
+    </jar>
+    <!-- Generate sources jar -->
+    <jar file="${output.deploy_dir}/${output.plugin.jar_name}-${plugin-api.version}-src.jar" compress="on">
+      <fileset dir="${input.source_java}">
+        <include name="net/foxopen/fox/plugin/api/**" />
+        <include name="net/foxopen/fox/ex/*.*" />
+        <!-- TODO PN - Sort out XFUtil -->
+        <include name="net/foxopen/fox/XFUtil.java" />
+      </fileset>
+    </jar>
+  </target>
+</project>

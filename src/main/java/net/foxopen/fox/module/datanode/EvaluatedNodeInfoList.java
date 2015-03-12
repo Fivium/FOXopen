@@ -1,0 +1,277 @@
+package net.foxopen.fox.module.datanode;
+
+
+import net.foxopen.fox.XFUtil;
+import net.foxopen.fox.dom.DOM;
+import net.foxopen.fox.dom.DOMList;
+import net.foxopen.fox.dom.paging.DOMPager;
+import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.module.DisplayOrderComparator;
+import net.foxopen.fox.module.MandatoryDisplayOption;
+import net.foxopen.fox.module.evaluatedattributeresult.BooleanAttributeResult;
+import net.foxopen.fox.module.fieldset.fieldmgr.FieldMgr;
+import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.GenericAttributesEvaluatedPresentationNode;
+import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.behaviour.DOMPagerBehaviour;
+import net.foxopen.fox.module.parsetree.presentationnode.GenericAttributesPresentationNode;
+import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
+import net.foxopen.fox.module.serialiser.widgets.WidgetType;
+import net.foxopen.fox.track.Track;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
+
+/**
+ * Attempt to evaluate data when marked up with list cardinality in the schema
+ */
+public class EvaluatedNodeInfoList extends EvaluatedNodeInfoGeneric {
+  private final List<EvaluatedNodeInfo> mChildren = new LinkedList<>();
+
+  private final List<EvaluatedNodeInfo> mPotentialColumns = new LinkedList<>();
+  private final Set<NodeInfo> mNonCollapsibleColumns = new HashSet<>();
+
+  private final String mExternalFoxId;
+  private final boolean mIsNestedList;
+
+  public EvaluatedNodeInfoList(EvaluatedNode pParent, GenericAttributesEvaluatedPresentationNode<? extends GenericAttributesPresentationNode> pEvaluatedPresentationNode, NodeEvaluationContext pNodeEvaluationContext, NodeVisibility pNodeVisibility, NodeInfo pNodeInfo) {
+    super(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, pNodeVisibility, pNodeInfo);
+
+    // FOX4 and below did not support lists in forms, FOX5 has NodeAttribute.ENABLE_LISTS_IN_FORMS to enable this new behaviour
+    if (checkAncestry(WidgetBuilderType.FORM)) {
+      BooleanAttributeResult lEnableListsInForms = getBooleanAttributeOrNull(NodeAttribute.ENABLE_LISTS_IN_FORMS);
+      if (lEnableListsInForms != null && lEnableListsInForms.getBoolean()) {
+        mIsNestedList = true;
+        Track.debug("NestedList-ENABLED", "Found a list nested in a form: " + getIdentityInformation());
+      }
+      else {
+        mIsNestedList = false;
+        super.setVisibility(NodeVisibility.DENIED);
+        Track.debug("NestedList-DISABLED", "Found a list nested in a form: " + getIdentityInformation());
+      }
+    }
+    else {
+      mIsNestedList = false;
+    }
+
+    mExternalFoxId = getEvaluatedParseTree().getFieldSet().getExternalFoxId(pNodeEvaluationContext.getDataItem());
+
+    // Use the model dom to find all possible columns
+    DOMList lModelDOMListChildren = pNodeInfo.getModelDOMElem().getChildElements().get(0).getChildElements();
+
+    Track.pushDebug("ListEvalNodeInfo", "Getting a list of possible columns");
+    try {
+      // Go into the list data and use the first "row" as the context when evaluating columns to find out possible columns
+      DOMList lContainerChildren = getNodeEvaluationContext().getDataItem().getChildElements();
+      DOM lContainerDOM = null;
+      if (lContainerChildren != null && lContainerChildren.size() > 0) {
+        lContainerDOM = lContainerChildren.get(0);
+      }
+
+      for (DOM lModelDOMItem : lModelDOMListChildren) {
+        NodeInfo lChildNodeInfo = super.getEvaluatedParseTree().getModule().getNodeInfo(lModelDOMItem);
+        NAMESPACE_CHECK_LOOP:
+        for (String lNameSpace : super.getNamespacePrecedenceList()) {
+          if (lChildNodeInfo.getNamespaceExists(lNameSpace)) {
+            DOM lItemDOM = null;
+            if (lContainerDOM != null) {
+              // For phantoms the "item" (aka data element) is the containing element
+              if ("phantom".equals(lChildNodeInfo.getDataType())) {
+                lItemDOM = lContainerDOM;
+              }
+              else {
+                lItemDOM = lContainerDOM.get1EOrNull(lChildNodeInfo.getName());
+              }
+            }
+
+            // Construct NodeEvaluationContext for the column
+            NodeEvaluationContext lNodeInfoEvaluationContext = getNodeEvaluationContext();
+            if (lItemDOM != null && lContainerDOM != null) {
+              lNodeInfoEvaluationContext = NodeEvaluationContext.createNodeInfoEvaluationContext(getEvaluatedParseTree(),
+                getEvaluatedPresentationNode(), lItemDOM, lContainerDOM, null, lChildNodeInfo.getNamespaceAttributeTable(),
+                this.getNamespacePrecedenceList(), this.getNodeEvaluationContext());
+            }
+            else {
+              lNodeInfoEvaluationContext = NodeEvaluationContext.createNodeInfoEvaluationContext(getEvaluatedParseTree(),
+                getEvaluatedPresentationNode(), lNodeInfoEvaluationContext.getDataItem(),
+                lNodeInfoEvaluationContext.getEvaluateContextRuleItem(), null, lChildNodeInfo.getNamespaceAttributeTable(),
+                this.getNamespacePrecedenceList(), this.getNodeEvaluationContext());
+            }
+
+            //  EvaluatedNodeInfo for the column, ignoring visibility
+            EvaluatedNodeInfoStub lEvaluatedNode = new EvaluatedNodeInfoStub(this,
+              getEvaluatedPresentationNode(), lNodeInfoEvaluationContext, NodeVisibility.VIEW, lChildNodeInfo);
+
+            // Add it to the list of possible columns if it has an ro/edit defined that could potentially be turned on
+            if (isColumnEditOrRo(lNodeInfoEvaluationContext)) {
+              mPotentialColumns.add(lEvaluatedNode);
+            }
+            break NAMESPACE_CHECK_LOOP;
+          }
+        }
+      }
+      Collections.sort(mPotentialColumns, DisplayOrderComparator.getInstance());
+
+      // Evaluate and add all the children of the list (the rows)
+      addChildren();
+    }
+    finally {
+      Track.pop("ListEvalNodeInfo");
+    }
+  }
+
+  /**
+   * Test if a NodeEvaluationContext has an edit or ro attribute defined on it within the current list of enabled
+   * namespaces (for the list), not caring what the attributes evaluate to
+   *
+   * @param pColumnContext Context for a column node
+   * @return True if the column has an edit or ro attribute defined on it within the current list of enabled namespaces
+   */
+  private boolean isColumnEditOrRo(NodeEvaluationContext pColumnContext) {
+    for (String lListNamespaceItem : super.getNamespacePrecedenceList()) {
+      if (pColumnContext.hasNodeAttribute(lListNamespaceItem, NamespaceFunctionAttribute.RO.getExternalString())
+        || pColumnContext.hasNodeAttribute(lListNamespaceItem, NamespaceFunctionAttribute.EDIT.getExternalString())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * This method should be called after constructing an EvaluatedNodeInfoList to potentially swap it out with an empty
+   * list buffer if the list is empty and one is defined.
+   *
+   * @param pEvaluatedNodeInfoList
+   * @return The EvaluatedNodeInfoList or an EvaluatedNodeInfoPhantomBufferItem for the EmptyListBuffer attribute
+   */
+  public static EvaluatedNodeInfo getListOrEmptyBuffer(EvaluatedNodeInfoList pEvaluatedNodeInfoList) {
+    if (pEvaluatedNodeInfoList != null && pEvaluatedNodeInfoList.getChildren().size() == 0 && !XFUtil.isNull(pEvaluatedNodeInfoList.getStringAttribute(NodeAttribute.EMPTY_LIST_BUFFER))) {
+      return new EvaluatedNodeInfoPhantomBufferItem(pEvaluatedNodeInfoList.getParent()
+                                                    , pEvaluatedNodeInfoList.getEvaluatedPresentationNode()
+                                                    , pEvaluatedNodeInfoList.getNodeEvaluationContext()
+                                                    , pEvaluatedNodeInfoList.getVisibility()
+                                                    , pEvaluatedNodeInfoList.getNodeInfo()
+                                                    , NodeAttribute.EMPTY_LIST_BUFFER
+                                                    , NodeAttribute.EMPTY_LIST_BUFFER_ATTACH_DOM);
+    }
+
+    return pEvaluatedNodeInfoList;
+  }
+
+  /**
+   * Loop through the data elements below this item, evaluate them and add them as children of this object in the EvaluatedNode tree
+   */
+  void addChildren() {
+    DOMList lChildren = getDataItem().getChildElements();
+
+    //If a DOM pager was specified on the SetOutPresentationNode, use it to filter the list.
+    //NOTE: this relies on this ENI being created from an EvaluatedSetOutPresentationNode
+    DOMPager lDOMPager = getEPNBehaviour(DOMPagerBehaviour.class).getDOMPagerOrNull();
+    if(lDOMPager != null) {
+      lChildren = lDOMPager.trimDOMListForCurrentPage(getEvaluatedParseTree().getRequestContext(), lChildren);
+    }
+
+    for (DOM lChild : lChildren) {
+      NodeInfo lChildNodeInfo = getEvaluatedParseTree().getModule().getNodeInfo(lChild);
+      if (lChildNodeInfo != null) {
+        NAMESPACE_CHECK_LOOP: for (String lNameSpace : getNamespacePrecedenceList()) {
+          if (lChildNodeInfo.getNamespaceExists(lNameSpace)) {
+            // Context changed to the record item under list
+            NodeEvaluationContext lNodeEvaluationContext = NodeEvaluationContext.createNodeInfoEvaluationContext(getEvaluatedParseTree(), getEvaluatedPresentationNode(), lChild, lChild, null, lChildNodeInfo.getNamespaceAttributeTable(), this.getNamespacePrecedenceList(), this.getNodeEvaluationContext());
+            EvaluatedNodeInfo lEvaluatedNodeInfo = EvaluatedNodeFactory.createEvaluatedNodeInfo(this, getEvaluatedPresentationNode(), lNodeEvaluationContext, lChildNodeInfo);
+            if (lEvaluatedNodeInfo != null && lEvaluatedNodeInfo.getVisibility() != NodeVisibility.DENIED) {
+              addChild(lEvaluatedNodeInfo);
+              break NAMESPACE_CHECK_LOOP;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Get the ordered list of potential Columns
+   *
+   * @return
+   */
+  public List<EvaluatedNodeInfo> getPotentialColumns() {
+    return Collections.unmodifiableList(mPotentialColumns);
+  }
+
+  /**
+   * Items (columns) in a row can add their NodeInfo to their list to mark it as actually existing when there's content
+   * or phantom information to display. This is used to hide "empty" columns when NodeAttribute.COLLAPSE_COLUMNS is enabled
+   *
+   * @param pNodeInfo NodeInfo object for the column that should be marked as non-collapsible
+   */
+  public void registerNonCollapsibleColumn(NodeInfo pNodeInfo) {
+    mNonCollapsibleColumns.add(pNodeInfo);
+  }
+
+  /**
+   * Test to see if a column was marked as non-collapsible
+   *
+   * @param pNodeInfo NodeInfo for a potentially non-collapsible column
+   * @return
+   */
+  public boolean isNonCollapsibleColumn(NodeInfo pNodeInfo) {
+    return mNonCollapsibleColumns.contains(pNodeInfo);
+  }
+
+  /**
+   * Get a count of the non-collapsible columns that have been registered on this list
+   *
+   * @return Size of the mNonCollapsibleColumns list
+   */
+  public int getNonCollapsibleColumnCount() {
+    return mNonCollapsibleColumns.size();
+  }
+
+  @Override
+  protected WidgetType getWidgetType() {
+    return WidgetType.fromBuilderType(WidgetBuilderType.LIST);
+  }
+
+  @Override
+  public FieldMgr getFieldMgr() {
+    throw new ExInternal(getIdentityInformation() + " cannot provide a FieldMgr - only applicable to items, actions and cellmates");
+  }
+
+  @Override
+  public String getExternalFieldName() {
+    return null;
+  }
+
+  /**
+   * Lists don't have any data to be mandatory/optional about
+   * @return MandatoryDisplayOption.NONE
+   */
+  @Override
+  public MandatoryDisplayOption getMandatoryDisplay() {
+    return MandatoryDisplayOption.NONE;
+  }
+
+  @Override
+  public String getExternalFoxId() {
+    return mExternalFoxId;
+  }
+
+  @Override
+  public List<EvaluatedNodeInfo> getChildren() {
+    return mChildren;
+  }
+
+  @Override
+  public void addChild(EvaluatedNodeInfo pEvaluatedNode) {
+    mChildren.add(pEvaluatedNode);
+  }
+
+  /**
+   * @return true when the list is nested in a form and nested lists in forms is enabled
+   */
+  public boolean isNestedList() {
+    return mIsNestedList;
+  }
+}

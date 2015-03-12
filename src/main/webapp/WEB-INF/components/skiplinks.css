@@ -1,0 +1,21 @@
+#accessibility_sliver{
+       position: absolute;
+       left: -999em;
+       width: 990em;     
+}
+
+#accessibility_sliver a:focus, 
+#accessibility_sliver a:active, 
+#accessibility_sliver a:hover{   
+  position: absolute;
+  z-index: 999;
+  left: 999em;
+  top: 80px;
+  width: auto;
+  font-weight: bold;
+  color: #444444;
+  margin: 5px;
+  padding: 15px;
+  border: 3px #444444 solid;
+  background-color: #ffffff;
+}

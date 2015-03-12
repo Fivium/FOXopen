@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xs:element name="prefs">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="CATEGORY_LIST">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="CATEGORY" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:all>
+                    <xs:element name="CATEGORY_NAME">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:minLength value="1"/>
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element name="PREFERENCE_LIST">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="PREFERENCE" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                              <xs:all>
+                                <xs:element name="NAME">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                      <xs:minLength value="1"/>
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element name="VALUE"/>
+                              </xs:all>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                      <xs:unique name="unique_preference_name">
+                        <xs:selector xpath="./PREFERENCE"/>
+                        <xs:field xpath="NAME"/>
+                      </xs:unique>
+                    </xs:element>
+                  </xs:all>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+          <xs:unique name="unique_category_name">
+            <xs:selector xpath="./CATEGORY"/>
+            <xs:field xpath="CATEGORY_NAME"/>
+          </xs:unique>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="fox-change-number">
+        <xs:simpleType>
+          <xs:restriction base="xs:string"/>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

@@ -1,0 +1,212 @@
+.fileUpload {
+  position: relative;
+}
+
+.fileUpload .filename {
+  margin-bottom: 0.5em;
+}
+
+.fileUpload .progressBar {
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  background: #E1EAF2;
+  border-radius: 4px;
+}
+
+.fileUpload .progressBar {
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  font-weight: 600;
+  position: relative;
+}
+
+.fileUploadInput {
+  display: block;
+  border: none;
+  padding: 0;
+  margin: 0.5em 0;
+  font-size: 1em;
+}
+
+.fileUploadInput::-webkit-file-upload-button,
+.fileUploadInput::-moz-file-upload-button,
+.fileUploadInput::file-upload-button,
+.fileUploadInput::-ms-browse {
+  background: #ffffff;
+  background: -webkit-linear-gradient(bottom,#f7f7f7 0%,#ffffff 100%);
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.07);
+  border: 1px solid #d9d9d9;
+  border-radius: 3px;
+  padding: 0.2em 1em 0.3em 1em;
+  font-size: 1em;
+  font-weight: 500;
+  margin: 0.2em 0;
+  text-decoration: none;
+  cursor: pointer;
+  color: #0979C6;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.fileUploadInput.offscreen {
+  width: 0;
+  height: 0;
+  position: absolute;
+  top: -100px;
+}
+
+.fileUpload.inline .status {
+  font-size: 0.8em;
+  font-style: italic;
+  color: #666;
+}
+
+.fileUpload .timeRemainingContainer,
+.fileUpload .uploadSpeedContainer,
+.fileUpload .statusContainer {
+  display: none;
+}
+
+
+.fileUpload.inline .progressBar {
+  height: 1.5em
+}
+
+.fileUpload.inline .cancelUpload {
+  float: right;
+  top: 2px;
+  position: relative;
+}
+
+
+.fileUpload.modal .fileInfo.currentUpload {
+  z-index: 400;
+  position: relative;
+}
+
+.fileUpload.modalx .progressBar {
+  height: 10px;
+  width: 270px;
+  float: left;
+}
+
+.modalUploadBlocker {
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  position: fixed;
+  display: block;
+  top: 0;
+  left: 0;
+  z-index: 300;
+}
+
+.fileUpload .progressBarPct{
+  color: #fff;
+  min-width: 1.5em;
+  width: 1.5em;
+  background-color: #1065af;
+  padding: 0.2em 0.5em;
+  margin: 0;
+  border-radius: 3px 0 0 3px;
+  height: 1.5em;
+  font-size: 0.8em;
+  word-break: normal;
+}
+
+.fileUpload .replaceFile {
+  padding-left:0.5em;
+}
+
+.fileUpload .errorMessage {
+  color: #cf1111;
+  font-size: 0.8em;
+  margin: 0.3em 0 0.3em 0.3em;
+}
+
+.fileUpload .dropzone {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  box-sizing: border-box;
+  background: #f9f9f9;
+  padding: 0.5em;
+  margin-bottom: 0.2em;
+  border: 1px solid #eee;
+  border-radius: 5px;
+  color: #666;
+}
+
+.fileUpload .dropzone.mouseOver {
+  border-color: #bbb;
+}
+
+body>.dropzone {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  background-color: rgba(0,0,0,0.75);
+  color: rgba(255,255,255,0.7);
+  font-size: 5em;
+  font-weight: 100;
+  text-align: center;
+  z-index: 1000;
+  margin: 0 auto;
+  box-sizing: border-box;
+  display: none;
+}
+
+.dropzone-text-container {
+  display: table;
+  width: 100%;
+  height: 100%;
+}
+
+.dropzone-text {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+body>.dropzone .dropzone-max-files-text {
+  font-size: 0.4em;
+}
+
+ul.fileList {
+  padding:0;
+  list-style-type: none;
+}
+
+.fileUpload .deleteUpload,
+.fileUpload .cancelUpload{
+  padding-right: 0.5em;
+  float: right;
+}
+
+.fileUpload .deleteUpload a,
+.fileUpload .cancelUpload a{
+  text-decoration: none;
+  font-weight: 700;
+  color: #999;
+}
+
+.fileUpload .downloadUrl a {
+  text-decoration: none;
+}
+
+.fileUpload .downloadUrl .filesize {
+  color: #666;
+  font-size: 0.8em;
+  display: inline-block;
+  margin-left: 0.5em;
+}
+
+.fileUpload .fileInfo {
+  background: #f9f9f9;
+  padding: 0.5em;
+  margin-bottom: 0.2em;
+  border: 1px solid #eee;
+  border-radius: 5px;
+}

@@ -1,0 +1,618 @@
+.prompt {
+  font-weight: 600;
+  padding: 0.15em 0em;
+  display: block;
+  text-align: right;
+  float: right;
+}
+
+label {
+  font-weight: 600;
+  display: block;
+  padding: 0.3em 0em;
+  text-align: right;
+}
+
+.prompt.west {
+}
+
+.prompt.north, .leftlabels label, .leftlabels .prompt {
+  text-align: left;
+  float: left;
+  padding-left: 0.3em;
+}
+
+.radio-label {
+  font-weight: inherit;
+  display: inline;
+}
+
+.mand-label {
+  font-weight: 500;
+  font-size: 0.7em;
+  color: #707070;
+  margin-left: 0.3em;
+}
+
+.mand-label .mand-label-block {
+  display: block;
+  margin-top: -0.2em;
+}
+
+.fieldDescription {
+  color: #666;
+  font-size: 0.8em;
+  margin-top: -0.5em;
+  margin-bottom: 1em;
+}
+
+.input-error .fieldDescription {
+  margin-top: 0.55em;
+}
+
+.setoutForm {
+  margin-bottom: 1em;
+}
+
+.setoutForm .row {
+  margin: 0;
+}
+
+.setoutForm input,
+.setoutForm button,
+.setoutForm select,
+.setoutForm textarea,
+.setoutForm .tagger,
+.setoutForm .text-widget,
+.setoutForm .prompt {
+  margin-bottom: 1em;
+}
+
+.tightForm input,
+.tightForm button,
+.tightForm select,
+.tightForm textarea,
+.tightForm .tagger,
+.tightForm .text-widget,
+.tightForm .prompt {
+  margin-bottom: 0.3em;
+}
+
+.setoutForm.noBottomMargin {
+  margin-bottom: 0em;
+}
+
+.prompt.north {
+  margin-bottom: 0;
+  padding-left: 0;
+}
+
+input,
+select,
+textarea,
+button,
+.tagger {
+  border: 1px solid #ccc;
+  padding: 0.3em;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 0.8em;
+  margin-top: 0;
+  border-radius: 3px;
+}
+
+select {
+  padding: 0.2em;
+}
+
+.tagger {
+  padding: 0.3em 0.3em 0.2em 0.3em;
+}
+
+.tagger .intxt {
+  margin: 2px 0 0 0;
+}
+
+.tagger .tag {
+  background-color: #E4F0F9;
+  border-color: #BDD9EF;
+}
+.tagger .tag.tag-single {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.tagger-multiple {
+  padding: 1px;
+}
+
+.tagger-multiple .tag {
+  margin: 0 1px 0 0;
+  padding: 2px 4px;
+}
+
+.tagger.tagger-multiple .intxt {
+  padding: 0.2em 0.3em 0.2em 0.3em;
+}
+
+.tagger-single .suggestions {
+  margin-left: -0.4em;
+  top: 2.1em;
+}
+
+.tagger .removetag-single {
+  padding: 7px 3px 5px 3px;
+}
+
+.tagger .droparrow {
+  padding: 8px 4px 8px 4px;
+}
+
+.tagger .suggestions {
+  border: 1px solid #ccc;
+  margin-left: -5px;
+  margin-top: 2px;
+}
+
+.tagger .suggestions ul li:nth-child(odd) {
+  background: #E4F0F9;
+}
+
+.tagger .suggestions ul li:hover {
+  background: #BDD9EF;
+}
+
+.tagger .tag .removetag {
+  padding: 0 0 0 0.5em;
+}
+
+input[readonly="readonly"],
+input[readonly],
+select[readonly="readonly"],
+select[readonly],
+textarea[readonly="readonly"],
+textarea[readonly] {
+  background: #eee;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.tagger {
+  outline-color: #69CAE8
+}
+
+input[type='text'],
+input[type='password'],
+input[type='date'],
+select,
+textarea,
+.tagger {
+  width: 100%;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}
+
+input[type='text'] {
+  word-break: normal;
+}
+
+input[type='text'].tight-field,
+input[type='password'].tight-field,
+input[type='date'].tight-field,
+select.tight-field,
+textarea.tight-field,
+.tagger.tight-field {
+  width: auto;
+}
+
+input[type='radio'], input[type='checkbox'] {
+  margin: 0 0.6em 0 0;
+  border: none;
+}
+
+.input-group {
+  display: table-row;
+  /*  margin-bottom: 0.8em;*/
+}
+
+.input-group input,
+.input-group select,
+.input-group textarea,
+.input-group .tagger {
+}
+
+.input-group,
+.cellmates {
+  width: 100%;
+}
+
+.input-group-addon {
+  text-align: center;
+  padding: 0.1em 0.2em;
+  font-size: 1em;
+  line-height: 1em;
+  font-family: foundation-icons;
+  display: table-cell;
+  vertical-align: top;
+}
+
+.input-group-addon img {
+  vertical-align: baseline;
+  padding-top: 2px;
+  max-width: none;
+}
+
+.addon-no-border {
+  border: none;
+  background: none;
+}
+
+.hint {
+  padding: 0.25em 0 0 0.25em;
+}
+
+.hint::before {
+  margin: 0;
+  color: #1065AF;
+}
+
+.individual-input {
+  display: block;
+}
+
+.cellmates input,
+.cellmates select,
+.cellmates textarea,
+.cellmates label,
+.cellmates .tagger {
+  display: table-cell;
+  vertical-align: top;
+}
+
+.input-error {
+  border-left: 2px solid #cf1111;
+  margin-bottom: 0.5em;
+  padding-left: 4px;
+}
+
+.input-error input,
+.input-error select,
+.input-error textarea,
+.input-error .tagger {
+  margin-bottom: 0em;
+}
+
+.lt-ie8 .input-error {
+  padding: 0;
+  border: 0;
+}
+
+.error-message {
+  color: #cf1111;
+  font-size: 0.8em;
+  margin: 0.3em 0 0.3em 0.3em;
+}
+
+.error-url {
+  padding-left: 0.3em;
+}
+
+/* Date */
+.date-input-container {
+  position: relative;
+}
+
+.tight-date-input-container {
+  display: inline-block;
+}
+
+.date-input {
+  padding-right: 1.8em;
+}
+
+.date-icon {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 1em;
+  padding: 0.22em 0.3em;
+  cursor: pointer;
+  color: #666;
+}
+
+.date-icon:hover {
+  color: #333;
+}
+
+/********************************************************************************************
+ *
+ * Buttons
+ *
+ ********************************************************************************************/
+button,
+a.button,
+.button {
+  background: #ffffff;
+  background: linear-gradient(#ffffff, #f7f7f7);
+  box-shadow: inset 0 -2px 2px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,0.15), 0 1px 1px rgba(0,0,0,0.03);
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  color: #666;
+  padding: 0.3em 1.3em 0.32em 1.3em;
+  font-size: 1em;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  color: #666;
+  transition: background-image 0.2s, box-shadow 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+
+button:hover,
+.button:hover {
+  background: #f2f2f2;
+  background: linear-gradient(#f2f2f2, #e8e8e8);
+  outline: none;
+}
+
+button:active,
+.button:active {
+  background: #f7f7f7;
+  box-shadow: inset 0 2px 2px rgba(0,0,0,0.03);
+  outline: none;
+}
+
+button[disabled],
+.button[disabled],
+.submit[disabled]{
+  box-shadow: none;
+  background: #e8e8e8;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* Button sizes */
+button.big-button,
+.big-button,
+.big-menu-out button,
+.big-menu-out .button {
+  font-size: 1.2em;
+}
+
+button.small-button,
+.small-button,
+.small-menu-out button,
+.small-menu-out .button {
+  font-size: 0.8em;
+  padding: 0.2em 1em 0.3em 1em;
+  border-radius: 3px;
+}
+
+/* Primary action buttons */
+/* Use these for primary actions that do not affect the state of the data (eg search) */
+button.primary-button,
+a.primary-button,
+.primary-button {
+  background: #0979C6;
+  background: linear-gradient(#0979C6, #096FA8);
+  box-shadow: inset 0 -2px 2px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.10), 0 1px 1px rgba(0,0,0,0.05);
+  color: #fff;
+  border-color: #0C6084;
+}
+
+button.primary-button:hover,
+.primary-button:hover {
+  background: #0769AB;
+  background: linear-gradient(#0769AB, #076090);
+  box-shadow: inset 0 -2px 2px rgba(0,0,0,0.25);
+}
+
+button.primary-button:active,
+.primary-button:active {
+  background: #096FA8;
+  box-shadow: inset 0 2px 2px rgba(0,0,0,0.07);
+}
+
+button[disabled].primary-button,
+.button[disabled].primary-button {
+  box-shadow: none;
+  background: #8AAFC4;
+  border-color: #7FA8B2;
+}
+
+/* Positive action buttons */
+/* Use these for actions that positively affect the state of the data (eg save) */
+button.positive-button,
+a.positive-button,
+.positive-button {
+  background: #0B8433;
+  background: linear-gradient(#0B8433, #096A27);
+  box-shadow: inset 0 -2px 2px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.15), 0 1px 1px rgba(0,0,0,0.05);
+  color: #fff;
+  border-color: #0E722A;
+}
+
+button.positive-button:hover,
+.positive-button:hover {
+  background: #0A762E;
+  background: linear-gradient(#0A762E, #085D22);
+  box-shadow: inset 0 -2px 2px rgba(0,0,0,0.15);
+  border-color: #106623;
+}
+
+button.positive-button:active,
+.positive-button:active {
+  background: #096A27;
+  box-shadow: inset 0 2px 2px rgba(0,0,0,0.05);
+}
+
+button[disabled].positive-button,
+.button[disabled].positive-button {
+  box-shadow: none;
+  background: #7FB28E;
+  border-color: #6D9976;
+}
+
+/* Dangerous action buttons */
+/* Use these for actions that may be dangerous (eg delete) */
+button.danger-button,
+a.danger-button,
+.danger-button {
+  background: #b70f0f;
+  background: linear-gradient(#b70f0f,  #9d1010);
+  box-shadow: inset 0 -2px 2px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.15), 0 1px 1px rgba(0,0,0,0.05);
+  color: #fff;
+  border-color: #9D1010;
+}
+
+button.danger-button:hover,
+.danger-button:hover {
+  background: #aa0e0e;
+  background: linear-gradient(#aa0e0e,  #900d0d);
+  box-shadow: inset 0 -2px 2px rgba(0,0,0,0.15);
+  border-color: #751212;
+}
+
+button.danger-button:active,
+.danger-button:active {
+  background: #9d1010;
+  box-shadow: inset 0 2px 2 rgba(0,0,0,0.15);
+}
+
+button[disabled].danger-button,
+.button[disabled].danger-button {
+  box-shadow: none;
+  background: #D89A9A;
+  border-color: #BF8888;
+}
+
+input[type='image'],
+.image-button,
+.image-button:hover,
+.image-button:active,
+.setoutForm .image-button {
+  border: none;
+  background: none;
+  display: inline;
+  margin: 0;
+  padding: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+/* Button groups */
+ul.grouped {
+  _overflow: hidden;
+  display: inline-table;
+}
+
+ul.grouped li {
+  _float: left;
+  display: table-cell;
+  padding: 0;
+}
+
+ul.grouped button,
+ul.grouped .button {
+  border-radius: 0;
+  border-right-width: 0;
+  margin-right: -4px;
+}
+
+ul.grouped button.small-button,
+ul.grouped .button.small-button,
+ul.grouped.small-menu-out .button,
+ul.grouped.small-menu-out button {
+  margin-right: -1px;
+}
+
+.list-secondary-actions {
+  margin-right: 0;
+}
+
+ul.grouped li:first-of-type button,
+ul.grouped li:first-of-type .button {
+  border-radius: 4px 0 0 4px;
+}
+
+ul.grouped li:last-of-type button,
+ul.grouped li:last-of-type .button {
+  border-radius: 0 4px 4px 0;
+  border-right-width: 1px;
+  margin-right: 0;
+}
+
+ul.grouped li:only-of-type button,
+ul.grouped li:only-of-type .button {
+  border-radius: 4px;
+  border-width: 1px;
+}
+
+span.grouped-button-label {
+  font-weight: bold;
+  padding: 0.3em 1em 0.4em 1em;
+}
+
+span.small-grouped-button-label {
+  font-size: 0.8em;
+  padding: 0.2em 0.8em 0.3em 0.8em;
+}
+
+span.big-grouped-button-label {
+  font-size: 1.2em;
+}
+
+/* Link buttons */
+button.link-button, a.button.link-button, .button.link-button {
+  border: none;
+  text-decoration: none;
+  background: none;
+  box-shadow: none;
+  color: #0979C6;
+}
+
+.link-button:before {
+  color: #666;
+}
+
+/* No-prompt actions (icon only) */
+.no-prompt-action::before {
+  margin: 0;
+}
+
+button.no-prompt-action,
+a.button.no-prompt-action,
+.button.no-prompt-action {
+  padding: 0.31em 1.3em 0.31em 1.3em;
+}
+
+button.small-button.no-prompt-action,
+.small-button.no-prompt-action,
+.small-menu-out button.no-prompt-action,
+.small-menu-out .button.no-prompt-action {
+  padding: 0.25em 1em 0.25em 1em;
+}
+
+ul.grouped .link-button.no-prompt-action {
+  padding-left: 0.3em;
+  padding-right: 0.4em;
+}
+
+button.inline-link-button,
+a.button.inline-link-button,
+.button.inline-link-button {
+  display: inline;
+  padding: 0;
+}
+
+.setoutForm .text-widget {
+  padding: 0.15em 0;
+  display: inline-block;
+}
+
+fieldset {
+  border: 1px solid #ccc;
+  margin: 1em 0;
+  padding: 1em;
+}

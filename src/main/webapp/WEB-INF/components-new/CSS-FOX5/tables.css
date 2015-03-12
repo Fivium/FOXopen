@@ -1,0 +1,213 @@
+.setoutList {
+  width: 100%;
+}
+
+.setoutList th,
+.setoutList td {
+  padding: 1em;
+}
+
+.setoutList th.listPrompt {
+  text-align: center;
+}
+
+.setoutList th {
+  font-weight: 600;
+  text-align: left;
+  vertical-align: bottom;
+  border-bottom: 2px solid #ccc;
+}
+
+.setoutList td {
+  font-size: 0.9em;
+  border-bottom: 1px solid #ccc;
+  vertical-align: top;
+}
+
+.setoutList .nestedList thead,
+.headlessList thead {
+  display: none;
+}
+
+.setoutList .nestedList td,
+.unborderedList td {
+  border-bottom: none;
+  padding: 0 0 0.5em 0;
+  font-size: 1em;
+}
+
+.unborderedList th {
+  border-bottom: none;
+}
+
+.setoutList .nestedListWithHeader thead {
+  display: table-header-group;
+}
+
+.setoutList .nestedListWithHeader th {
+  border-bottom: none;
+  padding: 0 1em 1em 0;
+}
+
+.setoutForm .setoutList th {
+  padding-top: 0;
+}
+
+.nestedList tr:last-child td {
+  padding-bottom: 0;
+}
+
+.setoutList th.headerSortDown::after {
+  content:"\2193";
+  display: block;
+  float: right;
+  font-weight: bold;
+}
+
+.setoutList th.headerSortUp::after {
+  content:"\2191";
+  display: block;
+  float: right;
+  font-weight: bold;
+}
+
+.setoutList tr:last-child td {
+  border-bottom: none;
+}
+
+.setoutList th .hint {
+  display: inline-block;
+}
+
+/* Compact lists */
+.compactList th,
+.compactList td {
+  padding: 0.5em 1em;
+}
+
+.compactList th {
+  font-size: 0.9em;
+  font-weight: 700;
+}
+
+/* Bordered lists */
+.setoutList.borderedList {
+  margin: 1em 0;
+}
+
+.setoutList.borderedList th {
+  background: #ddd;
+  border: none;
+}
+
+.setoutList.borderedList tr td {
+  border: 1px solid #ddd;
+}
+
+/* Nested forms */
+.setoutList .setoutForm,
+.setoutList .setoutForm input,
+.setoutList .setoutForm select,
+.setoutList .setoutForm textarea,
+.setoutList .setoutForm .tagger,
+.setoutList .setoutForm .text-widget,
+.setoutList .setoutForm .prompt {
+  margin-bottom: 0;
+}
+
+.setoutList input[type='button'],
+.setoutList .button {
+  margin: 0.1em 0.2em;
+}
+
+.setoutList .column,
+.setoutList .columns {
+  word-break: normal;
+}
+
+/* Extra info in list cell */
+.setoutList td.list-extra-info,
+.list-extra-info {
+  font-size: 0.8em;
+  color: #666;
+}
+/* Responsive tables */
+@media screen and (max-width: 799px) {
+  table.responsiveList, .responsiveList thead, .responsiveList tbody, .responsiveList th, .responsiveList td, .responsiveList tr {
+    display: block;
+  }
+
+  .responsiveList thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  .responsiveList tr {
+    border-bottom: 1px solid #ccc;
+    padding: 1em 0;
+  }
+
+  .responsiveList td {
+    border: none;
+  }
+
+  .responsiveList th,
+  .responsiveList td {
+    padding: 0.3em 0;
+  }
+
+  .responsiveList td:before {
+    content: attr(data-title);
+    font-weight: 700;
+    margin-right: 1em;
+    width: 30%;
+    display: inline-block;
+    vertical-align: top;
+    text-align: right;
+  }
+}
+
+/* Pagination */
+.pager {
+  padding-left: 0;
+}
+
+.pager li {
+  display: inline-block;
+}
+
+.pager li a {
+  display: block;
+}
+
+.pager li a, .pager li.disabled , .pager li.current-page  {
+  width: 2.5em;
+  height: 2.5em;
+  text-decoration: none;
+  text-align: center;
+  line-height: 2.5em;
+}
+
+.pager a:hover {
+  background: #eee;
+}
+
+.pager .current-page {
+  color: #fff;
+  background: #0979C6;
+}
+
+/* Result count */
+.result-count {
+  text-align: right;
+  color: #999;
+  font-size: 0.8em;
+  padding: 1em 0;
+}
+
+.list-actions .result-count {
+  margin-top: 0.2em;
+  float: right;
+  padding: 0;
+}

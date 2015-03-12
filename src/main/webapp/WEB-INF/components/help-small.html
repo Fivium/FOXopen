@@ -1,0 +1,33 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <title>Bang Handler Help</title>
+  </head>
+  <body>
+    <h1>Bang Handler Help</h1>
+    <dl>
+      <dt><strong>!$(BANGHANDLER)</strong></dt>
+      <dd>Processes the bang handler but won't serialise tracks to DB, unless an exception is thrown</dd>
+      <dt><strong>!ABOUT</strong></dt>
+      <dd>Shows information about FOX and third party libraries used</dd>
+      <dt><strong>!BUSYRESET</strong></dt>
+      <dd>Resets the foreground busy status of the job agent and displays "BUSYRESET Success. BUSY=[true|false]" depending on whether the job agent is foreground is now busy or not</dd>
+      <dt><strong>!COMPOSITE-IMAGE?images=img1;img2[&app_mnem=AppMnem]</strong></dt>
+      <dd>Combines a list of images on top of each other to create a composite image</dd>
+      <dt><strong>!HELP</strong></dt>
+      <dd>This page, or if logged in it'll show other commands</dd>
+      <dt><strong>!LOGIN</strong></dt>
+      <dd>Displays a login form. Logging in allows use of the restricted bang handlers</dd>
+      <dt><strong>!SHOWBUSY</strong></dt>
+      <dd>Displays "BUSY=[true|false]" depending on whether the job agent is foreground busy or not</dd>
+      <dt><strong>!SHOWSTATS</strong></dt>
+      <dd>Displays the stats DOM</dd>
+      <dt><strong>!STATUS-IMAGE[/img]/(Literal String)&(Literal String)&(Literal String)[&(Literal String)]</strong></dt>
+      <dd>Returns the status of the image matching the given parameters, including a link to the image if the processing is done</dd>
+      <dt><strong>!VALIDATE/ModuleWildcard[/AppMnem]</strong></dt>
+      <dd>Checks wildcarded modules for errors</dd>
+    </dl>
+  </body>
+</html>

@@ -1,0 +1,169 @@
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+      version="3.0">
+  <display-name>FOXopen</display-name>
+  <description>FOXopen web configuration</description>
+  <filter>
+    <description>Handle errors with a filter as a last resort catch-all</description>
+    <display-name>Error Handler Filter</display-name>
+    <filter-name>ErrorHandlerFilter</filter-name>
+    <filter-class>net.foxopen.fox.entrypoint.filter.ErrorHandlerFilter</filter-class>
+  </filter>
+  <filter>
+    <description>Logs all requests passing through this filter to a database table</description>
+    <display-name>Request log filter</display-name>
+    <filter-name>RequestLogFilter</filter-name>
+    <filter-class>net.foxopen.fox.entrypoint.filter.RequestLogFilter</filter-class>
+  </filter>
+  <filter>
+    <description>Switch the request encoding to a parameter from the servlet config if none given from the client</description>
+    <display-name>Encoding Filter</display-name>
+    <filter-name>EncodingFilter</filter-name>
+    <filter-class>net.foxopen.fox.entrypoint.filter.RequestEncodingFilter</filter-class>
+    <init-param>
+      <description>Default encoding to assume requests come in with if none specified</description>
+      <param-name>defaultRequestEncoding</param-name>
+      <param-value>UTF-8</param-value>
+    </init-param>
+  </filter>
+  <filter>
+    <description>Add default security headers, like x-frame-origins and x-xss-protection, as well as others from the app config if defined</description>
+    <display-name>AddHeaders Filter</display-name>
+    <filter-name>AddHeadersFilter</filter-name>
+    <filter-class>net.foxopen.fox.entrypoint.filter.SecurityHeadersFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>RequestLogFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>ErrorHandlerFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>AddHeadersFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>EncodingFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <servlet>
+    <description>Servlet to manage FOXopen startup</description>
+    <display-name>FOX Boot</display-name>
+    <servlet-name>FOXBoot</servlet-name>
+    <servlet-class>net.foxopen.fox.entrypoint.servlets.FoxBootServlet</servlet-class>
+    <load-on-startup>0</load-on-startup>
+  </servlet>
+  <servlet>
+    <description>Primary servlet for processing FOX requests</description>
+    <display-name>FOX Main</display-name>
+    <servlet-name>FOXMain</servlet-name>
+    <servlet-class>net.foxopen.fox.entrypoint.servlets.FoxMainServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet>
+    <description>Servlet for serving out static resources, such as images, CSS, and JS</description>
+    <display-name>Static</display-name>
+    <servlet-name>Static</servlet-name>
+    <servlet-class>net.foxopen.fox.entrypoint.servlets.StaticServlet</servlet-class>
+    <load-on-startup>2</load-on-startup>
+  </servlet>
+  <servlet>
+    <description>Handle htmlgen runtime errors which need to redirect</description>
+    <display-name>Error</display-name>
+    <servlet-name>ErrorServlet</servlet-name>
+    <servlet-class>net.foxopen.fox.entrypoint.servlets.ErrorServlet</servlet-class>
+    <load-on-startup>99</load-on-startup>
+  </servlet>
+  <servlet>
+    <description>Servlet for handling FOX thread file uploads</description>
+    <display-name>Upload Servlet</display-name>
+    <servlet-name>FOXUpload</servlet-name>
+    <servlet-class>net.foxopen.fox.filetransfer.UploadServlet</servlet-class>
+  </servlet>
+  <servlet>
+    <description>Servlet for handling FOX thread file downloads</description>
+    <display-name>Download Servlet</display-name>
+    <servlet-name>FOXDownload</servlet-name>
+    <servlet-class>net.foxopen.fox.download.DownloadServlet</servlet-class>
+  </servlet>
+  <servlet>
+    <description>Entry point for all web service requests</description>
+    <display-name>Web Service Handler</display-name>
+    <servlet-name>WebService</servlet-name>
+    <servlet-class>net.foxopen.fox.entrypoint.ws.WebServiceServlet</servlet-class>
+  </servlet>
+  <servlet>
+    <description>Entry point for all temp resource requests</description>
+    <display-name>Temp Resources</display-name>
+    <servlet-name>TempResource</servlet-name>
+    <servlet-class>net.foxopen.fox.entrypoint.servlets.TempResourceServlet</servlet-class>
+  </servlet>
+  <servlet>
+    <description>Entry point for all temp resource requests</description>
+    <display-name>Bang Handler</display-name>
+    <servlet-name>BangHandler</servlet-name>
+    <servlet-class>net.foxopen.fox.banghandler.BangHandlerServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>FOXMain</servlet-name>
+    <url-pattern>/fox</url-pattern>
+    <url-pattern>/fox/*</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>FOXUpload</servlet-name>
+    <url-pattern>/upload</url-pattern>
+    <url-pattern>/upload/*</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>FOXDownload</servlet-name>
+    <url-pattern>/download</url-pattern>
+    <url-pattern>/download/*</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>FOXBoot</servlet-name>
+    <url-pattern>/foxboot</url-pattern>
+    <url-pattern>/foxboot/*</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>Static</servlet-name>
+    <url-pattern>/static</url-pattern>
+    <url-pattern>/static/*</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>ErrorServlet</servlet-name>
+    <url-pattern>/error</url-pattern>
+    <url-pattern>/error/*</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>WebService</servlet-name>
+    <url-pattern>/ws</url-pattern>
+    <url-pattern>/ws/*</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>TempResource</servlet-name>
+    <url-pattern>/temp</url-pattern>
+    <url-pattern>/temp/*</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>BangHandler</servlet-name>
+    <url-pattern>/handle</url-pattern>
+    <url-pattern>/handle/*</url-pattern>
+  </servlet-mapping>
+  <session-config>
+    <session-timeout>200</session-timeout>
+  </session-config>
+  <mime-mapping>
+    <extension>html</extension>
+    <mime-type>text/html</mime-type>
+  </mime-mapping>
+  <mime-mapping>
+    <extension>txt</extension>
+    <mime-type>text/plain</mime-type>
+  </mime-mapping>
+  <error-page>
+    <location>/error.html</location>
+  </error-page>
+</web-app>

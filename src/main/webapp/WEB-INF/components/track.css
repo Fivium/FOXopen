@@ -1,0 +1,124 @@
+body
+          {
+            font-family: "Arial";
+            color: #000;
+            font-size: 12px;
+          }
+
+          h1, h2
+          {
+            color: #000;
+            width: 100%;
+            border-bottom: 2px solid #000;
+            margin-top: 40px;
+          }
+
+          h1
+          {
+            font-size: 20px;
+          }
+
+          table
+          {
+            font-size: 12px;
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+          }
+
+          table th
+          {
+            font-size: 14px;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-bottom: 1px solid #000;
+          }
+
+          table td, a, a:visited, a:active
+          {
+            color: #444;
+            text-decoration: none;
+          }
+
+          table td
+          {
+            border-bottom: 1px solid #ccc;
+            padding: 3px 8px;
+          }
+
+          table tbody .clickabletr:hover td, a:hover, .queryApiName:hover
+          {
+            color: #000;
+            text-decoration: none;
+          }
+
+          table td pre
+          {
+            color: #444;
+          }
+
+          #numberCol
+          {
+            width: 75px;
+          }
+
+          #initialAction
+          {
+            background-color: #ddd;
+          }
+
+          #autoAction
+          {
+            background-color: #edd;
+          }
+
+          #actionBegin
+          {
+            font-weight: bold;
+            color: #000;
+          }
+
+          #newModule
+          {
+            background-color: #ded;
+          }
+
+          .queryApiName
+          {
+            padding-left: 5px;
+            font-style: italic;
+            color: #666;
+          }
+
+          .clickabletr {
+            cursor: pointer;
+          }
+
+          .expandCollapseControls {
+            padding-top: 0px;
+            margin-bottom: 15px;
+          }
+
+          .spacer {
+            display: inline;
+            margin-left: 8px;
+            margin-right: 8px;
+          }
+          .jumpMenu {
+            border-top: 1px solid black;
+            border-bottom: 1px solid black;
+            padding: 5px;
+            margin: 0px;
+            font-size: 12px;
+            background-color: #eee;
+            font-weight: bold;
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            z-index: 1;
+          }
+          .jumpMenu a {
+            font-weight: normal;
+            margin: 0px 2px 0px 2px;
+          }

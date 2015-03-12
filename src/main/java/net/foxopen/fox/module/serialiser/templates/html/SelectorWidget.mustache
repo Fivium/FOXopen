@@ -1,0 +1,5 @@
+<select id="{{FieldName}}" name="{{FieldName}}"{{#Multiple}} multiple="multiple"{{/Multiple}}{{#Readonly}} disabled="disabled"{{/Readonly}}{{#Size}} size="{{Size}}"{{/Size}}{{> ClassAttribute}}{{> StyleAttribute}}{{> AriaMandatoryAttribute}}{{> ReadOnlyAttribute}}{{> OnChangeAttribute}}{{> HasHintDataAttribute}}{{> AriaAccessiblePromptAttribute}}>
+{{#Options}}
+  <option value="{{Value}}"{{#Selected}} selected="selected"{{/Selected}}{{#Disabled}} disabled="disabled"{{/Disabled}}>{{Key}}</option>
+{{/Options}}
+</select>

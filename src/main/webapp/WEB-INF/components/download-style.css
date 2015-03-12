@@ -1,0 +1,126 @@
+/* Generic */
+#downloadHelper {
+  position: fixed;
+  top: 30px;
+  right: 30px;
+  color: #ffffff;
+  font-size: 11pt; 
+  padding: 0 0 12px 12px;    
+  background: url(../img/download-helper-background) top left repeat-x #000000;
+}
+.downloadButton {
+  margin: 3px;
+  color: black;
+  clear: both;
+  border: 1px solid #555555;
+  background: white;
+  width: 10px;
+  height: 10px;
+}
+
+
+/* Might want to customise for different systems */
+#downloadHelperConfig {
+  position: fixed;
+  top: 30px;
+  right: 30px;
+  color: #ffffff;  
+  padding: 0 0 12px 12px; 
+  font-size: 11pt; 
+  background: url(../img/download-config-background) top left repeat-x #000000;
+}
+#downloadHelperConfig #downloadHelperText {
+  cursor: pointer;
+}
+
+.downloadHelperClose {
+  background: url(../img/download-close) no-repeat;
+  cursor: pointer;
+  width: 9px;
+  height: 8px;
+  float: right;
+  margin: 6px 6px 0 0;
+}
+
+#downloadHelperIcon {
+  background: url(../img/download-icon) no-repeat;
+  width: 28px;
+  height: 24px;
+  margin: 17px 10px 0 0;
+  float: left;
+}
+
+#downloadHelperText {
+  float: left;
+  margin: 12px 12px 0 0;
+}
+
+#downloadHelper h2, 
+#downloadHelperConfig h2 {
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
+
+#downloadHelper p {
+}
+
+p.downloadHelperTopText {
+  width: 320px;
+}
+
+p.downloadHelperBottomText {
+  width: 320px;
+}
+
+#downloadHelper ul {
+  font-size: 10pt;
+  margin: 0 0 10px 0;
+  padding: 0 0 0 2em;
+}
+
+#downloadHelper ul li {
+  margin: 0;
+  padding: 0;
+  word-wrap: break-word;
+}
+
+#downloadHelper ul li a {
+  color: #ffffff;
+}
+
+#downloadHelperRemoveCookie {
+  cursor: pointer;
+  color: #cccccc;
+  text-decoration: underline;
+  display: inline;
+  margin-left: 0.5em;
+}
+
+.clearBoth {
+  clear: both;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/*
+ * Commonly-used IE hack for position: fixed;
+*/
+* html #downloadHelper, * html #downloadHelperConfig {
+  position: absolute;
+  top:expression(eval(document.compatMode &&
+  document.compatMode=='CSS1Compat') ?
+  documentElement.scrollTop
+  + 30
+  : document.body.scrollTop
+  + 30);
+}
+
+* html #downloadHelperConfig {
+  width: 360px;
+}
+
+* html #downloadHelper {
+  width: 400px;
+}

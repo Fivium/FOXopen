@@ -1,0 +1,31 @@
+.clv-hide-visibility-contents *,
+.clv-hide-visibility {
+  visibility: hidden !important;
+}
+
+.clv-hide-display-contents *,
+.clv-hide-display {
+   display: none !important;
+}
+
+.clv-hide-display-contents {
+   min-height: 0px !important;
+   font-size: 0 !important;
+   line-height: 0 !important;
+}
+
+/* Force tagger hidden selectors to always be hidden */
+.tagger-hidden {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Tagger loading input needs to be visible when the page renders, otherwise the CSS width cannot be determined by tagger js - this element is removed on page load
+   Same for HTMLarea and tinyMCE - the original input needs to be "visible" at load time otherwise its size can't be determined */
+.tagger-loading, .htmltextarea {
+  display: block !important;
+  visibility: visible !important;
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+}

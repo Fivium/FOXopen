@@ -1,0 +1,113 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css">
+      #contextList {
+        list-style-type: none;
+        margin: 0px;
+        padding: 0px;
+      }
+    </style>
+    <script type="text/javascript" src="%JQUERY%"></script>
+    <script type="text/javascript">
+      var ctxtCount = 0;
+      function addConext() {
+        ctxtCount++;
+
+        var listItem = document.createElement('li');
+        listItem.setAttribute('id', 'li'+ctxtCount);
+
+        var ctxtLabelInput = document.createElement('input');
+        ctxtLabelInput.type = 'text';
+        ctxtLabelInput.name = 'ctxtLabel'+ctxtCount;
+        ctxtLabelInput.id = 'ctxtLabel'+ctxtCount;
+        ctxtLabelInput.size = '8';
+        listItem.appendChild(ctxtLabelInput);
+
+        var ctxtXpathInput = document.createElement('input');
+        ctxtXpathInput.type = 'text';
+        ctxtXpathInput.name = 'ctxtXpath'+ctxtCount;
+        ctxtXpathInput.id = 'ctxtXpath'+ctxtCount;
+        ctxtXpathInput.size = '100';
+        listItem.appendChild(ctxtXpathInput);
+
+        var removeLink = document.createElement('a');
+        removeLink.setAttribute('id', 'rem'+ctxtCount);
+        removeLink.setAttribute('href', '#');
+        removeLink.setAttribute('onclick', 'javascript:removeContext('+ctxtCount+');return false;');
+        removeLink.innerHTML='[X]';
+        listItem.appendChild(removeLink);
+
+        document.getElementById('contextList').appendChild(listItem);
+
+        reOrderList();
+      }
+      function removeContext(i) {
+        var list = document.getElementById('contextList');
+        list.removeChild(document.getElementById('li'+i));
+        reOrderList();
+      }
+      function reOrderList() {
+        var listNodes = document.getElementById('contextList').childNodes;
+        var i = 0
+        for (i = 0; i < listNodes.length; i++) {
+          oldIndex = listNodes[i].getAttribute('id').substr(2);
+
+          listNodes[i].setAttribute('id', 'li'+i);
+
+          ctxtLabelInput = document.getElementById('ctxtLabel'+oldIndex);
+          ctxtLabelInput.name = 'ctxtLabel'+i;
+          ctxtLabelInput.id = 'ctxtLabel'+i;
+
+          ctxtXpathInput = document.getElementById('ctxtXpath'+oldIndex);
+          ctxtXpathInput.name = 'ctxtXpath'+i;
+          ctxtXpathInput.id = 'ctxtXpath'+i;
+
+          removeLink = document.getElementById('rem'+oldIndex);
+          removeLink.id = 'rem'+i;
+          removeLink.setAttribute('onclick', 'javascript:removeContext('+i+');return false;');
+        }
+        ctxtCount = i;
+      }
+      function getContexts() {
+        var returnString = '';
+        var listNodes = document.getElementById('contextList').childNodes;
+        for (i = 0; i < listNodes.length; i++) {
+          ctxtLabelInput = document.getElementById('ctxtLabel'+i);
+          ctxtXpathInput = document.getElementById('ctxtXpath'+i);
+          returnString += 'ctxtLabel'+i+'='+ctxtLabelInput.value+'&amp;ctxtXpath'+i+'='+ctxtXpathInput.value;
+          if (i != listNodes.length-1) {
+           returnString += '&amp;';
+          }
+        }
+        return returnString;
+      }
+
+      function runInPage() {
+        if($('#xpath').val() != '') {
+          $('#xpresult').attr('src', '!XPATH?' + $('#xp').serialize() + getContexts());
+        }
+        return false;
+      }
+    </script>
+    <title>XPath Runner</title>
+  </head>
+  <body>
+    <form name="xp" id="xp" method="post" action="">
+      <select name="query_type">
+        <option selected="selected" value="xpath">XPath</option>
+        <option value="xquery">XQuery</option>
+      </select>:
+      <br/>
+      <textarea name="xpath" id="xpath" cols="90" rows="15"></textarea>
+      <br/>
+      <input type="hidden" name="thread_id" value="%THREAD_ID%"/>
+      <input type="button" onclick="javascript:runInPage();" value="Run In Page" />
+      <input type="submit" value="Run" onclick="document.xp.context_count.value=ctxtCount;" />
+      <input type="hidden" name="context_count" value="0"/>
+      <input type="button" onclick="addConext();return false;" value="Add Context" />
+      <ul id="contextList"></ul>
+    </form>
+    <iframe id="xpresult" src="" frameborder="0" vspace="0" scrolling="yes" width="100%" height="400px"/>
+  </body>
+</html>

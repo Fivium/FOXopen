@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2012 sp1 (http://www.altova.com) by Tom (Tom) -->
+<xs:schema xmlns:fm="http://www.og.dti.gov/fox_module" xmlns:error="http://www.og.dti.gov/fox_global" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" version="$Header$">
+  <xs:import namespace="http://www.og.dti.gov/fox_module" schemaLocation="fox_module.xsd"/>
+  <xs:complexType name="html-or-fox-html-tags-type" mixed="true">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:group ref="fm:fox-html-tags-grp"/>
+      <xs:group ref="html-tags-grp"/>
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="html-with-attrs-or-fox-html-tags" mixed="true">
+    <xs:complexContent mixed="true">
+      <xs:extension base="html-or-fox-html-tags-type">
+        <xs:attributeGroup ref="html-attrs-grp"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:group name="html-tags-grp">
+    <xs:choice>
+      <xs:element name="html" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="head" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="title" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="meta" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="link" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="script" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="style" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="body" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="p" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="table" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="thead" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="tbody" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="tfoot" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="tr" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="th" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="td" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="img" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="br" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="div" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="span" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="accronym" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="abbr" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="strong" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="em" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="ol" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="ul" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="li" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="dl" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="dt" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="dd" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="hr" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="h1" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="h2" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="h3" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="h4" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="h5" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="h6" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="a">
+        <xs:complexType>
+          <xs:complexContent>
+            <xs:extension base="html-with-attrs-or-fox-html-tags"/>
+          </xs:complexContent>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="sup" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="sub" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="fieldset" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="label" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="legend" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="iframe" type="html-with-attrs-or-fox-html-tags"/>
+    </xs:choice>
+  </xs:group>
+  <xs:attributeGroup name="html-attrs-grp">
+    <xs:attribute name="lang" use="optional"/>
+    <xs:attribute name="clear" use="optional"/>
+    <xs:attribute name="alt" use="optional"/>
+    <xs:attribute name="title" use="optional"/>
+    <xs:attribute name="rel" use="optional"/>
+    <xs:attribute name="href" use="optional"/>
+    <xs:attribute name="height" use="optional"/>
+    <xs:attribute name="width" use="optional"/>
+    <xs:attribute name="size" use="optional"/>
+    <xs:attribute name="class" use="optional"/>
+    <xs:attribute name="style" use="optional"/>
+    <xs:attribute name="src" use="optional"/>
+    <xs:attribute name="type" use="optional"/>
+    <xs:attribute name="colspan" use="optional"/>
+    <xs:attribute name="rowspan" use="optional"/>
+    <xs:attribute name="nowrap" use="optional"/>
+    <xs:attribute name="rules" use="optional"/>
+    <xs:attribute name="summary" use="optional"/>
+    <xs:attribute name="name" use="optional"/>
+    <xs:attribute name="id" use="optional"/>
+    <xs:attribute name="for" use="optional"/>
+    <xs:attribute name="charset" use="optional"/>
+    <xs:attribute name="content" use="optional"/>
+    <xs:attribute name="forceSelfCloseTag" use="optional">
+      <xs:annotation>
+        <xs:documentation>Force the tag to self-close rather than have a full closing tag; only valid on tags with no content.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:attributeGroup>
+  <xs:complexType name="phantom"/>
+  <xs:complexType name="file-type">
+    <xs:annotation>
+      <xs:documentation>The type for uploaded/downloaded files.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="file-id" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>A unique system-generated file identifier.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="filename" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>The name of the file.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="original-file-location" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>The O/S dependent original filesystem location of the file.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="content-type" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>The MIME type of the file content.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="character-encoding" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>If the content type is textual, the character encoding of the data.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="description" type="xs:string" default="Enter your description here.">
+        <xs:annotation>
+          <xs:documentation>A description of the file.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="status">
+        <xs:annotation>
+          <xs:documentation>The status of the file upload.</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="not-started"/>
+            <xs:enumeration value="started"/>
+            <xs:enumeration value="receiving"/>
+            <xs:enumeration value="virus-check"/>
+            <xs:enumeration value="signature-verification"/>
+            <xs:enumeration value="storing"/>
+            <xs:enumeration value="complete"/>
+            <xs:enumeration value="failed"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="status-message" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>A status message depicting the progress of the upload, suitable for display to the user.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="size" type="xs:integer">
+        <xs:annotation>
+          <xs:documentation>The size of the file.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="content" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>If the file content is to be stored inline, the content of the file BASE64 encoded.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="storage-location" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>The storage location of the file, if the content of the file is to be stored externally in a database.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="upload-date" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>The date and time the file was uploaded.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="mapset-rec-list">
+    <xs:sequence>
+      <xs:element name="rec" maxOccurs="unbounded" minOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="key" type="fm:entered-string"/>
+            <xs:element name="data" type="xs:anyType"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="error">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="error-list" error:ro="">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="fox-error" minOccurs="0" maxOccurs="unbounded" error:ro="">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="msg" error:ro=""/>
+                    <xs:element name="reference" minOccurs="0" error:ro=""/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

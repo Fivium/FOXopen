@@ -1,0 +1,17 @@
+<script type="text/javascript">tinyMCE.init({
+  mode: "exact",
+  elements: "{{FieldName}}",
+  theme: "modern",
+  skin: "lightgray-no-icon-font",
+  plugins: "legacyoutput, code, lists, insertdatetime, paste, noneditable, visualchars{{#SpellCheckIcon}}, foxopenspellchecker{{/SpellCheckIcon}}{{#AutoResize}}, autoresize{{/AutoResize}} {{#AdditionalPlugins}}, {{AdditionalPlugins}}{{/AdditionalPlugins}}",
+{{#AutoResize}}
+  {{#AutoResizeMaxHeight}}
+    autoresize_max_height : "{{AutoResizeMaxHeight}}",
+  {{/AutoResizeMaxHeight}}
+{{/AutoResize}}
+{{#Readonly}}
+  readonly : 1,
+{{/Readonly}}
+  toolbar: "{{ToolbarConfig}}",
+{{{AdditionalConfig}}}
+});</script>

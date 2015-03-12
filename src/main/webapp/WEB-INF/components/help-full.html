@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <title>Bang Handler Help</title>
+  </head>
+  <body>
+    <h1>Bang Handler Help</h1>
+    <dl>
+      <dt><strong>!$(BANGHANDLER)</strong></dt>
+      <dd>Processes the bang handler but won't serialise tracks to DB, unless an exception is thrown</dd>
+      <dt><strong>!ABOUT</strong></dt>
+      <dd>Shows information about FOX and third party libraries used</dd>
+      <dt><strong>!BUSYRESET</strong></dt>
+      <dd>Resets the foreground busy status of the job agent and displays "BUSYRESET Success. BUSY=[true|false]" depending on whether the job agent is foreground is now busy or not</dd>
+      <dt><strong>!COMPOSITE-IMAGE?images=img1;img2[&app_mnem=AppMnem]</strong></dt>
+      <dd>Combines a list of images on top of each other to create a composite image</dd>
+      <dt><strong>!HELP</strong></dt>
+      <dd>This page, or if logged in it'll show other commands</dd>
+      <dt><strong>!LOGIN</strong></dt>
+      <dd>Displays a login form. Logging in allows use of the restricted bang handlers</dd>
+      <dt><strong>!SHOWBUSY</strong></dt>
+      <dd>Displays "BUSY=[true|false]" depending on whether the job agent is foreground busy or not</dd>
+      <dt><strong>!SHOWSTATS</strong></dt>
+      <dd>Displays the stats DOM</dd>
+      <dt><strong>!STATUS-IMAGE[/img]/(Literal String)&(Literal String)&(Literal String)[&(Literal String)]</strong></dt>
+      <dd>Returns the status of the image matching the given parameters, including a link to the image if the processing is done</dd>
+      <dt><strong>!VALIDATE/ModuleWildcard[/AppMnem]</strong></dt>
+      <dd>Checks wildcarded modules for errors</dd>
+
+      <dt><strong>!CONFIGURE</strong></dt>
+      <dd>Configure engine boot settings</dd>
+      <dt><strong>!DOCSTART | !DOCSTOP</strong></dt>
+      <dd>Starts and stops the document generation job</dd>
+      <dt><strong>!EM</strong></dt>
+      <dd>Re-generate the local engine mirror files</dd>
+      <dt><strong>!STATUS</strong></dt>
+      <dd>Shows the status of core engine components and currently loaded apps</dd>
+      <dt><strong>!FLUSH</strong></dt>
+      <dd>Flush the component cache, clearing cached modules/images, refreshing the engine mirror and app error pages and also flushing the FOP cache</dd>
+      <dt><strong>!FLUSHDOMCACHE</strong></dt>
+      <dd>Clears the DOM and XPath caches for the app server. </dd>
+      <dt><strong>!FLUSHINTERNAL</strong></dt>
+      <dd>Clears the internal component cache for the app server.</dd>
+      <dt><strong>!FLUSHMAPSET</strong></dt>
+      <dd>Clears the mapset cache for each app mnemonic on the app server.</dd>
+      <dt><strong>!FLUSHTHREAD</strong></dt>
+      <dd>Clears the XThread cache for the app server.</dd>
+      <dt><strong>!FLUSHUPLOAD</strong></dt>
+      <dd>Clears the UploadInfo cache for the app server. Use with caution - this will cancel any uploads which are in progress. </dd>
+      <dt><strong>!GC</strong></dt>
+      <dd>Issues a System.gc() command and then displays "GC success."</dd>
+      <dt><strong>!LOADMASTER</strong></dt>
+      <dd>Reload the resource master</dd>
+      <dt><strong>!PURGE</strong></dt>
+      <dd>Same as !FLUSH but clearing document related caches and calling System.gc();</dd>
+      <dt><strong>!PURGE2</strong></dt>
+      <dd>Same as !PURGE but also doing a !FLUSHTHREAD and !FLUSHMAPSET before the System.gc();</dd>
+      <dt><strong>!REQ</strong></dt>
+      <dd>Shows current fox requests</dd>
+      <dt><strong>!SIGNSTART</strong></dt>
+      <dd>Start the digital signing job</dd>
+      <dt><strong>!SIGNSTOP</strong></dt>
+      <dd>Stop the digital signing job</dd>
+      <dt><strong>!REPORTINGSTART</strong></dt>
+      <dd>Start the jasper reporting job</dd>
+      <dt><strong>!REPORTINGSTOP</strong></dt>
+      <dd>Stop the jasper reporting job</dd>
+      <dt><strong>!SECURITY[/DEFAULT]</strong></dt>
+      <dd>Make the boot security file with optional generation of RSA key for you</dd>
+      <dt><strong>!SETCOUNT/(baseline|disable|enable|full|lax|reset|resetbaseline)</strong></dt>
+      <dd>Command that can be issued to change behaviour of object counting</dd>
+      <dt><strong>!SETINTERNALPASSWORD</strong></dt>
+      <dd>Change the internal password until the engine is restarted</dd>
+      <dt><strong>!SHOWTRACK/(Integer)</strong></dt>
+      <dd>Shows track data with a given history offset.</dd>
+      <dt><strong>!SHOWMASTER</strong></dt>
+      <dd>Shows the resource master currently in use</dd>
+      <dt><strong>!SHOWGROUP</strong></dt>
+      <dd>Shows the server group with the app that docgen processing will use</dd>
+      <dt><strong>!TRACK/(Integer|(++|--|+|-)(FULL|XPATH|SQL))</strong></dt>
+      <dd>If an integer is passed it'll set the track history size to that, else it'll set the mode. ++|-- changes global track modes and sets it locally too, +|- sets/unsets modes.</dd>
+    </dl>
+  </body>
+</html>

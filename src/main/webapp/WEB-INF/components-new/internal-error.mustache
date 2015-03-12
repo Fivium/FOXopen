@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Application Error</title>
+  <style type="text/css">
+    {{{FoxCSS}}}
+    {{{CodeMirrorCSS}}}
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="row">
+      <div class="twelve columns">
+        <h1>Application Error</h1>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="twelve columns">
+        <p>
+          The application has experienced an unexpected error. Please click the browser back button and <a href="javascript: window.history.back()">try again</a>.<br />
+          If this fails, close your browser and try the action again.<br />
+          <br />
+          In the event of further problems, please contact support.
+        </p>
+{{=[[ ]]=}}
+        <p>Error reference: <strong>{{ErrorRef}}</strong></p>
+[[={{ }}=]]
+      </div>
+    </div>
+
+{{=[[ ]]=}}
+{{#ShowDevInfo}}
+    <div class="row">
+      <div class="twelve columns">
+        <h2>Developer Information</h2>
+        <ul class="menu-out grouped flow-across">
+          {{#FlushURL}}<li><a href="{{FlushURL}}" target="_blank" class="button">Flush</a></li>{{/FlushURL}}
+          {{#TrackURL}}<li><a href="{{TrackURL}}" target="_blank" class="button">Track</a></li>{{/TrackURL}}
+        </ul>
+        {{#InternalStackTrace}}
+        <h3>Serious Internal Error Stack Trace</h3>
+        <p>This internal error probably occurred due to configuration being incorrect and should be fixed. It is not related to the error caused by your screen listed below in the Error Stack Trace section.</p>
+        <textarea id="internal-stack-area">{{{InternalStackTrace}}}</textarea>
+        {{/InternalStackTrace}}
+        <h3>Error Stack Trace</h3>
+        <textarea id="error-stack-area">{{{ErrorStackTrace}}}</textarea>
+      </div>
+    </div>
+{{/ShowDevInfo}}
+[[={{ }}=]]
+
+  </div>
+  <script type="text/javascript">
+    {{{CodeMirrorJS}}}
+
+{{=[[ ]]=}}
+{{#ShowDevInfo}}
+    var errorStackEditor = CodeMirror.fromTextArea(document.getElementById("error-stack-area"), {
+      mode: "java-stack"
+    , theme: 'neo-fivium'
+    , lineNumbers: true
+    , lineWrapping: true
+    , readOnly: true
+    , styleActiveLine: true
+    });
+
+  {{#InternalStackTrace}}
+    var internalStackEditor = CodeMirror.fromTextArea(document.getElementById("internal-stack-area"), {
+      mode: "java-stack"
+    , theme: 'neo-fivium'
+    , lineNumbers: true
+    , lineWrapping: true
+    , readOnly: true
+    , styleActiveLine: true
+    });
+  {{/InternalStackTrace}}
+{{/ShowDevInfo}}
+[[={{ }}=]]
+  </script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+/* neo-fivium theme for codemirror (modified neo theme) */
+
+/* Color scheme */
+
+.cm-s-neo-fivium.CodeMirror {
+  background-color:#ffffff;
+  color:#2e383c;
+  line-height:1.4375;
+  
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+.cm-s-neo-fivium .cm-comment {color:#75787b}
+.cm-s-neo-fivium .cm-keyword, .cm-s-neo-fivium .cm-property {color:#1d75b3}
+.cm-s-neo-fivium .cm-atom,.cm-s-neo-fivium .cm-number {color:#75438a}
+.cm-s-neo-fivium .cm-node,.cm-s-neo-fivium .cm-tag {color:#9c3328}
+.cm-s-neo-fivium .cm-string {color:#b35e14}
+.cm-s-neo-fivium .cm-variable,.cm-s-neo-fivium .cm-qualifier {color:#047d65}
+
+
+/* Editor styling */
+
+.cm-s-neo-fivium pre {
+  padding:0;
+}
+
+.cm-s-neo-fivium .CodeMirror-gutters {
+  border:none;
+  border-right:10px solid transparent;
+  background-color:transparent;
+}
+
+.cm-s-neo-fivium .CodeMirror-foldmarker {
+  background-color: #eee;
+  border: 1px solid #bbb;
+  padding: 0px 5px;
+}
+
+.cm-s-neo-fivium .CodeMirror-linenumber {
+  padding:0;
+  color:#b0b2b5;
+}
+
+/* Fix for line numbers when codemirror is displayed inside a FOX5 grid cell */
+.CodeMirror-gutter-wrapper {
+  word-break: normal;
+}

@@ -1,0 +1,12 @@
+# FOXopen build properties
+# Set these for your environment
+
+# Setting the container to Tomcat as our build environments have tomcat with endorsed libraries set up
+server.container = /opt/tomcat
+
+# Paths to libraries needed to build/test FOXopen that normally reside in the container
+libs.servlet = ${server.container}/lib/servlet-api.jar
+libs.jsp = ${server.container}/lib/jsp-api.jar
+
+# If release.development == true then schema gets included in web dir
+release.development = true

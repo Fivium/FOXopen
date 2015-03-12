@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <title>Problem loading page</title>
+    <style type="text/css">
+html {
+  background: #CCCCCC;
+}
+
+body {
+  margin: 0;
+  padding: 0 10px;
+  font-family: "Trebuchet MS", Helvetica, sans-serif;
+}
+
+h1 {
+  margin: 0 0 10px 0;
+  border-bottom: 1px solid #DDDDDD;
+  font-size: 160%;
+}
+
+#errorPageContainer {
+  position: relative;
+  min-width: 800px;
+  max-width: 500px;
+  margin: 40px auto;
+  border: 1px solid #DDDDDD;
+  padding: 30px;
+  background: #FFFFFF;
+}
+
+#errorLongDesc {
+  margin-top: 5px;
+  border-top: 1px solid #DDDDDD;
+}
+
+#errorLongDesc > pre {
+  margin-bottom: 0px;
+  font-family: "Courier New", Courier, monospace
+  font-size: 0.8em;
+  overflow: scroll;
+}
+    </style>
+    <script type="text/javascript">
+      function toggle_stack () {
+        if(document.getElementById('errorLongDesc').style.display == '') {
+          document.getElementById('errorLongDesc').style.display = 'none';
+        }else{
+          document.getElementById('errorLongDesc').style.display = '';
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="errorPageContainer">
+      <div id="errorTitle">
+        <h1 id="errorTitleText">Application Error</h1>
+      </div>
+      <div id="errorLongContent">
+        <div id="errorShortDesc">
+          <p id="errorShortDescText">
+            The system has experienced an unexpected error. Please click the browser back button and <a href="javascript: window.history.back()">try again</a>.<br />
+            If this fails, shutdown your browser and attempt to login again.<br />
+            <br />
+            In the event of further problems, please contact support.
+          </p>
+        </div>
+        <small><a href="javascript: toggle_stack();">[detail]</a></small>
+        <div id="errorLongDesc" style="display: %STACK_DISPLAY%;">
+          <pre>
+Error: %ERROR_MSG%
+
+%STACKTRACE%
+          </pre>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
