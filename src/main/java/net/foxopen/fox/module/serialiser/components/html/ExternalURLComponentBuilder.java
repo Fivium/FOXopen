@@ -24,14 +24,14 @@ public class ExternalURLComponentBuilder extends ComponentBuilder<HTMLSerialiser
   public void buildComponent(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedPresentationNode pEvalNode) {
     EvaluatedExternalURLPresentationNode lExternalURLNode = (EvaluatedExternalURLPresentationNode)pEvalNode;
 
-    pSerialiser.append("<a href=\"javascript:FOXjs.openwin({url:'");
+    pSerialiser.append("<a href=\"#\" onclick=\"FOXjs.openwin({url:'");
     pSerialiser.append(StringEscapeUtils.escapeEcmaScript(pSerialisationContext.getStaticResourceOrFixedURI(lExternalURLNode.getHRef())));
     pSerialiser.append("',windowOptions:'");
     pSerialiser.append(StringEscapeUtils.escapeEcmaScript(lExternalURLNode.getType()));
     pSerialiser.append("'});return false;\" title=\"");
     pSerialiser.append(StringEscapeUtils.escapeEcmaScript(lExternalURLNode.getTitle()));
     pSerialiser.append("\">");
-    pSerialiser.append(StringEscapeUtils.escapeEcmaScript(lExternalURLNode.getLinkText()));
+    pSerialiser.append(StringEscapeUtils.escapeHtml4(lExternalURLNode.getLinkText()));
     pSerialiser.append("</a>");
   }
 }

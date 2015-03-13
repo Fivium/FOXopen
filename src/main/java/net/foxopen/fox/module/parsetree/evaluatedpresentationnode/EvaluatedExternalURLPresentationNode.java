@@ -27,7 +27,8 @@ public class EvaluatedExternalURLPresentationNode extends EvaluatedPresentationN
     }
 
     mType = pOriginalPresentationNode.getType();
-    mTitle = pOriginalPresentationNode.getType();
+    //TODO attribute to set link title
+    mTitle = "";
 
     if (!XFUtil.exists(mHRef)||!XFUtil.exists(mLinkText)) {
       throw new ExInternal("Can't have an external url without a href or link text");
