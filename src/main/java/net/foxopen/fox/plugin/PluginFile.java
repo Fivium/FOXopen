@@ -26,6 +26,8 @@ import java.util.jar.Manifest;
 class PluginFile {
 
   private static final String FOX_PLUGIN_NAME_ATTRIBUTE_NAME = "FOX-Plugin-Name";
+  private static final String FOX_PLUGIN_VERSION_ATTRIBUTE_NAME = "FOX-Plugin-Version";
+  private static final String BUILD_TAG_ATTRIBUTE_NAME = "Build-Tag";
   private static final String MIN_API_VERSION_ATTRIBUTE_NAME = "Min-API-Version";
 
   /** File within the plugin directory */
@@ -33,6 +35,10 @@ class PluginFile {
 
   //Can be null if the plugin file failed at the scan phase
   private final String mPluginName;
+  //Can be null if the plugin file failed at the scan phase
+  private final String mPluginVersion;
+  //Can be null if the plugin file failed at the scan phase
+  private final String mPluginBuildTag;
   //Not null if the plugin file failed at the scan phase
   private final Throwable mScanException;
   //Not null if the plugin file failed at the load phase
@@ -49,6 +55,8 @@ class PluginFile {
     if(pFile.isFile()) {
       Throwable lScanException = null;
       String lPluginName = null;
+      String lPluginVersion = null;
+      String lPluginBuildTag = null;
 
       try {
         //If it's a file, assume it's a jar
@@ -74,6 +82,9 @@ class PluginFile {
           throw new ExInternal("Failed to read JAR Plugin Name from plugin file - check manifest contains " + FOX_PLUGIN_NAME_ATTRIBUTE_NAME + " attribute");
         }
 
+        lPluginVersion = lManifest.getMainAttributes().getValue(FOX_PLUGIN_VERSION_ATTRIBUTE_NAME);
+        lPluginBuildTag = lManifest.getMainAttributes().getValue(BUILD_TAG_ATTRIBUTE_NAME);
+
         Attributes lManifestAttrs = lManifest.getMainAttributes();
 
         String lPluginsMinAPIVersion = lManifestAttrs.getValue(MIN_API_VERSION_ATTRIBUTE_NAME);
@@ -93,16 +104,18 @@ class PluginFile {
         lScanException = th;
       }
 
-      return new PluginFile(pFile, lPluginName, lScanException);
+      return new PluginFile(pFile, lPluginName, lPluginVersion, lPluginBuildTag, lScanException);
     }
     else {
       throw new ExInternal("PluginFiles can only be created from files");
     }
   }
 
-  private PluginFile(File pPluginFile, String pPluginName, Throwable pScanException) {
+  private PluginFile(File pPluginFile, String pPluginName, String pPluginVersion, String pPluginBuildTag, Throwable pScanException) {
     mPluginFile = pPluginFile;
     mPluginName = pPluginName;
+    mPluginVersion = pPluginVersion;
+    mPluginBuildTag = pPluginBuildTag;
     mScanException = pScanException;
   }
 
@@ -120,6 +133,14 @@ class PluginFile {
 
   public String getPluginName() {
     return mPluginName;
+  }
+
+  public String getPluginVersion() {
+    return mPluginVersion;
+  }
+
+  public String getPluginBuildTag() {
+    return mPluginBuildTag;
   }
 
   Throwable getScanException() {

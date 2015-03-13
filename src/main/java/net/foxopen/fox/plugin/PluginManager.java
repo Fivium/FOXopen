@@ -13,6 +13,7 @@ import net.foxopen.fox.enginestatus.StatusCollection;
 import net.foxopen.fox.enginestatus.StatusDestination;
 import net.foxopen.fox.enginestatus.StatusDetail;
 import net.foxopen.fox.enginestatus.StatusItem;
+import net.foxopen.fox.enginestatus.StatusMessage;
 import net.foxopen.fox.enginestatus.StatusProvider;
 import net.foxopen.fox.enginestatus.StatusTable;
 import net.foxopen.fox.enginestatus.StatusText;
@@ -480,10 +481,11 @@ public class PluginManager {
         final String FILE_NAME_COLUMN = "File Name";
         final String STATUS_COLUMN = "Status";
         final String PLUGIN_NAME_COLUMN = "Plugin Name";
+        final String PLUGIN_VERSION_COLUMN = "Plugin Info";
         final String INFO_COLUMN = "Info";
         final String ACTION_COLUMN = "Actions";
 
-        StatusTable lStatusTable = pDestination.addTable("Plugin Info", FILE_NAME_COLUMN, STATUS_COLUMN, PLUGIN_NAME_COLUMN, INFO_COLUMN, ACTION_COLUMN);
+        StatusTable lStatusTable = pDestination.addTable("Plugin Info", FILE_NAME_COLUMN, STATUS_COLUMN, PLUGIN_NAME_COLUMN, PLUGIN_VERSION_COLUMN, INFO_COLUMN, ACTION_COLUMN);
         lStatusTable.setRowProvider(new StatusTable.RowProvider() {
           @Override
           public void generateRows(StatusTable.RowDestination pRowDestination) {
@@ -503,6 +505,12 @@ public class PluginManager {
               else {
                 String lPluginName = lPluginFile.getPluginName();
                 lStatusRow.setColumn(PLUGIN_NAME_COLUMN, lPluginName);
+
+                StatusCollection lStatusCollection = new StatusCollection("PluginInfo");
+                lStatusCollection.addItem(new StatusMessage("Version", XFUtil.nvl(lPluginFile.getPluginVersion(), "Unknown")));
+                lStatusCollection.addItem(new StatusMessage("Version", XFUtil.nvl(lPluginFile.getPluginBuildTag(), "Unknown")));
+
+                lStatusRow.setColumn(PLUGIN_VERSION_COLUMN, lStatusCollection);
 
                 if(!isPluginLoaded(lPluginName)) {
 
