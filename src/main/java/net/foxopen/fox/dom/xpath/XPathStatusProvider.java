@@ -5,7 +5,7 @@ import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.cache.CacheManager;
 import net.foxopen.fox.cache.BuiltInCacheDefinition;
 import net.foxopen.fox.cache.FoxCache;
-import net.foxopen.fox.enginestatus.StatusCategory;
+import net.foxopen.fox.enginestatus.StatusDestination;
 import net.foxopen.fox.enginestatus.StatusProvider;
 import net.foxopen.fox.enginestatus.StatusTable;
 import net.foxopen.fox.ex.ExInternal;
@@ -18,8 +18,8 @@ import java.util.List;
 class XPathStatusProvider
 implements StatusProvider {
   @Override
-  public void refreshStatus(StatusCategory pCategory) {
-    StatusTable lTable = pCategory.addTable("Cached XPaths", "XPath", "Compile Time", "Exec Count", "Avg Exec Time", "Implicated Labels", "Uses context node/doc?");
+  public void refreshStatus(StatusDestination pDestination) {
+    StatusTable lTable = pDestination.addTable("Cached XPaths", "XPath", "Compile Time", "Exec Count", "Avg Exec Time", "Implicated Labels", "Uses context node/doc?");
     lTable.setRowProvider(new StatusTable.RowProvider() {
       @Override
       public void generateRows(StatusTable.RowDestination pRowDestination) {

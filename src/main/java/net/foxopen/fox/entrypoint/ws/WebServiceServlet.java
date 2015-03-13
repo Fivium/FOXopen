@@ -7,7 +7,7 @@ import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.banghandler.InternalAuthentication;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.enginestatus.EngineStatus;
-import net.foxopen.fox.enginestatus.StatusCategory;
+import net.foxopen.fox.enginestatus.StatusDestination;
 import net.foxopen.fox.enginestatus.StatusProvider;
 import net.foxopen.fox.enginestatus.StatusTable;
 import net.foxopen.fox.entrypoint.FoxGlobals;
@@ -52,7 +52,9 @@ extends EntryPointServlet {
     registerWebServiceCategory(new EngineWebServiceCategory());
   }
 
-  private static final StatusCategory gStatusCategory = EngineStatus.instance().registerStatusProvider(new WebServiceStatusProvider());
+  static {
+    EngineStatus.instance().registerStatusProvider(new WebServiceStatusProvider());
+  }
 
   @Override
   protected String getContextUConInitialConnectionName() {
@@ -367,9 +369,9 @@ extends EntryPointServlet {
   implements StatusProvider {
 
     @Override
-    public void refreshStatus(StatusCategory pCategory) {
+    public void refreshStatus(StatusDestination pDestination) {
 
-      StatusTable lTable = pCategory.addTable("EndPoint Summary", "Category", "Service", "End Point", "URI Path Params", "Request Params", "Allowed methods", "Auth Type");
+      StatusTable lTable = pDestination.addTable("EndPoint Summary", "Category", "Service", "End Point", "URI Path Params", "Request Params", "Allowed methods", "Auth Type");
       lTable.setRowProvider(new StatusTable.RowProvider() {
         @Override
         public void generateRows(StatusTable.RowDestination pRowDestination) {

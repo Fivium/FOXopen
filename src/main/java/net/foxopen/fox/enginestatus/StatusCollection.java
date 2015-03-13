@@ -40,7 +40,7 @@ implements ContainerStatusItem {
 
   @Override
   public MessageLevel getMaxMessageSeverity() {
-    return StatusCategory.getMaxChildMessageSeverity(mItemList);
+    return EngineStatus.getMaxChildMessageSeverity(mItemList);
   }
 
   public StatusCollection addItem(StatusItem pStatusItem) {
@@ -50,7 +50,7 @@ implements ContainerStatusItem {
 
   @Override
   public StatusItem getNestedItem(String pItemMnem) {
-    return StatusCategory.getNestedItem(mItemList, pItemMnem);
+    return EngineStatus.getNestedItem(mItemList, pItemMnem);
   }
 
   @Override

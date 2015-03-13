@@ -58,10 +58,12 @@ implements BangHandler {
       StringWriter lStringWriter = new StringWriter();
 
       if(!XFUtil.isNull(lDetailPath)) {
+        //Resolve the given detail path and return its contents
         StatusDetail lStatusDetail = EngineStatus.instance().getCategory(lCategory).resolveDetail(lDetailPath);
         lStatusDetail.getContent(lStringWriter);
       }
       else {
+        //Refresh the whole category
         try {
           EngineStatus.instance().refreshCategory(lCategory);
           EngineStatus.instance().getCategory(lCategory).serialiseHTML(lStringWriter, new StatusSerialisationContext(pFoxRequest.getHttpRequest()));

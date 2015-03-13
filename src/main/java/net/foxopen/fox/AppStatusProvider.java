@@ -2,8 +2,8 @@ package net.foxopen.fox;
 
 import net.foxopen.fox.enginestatus.EngineStatus;
 import net.foxopen.fox.enginestatus.MessageLevel;
-import net.foxopen.fox.enginestatus.StatusCategory;
 import net.foxopen.fox.enginestatus.StatusCollection;
+import net.foxopen.fox.enginestatus.StatusDestination;
 import net.foxopen.fox.enginestatus.StatusDetail;
 import net.foxopen.fox.enginestatus.StatusItem;
 import net.foxopen.fox.enginestatus.StatusProvider;
@@ -16,13 +16,13 @@ import java.util.TreeSet;
 class AppStatusProvider
 implements StatusProvider {
   @Override
-  public void refreshStatus(StatusCategory pCategory) {
+  public void refreshStatus(StatusDestination pDestination) {
 
     int lAdditionalMimeTypeCount = FileUploadType.getAdditionalMimeTypeCount();
-    pCategory.addMessage("File upload mime config", lAdditionalMimeTypeCount == 0 ? "No additional mime mappings found" : "Loaded " + lAdditionalMimeTypeCount + " mime types from database");
+    pDestination.addMessage("File upload mime config", lAdditionalMimeTypeCount == 0 ? "No additional mime mappings found" : "Loaded " + lAdditionalMimeTypeCount + " mime types from database");
 
     for(final App lApp : FoxGlobals.getInstance().getFoxEnvironment().getAllApps()) {
-      StatusTable lTable = pCategory.addTable(lApp.getAppMnem(), "Property name", "Detail");
+      StatusTable lTable = pDestination.addTable(lApp.getAppMnem(), "Property name", "Detail");
       lTable.setRowProvider(new StatusTable.RowProvider() {
         @Override
         public void generateRows(StatusTable.RowDestination pRowDestination) {

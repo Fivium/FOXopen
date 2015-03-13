@@ -80,8 +80,8 @@ implements NamedStatusItem {
       pWriter.append("<pre>");
     }
 
-    //TODO PN not null
     try {
+      //TODO PN not null
       mProvider.getDetailMessage().serialiseHTML(pWriter, new StatusSerialisationContext(null));
     }
     catch (IOException e) {

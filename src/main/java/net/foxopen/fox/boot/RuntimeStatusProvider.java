@@ -3,8 +3,8 @@ package net.foxopen.fox.boot;
 import com.google.common.base.Splitter;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.enginestatus.EngineStatus;
-import net.foxopen.fox.enginestatus.StatusCategory;
 import net.foxopen.fox.enginestatus.StatusCollection;
+import net.foxopen.fox.enginestatus.StatusDestination;
 import net.foxopen.fox.enginestatus.StatusDetail;
 import net.foxopen.fox.enginestatus.StatusItem;
 import net.foxopen.fox.enginestatus.StatusMessage;
@@ -33,13 +33,13 @@ implements StatusProvider {
   private final Date mUpSince = new Date();
 
   @Override
-  public void refreshStatus(StatusCategory pCategory) {
+  public void refreshStatus(StatusDestination pDestination) {
 
-    pCategory.addDetailMessage("Servlet Info", new ServletInfoDetailProvider());
-    pCategory.addDetailMessage("System Info", new SystemInfoDetailProvider());
-    pCategory.addDetailMessage("JVM Arguments", new JVMArgDetailProvider());
-    pCategory.addDetailMessage("GC Info", new GCDetailProvider());
-    pCategory.addMessage("Servlet last reloaded", EngineStatus.formatDate(mUpSince));
+    pDestination.addDetailMessage("Servlet Info", new ServletInfoDetailProvider());
+    pDestination.addDetailMessage("System Info", new SystemInfoDetailProvider());
+    pDestination.addDetailMessage("JVM Arguments", new JVMArgDetailProvider());
+    pDestination.addDetailMessage("GC Info", new GCDetailProvider());
+    pDestination.addMessage("Servlet last reloaded", EngineStatus.formatDate(mUpSince));
 
   }
 

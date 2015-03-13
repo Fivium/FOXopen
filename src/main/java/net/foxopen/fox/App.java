@@ -1,7 +1,7 @@
 package net.foxopen.fox;
 
-import net.foxopen.fox.cache.CacheManager;
 import net.foxopen.fox.cache.BuiltInCacheDefinition;
+import net.foxopen.fox.cache.CacheManager;
 import net.foxopen.fox.cache.FoxCache;
 import net.foxopen.fox.configuration.resourcemaster.AppResourceQueryDefinitions;
 import net.foxopen.fox.configuration.resourcemaster.definition.AppProperty;
@@ -17,7 +17,6 @@ import net.foxopen.fox.database.parser.ParsedStatement;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.DOMList;
 import net.foxopen.fox.enginestatus.EngineStatus;
-import net.foxopen.fox.enginestatus.StatusCategory;
 import net.foxopen.fox.entrypoint.ComponentManager;
 import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.ex.ExApp;
@@ -67,7 +66,9 @@ public class App {
   private static final String VIRUS_TYPE_ELEMENT_NAME = "type";
   private static final String VIRUS_IGNORE_TYPE = "IGNORE";
 
-  private static final StatusCategory gStatusCategory = EngineStatus.instance().registerStatusProvider(new AppStatusProvider());
+  static {
+    EngineStatus.instance().registerStatusProvider(new AppStatusProvider());
+  }
 
   private final Date mCreatedDate = new Date();
 

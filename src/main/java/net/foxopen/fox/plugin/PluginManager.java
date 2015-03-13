@@ -10,6 +10,7 @@ import net.foxopen.fox.enginestatus.MessageLevel;
 import net.foxopen.fox.enginestatus.StatusAction;
 import net.foxopen.fox.enginestatus.StatusCategory;
 import net.foxopen.fox.enginestatus.StatusCollection;
+import net.foxopen.fox.enginestatus.StatusDestination;
 import net.foxopen.fox.enginestatus.StatusDetail;
 import net.foxopen.fox.enginestatus.StatusItem;
 import net.foxopen.fox.enginestatus.StatusProvider;
@@ -77,7 +78,7 @@ public class PluginManager {
   private String mLastScanLog;
   private Throwable mLastScanException;
 
-  private final StatusCategory mPluginStatusCategory = EngineStatus.instance().registerStatusProvider(new PluginStatusProvider());
+  private final StatusCategory mPluginStatusDestination = EngineStatus.instance().registerStatusProvider(new PluginStatusProvider());
 
   // Read from properties file on load
   private PluginVersion mPluginAPIVersion = null;
@@ -90,12 +91,11 @@ public class PluginManager {
 
     try {
       mPluginAPIVersion = getPluginAPIVersion();
+      mPluginStatusDestination.setMessage("Plugin API Version", "API Version " + mPluginAPIVersion.getVersionString(), MessageLevel.INFO);
     }
     catch (Throwable th) {
-      mPluginStatusCategory.addMessage("Plugin API Version", "API Version could not be read, no plugins will be loaded: " + th.getMessage(), MessageLevel.ERROR);
+      mPluginStatusDestination.setMessage("Plugin API Version", "API Version could not be read, no plugins will be loaded: " + th.getMessage(), MessageLevel.ERROR);
     };
-
-    mPluginStatusCategory.addMessage("Plugin API Version", "API Version " + mPluginAPIVersion.getVersionString(), MessageLevel.INFO);
 
     WebServiceServlet.registerWebServiceCategory(new PluginWebServiceCategory(this));
   }
@@ -191,9 +191,7 @@ public class PluginManager {
     mLastScanException = null;
 
     String lPluginDirPath = FoxGlobals.getInstance().getServletContext().getRealPath("").replace('\\','/') + "/WEB-INF/plugins";
-    lScanLog.append("Scanning directory ");
-    lScanLog.append(lPluginDirPath);
-    lScanLog.append("\n");
+    lScanLog.append("Scanning directory '").append(lPluginDirPath).append("'\n");
 
     File lPluginDir = new File(lPluginDirPath);
 
@@ -212,28 +210,32 @@ public class PluginManager {
       else {
         Set<String> lFoundPluginNames = new HashSet<>();
 
-        JAR_LOOP:
-        for(File lFile : lPluginDir.listFiles()) {
-          if(lFile.isFile()) {
+        File[] lPluginDirFiles = lPluginDir.listFiles();
+        if (lPluginDirFiles != null) {
+          for (File lFile : lPluginDirFiles) {
+            if (lFile.isFile()) {
 
-            PluginFile lPluginFile = PluginFile.createPluginFile(lFile, mPluginAPIVersion);
-            mPluginFiles.add(lPluginFile);
-            //Record the directory filename expected to be associated with this plugin
-            lPluginDirectoryFilenames.add(FilenameUtils.removeExtension(lFile.getName()));
+              PluginFile lPluginFile = PluginFile.createPluginFile(lFile, mPluginAPIVersion);
+              mPluginFiles.add(lPluginFile);
+              //Record the directory filename expected to be associated with this plugin
+              lPluginDirectoryFilenames.add(FilenameUtils.removeExtension(lFile.getName()));
 
-            if(lPluginFile.isValid()) {
-              if (lFoundPluginNames.contains(lPluginFile.getPluginName())) {
-                //Check for duplicate plugin names
-                throw new ExInternal("File " + lFile.getAbsolutePath() + " contains duplicate plugin definition for plugin" + lPluginFile.getPluginName());
-              }
-              else {
-                lFoundPluginNames.add(lPluginFile.getPluginName());
+              if (lPluginFile.isValid()) {
+                if (lFoundPluginNames.contains(lPluginFile.getPluginName())) {
+                  //Check for duplicate plugin names
+                  throw new ExInternal("File " + lFile.getAbsolutePath() + " contains duplicate plugin definition for plugin" + lPluginFile.getPluginName());
+                }
+                else {
+                  lFoundPluginNames.add(lPluginFile.getPluginName());
+                  lScanLog.append("Found plugin file '").append(lFile.getName()).append("'\n");
+                }
               }
             }
-          }
-          else if (lFile.isDirectory()) {
-            //Record directory name - may need to be deleted
-            lDirectories.add(lFile);
+            else if (lFile.isDirectory()) {
+              //Record directory name - may need to be deleted
+              lScanLog.append("Found directory '").append(lFile.getName()).append("'\n");
+              lDirectories.add(lFile);
+            }
           }
         }
       }
@@ -242,18 +244,13 @@ public class PluginManager {
       for(File lDir : lDirectories) {
         String lDirName = lDir.getName();
         if(!lPluginDirectoryFilenames.contains(lDirName)) {
-          lScanLog.append("Deleting directory ");
-          lScanLog.append(lDirName);
-          lScanLog.append(" as no corresponding plugin could be found\n");
+          lScanLog.append("Deleting directory '").append(lDirName).append("' as no corresponding plugin could be found\n");
           try {
             FileUtils.deleteDirectory(lDir);
           }
           catch (IOException e) {
             //Not an error which should prevent all plugins from loading
-            lScanLog.append("Deleting directory ");
-            lScanLog.append(lDirName);
-            lScanLog.append(" failed - ");
-            lScanLog.append(e.getMessage());
+            lScanLog.append("Deleting directory '").append(lDirName).append("' failed - ").append(e.getMessage());
             lScanLog.append("\n");
           }
         }
@@ -262,6 +259,8 @@ public class PluginManager {
     catch (Throwable th) {
       mLastScanException = th;
     }
+
+    lScanLog.append("Directory scan complete\n");
 
     mLastScanLog = lScanLog.toString();
   }
@@ -464,16 +463,13 @@ public class PluginManager {
   implements StatusProvider {
 
     @Override
-    public void refreshStatus(StatusCategory pCategory) {
+    public void refreshStatus(StatusDestination pDestination) {
 
       synchronized(PluginManager.this) {
-        pCategory.addMessage("Directory Scan Result", mLastScanLog);
+        pDestination.addMessage("Directory Scan Result", mLastScanLog);
 
         if(mLastScanException != null) {
-          pCategory.addMessage("Directory Scan Exception", XFUtil.getJavaStackTraceInfo(mLastScanException), MessageLevel.ERROR);
-        }
-        else {
-          pCategory.addMessage("Directory Scan Exception", "", MessageLevel.INFO);
+          pDestination.addMessage("Directory Scan Exception", XFUtil.getJavaStackTraceInfo(mLastScanException), MessageLevel.ERROR);
         }
 
         final String FILE_NAME_COLUMN = "File Name";
@@ -482,7 +478,7 @@ public class PluginManager {
         final String INFO_COLUMN = "Info";
         final String ACTION_COLUMN = "Actions";
 
-        StatusTable lStatusTable = pCategory.addTable("Plugin Info", FILE_NAME_COLUMN, STATUS_COLUMN, PLUGIN_NAME_COLUMN, INFO_COLUMN, ACTION_COLUMN);
+        StatusTable lStatusTable = pDestination.addTable("Plugin Info", FILE_NAME_COLUMN, STATUS_COLUMN, PLUGIN_NAME_COLUMN, INFO_COLUMN, ACTION_COLUMN);
         lStatusTable.setRowProvider(new StatusTable.RowProvider() {
           @Override
           public void generateRows(StatusTable.RowDestination pRowDestination) {
@@ -541,7 +537,7 @@ public class PluginManager {
           }
         });
 
-        pCategory.addAction("Re-scan Plugin Directory", PluginBangHandler.instance());
+        pDestination.addAction("Re-scan Plugin Directory", PluginBangHandler.instance());
       }
     }
 

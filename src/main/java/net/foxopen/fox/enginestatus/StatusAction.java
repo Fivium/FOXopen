@@ -13,12 +13,21 @@ implements StatusItem {
 
   private final String mPrompt;
   private final BangHandler mBangHandler;
+  private final String mAbsoluteURI;
   private final Map<String, String> mParamMap;
 
   public StatusAction(String pPrompt, BangHandler pBangHandler, Map<String, String> pParamMap) {
     mPrompt = pPrompt;
     mBangHandler = pBangHandler;
     mParamMap = pParamMap;
+    mAbsoluteURI = null;
+  }
+
+  public StatusAction(String pPrompt, String pAbsoulteURI) {
+    mPrompt = pPrompt;
+    mAbsoluteURI = pAbsoulteURI;
+    mBangHandler = null;
+    mParamMap = null;
   }
 
   @Override
@@ -35,10 +44,17 @@ implements StatusItem {
   public void serialiseHTML(Writer pWriter, StatusSerialisationContext pSerialisationContext)
   throws IOException {
 
-    RequestURIBuilder lURIBuilder = pSerialisationContext.getURIBuilder().setParams(mParamMap);
-    String lURI = lURIBuilder.buildBangHandlerURI(mBangHandler);
+    String lURI;
+    RequestURIBuilder lURIBuilder = pSerialisationContext.getURIBuilder();
+    if(mBangHandler != null) {
+      lURIBuilder.setParams(mParamMap);
+      lURI = lURIBuilder.buildBangHandlerURI(mBangHandler);
+    }
+    else {
+      lURI = lURIBuilder.buildServletURI(mAbsoluteURI);
+    }
 
-    pWriter.append("<a href=\"").append(lURI).append("\">").append(mPrompt).append("</a>");
+    pWriter.append("<a href=\"").append(lURI).append("\" data-status-type=\"action\">").append(mPrompt).append("</a>");
   }
 
 }

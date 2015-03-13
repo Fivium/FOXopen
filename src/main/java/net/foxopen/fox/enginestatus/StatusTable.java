@@ -37,7 +37,7 @@ implements ContainerStatusItem, NamedStatusItem {
 
   @Override
   public MessageLevel getMaxMessageSeverity() {
-    return StatusCategory.getMaxChildMessageSeverity(getRows());
+    return EngineStatus.getMaxChildMessageSeverity(getRows());
   }
 
 //  public Row addRow() {
@@ -63,7 +63,7 @@ implements ContainerStatusItem, NamedStatusItem {
 
   @Override
   public StatusItem getNestedItem(String pItemMnem) {
-    return StatusCategory.getNestedItem(getRows(), pItemMnem);
+    return EngineStatus.getNestedItem(getRows(), pItemMnem);
   }
 
   @Override
@@ -183,7 +183,7 @@ implements ContainerStatusItem, NamedStatusItem {
 
     @Override
     public StatusItem getNestedItem(String pItemMnem) {
-      return StatusCategory.getNestedItem(mColumns.values(), pItemMnem);
+      return EngineStatus.getNestedItem(mColumns.values(), pItemMnem);
     }
 
     @Override
@@ -193,7 +193,7 @@ implements ContainerStatusItem, NamedStatusItem {
 
     @Override
     public MessageLevel getMaxMessageSeverity() {
-      return StatusCategory.getMaxChildMessageSeverity(mColumns.values());
+      return EngineStatus.getMaxChildMessageSeverity(mColumns.values());
     }
 
     @Override

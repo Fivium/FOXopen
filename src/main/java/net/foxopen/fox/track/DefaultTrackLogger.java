@@ -5,7 +5,7 @@ import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.cache.BuiltInCacheDefinition;
 import net.foxopen.fox.cache.CacheManager;
 import net.foxopen.fox.enginestatus.EngineStatus;
-import net.foxopen.fox.enginestatus.StatusCategory;
+import net.foxopen.fox.enginestatus.StatusDestination;
 import net.foxopen.fox.enginestatus.StatusProvider;
 import net.foxopen.fox.enginestatus.StatusTable;
 import net.foxopen.fox.entrypoint.filter.RequestLogFilter;
@@ -33,12 +33,12 @@ implements TrackLogger {
   static {
     EngineStatus.instance().registerStatusProvider(new StatusProvider() {
       @Override
-      public void refreshStatus(StatusCategory pCategory) {
+      public void refreshStatus(StatusDestination pDestination) {
 
         //Exclude the current request from the overall count
-        pCategory.addMessage("Active request counter", Integer.toString(RequestLogFilter.getActiveRequestCount() - 1));
+        pDestination.addMessage("Active request counter", Integer.toString(RequestLogFilter.getActiveRequestCount() - 1));
 
-        StatusTable lTable = pCategory.addTable("Hot Tracks", "Track ID", "View Track");
+        StatusTable lTable = pDestination.addTable("Hot Tracks", "Track ID", "View Track");
         lTable.setRowProvider(new StatusTable.RowProvider() {
           @Override
           public void generateRows(StatusTable.RowDestination pRowDestination) {

@@ -40,20 +40,49 @@ public class EngineStatus {
 
   private EngineStatus() {}
 
-  public StatusCategory registerStatusProvider(StatusProvider pStatusProvider) {
-    mProviders.put(pStatusProvider.getCategoryMnemonic(), pStatusProvider);
-    return addCategory(pStatusProvider.getCategoryMnemonic(), pStatusProvider.getCategoryTitle(), pStatusProvider.isCategoryExpandedByDefault(), 0);
+  /**
+   * Searches for an item with the given mnemonic within the given collection. The search is not recursive.
+   * @param pChildren Items to search.
+   * @param pItemMnem Item mnemonic to find.
+   * @return The matching StatusItem or null if it can't be found.
+   */
+  static StatusItem getNestedItem(Collection<? extends StatusItem> pChildren, String pItemMnem) {
+    for(StatusItem lItem : pChildren) {
+      if(pItemMnem.equals(lItem.getMnem())) {
+        return lItem;
+      }
+    }
+    return null;
   }
 
   /**
-   * Add a category to the status object to list messages against
-   *
-   * @param pCategoryTitle
-   * @param pDisplayOrder
-   * @return The newly created category
+   * Retrieves the most severe message level from the given collection of StatusItems.
+   * @param pChildren StatusItems to search for.
+   * @return Max severity or a default of INFO.
    */
-  private StatusCategory addCategory(String pCategoryMnem, String pCategoryTitle, boolean pIsExpanded, int pDisplayOrder) {
-    StatusCategory lCategory = new StatusCategory(pCategoryMnem, pCategoryTitle, pDisplayOrder, pIsExpanded);
+  static MessageLevel getMaxChildMessageSeverity(Collection<? extends StatusItem> pChildren) {
+    MessageLevel lMax = MessageLevel.INFO;
+    for(StatusItem lItem : pChildren) {
+      if(lItem.getMaxMessageSeverity().intValue() > lMax.intValue()) {
+        lMax = lItem.getMaxMessageSeverity();
+      }
+    }
+    return lMax;
+  }
+
+  /**
+   * Globally registers the given status provider, creating a new StatusCategory. This should only be invoked once for
+   * each required category.
+   * @param pStatusProvider Source of transient status messages.
+   * @return New status category for setting sticky status messages.
+   */
+  public StatusCategory registerStatusProvider(StatusProvider pStatusProvider) {
+    mProviders.put(pStatusProvider.getCategoryMnemonic(), pStatusProvider);
+    return addCategory(pStatusProvider.getCategoryMnemonic(), pStatusProvider.getCategoryTitle(), pStatusProvider.isCategoryExpandedByDefault());
+  }
+
+  private StatusCategory addCategory(String pCategoryMnem, String pCategoryTitle, boolean pIsExpanded) {
+    StatusCategory lCategory = new StatusCategory(pCategoryMnem, pCategoryTitle, pIsExpanded);
     mCategories.put(pCategoryMnem, lCategory);
     return lCategory;
   }
@@ -62,7 +91,7 @@ public class EngineStatus {
     for(StatusProvider lProvider : mProviders.values()) {
       //Assumes category has already been created
       try {
-        lProvider.refreshStatus(mCategories.get(lProvider.getCategoryMnemonic()));
+        lProvider.refreshStatus(mCategories.get(lProvider.getCategoryMnemonic()).createStatusDestination());
       }
       catch (Throwable th) {
       }
@@ -84,7 +113,7 @@ public class EngineStatus {
     if(!mProviders.containsKey(pCategoryMnem)) {
       throw new ExInternal("Category " + pCategoryMnem + " not found");
     }
-    mProviders.get(pCategoryMnem).refreshStatus(mCategories.get(pCategoryMnem));
+    mProviders.get(pCategoryMnem).refreshStatus(mCategories.get(pCategoryMnem).createStatusDestination());
   }
 
   public void getHTMLResponse(FoxRequest pFoxRequest) {
@@ -108,7 +137,7 @@ public class EngineStatus {
       return StringEscapeUtils.escapeHtml4(pText).replace("\n", "<br>");
     }
     else {
-      return pText;
+      return null;
     }
   }
 

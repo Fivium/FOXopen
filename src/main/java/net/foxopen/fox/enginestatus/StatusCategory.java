@@ -6,7 +6,6 @@ import net.foxopen.fox.ex.ExInternal;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -18,17 +17,18 @@ implements ContainerStatusItem {
 
   private final String mCategoryMnem;
   private final String mTitle;
-  private final int mDisplayOrder;
   private final boolean mDefaultExpanded;
 
-  private Map<String, NamedStatusItem> mMessages = new TreeMap<>();
+  /** Messages which persist between refreshes */
+  private Map<String, NamedStatusItem> mStickyMessages = new TreeMap<>();
+
+  private Map<String, NamedStatusItem> mTransientMessages = new TreeMap<>();
   private Map<String, StatusTable> mTables = new TreeMap<>();
   private Map<String, StatusAction> mActions = new TreeMap<>();
 
-  StatusCategory(String pCategoryMnem, String pTitle, int pDisplayOrder, boolean pDefaultExpanded) {
+  StatusCategory(String pCategoryMnem, String pTitle, boolean pDefaultExpanded) {
     mCategoryMnem = pCategoryMnem;
     mTitle = pTitle;
-    mDisplayOrder = pDisplayOrder;
     mDefaultExpanded = pDefaultExpanded;
   }
 
@@ -40,9 +40,10 @@ implements ContainerStatusItem {
   @Override
   public MessageLevel getMaxMessageSeverity() {
     try {
-      Set<NamedStatusItem> lMessagesAndTables = new HashSet<>(mMessages.values());
+      Set<NamedStatusItem> lMessagesAndTables = new HashSet<>(mTransientMessages.values());
+      lMessagesAndTables.addAll(mStickyMessages.values());
       lMessagesAndTables.addAll(mTables.values());
-      return getMaxChildMessageSeverity(lMessagesAndTables);
+      return EngineStatus.getMaxChildMessageSeverity(lMessagesAndTables);
     }
     catch (Exception e) {
       //Don't allow errors caused by status objects to break the consumer
@@ -54,41 +55,35 @@ implements ContainerStatusItem {
     return mTitle;
   }
 
-  static StatusItem getNestedItem(Collection<? extends StatusItem> pChildren, String pItemMnem) {
-    for(StatusItem lItem : pChildren) {
-      if(pItemMnem.equals(lItem.getMnem())) {
-        return lItem;
-      }
-    }
-    return null;
-  }
-
-  //TODO PN move somewhere more sensible
-  static MessageLevel getMaxChildMessageSeverity(Collection<? extends StatusItem> pChildren) {
-    MessageLevel lMax = MessageLevel.INFO;
-    for(StatusItem lItem : pChildren) {
-      if(lItem.getMaxMessageSeverity().intValue() > lMax.intValue()) {
-        lMax = lItem.getMaxMessageSeverity();
-      }
-    }
-    return lMax;
-  }
-
   @Override
   public StatusItem getNestedItem(String pItemMnem) {
-    Set<NamedStatusItem> lMessagesAndTables = new HashSet<>(mMessages.values());
+    Set<NamedStatusItem> lMessagesAndTables = new HashSet<>(mTransientMessages.values());
+    lMessagesAndTables.addAll(mStickyMessages.values());
     lMessagesAndTables.addAll(mTables.values());
-    return getNestedItem(lMessagesAndTables, pItemMnem);
+    return EngineStatus.getNestedItem(lMessagesAndTables, pItemMnem);
   }
 
-  public int getDisplayOrder() {
-    return mDisplayOrder;
+  /**
+   * Sets a "sticky" message on this cateogry which will persist across refreshes of the category. This should only be
+   * used to save a message which is impractical to generate in a StatusProvider, i.e. the result of a 1-time initialisation
+   * method.
+   * @param pMessageTitle
+   * @param pMessageBody
+   * @param pMessageLevel
+   */
+  public void setMessage(String pMessageTitle, String pMessageBody, MessageLevel pMessageLevel) {
+    mStickyMessages.put(pMessageTitle, new StatusMessage(pMessageTitle, pMessageBody, pMessageLevel));
   }
 
   public boolean isExpanded() {
     return mDefaultExpanded;
   }
 
+  /**
+   * Resolves a detail message corresponding to the given path.
+   * @param pDetailPath
+   * @return
+   */
   public StatusDetail resolveDetail(String pDetailPath) {
 
     StringBuilder lDetailPath = new StringBuilder(pDetailPath);
@@ -125,55 +120,18 @@ implements ContainerStatusItem {
     throw new ExInternal("Failed to find StausItem for path " + pDetailPath);
   }
 
-  public StatusTable addTable(String pTableName, String... pColumnNames) {
-    StatusTable lStatusTable = new StatusTable(pTableName, pColumnNames);
-    mTables.put(pTableName, lStatusTable);
-    return lStatusTable;
-  }
-
-  public void addMessage(String pMessageTitle, String pMessageBody) {
-    mMessages.put(pMessageTitle, new StatusMessage(pMessageTitle, pMessageBody, MessageLevel.INFO));
-  }
-
-  /**
-   * Create a message in this category or update an existing message if one with the same title already exists.
-   *
-   * @param pMessageTitle Message title, also used as the key for messages in categories
-   * @param pMessageBody Message text content
-   * @param pLevel
-   * @return Reference to the updated Message
-   */
-  public void addMessage(String pMessageTitle, String pMessageBody, MessageLevel pLevel) {
-    mMessages.put(pMessageTitle, new StatusMessage(pMessageTitle, pMessageBody, pLevel));
-  }
-
-  public void addDetailMessage(String pMessageTitle, StatusDetail.Provider pStatusDetailProvider) {
-    mMessages.put(pMessageTitle, new StatusDetail(pMessageTitle, pStatusDetailProvider));
-  }
-
-  public void addAction(String pPrompt, BangHandler pBangHandler) {
-    mActions.put(pPrompt, new StatusAction(pPrompt, pBangHandler, Collections.<String, String>emptyMap()));
-  }
-
-  public void addAction(String pPrompt, BangHandler pBangHandler, Map<String, String> pParamMap) {
-    mActions.put(pPrompt, new StatusAction(pPrompt, pBangHandler, pParamMap));
-  }
-
-//  public StatusCollection addCollection(String pPrompt) {
-//    StatusCollection lCollection = new StatusCollection();
-//    mStatusItems.put(pPrompt, lCollection);
-//    return lCollection;
-//  }
-
   @Override
   public void serialiseHTML(Writer pWriter, StatusSerialisationContext pSerialisationContext)
   throws IOException {
 
     pSerialisationContext.setCurrentCategory(mCategoryMnem);
 
-    if(mMessages.size() > 0) {
+    Map<String, NamedStatusItem> lMessages = new TreeMap<>(mTransientMessages);
+    lMessages.putAll(mStickyMessages);
+
+    if(lMessages.size() > 0) {
       pWriter.append("<table width=\"100%\" class=\"table table-striped\"><tbody>");
-      for(NamedStatusItem lItem : mMessages.values()) {
+      for(NamedStatusItem lItem : lMessages.values()) {
         pWriter.append("<tr><td class=\"messageTitle\">");
         pWriter.append(lItem.getItemName());
         pWriter.append("</td><td>");
@@ -199,6 +157,72 @@ implements ContainerStatusItem {
 
     for(StatusTable lTable : mTables.values()) {
       lTable.serialiseHTML(pWriter, pSerialisationContext);
+    }
+  }
+
+  /**
+   * Clears all transient StatusItems from this category and returns a destination object for new statuses to be written
+   * to.
+   * @return Fresh StatusDestination.
+   */
+  StatusDestination createStatusDestination() {
+
+    mActions.clear();
+    mTransientMessages.clear();
+    mTables.clear();
+
+    return new CategoryDestination();
+  }
+
+  /**
+   * Destination implementation for transient messages.
+   */
+  private class CategoryDestination
+  implements StatusDestination {
+
+    /**
+     * Adds a table to the status report. Consumers must subsequently call {@link StatusTable#setRowProvider} to give
+     * the table a row source.
+     * @param pTableName Title/summary of the table.
+     * @param pColumnNames 1 or more column names. Calls to {@link StatusTable.Row#setColumn} will add columns in the order
+     *                     of this array.
+     * @return Created table.
+     */
+    @Override
+    public StatusTable addTable(String pTableName, String... pColumnNames) {
+      StatusTable lStatusTable = new StatusTable(pTableName, pColumnNames);
+      mTables.put(pTableName, lStatusTable);
+      return lStatusTable;
+    }
+
+    @Override
+    public void addMessage(String pMessageTitle, String pMessageBody) {
+      mTransientMessages.put(pMessageTitle, new StatusMessage(pMessageTitle, pMessageBody, MessageLevel.INFO));
+    }
+
+    @Override
+    public void addMessage(String pMessageTitle, String pMessageBody, MessageLevel pLevel) {
+      mTransientMessages.put(pMessageTitle, new StatusMessage(pMessageTitle, pMessageBody, pLevel));
+    }
+
+    @Override
+    public void addDetailMessage(String pMessageTitle, StatusDetail.Provider pStatusDetailProvider) {
+      mTransientMessages.put(pMessageTitle, new StatusDetail(pMessageTitle, pStatusDetailProvider));
+    }
+
+    @Override
+    public void addAction(String pPrompt, BangHandler pBangHandler) {
+      mActions.put(pPrompt, new StatusAction(pPrompt, pBangHandler, Collections.<String, String>emptyMap()));
+    }
+
+    @Override
+    public void addAction(String pPrompt, String pAbsoluteURI) {
+      mActions.put(pPrompt, new StatusAction(pPrompt, pAbsoluteURI));
+    }
+
+    @Override
+    public void addAction(String pPrompt, BangHandler pBangHandler, Map<String, String> pParamMap) {
+      mActions.put(pPrompt, new StatusAction(pPrompt, pBangHandler, pParamMap));
     }
   }
 }

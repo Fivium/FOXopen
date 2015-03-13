@@ -81,7 +81,7 @@ import net.foxopen.fox.command.builtin.WhileCommand;
 import net.foxopen.fox.command.builtin.XSLTransformCommand;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.enginestatus.EngineStatus;
-import net.foxopen.fox.enginestatus.StatusCategory;
+import net.foxopen.fox.enginestatus.StatusDestination;
 import net.foxopen.fox.enginestatus.StatusProvider;
 import net.foxopen.fox.enginestatus.StatusTable;
 import net.foxopen.fox.ex.ExInternal;
@@ -105,8 +105,6 @@ public class CommandProvider {
 
   private Map<String, CommandFactory> mCommandNameToFactoryMap = new TreeMap<>();
 
-  private final StatusCategory mStatusCategory = EngineStatus.instance().registerStatusProvider(new CommandStatusProvider());
-
   private void registerCommandFactory(CommandFactory pCommandFactory) {
     for(String lElementName : pCommandFactory.getCommandElementNames()) {
       if(mCommandNameToFactoryMap.containsKey(lElementName)) {
@@ -123,6 +121,8 @@ public class CommandProvider {
   * Singleton instance constructor for CommandFactory.
   */
   private CommandProvider() {
+    EngineStatus.instance().registerStatusProvider(new CommandStatusProvider());
+
     registerCommandFactory(new ActionCallCommand.Factory());
     registerCommandFactory(new AlertCommand.Factory());
     registerCommandFactory(new AssertCommand.Factory());
@@ -217,7 +217,7 @@ public class CommandProvider {
   implements StatusProvider {
 
     @Override
-    public void refreshStatus(StatusCategory pCategory) {
+    public void refreshStatus(StatusDestination pDestination) {
 
 
       final Map<String, String> lCommandNamesToFactories = new TreeMap<>();
@@ -231,7 +231,7 @@ public class CommandProvider {
         }
       }
 
-      StatusTable lTable = pCategory.addTable("Available commands", "Command name", "Providing factory");
+      StatusTable lTable = pDestination.addTable("Available commands", "Command name", "Providing factory");
       lTable.setRowProvider(new StatusTable.RowProvider() {
         @Override
         public void generateRows(StatusTable.RowDestination pRowDestination) {

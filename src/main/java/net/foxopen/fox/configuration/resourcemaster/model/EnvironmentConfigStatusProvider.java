@@ -7,7 +7,7 @@ import net.foxopen.fox.configuration.resourcemaster.definition.FoxEnvironmentDef
 import net.foxopen.fox.configuration.resourcemaster.definition.FoxEnvironmentProperty;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.enginestatus.MessageLevel;
-import net.foxopen.fox.enginestatus.StatusCategory;
+import net.foxopen.fox.enginestatus.StatusDestination;
 import net.foxopen.fox.enginestatus.StatusDetail;
 import net.foxopen.fox.enginestatus.StatusItem;
 import net.foxopen.fox.enginestatus.StatusProvider;
@@ -26,12 +26,12 @@ implements StatusProvider {
   }
 
   @Override
-  public void refreshStatus(StatusCategory pCategory) {
+  public void refreshStatus(StatusDestination pDestination) {
 
     if(FoxGlobals.getInstance().isEngineInitialised()) {
       final FoxEnvironmentDefinition lEnvironmentDefinition = FoxGlobals.getInstance().getFoxEnvironment().getEnvironmentDefinition();
       //Environment properties
-      StatusTable lEnvConfigTable = pCategory.addTable("Environment Config", "Property Path", "Property Value", "Property Location");
+      StatusTable lEnvConfigTable = pDestination.addTable("Environment Config", "Property Path", "Property Value", "Property Location");
       lEnvConfigTable.setRowProvider(new StatusTable.RowProvider() {
         @Override
         public void generateRows(StatusTable.RowDestination pRowDestination) {
@@ -60,7 +60,7 @@ implements StatusProvider {
 
       //App properties
       for (final Map.Entry<String, FoxApplicationDefinition> lAppDefinition : lEnvironmentDefinition.getAppMnemToAppDefinition().entrySet()) {
-        StatusTable lAppTable = pCategory.addTable("App " + lAppDefinition.getKey(), "Property Path", "Property Value", "Property Location");
+        StatusTable lAppTable = pDestination.addTable("App " + lAppDefinition.getKey(), "Property Path", "Property Value", "Property Location");
         lAppTable.setRowProvider(new StatusTable.RowProvider() {
           @Override
           public void generateRows(StatusTable.RowDestination pRowDestination) {
@@ -90,12 +90,13 @@ implements StatusProvider {
       }
     }
     else {
-      pCategory.addDetailMessage("Environment configuration error", new StatusDetail.Provider() {
+      pDestination.addDetailMessage("Environment configuration error", new StatusDetail.Provider() {
         @Override
         public StatusItem getDetailMessage() {
           return new StatusText(XFUtil.getJavaStackTraceInfo(FoxBootServlet.getLastBootError()), MessageLevel.ERROR);
         }
       });
+      pDestination.addAction("Reinitialise engine", FoxBootServlet.BOOT_SERVLET_PATH + "/!INIT");
     }
   }
 
@@ -111,6 +112,6 @@ implements StatusProvider {
 
   @Override
   public boolean isCategoryExpandedByDefault() {
-    return !FoxGlobals.getInstance().isEngineInitialised();
+    return false;
   }
 }

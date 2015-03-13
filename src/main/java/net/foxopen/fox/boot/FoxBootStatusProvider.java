@@ -6,7 +6,7 @@ import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.parser.StatementParser;
 import net.foxopen.fox.enginestatus.EngineStatus;
 import net.foxopen.fox.enginestatus.MessageLevel;
-import net.foxopen.fox.enginestatus.StatusCategory;
+import net.foxopen.fox.enginestatus.StatusDestination;
 import net.foxopen.fox.enginestatus.StatusProvider;
 import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.ex.ExDB;
@@ -17,47 +17,47 @@ public class FoxBootStatusProvider
 implements StatusProvider{
 
   @Override
-  public void refreshStatus(StatusCategory pCategory) {
+  public void refreshStatus(StatusDestination pDestination) {
 
     FoxGlobals lGlobals = FoxGlobals.getInstance();
 
     try {
-      pCategory.addMessage("Engine Locator", lGlobals.getEngineLocator());
-      pCategory.addMessage("Engine Port", lGlobals.getEnginePort());
+      pDestination.addMessage("Engine Locator", lGlobals.getEngineLocator());
+      pDestination.addMessage("Engine Port", lGlobals.getEnginePort());
 
-      pCategory.addMessage("Server IP", lGlobals.getServerIP());
-      pCategory.addMessage("Server Hostname", lGlobals.getServerHostName());
+      pDestination.addMessage("Server IP", lGlobals.getServerIP());
+      pDestination.addMessage("Server Hostname", lGlobals.getServerHostName());
 
-      pCategory.addMessage("Build Version Number", lGlobals.getEngineVersionInfo().getVersionNumber());
-      pCategory.addMessage("Build Tag", lGlobals.getEngineVersionInfo().getBuildTag());
-      pCategory.addMessage("Build Time", lGlobals.getEngineVersionInfo().getBuildTime());
+      pDestination.addMessage("Build Version Number", lGlobals.getEngineVersionInfo().getVersionNumber());
+      pDestination.addMessage("Build Tag", lGlobals.getEngineVersionInfo().getBuildTag());
+      pDestination.addMessage("Build Time", lGlobals.getEngineVersionInfo().getBuildTime());
 
-      pCategory.addMessage("Context Name", lGlobals.getContextName());
+      pDestination.addMessage("Context Name", lGlobals.getContextName());
     }
     catch (Throwable th) {
-      pCategory.addMessage("GLOBAL STATUS ERROR", th.getMessage(), MessageLevel.ERROR);
+      pDestination.addMessage("GLOBAL STATUS ERROR", th.getMessage(), MessageLevel.ERROR);
     }
 
     FoxBootConfig lBootConfig = lGlobals.getFoxBootConfig();
     try {
-      pCategory.addMessage("Service List", lBootConfig.getFoxServiceList());
+      pDestination.addMessage("Service List", lBootConfig.getFoxServiceList());
 
-      pCategory.addMessage("Production Status", lBootConfig.getProductionStatus());
+      pDestination.addMessage("Production Status", lBootConfig.getProductionStatus());
 
-      pCategory.addMessage("Environment Name", lBootConfig.getFoxEnvironmentKey());
+      pDestination.addMessage("Environment Name", lBootConfig.getFoxEnvironmentKey());
 
-      pCategory.addMessage("Database URL", lBootConfig.getDatabaseURL());
-      pCategory.addMessage("Database User", lBootConfig.getMainDatabaseUsername());
+      pDestination.addMessage("Database URL", lBootConfig.getDatabaseURL());
+      pDestination.addMessage("Database User", lBootConfig.getMainDatabaseUsername());
     }
     catch (Throwable th) {
-      pCategory.addMessage("BOOT STATUS ERROR", th.getMessage(), MessageLevel.ERROR);
+      pDestination.addMessage("BOOT STATUS ERROR", th.getMessage(), MessageLevel.ERROR);
     }
 
     try {
-      checkDatabaseTime(pCategory);
+      checkDatabaseTime(pDestination);
     }
     catch (Throwable th) {
-      pCategory.addMessage("TIME CHECK ERROR", th.getMessage(), MessageLevel.ERROR);
+      pDestination.addMessage("TIME CHECK ERROR", th.getMessage(), MessageLevel.ERROR);
     }
 
   }
@@ -78,7 +78,7 @@ implements StatusProvider{
   }
 
 
-  private void checkDatabaseTime(StatusCategory pCategory) {
+  private void checkDatabaseTime(StatusDestination pCategory) {
     ContextUCon lContextUCon = ContextUCon.createContextUCon(FoxGlobals.getInstance().getEngineConnectionPoolName(), "Sysdate check");
     lContextUCon.pushConnection("SysdateCheck");
     UCon lUCon = lContextUCon.getUCon("Check database time");

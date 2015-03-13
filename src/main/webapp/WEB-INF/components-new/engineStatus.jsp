@@ -94,11 +94,39 @@
       });
     }
 
+    function attachActionListeners() {
+      //Attach event listeners for action links
+      $('*[data-status-type=action]').unbind('click').click(function(event) {
+
+        if(!confirm("Are you sure?")) {
+          return false;
+        }
+
+        var that = $(this);
+        $.ajax({
+          url: $(this).attr('href')
+        })
+        .done(function(){
+          that.parents('.categoryContainer').find('*[data-status-type=refreshCategory]').click();
+          that.addClass("icon-animated-spinner");
+        })
+        .fail(function() {
+          alert('Error running action.');
+        })
+        .always(function() {
+          that.removeClass("icon-animated-spinner");
+        });
+
+        event.preventDefault();
+      });
+    }
+
     function loadCategoryHTML(categoryContainer, restoreScroll) {
       var scrollPos = $(document).scrollTop();
       loadHTML(categoryContainer.find('.categoryContent'), categoryContainer.data('category-href'), function() {
-        //Make sure we attach listeners for any detail links which have come out
+        //Make sure we attach listeners for any detail and bang links which have come out
         attachDetailListeners();
+        attachActionListeners();
         //Reset the scroll position to mitigate annoying page jumps
         if(restoreScroll) {
           $(document).scrollTop(scrollPos);

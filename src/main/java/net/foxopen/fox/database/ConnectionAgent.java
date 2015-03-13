@@ -1,8 +1,8 @@
 package net.foxopen.fox.database;
 
 import net.foxopen.fox.enginestatus.EngineStatus;
-import net.foxopen.fox.enginestatus.StatusCategory;
 import net.foxopen.fox.enginestatus.StatusCollection;
+import net.foxopen.fox.enginestatus.StatusDestination;
 import net.foxopen.fox.enginestatus.StatusDetail;
 import net.foxopen.fox.enginestatus.StatusItem;
 import net.foxopen.fox.enginestatus.StatusMessage;
@@ -38,7 +38,9 @@ public class ConnectionAgent {
    */
   private static ConnectionPoolFactory gConnectionPoolFactory = HikariConnectionPoolFactory.instance();
 
-  private static final StatusCategory gConnectionStatusCategory = EngineStatus.instance().registerStatusProvider(new ConnectionStatusProvider());
+  static {
+    EngineStatus.instance().registerStatusProvider(new ConnectionStatusProvider());
+  }
 
   /**
    * Job pool for recycling returned connections.
@@ -262,9 +264,9 @@ public class ConnectionAgent {
   implements StatusProvider {
 
     @Override
-    public void refreshStatus(StatusCategory pCategory) {
+    public void refreshStatus(StatusDestination pDestination) {
 
-      StatusTable lPoolTable = pCategory.addTable("Pool List", "Pool Name", "Active", "Idle", "Total", "Threads Waiting");
+      StatusTable lPoolTable = pDestination.addTable("Pool List", "Pool Name", "Active", "Idle", "Total", "Threads Waiting");
       lPoolTable.setRowProvider(new StatusTable.RowProvider() {
         @Override
         public void generateRows(StatusTable.RowDestination pRowDestination) {

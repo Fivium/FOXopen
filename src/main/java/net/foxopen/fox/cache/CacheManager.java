@@ -9,8 +9,8 @@ import net.foxopen.fox.database.UConStatementResult;
 import net.foxopen.fox.database.parser.ParsedStatement;
 import net.foxopen.fox.enginestatus.EngineStatus;
 import net.foxopen.fox.enginestatus.StatusAction;
-import net.foxopen.fox.enginestatus.StatusCategory;
 import net.foxopen.fox.enginestatus.StatusCollection;
+import net.foxopen.fox.enginestatus.StatusDestination;
 import net.foxopen.fox.enginestatus.StatusDetail;
 import net.foxopen.fox.enginestatus.StatusItem;
 import net.foxopen.fox.enginestatus.StatusMessage;
@@ -43,8 +43,8 @@ public class CacheManager {
   static {
     EngineStatus.instance().registerStatusProvider(new StatusProvider() {
       @Override
-      public void refreshStatus(StatusCategory pCategory) {
-        cacheStatsTable(pCategory);
+      public void refreshStatus(StatusDestination pDestination) {
+        cacheStatsTable(pDestination);
       }
 
       @Override
@@ -215,9 +215,9 @@ public class CacheManager {
     }
   }
 
-  private static void cacheStatsTable(StatusCategory pStatusCategory){
+  private static void cacheStatsTable(StatusDestination pStatusDestination){
 
-    StatusTable lTable = pStatusCategory.addTable("Cache Summary", "Purpose", "Implementation Class", "Current Size", "Capacity", "Hit Rate", "Hit Count", "Miss Count", "Actions");
+    StatusTable lTable = pStatusDestination.addTable("Cache Summary", "Purpose", "Implementation Class", "Current Size", "Capacity", "Hit Rate", "Hit Count", "Miss Count", "Actions");
     lTable.setRowProvider(new StatusTable.RowProvider() {
       @Override
       public void generateRows(StatusTable.RowDestination pRowDestination) {

@@ -4,8 +4,8 @@ import com.google.common.collect.EvictingQueue;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import net.foxopen.fox.enginestatus.EngineStatus;
 import net.foxopen.fox.enginestatus.MessageLevel;
-import net.foxopen.fox.enginestatus.StatusCategory;
 import net.foxopen.fox.enginestatus.StatusCollection;
+import net.foxopen.fox.enginestatus.StatusDestination;
 import net.foxopen.fox.enginestatus.StatusDetail;
 import net.foxopen.fox.enginestatus.StatusMessage;
 import net.foxopen.fox.enginestatus.StatusProvider;
@@ -39,7 +39,9 @@ public class FoxJobPool {
 
   public static final String STATUS_DATE_FORMAT = "dd-MM HH:mm:ss";
 
-  private static final StatusCategory gJobPoolStatusCategory = EngineStatus.instance().registerStatusProvider(new JobPoolStatusProvider());
+  static {
+    EngineStatus.instance().registerStatusProvider(new JobPoolStatusProvider());
+  }
 
   private static final Map<String, FoxJobPool> gPoolNameToPoolMap = new HashMap<>();
 
@@ -110,9 +112,9 @@ public class FoxJobPool {
   implements StatusProvider {
 
     @Override
-    public void refreshStatus(StatusCategory pCategory) {
+    public void refreshStatus(StatusDestination pDestination) {
 
-      StatusTable lTable = pCategory.addTable("Job Pool List", "Pool Name", "Current queue size",  "Total executions", "Last messages", "Last errors");
+      StatusTable lTable = pDestination.addTable("Job Pool List", "Pool Name", "Current queue size",  "Total executions", "Last messages", "Last errors");
       lTable.setRowProvider(new StatusTable.RowProvider() {
         @Override
         public void generateRows(StatusTable.RowDestination pRowDestination) {

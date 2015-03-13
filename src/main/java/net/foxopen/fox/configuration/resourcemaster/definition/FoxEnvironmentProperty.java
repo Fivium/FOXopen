@@ -4,7 +4,6 @@ package net.foxopen.fox.configuration.resourcemaster.definition;
 import net.foxopen.fox.configuration.resourcemaster.model.DatabaseProperties;
 
 public enum FoxEnvironmentProperty {
-  ENVIRONMENT_KEY("/*/environment-key", false),
   DEFAULT_APPLICATION("/*/default-application", false),
   DATABASE_BINARY_XML_READER_STRATEGY("/*/database/binary-xml-reader-strategy", false, false, DatabaseProperties.XML_READER_STRATEGY_BINARY),
   ENV_DISPLAY_ATTR_LIST ("/*/env-display-attribute-list", true, false),
