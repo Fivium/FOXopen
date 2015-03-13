@@ -78,7 +78,15 @@ label {
   margin-bottom: 0.3em;
 }
 
-.setoutForm.noBottomMargin {
+.setoutForm.noBottomMargin,
+span.noBottomMargin,
+input.noBottomMargin,
+select.noBottomMargin,
+textarea.noBottomMargin,
+.tagger.noBottomMargin,
+.text-widget.noBottomMargin,
+.prompt.noBottomMargin,
+.noBottomMargin {
   margin-bottom: 0em;
 }
 
