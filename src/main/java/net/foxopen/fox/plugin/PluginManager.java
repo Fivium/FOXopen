@@ -469,7 +469,12 @@ public class PluginManager {
         pDestination.addMessage("Directory Scan Result", mLastScanLog);
 
         if(mLastScanException != null) {
-          pDestination.addMessage("Directory Scan Exception", XFUtil.getJavaStackTraceInfo(mLastScanException), MessageLevel.ERROR);
+          pDestination.addDetailMessage("Directory Scan Exception", new StatusDetail.Provider() {
+            @Override
+            public StatusItem getDetailMessage() {
+              return new StatusText(XFUtil.getJavaStackTraceInfo(mLastScanException), MessageLevel.ERROR);
+            }
+          });
         }
 
         final String FILE_NAME_COLUMN = "File Name";
