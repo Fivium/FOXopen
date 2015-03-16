@@ -3,6 +3,7 @@ SELECT
 , fc.username
 , fc.min_pool_size
 , fc.max_pool_size
+, fc.max_recycles
 , fc.connection_timeout_ms
 , fc.connection_init_sql
 , fc.connection_checkin_sql

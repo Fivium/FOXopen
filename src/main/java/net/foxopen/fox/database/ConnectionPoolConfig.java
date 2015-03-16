@@ -38,6 +38,7 @@ public class ConnectionPoolConfig {
   private final static String USERNAME_FIELD = "USERNAME"; // Required
   private final static String MIN_POOL_SIZE_FIELD = "MIN_POOL_SIZE"; // Required
   private final static String MAX_POOL_SIZE_FIELD = "MAX_POOL_SIZE"; // Required
+  private final static String MAX_RECYCLES_FIELD = "MAX_RECYCLES"; // Optional
   private final static String CONNECTION_TIMEOUT_MS = "CONNECTION_TIMEOUT_MS";
   private final static String CONNECTION_INIT_SQL_FIELD = "CONNECTION_INIT_SQL";
   private final static String CONNECTION_CHECKIN_SQL_FIELD = "CONNECTION_CHECKIN_SQL";
@@ -57,6 +58,7 @@ public class ConnectionPoolConfig {
     String lUsername =  pFoxUConStatement.getString(USERNAME_FIELD);
     Integer lMinPoolSize = pFoxUConStatement.getInteger(MIN_POOL_SIZE_FIELD);
     Integer lMaxPoolSize = pFoxUConStatement.getInteger(MAX_POOL_SIZE_FIELD);
+    Integer lMaxRecycles = pFoxUConStatement.getInteger(MAX_RECYCLES_FIELD);
     Long lAcquireTimeoutMS = pFoxUConStatement.getLong(CONNECTION_TIMEOUT_MS);
     String lInitSql = pFoxUConStatement.getString(CONNECTION_INIT_SQL_FIELD);
     String lCheckInSql = pFoxUConStatement.getString(CONNECTION_CHECKIN_SQL_FIELD);
@@ -89,6 +91,10 @@ public class ConnectionPoolConfig {
 
     if (!XFUtil.isNull(lMinPoolSize)) {
       lConnectionPoolConfig.setMinPoolSize(lMinPoolSize);
+    }
+
+    if (!XFUtil.isNull(lMaxRecycles)) {
+      lConnectionPoolConfig.setMaximumRecycles(lMaxRecycles);
     }
 
     return lConnectionPoolConfig;
@@ -233,7 +239,8 @@ public class ConnectionPoolConfig {
   }
 
   /**
-   * Set a SQL to run when a connection is created before it is added to the pool
+   * Set a SQL to run when a connection is created before it is added to the pool. The SQL text may contain substitution
+   * variables for dynamic schema names.
    *
    * @param pConnectionInitSql SQL Statement
    */
@@ -245,7 +252,7 @@ public class ConnectionPoolConfig {
   }
 
   /**
-   * Get a SQL to run when a connection is created before it is added to the pool
+   * Get a SQL to run when a connection is created before it is added to the pool.
    *
    * @return SQL Statement
    */
@@ -254,7 +261,8 @@ public class ConnectionPoolConfig {
   }
 
   /**
-   * Set a SQL to run when a connection is checked out from the pool
+   * Set a SQL to run when a connection is checked out from the pool. The SQL text may contain substitution
+   * variables for dynamic schema names.
    *
    * @param pConnectionCheckoutSQL SQL Statement
    */
@@ -275,7 +283,8 @@ public class ConnectionPoolConfig {
   }
 
   /**
-   * Set a SQL to run when a connection is checked back in to the pool
+   * Set a SQL to run when a connection is checked back in to the pool. The SQL text may contain substitution
+   * variables for dynamic schema names.
    *
    * @param pConnectionCheckinSQL SQL Statement
    */

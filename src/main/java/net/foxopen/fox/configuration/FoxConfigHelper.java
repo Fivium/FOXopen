@@ -161,40 +161,25 @@ public class FoxConfigHelper {
     lBindMap.defineBind(":p_plugin_list", lPluginDOM);
     lBindMap.defineBind(":p_security_token", pSecurityToken);
     lBindMap.defineBind(":p_environment_key", pFoxBootConfig.getFoxEnvironmentKey());
-    lBindMap.defineBind(":status_out", UCon.bindOutString());
 
-    UConStatementResult lAPIResult = null;
     try {
-      lAPIResult = pUCon.executeAPI(SQLManager.instance().getStatement(REGISTER_ENGINE_FILENAME, FoxConfigHelper.class), lBindMap);
-      String lStatus = lAPIResult.getString(":status_out");
-
-      if (!lStatus.equals("SUCCESS")) {
-        throw new ExFoxConfiguration("Registering the engine was not a success, problem: " + lStatus);
-      }
+      pUCon.executeAPI(SQLManager.instance().getStatement(REGISTER_ENGINE_FILENAME, getClass()), lBindMap);
     }
     catch (ExDB e) {
       throw new ExFoxConfiguration("Error registering the engine. ", e);
     }
   }
 
-  public static void deleteEngine(UCon pUCon, String pEnvironmentKey, String pEngineLocator) throws ExFoxConfiguration {
+  public void deleteEngine(UCon pUCon, String pEnvironmentKey, String pEngineLocator) throws ExFoxConfiguration {
     UConBindMap lBindMap = new UConBindMap();
     lBindMap.defineBind(":p_environment_key", pEnvironmentKey);
     lBindMap.defineBind(":p_engine_locator", pEngineLocator);
-    lBindMap.defineBind(":status_out", UCon.bindOutString());
 
-    UConStatementResult lAPIResult;
     try {
-      lAPIResult = pUCon.executeAPI(SQLManager.instance().getStatement(DELETE_ENGINE_FILENAME, FoxConfigHelper.class), lBindMap);
+      pUCon.executeAPI(SQLManager.instance().getStatement(DELETE_ENGINE_FILENAME, getClass()), lBindMap);
     }
     catch (ExDB e) {
       throw new ExInternal("Error deleting the engine. ", e);
-    }
-
-    String lStatus = lAPIResult.getString(":status_out");
-
-    if (!lStatus.equals("SUCCESS")) {
-      throw new ExFoxConfiguration("Deleting the engine was not a success, the status returned was failed " + lStatus);
     }
   }
 

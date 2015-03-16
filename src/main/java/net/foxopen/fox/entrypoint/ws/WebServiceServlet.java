@@ -24,6 +24,7 @@ import org.json.simple.JSONObject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -217,8 +218,14 @@ extends EntryPointServlet {
 
     //Validate http params
     Set<String> lHttpParamNames = pRequest.getParameterMap().keySet();
-    Set<String> lMandParamNames = new HashSet<>(pEndPoint.getMandatoryRequestParamNames());
-    if(!lHttpParamNames.containsAll(pEndPoint.getMandatoryRequestParamNames())) {
+    Collection<String> lMandatoryRequestParamNames = pEndPoint.getMandatoryRequestParamNames();
+
+    if(lMandatoryRequestParamNames == null) {
+      lMandatoryRequestParamNames = Collections.emptySet();
+    }
+
+    Set<String> lMandParamNames = new HashSet<>(lMandatoryRequestParamNames);
+    if(!lHttpParamNames.containsAll(lMandatoryRequestParamNames)) {
       lMandParamNames.removeAll(lHttpParamNames);
       throw new ExInternal("Request missing mandatory parameter(s): " + Joiner.on(", ").join(lMandParamNames));
     }

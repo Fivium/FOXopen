@@ -157,7 +157,7 @@ extends HttpServlet {
       UCon lPrimaryDBUCon = null;
       try {
         lPrimaryDBUCon = ConnectionAgent.getConnection(FoxGlobals.getInstance().getEngineConnectionPoolName(), "Deregistering engine");
-        FoxConfigHelper.deleteEngine(lPrimaryDBUCon, FoxGlobals.getInstance().getFoxBootConfig().getFoxEnvironmentKey(), FoxGlobals.getInstance().getEngineLocator());
+        FoxConfigHelper.getInstance().deleteEngine(lPrimaryDBUCon, FoxGlobals.getInstance().getFoxBootConfig().getFoxEnvironmentKey(), FoxGlobals.getInstance().getEngineLocator());
       }
       catch (Throwable th) {
         FoxLogger.getLogger().error("Error when deregistering the engine on shutdown on the database", th);

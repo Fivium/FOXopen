@@ -17,6 +17,7 @@ implements WebServiceCategory {
   @Override
   public Collection<? extends WebService> getAllWebServices() {
     return Arrays.asList(
+      new AliveWebService(),
       new ThreadWebService(),
       new DevToolbarWebService()
     );
