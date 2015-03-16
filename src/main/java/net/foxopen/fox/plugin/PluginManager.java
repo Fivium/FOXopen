@@ -508,7 +508,7 @@ public class PluginManager {
 
                 StatusCollection lStatusCollection = new StatusCollection("PluginInfo");
                 lStatusCollection.addItem(new StatusMessage("Version", XFUtil.nvl(lPluginFile.getPluginVersion(), "Unknown")));
-                lStatusCollection.addItem(new StatusMessage("Version", XFUtil.nvl(lPluginFile.getPluginBuildTag(), "Unknown")));
+                lStatusCollection.addItem(new StatusMessage("Build Tag", XFUtil.nvl(lPluginFile.getPluginBuildTag(), "Unknown")));
 
                 lStatusRow.setColumn(PLUGIN_VERSION_COLUMN, lStatusCollection);
 
