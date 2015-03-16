@@ -728,7 +728,8 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
       //Check the posted field set label against the expected label
       if (!lFieldSetArray[0].equals(mFieldSetIn.getOutwardFieldSetLabel())) {
         //Note: this line used to display an error message if this was not caused by the user hitting refresh, detected by reading the submit_count parameter
-        pRequestContext.addXDoResult(new AlertMessage("Erroneous navigation detected!"));
+        pRequestContext.addXDoResult(new AlertMessage("You appear to have reloaded the page or used one of your browser's back or forward buttons.\n\n" +
+                                                      "Please use the navigation options provided on the page, and avoid reloading the page as this may cause data to be lost."));
         return false;
       }
       else {
