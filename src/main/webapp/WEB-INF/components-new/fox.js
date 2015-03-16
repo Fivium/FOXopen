@@ -278,7 +278,7 @@ var FOXjs = {
     if ("activeElement" in document) {
       document.activeElement.blur();
     }
-    this.blockSubmit("Page is already loading, cannot resubmit");
+    this.blockSubmit("The page is already loading. Please wait for the page to finish loading before performing further actions.");
   },
 
   /**
