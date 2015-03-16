@@ -13,7 +13,7 @@
   String lDBPassword = (String) request.getAttribute("db_password");
   String lIsDevelopment = (String) request.getAttribute("is_development");
   String lIsProduction = (String) request.getAttribute("is_production");
-  boolean lIsConfigured = (boolean) request.getAttribute("is_configured");
+  Boolean lIsConfigured = (Boolean) request.getAttribute("is_configured");
   String lFoxServiceList = (String) request.getAttribute("fox_service_list");
   String lFoxEnvironment = (String) request.getAttribute("fox_environment");
   String lSupportUser = (String) request.getAttribute("support_user");
