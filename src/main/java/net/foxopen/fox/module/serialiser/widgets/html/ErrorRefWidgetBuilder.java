@@ -4,10 +4,11 @@ package net.foxopen.fox.module.serialiser.widgets.html;
 import com.google.common.base.Joiner;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
-import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.NodeAttribute;
+import net.foxopen.fox.module.datanode.NodeEvaluationContext;
 import net.foxopen.fox.module.datanode.NodeInfo;
+import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
 import net.foxopen.fox.module.serialiser.fragmentbuilder.MustacheFragmentBuilder;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
@@ -70,44 +71,32 @@ public class ErrorRefWidgetBuilder extends WidgetBuilderHTMLSerialiser<Evaluated
   }
 
   private String getPrompt(NodeInfo pNodeInfo, EvaluatedNode pEvalNode) {
+    NodeEvaluationContext lParentNEC = pEvalNode.getNodeEvaluationContext();
+    // Construct a new NodeEvaluationContext using the given NodeInfo for the referenced element with the error
+    NodeEvaluationContext lNodeEvaluationContext = NodeEvaluationContext.createNodeInfoEvaluationContext(lParentNEC.getEvaluatedParseTree(), pEvalNode.getEvaluatedPresentationNode(),
+      lParentNEC.getDataItem(), lParentNEC.getEvaluateContextRuleItem(), lParentNEC.getEvaluateContextRuleItem(),
+      pNodeInfo.getNamespaceAttributeTable(),
+      lParentNEC.getNamespacePrecedenceList(), lParentNEC);
+
     // Try the fox:prompt attribute
-    String lPromptValue = pNodeInfo.getAttribute(NodeInfo.FOX_NAMESPACE, NodeAttribute.PROMPT.getExternalString());
+    StringAttributeResult lPrompt = lNodeEvaluationContext.getStringAttributeOrNull(NodeAttribute.PROMPT);
     // If no prompt defined, try fox:prompt-short
-    if (lPromptValue == null) {
-      lPromptValue = pNodeInfo.getAttribute(NodeInfo.FOX_NAMESPACE, NodeAttribute.PROMPT_SHORT.getExternalString());
+    if (lPrompt == null || XFUtil.isNull(lPrompt.getString())) {
+      lPrompt = lNodeEvaluationContext.getStringAttributeOrNull(NodeAttribute.PROMPT_SHORT);
     }
 
-    if (XFUtil.exists(lPromptValue)) {
-      // Evaluate the prompt string or xpath and return the result if not empty
-      try {
-        lPromptValue = pEvalNode.getContextUElem().extendedStringOrXPathString(pEvalNode.getEvaluateContextRuleItem(), lPromptValue);
-        if (XFUtil.exists(lPromptValue)) {
-          return lPromptValue;
-        }
-      }
-      catch (ExActionFailed e) {
-      /* IGNORED */
-      }
-    }
-
-    // Try fox:action
-    lPromptValue = pNodeInfo.getAttribute(NodeInfo.FOX_NAMESPACE, NodeAttribute.ACTION.getExternalString());
-    if (XFUtil.exists(lPromptValue)) {
-      // Return the init capped action name (skip past state name if defined)
-      int pos = lPromptValue.indexOf("/");
-      if (pos != -1) {
-        return XFUtil.initCap(lPromptValue.substring(pos + 1));
-      }
-      return XFUtil.initCap(lPromptValue);
-    }
-
-    // Resort to the element name if nothing else available
-    lPromptValue = pNodeInfo.getName();
-    if (XFUtil.exists(lPromptValue)) {
-      return XFUtil.initCap(lPromptValue);
+    if (lPrompt != null && !XFUtil.isNull(lPrompt.getString())) {
+      // If we found a prompt[-short] then return it
+      return lPrompt.getString();
     }
     else {
-      return null;
+      // If no prompt[-short] then use the element name
+      if (XFUtil.exists(pNodeInfo.getName())) {
+        return XFUtil.initCap(pNodeInfo.getName());
+      }
+      else {
+        return null;
+      }
     }
   }
 
