@@ -522,6 +522,14 @@ implements Persistable {
       return this;
     }
 
+    /**
+     * Can be null.
+     * @return
+     */
+    public DOM getEnvironmentDOM() {
+      return mEnvironmentDOM;
+    }
+
     ModuleCall build(ModuleCallStack pTargetCallStack, DOMHandlerProvider pDOMHandlerProvider, PersistenceContext pPersistenceContext){
 
       DOM lParamsDOM = mParamsDOM;

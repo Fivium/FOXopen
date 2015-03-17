@@ -62,7 +62,7 @@ extends RequestContext {
 
   public DOMHandlerProvider getDOMHandlerProvider();
 
-  public ResponseOverride getDefaultExitResponse();
+  public ExitResponse getDefaultExitResponse();
 
   public XDoControlFlow handleStateStackTransformation(StateStackTransformation pTransformation);
 

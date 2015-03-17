@@ -124,7 +124,7 @@ implements ActionRequestContext {
   }
 
   @Override
-  public ResponseOverride getDefaultExitResponse() {
+  public ExitResponse getDefaultExitResponse() {
     return mXThread.getDefaultExitResponse(this);
   }
 
