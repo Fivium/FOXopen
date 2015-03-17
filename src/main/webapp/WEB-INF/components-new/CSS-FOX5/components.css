@@ -17,14 +17,15 @@
 }
 
 #blocking-div {
-  background-color: #000000;
-  position: absolute;
-  z-index: 99;
+  background: #fff;
   top: 0;
   left: 0;
-  opacity: 0.3;
-  filter: alpha(opacity = 30);
-  overflow: hidden;
+  right: 0;
+  bottom: 0;
+  position: fixed;
+  z-index: 10000;
+  opacity: 0;
+  filter: alpha(opacity = 0);
 }
 
 /* un-reset list item style */
