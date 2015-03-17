@@ -1,5 +1,6 @@
 package net.foxopen.fox.command;
 
+import net.foxopen.fox.ContextLabel;
 import net.foxopen.fox.command.builtin.AssertCommand;
 import net.foxopen.fox.command.builtin.AssertCommand.AssertionResult;
 import net.foxopen.fox.command.flow.XDoControlFlow;
@@ -12,9 +13,12 @@ import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.ex.ExAssertion;
 import net.foxopen.fox.ex.ExInternal;
-import net.foxopen.fox.thread.devtoolbar.DevToolbarContext;
-import net.foxopen.fox.thread.ResponseOverride;
 import net.foxopen.fox.thread.ActionRequestContext;
+import net.foxopen.fox.thread.ExitResponse;
+import net.foxopen.fox.thread.ModulePushExitResponse;
+import net.foxopen.fox.thread.ResponseOverride;
+import net.foxopen.fox.thread.devtoolbar.DevToolbarContext;
+import net.foxopen.fox.thread.stack.ModuleCall;
 import net.foxopen.fox.thread.stack.ModuleCallStack;
 import net.foxopen.fox.thread.stack.transform.CallStackTransformation;
 import net.foxopen.fox.track.Track;
@@ -156,6 +160,9 @@ public class XDoRunner {
         throw new ExInternal("Module call stack argument cannot be null when processing a CST");
       }
 
+      //Grab the environment DOM now in case we need it after the CST processing
+      DOM lEnvDOM = pRequestContext.getContextUElem().getUElem(ContextLabel.ENV);
+
       CallStackTransformation lCallStackTransformation = ((XDoControlFlowCST) mControlFlow).getCallStackTransformation();
 
       Track.pushInfo("CallStackTransformation", lCallStackTransformation);
@@ -169,14 +176,44 @@ public class XDoRunner {
       //Process a thread exit - set the response to that specified on the exit-module command, or get the default action from the thread
       //Only do this if a response override has not already been set
       if(pModuleCallStack.isEmpty() && pRequestContext.getXDoResults(ResponseOverride.class).size() == 0){
-        if(lCallStackTransformation.getExitResponseOverride() != null) {
-          pRequestContext.addXDoResult(lCallStackTransformation.getExitResponseOverride());
-          Track.info("ThreadExit", "Exiting thread with overriden response");
+        handleThreadExit(pRequestContext, pModuleCallStack, lEnvDOM, lCallStackTransformation);
+      }
+    }
+  }
+
+  private void handleThreadExit(ActionRequestContext pRequestContext, ModuleCallStack pModuleCallStack, DOM pEnvDOM, CallStackTransformation pCallStackTransformation) {
+    if(pCallStackTransformation.getExitResponseOverride() != null) {
+      pRequestContext.addXDoResult(pCallStackTransformation.getExitResponseOverride());
+      Track.info("ThreadExit", "Exiting thread with overriden response (from exit transformation)");
+    }
+    else {
+      //Get an exit response from the thread and handle it appropriately
+      ExitResponse lExitResponse = pRequestContext.getDefaultExitResponse();
+
+      if(lExitResponse instanceof ModulePushExitResponse) {
+        //Thread exit page is a module reference, so do a call of the module name/entry theme
+        Track.info("ThreadExit", "Pushing module onto callstack to prevent thread exit");
+
+        ModuleCall.Builder lModuleCallBuilder = ((ModulePushExitResponse) lExitResponse).createBuilder(pRequestContext);
+
+        lModuleCallBuilder.setEnvironmentDOM(pEnvDOM);
+        CallStackTransformation lCST = CallStackTransformation.createCallStackTransformation(CallStackTransformation.Type.MODAL, lModuleCallBuilder);
+
+        Track.pushInfo("ThreadExitModulePush");
+        try {
+          lCST.transform(pRequestContext, pModuleCallStack);
         }
-        else {
-          pRequestContext.addXDoResult(pRequestContext.getDefaultExitResponse());
-          Track.info("ThreadExit", "Exiting thread with default response");
+        finally {
+          Track.pop("ThreadExitModulePush");
         }
+      }
+      else if(lExitResponse instanceof ResponseOverride) {
+        //Thread exit page is a URI or other response type (i.e. a self-closing modeless page)
+        Track.info("ThreadExit", "Exiting thread with default response (from thread)");
+        pRequestContext.addXDoResult((ResponseOverride) lExitResponse);
+      }
+      else {
+        throw new ExInternal("Don't know how to treat an ExitResponse of type " + lExitResponse.getClass().getName());
       }
     }
   }

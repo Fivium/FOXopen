@@ -10,8 +10,8 @@ import net.foxopen.fox.ResponseMethod;
 import net.foxopen.fox.URIResourceReference;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.auth.AuthenticationContext;
-import net.foxopen.fox.cache.CacheManager;
 import net.foxopen.fox.cache.BuiltInCacheDefinition;
+import net.foxopen.fox.cache.CacheManager;
 import net.foxopen.fox.cache.FoxCache;
 import net.foxopen.fox.command.XDoCommandList;
 import net.foxopen.fox.command.XDoRunner;
@@ -22,13 +22,10 @@ import net.foxopen.fox.dom.xpath.saxon.SaxonEnvironment;
 import net.foxopen.fox.download.DownloadManager;
 import net.foxopen.fox.download.ThreadDownloadManager;
 import net.foxopen.fox.entrypoint.ComponentManager;
-import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.entrypoint.servlets.FoxMainServlet;
 import net.foxopen.fox.entrypoint.uri.RequestURIBuilder;
 import net.foxopen.fox.ex.ExAlreadyHandled;
-import net.foxopen.fox.ex.ExApp;
 import net.foxopen.fox.ex.ExInternal;
-import net.foxopen.fox.ex.ExServiceUnavailable;
 import net.foxopen.fox.ex.ExUserRequest;
 import net.foxopen.fox.logging.ErrorLogger;
 import net.foxopen.fox.module.ActionDefinition;
@@ -924,59 +921,42 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     return mAppMnem + "/" + mThreadId;
   }
 
-  private String getExitURI(RequestContext pRequestContext){
+  private ExitResponse getExitResponse(ActionRequestContext pRequestContext){
 
     String lThreadExitURI = mThreadPropertyMap.getStringProperty(ThreadProperty.Type.EXIT_URI);
     if(!XFUtil.isNull(lThreadExitURI)) {
       //Thread has an explicit exit URI specified on it
-      return lThreadExitURI;
+      return new ResponseOverride(new URIResourceReference(lThreadExitURI));
     }
     else {
-      try {
-        //Get the exit page from the app definition - it'll be either a module name or a fixed URI
-        String lExitPage = FoxGlobals.getInstance().getFoxEnvironment().getAppByMnem(mAppMnem).getExitPage();
+      //Get the exit page from the app definition - it'll be either a module name or a fixed URI
+      String lExitPage = pRequestContext.getRequestApp().getExitPage();
 
-        RequestURIBuilder lURIBuilder = pRequestContext.createURIBuilder();
-        if (!lURIBuilder.isFixedURI(lExitPage)){
-          //Exit page reference is not a "fixed" URI (i.e. does not start http://) - treat it as a module reference
-          if(lExitPage.contains("/")) {
-            //Slash in name indicates entry theme has been specified
-            String lModName = lExitPage.split("/")[0];
-            String lEntryTheme = lExitPage.split("/")[1];
-            return FoxMainServlet.buildGetEntryURI(lURIBuilder, mAppMnem, lModName, lEntryTheme);
-          }
-          else {
-            //No entry theme specified, go to the default
-            return FoxMainServlet.buildGetEntryURI(lURIBuilder, mAppMnem, lExitPage);
-          }
-        }
-        else {
-          //Not a module name, just treat it as URL
-          return lExitPage;
-        }
+      //Belt and braces check that something is defined
+      if(XFUtil.isNull(lExitPage)) {
+        //Previous behaviour was to go to google.com - raise an error instead
+        throw new ExInternal("Exit thread with no destination defined");
       }
-      catch (ExApp | ExServiceUnavailable e) {
-        throw new ExInternal("Failed to determine app exit URI for app " + mAppMnem);
+
+      if (!pRequestContext.createURIBuilder().isFixedURI(lExitPage)){
+        //Exit page reference is not a "fixed" URI (i.e. does not start http://) - treat it as a module reference and make sure a push to this module occurs
+        return new ModulePushExitResponse(lExitPage);
+      }
+      else {
+        //Not a module name, just treat it as an absolute URL and send a redirect
+        return new ResponseOverride(new URIResourceReference(lExitPage));
       }
     }
   }
 
-  public ResponseOverride getDefaultExitResponse(RequestContext pRequestContext){
+  public ExitResponse getDefaultExitResponse(ActionRequestContext pRequestContext){
     if(isOrphanThread() && XFUtil.isNull(mThreadPropertyMap.getStringProperty(ThreadProperty.Type.EXIT_URI))){
       //Serve out some window closing JS if this is a modeless thread and no exit URI was explcitly specified on it
       return new ResponseOverride(new FoxResponseCHAR("text/html", new StringBuffer("<html><head><script>self.close(); opener.focus();</script></head></html>"), 0L));
     }
     else {
       //Use the thread's exit URI if defined, or defer to the app's default
-      String lExitURI = getExitURI(pRequestContext);
-
-      if(XFUtil.isNull(lExitURI)){
-        //Previous behaviour was to go to google.com - raise an error instead
-        throw new ExInternal("Exit thread with no destination defined");
-      }
-      else {
-        return new ResponseOverride(new URIResourceReference(lExitURI));
-      }
+      return getExitResponse(pRequestContext);
     }
   }
 

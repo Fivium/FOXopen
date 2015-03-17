@@ -1120,6 +1120,11 @@ extends FoxComponent implements Validatable {
     return mDefaultEntryThemeName;
   }
 
+  public EntryTheme getDefaultEntryTheme()
+  throws ExUserRequest {
+    return getEntryTheme(mDefaultEntryThemeName);
+  }
+
   public boolean isAuthenticationRequired() {
     return !"not-required".equals(mAuthRequired);
   }

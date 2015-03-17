@@ -17,7 +17,10 @@ extends CallStackTransformation {
 
   public void transform(ActionRequestContext pRequestContext, ModuleCallStack pCallStack) {
 
-    mModuleCallBuilder.setEnvironmentDOM(pRequestContext.getContextUElem().getUElem(ContextLabel.ENV));
+    if(mModuleCallBuilder.getEnvironmentDOM() == null) {
+      //If an env DOM was not explicitly defined, assume the current one
+      mModuleCallBuilder.setEnvironmentDOM(pRequestContext.getContextUElem().getUElem(ContextLabel.ENV));
+    }
 
     pCallStack.push(pRequestContext, mModuleCallBuilder);
   }
