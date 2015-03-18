@@ -4,6 +4,7 @@ import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.module.parsetree.EvaluatedParseTree;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedPresentationNode;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedTextPresentationNode;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 /**
  * This Presentation Node stores the simple text value from a DOM element from a presentation block in a module
@@ -26,7 +27,7 @@ public class TextPresentationNode extends PresentationNode {
   }
 
   public String toString() {
-    return "Text (" + mContent + ")";
+    return "Text (" + StringEscapeUtils.escapeJava(mContent) + ")";
   }
 
   public EvaluatedTextPresentationNode evaluate(EvaluatedPresentationNode<? extends PresentationNode> pParent, EvaluatedParseTree pEvaluatedParseTree, DOM pEvalContext) {

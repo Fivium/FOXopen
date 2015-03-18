@@ -1,8 +1,5 @@
 package net.foxopen.fox.module.parsetree.evaluatedpresentationnode;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.module.parsetree.EvaluatedParseTree;
 import net.foxopen.fox.module.parsetree.presentationnode.PresentationNode;
@@ -10,6 +7,9 @@ import net.foxopen.fox.module.serialiser.OutputSerialiser;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
 import net.foxopen.fox.module.serialiser.components.ComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.ComponentBuilderType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -32,7 +32,6 @@ public abstract class EvaluatedPresentationNode<PN extends PresentationNode> {
    *
    * @param pParentNode Parent node in the Evaluated Parse Tree
    * @param pOriginalNode Non-evaluated PresentationNode from the Parse Tree
-   * @param pEvalParseTree Evaluated Parse Tree to evaluate with
    * @param pEvalContext DOM context to evaluate against
    */
   public EvaluatedPresentationNode(EvaluatedPresentationNode<? extends PresentationNode> pParentNode, PN pOriginalNode, DOM pEvalContext) {
@@ -51,16 +50,12 @@ public abstract class EvaluatedPresentationNode<PN extends PresentationNode> {
    * @param pEvaluatedParseTree
    */
   public void evaluateChildren(EvaluatedParseTree pEvaluatedParseTree) {
-    List<EvaluatedPresentationNode<? extends PresentationNode>> lEvaluatedChildren = new ArrayList<>();
-
     for (PresentationNode lChild : mOriginalNode.getChildNodes()) {
       EvaluatedPresentationNode<? extends PresentationNode> lEvalChild = pEvaluatedParseTree.evaluateNode(this, lChild, mEvalContext);
       if (lEvalChild != null) {
-        lEvaluatedChildren.add(lEvalChild);
+        addChild(lEvalChild);
       }
     }
-
-    addChildren(lEvaluatedChildren);
   }
 
   public void addChild(EvaluatedPresentationNode<? extends PresentationNode> pNode) {
