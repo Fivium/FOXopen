@@ -22,7 +22,7 @@ extends EvaluatedNodeInfoItem {
     super(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, pNodeVisibility, pNodeInfo);
 
     // Get evaluated phantom buffer
-    mEvaluatedNode = getEvaluatedBufferNode(pNodeEvaluationContext, NodeAttribute.PHANTOM_BUFFER, NodeAttribute.PHANTOM_BUFFER_ATTACH_DOM);
+    mEvaluatedNode = getEvaluatedBufferNode(pEvaluatedPresentationNode, pNodeEvaluationContext, NodeAttribute.PHANTOM_BUFFER, NodeAttribute.PHANTOM_BUFFER_ATTACH_DOM);
   }
 
   /**
@@ -40,7 +40,7 @@ extends EvaluatedNodeInfoItem {
     super(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, pNodeVisibility, pNodeInfo);
 
     // Get evaluated buffer using given attributes
-    mEvaluatedNode = getEvaluatedBufferNode(pNodeEvaluationContext, pBufferNameAttribute, pBufferAttachAttribute);
+    mEvaluatedNode = getEvaluatedBufferNode(pEvaluatedPresentationNode, pNodeEvaluationContext, pBufferNameAttribute, pBufferAttachAttribute);
   }
 
   /**
@@ -51,7 +51,7 @@ extends EvaluatedNodeInfoItem {
    * @param pBufferAttachAttribute NodeAttribute to use for an alternate buffer attach point
    * @return EvaluatedBufferNode
    */
-  private EvaluatedPresentationNode<? extends PresentationNode> getEvaluatedBufferNode(NodeEvaluationContext pNodeEvaluationContext, NodeAttribute pBufferNameAttribute, NodeAttribute pBufferAttachAttribute) {
+  private EvaluatedPresentationNode<? extends PresentationNode> getEvaluatedBufferNode(EvaluatedPresentationNode pEvaluatedPresentationNode, NodeEvaluationContext pNodeEvaluationContext, NodeAttribute pBufferNameAttribute, NodeAttribute pBufferAttachAttribute) {
     try {
       // Find the buffer from the parse tree
       String lBufferName = getStringAttribute(pBufferNameAttribute);
@@ -66,7 +66,7 @@ extends EvaluatedNodeInfoItem {
       }
 
       // Evaluate the buffer and its children
-      return getEvaluatedParseTree().evaluateNode(null, lBuffer, lAttachContext);
+      return getEvaluatedParseTree().evaluateNode(pEvaluatedPresentationNode, lBuffer, lAttachContext);
     }
     catch (ExModule ex) {
       throw ex.toUnexpected("Phantom buffer failed on: " + getIdentityInformation());

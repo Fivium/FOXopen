@@ -537,16 +537,22 @@ public class EvaluatedParseTree implements SerialisationContext {
     }
   }
 
+  /**
+   * Given a starting EvaluatedPresentationNode look up through the chain of parents for a matching pair of nodes which
+   * indicate where the loop was and generate a chain of their toString()'s to show to the user as a runtime exception
+   *
+   * @param pParent Node where the recursion limit was hit
+   * @return
+   */
   private ExInternal generateRecursionCycleException(EvaluatedPresentationNode<? extends PresentationNode> pParent) {
-
     List<String> lCallChain = new ArrayList<>();
     EvaluatedPresentationNode lParent = pParent;
     String lCycleRoot = "";
 
-    //Loop up parent nodes until a repeated buffer include is found - buffer includes are the only nodes which can cause recursion
-    for(int i = 0; i < 100; i++){
-      if(lCallChain.contains(lParent.toString()) && lParent instanceof EvaluatedBufferPresentationNode) {
-        //We've found the cycling node, store a reference to it and break out of loop
+    // Loop up parent nodes until a repeated buffer include is found - buffer includes are the only nodes which can cause recursion
+    for (int i = 0; i < 100; i++) {
+      if (lCallChain.contains(lParent.toString()) && lParent instanceof EvaluatedBufferPresentationNode) {
+        // We've found the cycling node, store a reference to it and break out of loop
         lCallChain.add(lParent.toString());
         lCycleRoot = lParent.toString();
         break;
@@ -554,12 +560,19 @@ public class EvaluatedParseTree implements SerialisationContext {
 
       //Repeat with next parent
       lCallChain.add(lParent.toString());
-      lParent = lParent.getParentNode();
+
+      if (lParent.getParentNode() == null) {
+        // If we have no parent node, finish looking
+        break;
+      }
+      else {
+        lParent = lParent.getParentNode();
+      }
     }
 
-    //Trim the start of the call list so only the cycle is displayed
+    // Trim the start of the call list so only the cycle is displayed
     Iterator<String> lIterator = lCallChain.iterator();
-    while(lIterator.hasNext()) {
+    while (lIterator.hasNext()) {
       String lNodeDesc = lIterator.next();
       if(lCycleRoot.equals(lNodeDesc)) {
         break;
@@ -569,9 +582,9 @@ public class EvaluatedParseTree implements SerialisationContext {
       }
     }
 
-    //Reverse so the call chain is more readable (top of call chain should be top of list)
+    // Reverse so the call chain is more readable (top of call chain should be top of list)
     Collections.reverse(lCallChain);
-    return new ExInternal("Too much recursion in evaluated parse tree - attempt to locate cycle printed below:\n" + Joiner.on("\n").join(lCallChain) );
+    return new ExInternal("Too much recursion in evaluated parse tree - attempt to locate cycle printed below:\n" + Joiner.on("\n").join(lCallChain));
   }
 
   /**
