@@ -39,6 +39,7 @@ implements Filter {
 
     HttpServletRequest lHttpServletRequest = (HttpServletRequest) pServletRequest;
 
+    //Start the log on the database
     String lRequestLogId = "";
     try {
       lRequestLogId = RequestLogger.instance().startRequestLog(lHttpServletRequest);
@@ -50,6 +51,7 @@ implements Filter {
     }
     //Still allow the request through if the log failed - it should be logged on Apache anyway
 
+    //Log start to disk
     gActiveFoxRequestCounter.incrementAndGet();
     if (FoxLogger.getLogger().isTraceEnabled()) {
       FoxLogger.getLogger().trace("Request Start {}, {} active requests, {}, {}", lRequestLogId, gActiveFoxRequestCounter.get(), lHttpServletRequest.getRequestURI(), lHttpServletRequest.getHeader("User-Agent"));
@@ -61,6 +63,7 @@ implements Filter {
       FoxLogger.getLogger().debug("Request Start {}", lRequestLogId);
     }
 
+    //Delegate down the filter chain
     try {
       pFilterChain.doFilter(pServletRequest, pServletResponse);
     }
@@ -77,7 +80,7 @@ implements Filter {
       }
 
       try {
-        RequestLogger.instance().endRequestLog(lRequestLogId, (HttpServletResponse) pServletResponse);
+        RequestLogger.instance().endRequestLog(lRequestLogId, lHttpServletRequest, (HttpServletResponse) pServletResponse);
       }
       catch (Throwable th) {
         //TODO PN - set a big red flag in the status API

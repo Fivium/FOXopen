@@ -19,7 +19,10 @@ import net.foxopen.fox.sql.SQLManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 public class RequestLogger {
 
@@ -32,6 +35,11 @@ public class RequestLogger {
   private static final RequestLogger INSTANCE = new RequestLogger();
 
   private static final Iterator<String> REQUEST_ID_ITERATOR = XFUtil.getUniqueIterator();
+
+  private static Set<Pattern> EXCLUDE_URI_PATTERNS = new HashSet<>();
+  static {
+    EXCLUDE_URI_PATTERNS.add(Pattern.compile("^.*/upload/status$"));
+  }
 
   private final FoxJobPool mLogWriterJobPool = FoxJobPool.createSingleThreadedPool("RequestLogger");
 
@@ -58,61 +66,82 @@ public class RequestLogger {
 
     mLogWriterJobPool.submitTask(new FoxJobTask() {
       public TaskCompletionMessage executeTask() {
-        ParsedStatement lInsertStatement = SQLManager.instance().getStatement(INSERT_LOG_FILENAME, getClass());
-        UConBindMap lBindMap = new UConBindMap()
+        if(!isURIExcluded(lRequestURI)) {
+          ParsedStatement lInsertStatement = SQLManager.instance().getStatement(INSERT_LOG_FILENAME, getClass());
+          UConBindMap lBindMap = new UConBindMap()
           .defineBind(":id", lRequestLogId)
           .defineBind(":server_hostname", FoxGlobals.getInstance().getServerHostName())
           .defineBind(":server_context", FoxGlobals.getInstance().getContextPath())
           .defineBind(":request_uri", lRequestURI)
           .defineBind(":request_start_timestamp", lRequestTime)
-          .defineBind(":http_method", lHttpMethod )
+          .defineBind(":http_method", lHttpMethod)
           .defineBind(":query_string", lQueryString)
           .defineBind(":user_agent", lUserAgent)
           .defineBind(":fox_session_id", lSessionId)
           .defineBind(":origin_ip", lRemotAddr)
           .defineBind(":forwarded_for", lForwardedFor);
 
-        try (UCon lUCon = ConnectionAgent.getConnection(FoxGlobals.getInstance().getEngineConnectionPoolName(), "Request Log Insert")) {
-          lUCon.executeAPI(lInsertStatement, lBindMap);
-          lUCon.commit();
-          //UCon closed by try-with-resources
-        }
-        catch (ExServiceUnavailable | ExDB e) {
-          throw new ExInternal("Start request log failed for request " + lRequestLogId, e);
-        }
+          try (UCon lUCon = ConnectionAgent.getConnection(FoxGlobals.getInstance().getEngineConnectionPoolName(), "Request Log Insert")) {
+            lUCon.executeAPI(lInsertStatement, lBindMap);
+            lUCon.commit();
+            //UCon closed by try-with-resources
+          }
+          catch (ExServiceUnavailable | ExDB e) {
+            throw new ExInternal("Start request log failed for request " + lRequestLogId, e);
+          }
 
-        return new TaskCompletionMessage("Request log start written for request " + lRequestLogId);
+          return new TaskCompletionMessage("Request log start written for request " + lRequestLogId);
+        }
+        else {
+          return new TaskCompletionMessage("Request log start skipped to due exclusion pattern match for URI " + lRequestURI + ", request " + lRequestLogId);
+        }
       }
     });
 
     return lRequestLogId;
   }
 
-  public void endRequestLog(final String pRequestLogId, HttpServletResponse pOptionalResponse) {
+  public void endRequestLog(final String pRequestLogId, HttpServletRequest pOriginalRequest, HttpServletResponse pOptionalResponse) {
 
+    final String lRequestURI = pOriginalRequest.getRequestURI();
     final Date lEndTime = new Date();
     final Integer lResponseCode = pOptionalResponse != null ? pOptionalResponse.getStatus() : null;
 
     mLogWriterJobPool.submitTask(new FoxJobTask() {
       public TaskCompletionMessage executeTask() {
-        ParsedStatement lUpdateStatement = SQLManager.instance().getStatement(UPDATE_LOG_FILENAME, getClass());
-        UConBindMap lBindMap = new UConBindMap()
+
+        if(!isURIExcluded(lRequestURI)) {
+          ParsedStatement lUpdateStatement = SQLManager.instance().getStatement(UPDATE_LOG_FILENAME, getClass());
+          UConBindMap lBindMap = new UConBindMap()
           .defineBind(":request_end_timestamp", lEndTime)
           .defineBind(":response_code", lResponseCode)
           .defineBind(":id", pRequestLogId);
 
-        try (UCon lUCon = ConnectionAgent.getConnection(FoxGlobals.getInstance().getEngineConnectionPoolName(), "Request Log Update")) {
-          lUCon.executeAPI(lUpdateStatement, lBindMap);
-          lUCon.commit();
-          //UCon closed by try-with-resources
-        }
-        catch (ExServiceUnavailable | ExDB e) {
-          throw new ExInternal("End request log failed for request " + pRequestLogId, e);
-        }
+          try (UCon lUCon = ConnectionAgent.getConnection(FoxGlobals.getInstance().getEngineConnectionPoolName(), "Request Log Update")) {
+            lUCon.executeAPI(lUpdateStatement, lBindMap);
+            lUCon.commit();
+            //UCon closed by try-with-resources
+          }
+          catch (ExServiceUnavailable | ExDB e) {
+            throw new ExInternal("End request log failed for request " + pRequestLogId, e);
+          }
 
-        return new TaskCompletionMessage("Request log finalise written for request " + pRequestLogId);
+          return new TaskCompletionMessage("Request log finalise written for request " + pRequestLogId);
+        }
+        else {
+          return new TaskCompletionMessage("Request log end skipped to due exclusion pattern match for URI " + lRequestURI + ", request " + pRequestLogId);
+        }
       }
     });
+  }
+
+  private boolean isURIExcluded(String pRequestURI) {
+    for(Pattern lPattern : EXCLUDE_URI_PATTERNS) {
+      if(lPattern.matcher(pRequestURI).matches()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   void logUserExperienceTime(final String pRequestId, final long pExperienceTimeMS, final DOM pXMLData) {
