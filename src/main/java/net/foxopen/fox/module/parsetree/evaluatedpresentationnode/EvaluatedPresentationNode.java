@@ -25,7 +25,7 @@ public abstract class EvaluatedPresentationNode<PN extends PresentationNode> {
   private final EvaluatedPresentationNode mParentNode;
 
   // Context to use when evaluating XPaths
-  private DOM mEvalContext = null;
+  private final DOM mEvalContext;
 
   /**
    * Construct a EvaluatedPresentationNode to go into an Evaluated Parse Tree
@@ -104,10 +104,6 @@ public abstract class EvaluatedPresentationNode<PN extends PresentationNode> {
   }
 
   public abstract String toString();
-
-  public void setEvalContext(DOM pEvalContext) {
-    mEvalContext = pEvalContext;
-  }
 
   public DOM getEvalContext() {
     return mEvalContext;
