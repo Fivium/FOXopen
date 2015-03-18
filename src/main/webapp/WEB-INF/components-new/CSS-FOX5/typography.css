@@ -54,6 +54,10 @@ h6 {
   margin-left: 1em;
 }
 
+div.heading-extra-info {
+  margin-left: 0;
+}
+
 a:link,
 a:visited {
   color: #0979C6;
