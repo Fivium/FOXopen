@@ -21,7 +21,6 @@ lets Foundation work much of its magic.
   position: relative;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
-  word-wrap: break-word;
 }
 .column:first-child, .columns:first-child { margin-left: 0; }
 [class*="column"] + [class*="column"]:last-child { float: right; }

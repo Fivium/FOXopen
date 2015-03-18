@@ -81,3 +81,7 @@ sub {
   vertical-align: sub;
   font-size: smaller;
 }
+
+.break-word {
+  word-wrap: break-word;
+}
