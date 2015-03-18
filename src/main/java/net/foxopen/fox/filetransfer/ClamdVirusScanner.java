@@ -47,10 +47,6 @@ extends VirusScanner{
   private String mMessage = null;
   private static final String STREAM_OK = "stream: OK";
 
-  public ClamdVirusScanner(){
-    super();
-  }
-
   public ClamdVirusScanner(String pName, String pHost, int pPort, int pTimeout) {
     super(pName, pHost, pPort, pTimeout);
   }

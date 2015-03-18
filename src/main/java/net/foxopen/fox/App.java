@@ -78,7 +78,7 @@ public class App {
   private final Map<String, String> mAppDisplayAttributeList = new HashMap<>();
   private final List<String> mResourceTableList;
   private final int mAjaxPollFrequency;
-  private final Map<String, VirusScanner> mVirusScannerMap;
+  private final Map<String, VirusScannerDefinition> mVirusScannerMap;
   private final String mDefaultHTMLWidgetConfigName;
   private final Map<String, HTMLWidgetConfig> mHTMLWidgetConfigMap = HTMLWidgetConfig.engineDefaults();
 
@@ -180,6 +180,12 @@ public class App {
 
     DOM lVirusScannerListDOM = pAppDefinition.getPropertyAsDOM(AppProperty.VIRUS_SCANNER_LIST);
     mVirusScannerMap = processVirusScannerList(lVirusScannerListDOM);
+    for(VirusScannerDefinition lDefinition : mVirusScannerMap.values()) {
+      VirusScanner lVirusScanner = VirusScanner.createVirusScanner(lDefinition);
+      if(!lVirusScanner.testConnectionAndScanner()) {
+        throw new ExInternal("Failed to connect to virus scanner '"  + lDefinition.getName() + "' on host '" +  lDefinition.getHost() + "' during construction of App '" + mAppMnem + "'. Message: " + lVirusScanner.getScanResultString());
+      }
+    }
 
     mDictionary = createDictionary(pAppDefinition.getPropertyAsDOM(AppProperty.DICTIONARY_LIST));
     mDefaultDictionary = createDictionary(pAppDefinition.getPropertyAsDOM(AppProperty.DICTIONARY_LIST));
@@ -375,15 +381,15 @@ public class App {
     return lPropertyStringList;
   }
 
-  private Map<String, VirusScanner> processVirusScannerList(DOM pVirusScannerList) throws ExApp {
-    Map<String, VirusScanner> lVirusScannerList = new HashMap<>();
+  private Map<String, VirusScannerDefinition> processVirusScannerList(DOM pVirusScannerList) throws ExApp {
+    Map<String, VirusScannerDefinition> lVirusScannerList = new HashMap<>();
     DOMList lVirusScannerDOMList = pVirusScannerList.getUL("*");
     for (int i = 0; i < lVirusScannerDOMList.getLength(); i++) {
       DOM lVirusScannerDOM = lVirusScannerDOMList.item(i);
       String lType = lVirusScannerDOM.get1SNoEx(VIRUS_TYPE_ELEMENT_NAME);
       if (!VIRUS_IGNORE_TYPE.equals(lType)) {
-        VirusScanner lVirusScanner = VirusScanner.createVirusScanner(lVirusScannerDOM);
-        lVirusScannerList.put(lVirusScanner.getName(), lVirusScanner);
+        VirusScannerDefinition lVirusScannerDefn = VirusScannerDefinition.fromDOM(lVirusScannerDOM);
+        lVirusScannerList.put(lVirusScannerDefn.getName(), lVirusScannerDefn);
       }
     }
     return lVirusScannerList;
@@ -766,7 +772,7 @@ public class App {
     return Collections.unmodifiableSet(mComponentNameSet == null ? Collections.<String>emptySet() : mComponentNameSet);
   }
 
-  public Map<String, VirusScanner> getVirusScannerMap() {
+  public Map<String, VirusScannerDefinition> getVirusScannerMap() {
     return mVirusScannerMap;
   }
 

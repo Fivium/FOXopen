@@ -33,6 +33,7 @@ $Id$
 package net.foxopen.fox.filetransfer;
 
 import net.foxopen.fox.FoxRequest;
+import net.foxopen.fox.VirusScannerDefinition;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.ex.ExInternal;
@@ -361,8 +362,8 @@ public class UploadWorkItem extends WorkItem {
 
     //Ask the app to create a fresh set of virus scanners
     List<VirusScanner> lVirusScannerList = new ArrayList<>();
-    for (VirusScanner lVirusScanner : mUploadInfo.getApp().getVirusScannerMap().values()) {
-      lVirusScannerList.add(lVirusScanner);
+    for (VirusScannerDefinition lVirusScannerDefinition : mUploadInfo.getApp().getVirusScannerMap().values()) {
+      lVirusScannerList.add(VirusScanner.createVirusScanner(lVirusScannerDefinition));
     }
     mVirusScannerArray = lVirusScannerList.toArray(new VirusScanner[lVirusScannerList.size()]);
 
