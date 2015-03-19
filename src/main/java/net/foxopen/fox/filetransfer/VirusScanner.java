@@ -32,8 +32,7 @@ $Id$
 */
 package net.foxopen.fox.filetransfer;
 
-import net.foxopen.fox.dom.DOM;
-import net.foxopen.fox.ex.*;
+import net.foxopen.fox.ex.ExVirusScan;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -42,18 +41,13 @@ import java.io.OutputStream;
 
 public abstract class VirusScanner
 implements Runnable{
+
   protected InputStream mInputStream = null;
   protected OutputStream mOutputStream = null;
 
-  private static final String VIRUS_NAME_ELEMENT_NAME = "name";
-  private static final String VIRUS_HOST_ELEMENT_NAME = "host";
-  private static final String VIRUS_PORT_ELEMENT_NAME = "port";
-  private static final String VIRUS_TIMEOUT_SECONDS_ELEMENT_NAME = "timeout-seconds";
-
-  protected String mName;
-  protected String mHost;
-  protected int mPort;
-  protected int mTimeout;
+  protected final String mHost;
+  protected final int mPort;
+  protected final int mTimeout;
 
   private Thread mRunThread;
   private boolean mComplete;
@@ -62,59 +56,16 @@ implements Runnable{
 
   private static final byte[] EICAR_VIRUS = {'X','5','O','!','P','%','@','A','P','[','4','\\','P','Z','X','5','4','(','P','^',')','7','C','C',')','7','}','$','E','I','C','A','R','-','S','T','A','N','D','A','R','D','-','A','N','T','I','V','I','R','U','S','-','T','E','S','T','-','F','I','L','E','!','$','H','+','H','*'};
 
-  public static VirusScanner createVirusScanner(DOM pVirusScannerDOM) throws ExApp {
-    try {
-        String lName = pVirusScannerDOM.get1S(VIRUS_NAME_ELEMENT_NAME);
-        String lHost = pVirusScannerDOM.get1S(VIRUS_HOST_ELEMENT_NAME);
-        int lPort = Integer.parseInt(pVirusScannerDOM.get1S(VIRUS_PORT_ELEMENT_NAME));
-        int lTimeoutSeconds = Integer.parseInt(pVirusScannerDOM.get1S(VIRUS_TIMEOUT_SECONDS_ELEMENT_NAME));
+  public static VirusScanner createVirusScanner(VirusScannerDefinition pDefinition){
 
-        if(!"CLAMD".equals(lName)){
-          throw new ExInternal("Only CLAMD VirusScanner supported at this time.");
-        }
-        else {
-          VirusScanner lVirusScanner = new ClamdVirusScanner(lName, lHost, lPort, lTimeoutSeconds);
-
-          if (!lVirusScanner.testConnectionAndScanner()) {
-            throw new ExInternal("Failed to connect to virus scanner on host '" + lHost +  " Message: " + lVirusScanner.getScanResultString());
-          }
-
-          return lVirusScanner;
-        }
-    }
-    catch (NumberFormatException e) {
-      throw new ExApp("When creating a virus scanner the port or timeout seconds was not a number.", e);
-    }
-    catch (ExTooMany | ExTooFew e) {
-      throw new ExApp("When creating a virus scanner an element was not found or there were more than one.", e);
-    }
+    //TODO this will need to be dynamic at some point. For now just support Clam (we've already checked the definition is type=CLAMD)
+    return new ClamdVirusScanner(pDefinition.getHost(), pDefinition.getPort(), pDefinition.getTimeoutSeconds());
   }
 
-  public static VirusScanner createVirusScanner(String pName, String pHost, int pPort, int pTimeout){
-
-    //TODO this will need to be dynamic at some point. For now just support Clam.
-    if(!"CLAMD".equals(pName)){
-      throw new ExInternal("Only CLAMD VirusScanner supported at this time.");
-    } else {
-      return new ClamdVirusScanner(pName, pHost, pPort, pTimeout);
-    }
-  }
-
-  public VirusScanner(){}
-
-  public VirusScanner(String pName, String pHost, int pPort, int pTimeout) {
-    mName = pName;
+  protected VirusScanner(String pHost, int pPort, int pTimeout) {
     mHost = pHost;
     mPort = pPort;
     mTimeout = pTimeout;
-  }
-
-  public void setPort(int pPort){
-    mPort = pPort;
-  }
-
-  public void setHost(String pHost){
-    mHost = pHost;
   }
 
   public void setInputStream(InputStream pInputStream){
@@ -140,9 +91,7 @@ implements Runnable{
     return mInputStream;
   }
 
-  public String getName(){
-    return mName;
-  }
+  public abstract String getType();
 
   public void run(){
     mRunThread = Thread.currentThread();
@@ -209,6 +158,10 @@ implements Runnable{
       return mException.getMessage();
     else
       return null;
+  }
+
+  public String getHost() {
+    return mHost;
   }
 
   /**

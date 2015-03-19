@@ -30,6 +30,7 @@ import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.ex.ExServiceUnavailable;
 import net.foxopen.fox.ex.ExUserRequest;
 import net.foxopen.fox.filetransfer.VirusScanner;
+import net.foxopen.fox.filetransfer.VirusScannerDefinition;
 import net.foxopen.fox.image.ImageWidgetProcessing;
 import net.foxopen.fox.logging.FoxLogger;
 import net.foxopen.fox.module.Mod;
@@ -48,6 +49,7 @@ import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -63,8 +65,6 @@ public class App {
   public static final String BOOTSTRAP_USER_CHANGE_IGNORE = "IGNORE";
   public static final String BOOTSTRAP_USER_CHANGE_TIMEOUT = "TIMEOUT";
   public static final Object TRUESIZE_LOCK = new Object();
-  private static final String VIRUS_TYPE_ELEMENT_NAME = "type";
-  private static final String VIRUS_IGNORE_TYPE = "IGNORE";
 
   static {
     EngineStatus.instance().registerStatusProvider(new AppStatusProvider());
@@ -78,7 +78,7 @@ public class App {
   private final Map<String, String> mAppDisplayAttributeList = new HashMap<>();
   private final List<String> mResourceTableList;
   private final int mAjaxPollFrequency;
-  private final Map<String, VirusScanner> mVirusScannerMap;
+  private final Map<String, VirusScannerDefinition> mVirusScannerDefinitionMap;
   private final String mDefaultHTMLWidgetConfigName;
   private final Map<String, HTMLWidgetConfig> mHTMLWidgetConfigMap = HTMLWidgetConfig.engineDefaults();
 
@@ -178,8 +178,16 @@ public class App {
 
     mAjaxPollFrequency = Integer.parseInt(pAppDefinition.getPropertyAsString(AppProperty.AJAX_POLL_FREQUENCY));
 
+    //Construct virus scanner definitions
     DOM lVirusScannerListDOM = pAppDefinition.getPropertyAsDOM(AppProperty.VIRUS_SCANNER_LIST);
-    mVirusScannerMap = processVirusScannerList(lVirusScannerListDOM);
+    mVirusScannerDefinitionMap = processVirusScannerDefinitions(lVirusScannerListDOM);
+
+    //Create a virus scanner instance per definition and send it the EICAR test string
+    for(VirusScanner lTestScanner : createVirusScanners()) {
+      if(!lTestScanner.testConnectionAndScanner()) {
+        throw new ExInternal("Failed to connect to virus scanner '"  + lTestScanner.getType() + "' on host '" +  lTestScanner.getHost() + "' during construction of App '" + mAppMnem + "'. Message: " + lTestScanner.getScanResultString());
+      }
+    }
 
     mDictionary = createDictionary(pAppDefinition.getPropertyAsDOM(AppProperty.DICTIONARY_LIST));
     mDefaultDictionary = createDictionary(pAppDefinition.getPropertyAsDOM(AppProperty.DICTIONARY_LIST));
@@ -375,15 +383,19 @@ public class App {
     return lPropertyStringList;
   }
 
-  private Map<String, VirusScanner> processVirusScannerList(DOM pVirusScannerList) throws ExApp {
-    Map<String, VirusScanner> lVirusScannerList = new HashMap<>();
+  private Map<String, VirusScannerDefinition> processVirusScannerDefinitions(DOM pVirusScannerList) throws ExApp {
+    Map<String, VirusScannerDefinition> lVirusScannerList = new HashMap<>();
     DOMList lVirusScannerDOMList = pVirusScannerList.getUL("*");
     for (int i = 0; i < lVirusScannerDOMList.getLength(); i++) {
       DOM lVirusScannerDOM = lVirusScannerDOMList.item(i);
-      String lType = lVirusScannerDOM.get1SNoEx(VIRUS_TYPE_ELEMENT_NAME);
-      if (!VIRUS_IGNORE_TYPE.equals(lType)) {
-        VirusScanner lVirusScanner = VirusScanner.createVirusScanner(lVirusScannerDOM);
-        lVirusScannerList.put(lVirusScanner.getName(), lVirusScanner);
+      String lType = lVirusScannerDOM.get1SNoEx(VirusScannerDefinition.VIRUS_SCANNER_DEFINITION_TYPE);
+
+      //Force a different "IGNORE" special string on production to avoid problems where config is copied straight from dev
+      String lIgnoreType = "IGNORE" + (FoxGlobals.getInstance().isProduction() ? "-PRODUCTION" : "");
+
+      if (!lIgnoreType.equals(lType)) {
+        VirusScannerDefinition lVirusScannerDefn = VirusScannerDefinition.fromDOM(lVirusScannerDOM);
+        lVirusScannerList.put(lVirusScannerDefn.getType(), lVirusScannerDefn);
       }
     }
     return lVirusScannerList;
@@ -766,8 +778,16 @@ public class App {
     return Collections.unmodifiableSet(mComponentNameSet == null ? Collections.<String>emptySet() : mComponentNameSet);
   }
 
-  public Map<String, VirusScanner> getVirusScannerMap() {
-    return mVirusScannerMap;
+  public Collection<VirusScanner> createVirusScanners() {
+    List<VirusScanner> lVirusScanners = new ArrayList<>();
+    for(VirusScannerDefinition lDefinition : mVirusScannerDefinitionMap.values()) {
+      lVirusScanners.add(VirusScanner.createVirusScanner(lDefinition));
+    }
+    return lVirusScanners;
+  }
+
+  public Collection<VirusScannerDefinition> getVirusScannerDefinitions() {
+    return Collections.unmodifiableCollection(mVirusScannerDefinitionMap.values());
   }
 
   public SpatialEngine getSpatialEngine() {

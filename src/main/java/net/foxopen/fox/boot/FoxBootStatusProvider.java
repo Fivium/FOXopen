@@ -64,7 +64,7 @@ implements StatusProvider{
 
   @Override
   public String getCategoryTitle() {
-    return "Engine Configuration";
+    return "Engine Information";
   }
 
   @Override
