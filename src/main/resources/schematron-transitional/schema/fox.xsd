@@ -475,7 +475,11 @@
       <xs:restriction base="xs:positiveInteger"/>
     </xs:simpleType>
   </xs:attribute>
-  <xs:attribute name="displayOrder" type="xs:integer"/>
+  <xs:attribute name="displayOrder" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Number or XPath string of number to use when comparing to other elements with a displayOrder to define the order elements are displayed in</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
   <xs:attribute name="displayBefore" type="fox-xpath-type">
     <xs:annotation>
       <xs:documentation>String or XPath string of sibling element name for the element to display before</xs:documentation>

@@ -35,7 +35,7 @@ public enum NodeAttribute {
   DESCRIPTION_DISPLAY("descriptionDisplay", ValueType.CONSTANT, ResultType.STRING),
   DISPLAY_AFTER("displayAfter", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   DISPLAY_BEFORE("displayBefore", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
-  DISPLAY_ORDER("displayOrder", ValueType.CONSTANT, ResultType.STRING),
+  DISPLAY_ORDER("displayOrder", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   DOWNLOAD_AS_ATTACHMENT("downloadAsAttachment", ValueType.EVALUATABLE_XPATH, ResultType.BOOLEAN),
   EMAIL("email", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   ERROR_URL("error-url", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
