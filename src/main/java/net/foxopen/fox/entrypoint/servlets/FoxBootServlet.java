@@ -12,6 +12,7 @@ import net.foxopen.fox.boot.RuntimeStatusProvider;
 import net.foxopen.fox.cache.CacheManager;
 import net.foxopen.fox.configuration.FoxConfigHandler;
 import net.foxopen.fox.configuration.FoxConfigHelper;
+import net.foxopen.fox.configuration.resourcemaster.model.UnconfiguredFoxEnvironment;
 import net.foxopen.fox.database.ConnectionAgent;
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.UConStatementResult;
@@ -87,6 +88,9 @@ extends HttpServlet {
 
   private void initReal() {
     try {
+      //Start by setting to UNCONFIGURED so we don't end up with an old configured environment if anything goes wrong
+      FoxGlobals.getInstance().setFoxEnvironment(new UnconfiguredFoxEnvironment());
+
       // Load up engine mirror cache
       //EngineMirror.init(); // TODO - NP - Reimplement Engine Mirror
 

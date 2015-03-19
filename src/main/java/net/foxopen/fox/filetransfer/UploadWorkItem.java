@@ -33,7 +33,6 @@ $Id$
 package net.foxopen.fox.filetransfer;
 
 import net.foxopen.fox.FoxRequest;
-import net.foxopen.fox.VirusScannerDefinition;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.ex.ExInternal;
@@ -51,8 +50,7 @@ import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.sql.Blob;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 
 public class UploadWorkItem extends WorkItem {
@@ -171,7 +169,7 @@ public class UploadWorkItem extends WorkItem {
           for(int j=0; j<mVirusScannerArray.length; j++){
             //belt & braces - check for error before stream write
             if(mVirusScannerArray[j].isError()){
-              throw new ExInternal("Virus Scanner " + mVirusScannerArray[j].getName() + " threw exception: " + mVirusScannerArray[j].getErrorMessage() + ". Upload cannot complete without Virus Detection.");
+              throw new ExInternal("Virus Scanner " + mVirusScannerArray[j].getType() + " threw exception: " + mVirusScannerArray[j].getErrorMessage() + ". Upload cannot complete without Virus Detection.");
             }
 
             try{
@@ -208,7 +206,7 @@ public class UploadWorkItem extends WorkItem {
             // upload has completed.
             mVirusScannerArray[j].getCurrentThread().join(mVirusScannerArray[j].getTimeoutSecs()*1000);
             if(!mVirusScannerArray[j].isComplete()){
-              throw new ExInternal("Virus Scanner " + mVirusScannerArray[j].getName() + " did not complete after waiting " + mVirusScannerArray[j].getTimeoutSecs() + " seconds.");
+              throw new ExInternal("Virus Scanner " + mVirusScannerArray[j].getType() + " did not complete after waiting " + mVirusScannerArray[j].getTimeoutSecs() + " seconds.");
             }
 
           }
@@ -361,11 +359,8 @@ public class UploadWorkItem extends WorkItem {
   private void initialiseVirusScanners(){
 
     //Ask the app to create a fresh set of virus scanners
-    List<VirusScanner> lVirusScannerList = new ArrayList<>();
-    for (VirusScannerDefinition lVirusScannerDefinition : mUploadInfo.getApp().getVirusScannerMap().values()) {
-      lVirusScannerList.add(VirusScanner.createVirusScanner(lVirusScannerDefinition));
-    }
-    mVirusScannerArray = lVirusScannerList.toArray(new VirusScanner[lVirusScannerList.size()]);
+    Collection<VirusScanner> lVirusScanners = mUploadInfo.getApp().createVirusScanners();
+    mVirusScannerArray = lVirusScanners.toArray(new VirusScanner[lVirusScanners.size()]);
 
     for(int i=0; i<mVirusScannerArray.length;i++){
       //Construct the pipe - outputstream is written to inputstream

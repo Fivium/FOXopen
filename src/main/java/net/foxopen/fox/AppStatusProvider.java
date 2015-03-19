@@ -6,10 +6,12 @@ import net.foxopen.fox.enginestatus.StatusCollection;
 import net.foxopen.fox.enginestatus.StatusDestination;
 import net.foxopen.fox.enginestatus.StatusDetail;
 import net.foxopen.fox.enginestatus.StatusItem;
+import net.foxopen.fox.enginestatus.StatusMessage;
 import net.foxopen.fox.enginestatus.StatusProvider;
 import net.foxopen.fox.enginestatus.StatusTable;
 import net.foxopen.fox.enginestatus.StatusText;
 import net.foxopen.fox.entrypoint.FoxGlobals;
+import net.foxopen.fox.filetransfer.VirusScannerDefinition;
 
 import java.util.TreeSet;
 
@@ -18,7 +20,13 @@ implements StatusProvider {
   @Override
   public void refreshStatus(StatusDestination pDestination) {
 
-    int lAdditionalMimeTypeCount = FileUploadType.getAdditionalMimeTypeCount();
+    if(!FoxGlobals.getInstance().isEngineInitialised()) {
+      //Shortcut out if engine is not initialised
+      pDestination.addMessage("Engine not configured", "Unconfigured engine - no apps available", MessageLevel.ERROR);
+      return;
+    }
+
+    final int lAdditionalMimeTypeCount = FileUploadType.getAdditionalMimeTypeCount();
     pDestination.addMessage("File upload mime config", lAdditionalMimeTypeCount == 0 ? "No additional mime mappings found" : "Loaded " + lAdditionalMimeTypeCount + " mime types from database");
 
     for(final App lApp : FoxGlobals.getInstance().getFoxEnvironment().getAllApps()) {
@@ -59,7 +67,24 @@ implements StatusProvider {
           pRowDestination.addRow().setColumn("Secure cookies").setColumn(Boolean.toString(lApp.isSecureCookies()));
           pRowDestination.addRow().setColumn("Timeout module").setColumn(lApp.getTimeoutModuleName());
 
-          StatusItem lVSItem = lApp.getVirusScannerMap().size() == 0 ? new StatusText("IGNORED", MessageLevel.WARNING) : StatusCollection.fromStringSet("virusScanners", lApp.getVirusScannerMap().keySet());
+          StatusItem lVSItem;
+          if(lApp.getVirusScannerDefinitions().size() == 0 ) {
+            lVSItem = new StatusText("IGNORED", MessageLevel.WARNING);
+          }
+          else {
+            StatusCollection lVSCollection = new StatusCollection("virusScanners");
+            for(VirusScannerDefinition lScannerDefinition : lApp.getVirusScannerDefinitions()) {
+              StatusCollection lVSDefinition = new StatusCollection(lScannerDefinition.getType());
+              lVSDefinition.addItem(new StatusMessage("Type", lScannerDefinition.getType()));
+              lVSDefinition.addItem(new StatusMessage("Host", lScannerDefinition.getHost()));
+              lVSDefinition.addItem(new StatusMessage("Port", Integer.toString(lScannerDefinition.getPort())));
+              lVSDefinition.addItem(new StatusMessage("Timeout seconds", Integer.toString(lScannerDefinition.getTimeoutSeconds())));
+
+              lVSCollection.addItem(lVSDefinition);
+            }
+            lVSItem = lVSCollection;
+          }
+
           pRowDestination.addRow().setColumn("Virus scanner").setColumn(lVSItem);
 
         }

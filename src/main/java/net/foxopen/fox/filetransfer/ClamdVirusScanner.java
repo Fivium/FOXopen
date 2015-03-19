@@ -36,25 +36,35 @@ import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.ex.ExVirusScan;
 import net.foxopen.fox.logging.FoxLogger;
 import net.taldius.clamav.ClamAVScanner;
-import net.taldius.clamav.ClamAVScannerFactory;
+import net.taldius.clamav.impl.NetworkScanner;
 
 import java.io.InputStream;
 
 public class ClamdVirusScanner
 extends VirusScanner{
 
+  public static final String SCANNER_TYPE = "CLAMD";
+
+  //Value taken from ClamAVScannerFactory (note: factory not used as it is not thread-safe)
+  private static final int CLAM_NETWORK_CONNECTION_TIMEOUT = 90;
+
   private ClamAVScanner mScanner;
   private String mMessage = null;
   private static final String STREAM_OK = "stream: OK";
 
-  public ClamdVirusScanner(String pName, String pHost, int pPort, int pTimeout) {
-    super(pName, pHost, pPort, pTimeout);
+  public ClamdVirusScanner(String pHost, int pPort, int pTimeout) {
+    super(pHost, pPort, pTimeout);
   }
 
   public void initialiseVirusScanner(){
-    ClamAVScannerFactory.setClamdHost(mHost);
-    ClamAVScannerFactory.setClamdPort(mPort);
-    mScanner = ClamAVScannerFactory.getScanner();
+    //Manaually create a Clam scanner
+    //ClamAVScannerFactory is not used as it is not thread-safe
+    NetworkScanner lNetworkScanner = new NetworkScanner();
+    lNetworkScanner.setClamdHost(mHost);
+    lNetworkScanner.setClamdPort(mPort);
+    lNetworkScanner.setConnectionTimeout(CLAM_NETWORK_CONNECTION_TIMEOUT);
+
+    mScanner = lNetworkScanner;
   }
 
   public void scan(InputStream pInputStream)
@@ -79,4 +89,8 @@ extends VirusScanner{
     return mMessage;
   }
 
+  @Override
+  public String getType() {
+    return SCANNER_TYPE;
+  }
 }

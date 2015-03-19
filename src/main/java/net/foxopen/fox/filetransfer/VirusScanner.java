@@ -32,8 +32,6 @@ $Id$
 */
 package net.foxopen.fox.filetransfer;
 
-import net.foxopen.fox.VirusScannerDefinition;
-import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExVirusScan;
 
 import java.io.ByteArrayInputStream;
@@ -43,13 +41,13 @@ import java.io.OutputStream;
 
 public abstract class VirusScanner
 implements Runnable{
+
   protected InputStream mInputStream = null;
   protected OutputStream mOutputStream = null;
 
-  protected String mName;
-  protected String mHost;
-  protected int mPort;
-  protected int mTimeout;
+  protected final String mHost;
+  protected final int mPort;
+  protected final int mTimeout;
 
   private Thread mRunThread;
   private boolean mComplete;
@@ -60,27 +58,14 @@ implements Runnable{
 
   public static VirusScanner createVirusScanner(VirusScannerDefinition pDefinition){
 
-    //TODO this will need to be dynamic at some point. For now just support Clam.
-    if(!"CLAMD".equals(pDefinition.getName())){
-      throw new ExInternal("Only CLAMD VirusScanner supported at this time.");
-    } else {
-      return new ClamdVirusScanner(pDefinition.getName(), pDefinition.getHost(), pDefinition.getPort(), pDefinition.getTimeoutSeconds());
-    }
+    //TODO this will need to be dynamic at some point. For now just support Clam (we've already checked the definition is type=CLAMD)
+    return new ClamdVirusScanner(pDefinition.getHost(), pDefinition.getPort(), pDefinition.getTimeoutSeconds());
   }
 
-  protected VirusScanner(String pName, String pHost, int pPort, int pTimeout) {
-    mName = pName;
+  protected VirusScanner(String pHost, int pPort, int pTimeout) {
     mHost = pHost;
     mPort = pPort;
     mTimeout = pTimeout;
-  }
-
-  public void setPort(int pPort){
-    mPort = pPort;
-  }
-
-  public void setHost(String pHost){
-    mHost = pHost;
   }
 
   public void setInputStream(InputStream pInputStream){
@@ -106,9 +91,7 @@ implements Runnable{
     return mInputStream;
   }
 
-  public String getName(){
-    return mName;
-  }
+  public abstract String getType();
 
   public void run(){
     mRunThread = Thread.currentThread();
@@ -175,6 +158,10 @@ implements Runnable{
       return mException.getMessage();
     else
       return null;
+  }
+
+  public String getHost() {
+    return mHost;
   }
 
   /**
