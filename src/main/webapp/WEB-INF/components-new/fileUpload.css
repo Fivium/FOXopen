@@ -115,10 +115,6 @@
   word-break: normal;
 }
 
-.fileUpload .replaceFile {
-  padding-left:0.5em;
-}
-
 .fileUpload .errorMessage {
   color: #cf1111;
   font-size: 0.8em;
