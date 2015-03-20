@@ -69,12 +69,6 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
       insertDropzoneDiv(pSerialiser, lFieldId);
     }
 
-    String lRefreshImgUrl = pSerialisationContext.getStaticResourceURI("img/refresh");
-
-    if(lFieldMgr.getVisibility() == NodeVisibility.EDIT) {
-      pSerialiser.append("<a class=\"fileControl uploadError replaceFile\" style=\"display:none;\" href=\"#\"><img src=\" " + lRefreshImgUrl + "\" alt=\"Replace File\"/></a>");
-    }
-
     //TODO PN need to handle all attributes (like generic template vars for other widgets) e.g. tightField, fieldClass, etc
 
     // id="fileupload"
