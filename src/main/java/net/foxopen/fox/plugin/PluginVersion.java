@@ -31,7 +31,7 @@ public class PluginVersion {
    * @param pComparableVersion a PluginVersion to test this PluginVersion against
    */
   public boolean isVersionCompatible(PluginVersion pComparableVersion) {
-    if (getMajorVersion() != pComparableVersion.getMajorVersion() || getMinorVersion() >= pComparableVersion.getMinorVersion()) {
+    if (getMajorVersion() != pComparableVersion.getMajorVersion() || getMinorVersion() < pComparableVersion.getMinorVersion()) {
       return false;
     }
     return true;
