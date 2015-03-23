@@ -91,7 +91,7 @@ class PluginFile {
         try {
           if(!XFUtil.isNull(lPluginsMinAPIVersion)) {
             PluginVersion lMinAPIVersion = new PluginVersion(lPluginsMinAPIVersion);
-            if (lMinAPIVersion.isVersionCompatible(pPluginAPIVersion)) {
+            if (!lMinAPIVersion.isVersionCompatible(pPluginAPIVersion)) {
               throw new ExInternal("Could not load plugin - minimum API version required is " + lMinAPIVersion.getVersionString() + " but this engine only provides version " + pPluginAPIVersion.getVersionString());
             }
           }
