@@ -65,7 +65,7 @@ public class UConStatementResult implements FxpUConStatementResult {
     mColumnMap = pColumnMap;
   }
 
-  private Object getObject(String pColumnName) {
+  public Object getObject(String pColumnName) {
     if(!mColumnMap.containsKey(pColumnName)) {
       throw new ExInternal("No result found for column " + pColumnName);
     }

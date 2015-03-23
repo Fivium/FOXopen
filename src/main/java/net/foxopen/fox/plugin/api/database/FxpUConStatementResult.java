@@ -11,6 +11,12 @@ import net.foxopen.fox.plugin.api.dom.FxpDOM;
 
 public interface FxpUConStatementResult {
   /**
+   * This method is not recommended. It is exposed for edge cases where specific classes are needed rather
+   * than the standard exposed ones.
+   */
+  Object getObject(String pColumnName);
+
+  /**
    * Gets a list of all the column or bind names available in this UConStatementResult. If this object was constructed
    * from a query result row, the list will be ordered according to the query's column list. For other cases the list's
    * order is undefined.

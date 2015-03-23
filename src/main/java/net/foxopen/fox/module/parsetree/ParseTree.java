@@ -1,7 +1,5 @@
 package net.foxopen.fox.module.parsetree;
 
-import java.io.PrintWriter;
-
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.DOMList;
 import net.foxopen.fox.ex.ExInternal;
@@ -30,23 +28,19 @@ import net.foxopen.fox.module.parsetree.presentationnode.PagerControlPresentatio
 import net.foxopen.fox.module.parsetree.presentationnode.PresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.SetOutPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.TabGroupPresentationNode;
-import net.foxopen.fox.module.parsetree.presentationnode.TabGroupPresentationNode.TabPromptPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.TextPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.WidgetOutPresentationNode;
 import net.foxopen.fox.track.Track;
 import net.foxopen.fox.track.TrackFlag;
-
 import org.apache.commons.lang3.StringUtils;
+
+import java.io.PrintWriter;
 
 
 /**
  * A tree of Presentation Nodes that hold the structure of a modules presention nodes
  */
 public class ParseTree {
-  // TODO - NP - These constants are usually set elsewhere, backfit this later
-  private static final boolean PRESERVE_WHITESPACE = true;
-  private static final boolean PRESERVE_COMMENTS = true;
-
   private final PresentationNode mRootNode;
 
   /**
@@ -76,107 +70,77 @@ public class ParseTree {
   * @param pNode - DOM Node to make a PresentationNode for
   */
   public static PresentationNode parseDOMNode(DOM pNode) {
-    PresentationNode lParsedPresentationNode = null;
-    String lNodeName = pNode.getName().intern();
-
-    //TODO PN/NP - switch on string
-    if (lNodeName == "fm:set-buffer") {
-      lParsedPresentationNode = new BufferPresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:set-page") {
-      lParsedPresentationNode = new BufferPresentationNode(pNode);
-      ((BufferPresentationNode)lParsedPresentationNode).setName("set-page");
-    }
-    else if (lNodeName == "fm:include") {
-      lParsedPresentationNode = new IncludePresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:set-out") {
-      lParsedPresentationNode = new SetOutPresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:widget-out") {
-      lParsedPresentationNode = new WidgetOutPresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:action-out") {
-      lParsedPresentationNode = new ActionOutPresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:menu-out") {
-      lParsedPresentationNode = new MenuOutPresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:for-each") {
-      lParsedPresentationNode = new ForEachPresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:expr-out") {
-      lParsedPresentationNode = new ExprPresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:if") {
-      lParsedPresentationNode = new IfPresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:case") {
-      lParsedPresentationNode = new CasePresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:hint-out") {
-      lParsedPresentationNode = new HintOutPresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:error-out") {
-      lParsedPresentationNode = new ErrorOutPresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:external-url") {
-      lParsedPresentationNode = new ExternalURLPresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:mail-to") {
-      lParsedPresentationNode = new MailToPresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:evaluate-attributes") {
-      lParsedPresentationNode = new ContainerPresentationNode(pNode); // Ignored container as all attributes are evaluated now
-    }
-    else if (lNodeName == "fm:heading") {
-      lParsedPresentationNode = new HeadingPresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:grid") {
-      lParsedPresentationNode = new GridPresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:row") {
-      lParsedPresentationNode = new GridRowPresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:cell") {
-      lParsedPresentationNode = new GridCellPresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:info-box") {
-      lParsedPresentationNode = new InfoBoxPresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:page-controls-out") {
-      lParsedPresentationNode = new PagerControlPresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:include-header-resources") {
-      lParsedPresentationNode = new IncludeHeaderResourcesPresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:tab-group") {
-      lParsedPresentationNode = new TabGroupPresentationNode(pNode);
-    }
-    else if (lNodeName == "fm:tab-prompt-link") {
-      lParsedPresentationNode = new TabPromptPresentationNode(pNode);
-    }
-    else if (pNode.isElement()) {
-      if (lNodeName.startsWith("fm:")) {
-        // Non-handled fm-prefixed elements throw an unhandled error
-        throw new ExInternal("Unknown fm: prefixed presentation-level element: " + pNode.outputNodeToString(true));
+    if (pNode.isElement()) {
+      switch (pNode.getName()) {
+        case "fm:set-buffer":
+          return new BufferPresentationNode(pNode);
+        case "fm:set-page":
+          PresentationNode lParsedPresentationNode = new BufferPresentationNode(pNode);
+          ((BufferPresentationNode)lParsedPresentationNode).setName("set-page");
+          return lParsedPresentationNode;
+        case "fm:include":
+          return new IncludePresentationNode(pNode);
+        case "fm:set-out":
+          return new SetOutPresentationNode(pNode);
+        case "fm:widget-out":
+          return new WidgetOutPresentationNode(pNode);
+        case "fm:action-out":
+          return new ActionOutPresentationNode(pNode);
+        case "fm:menu-out":
+          return new MenuOutPresentationNode(pNode);
+        case "fm:expr-out":
+          return new ExprPresentationNode(pNode);
+        case "fm:for-each":
+          return new ForEachPresentationNode(pNode);
+        case "fm:if":
+          return new IfPresentationNode(pNode);
+        case "fm:case":
+          return new CasePresentationNode(pNode);
+        case "fm:hint-out":
+          return new HintOutPresentationNode(pNode);
+        case "fm:error-out":
+          return new ErrorOutPresentationNode(pNode);
+        case "fm:external-url":
+          return new ExternalURLPresentationNode(pNode);
+        case "fm:mail-to":
+          return new MailToPresentationNode(pNode);
+        case "fm:evaluate-attributes":
+          // Ignored container as all attributes are evaluated now
+          return new ContainerPresentationNode(pNode);
+        case "fm:heading":
+          return new HeadingPresentationNode(pNode);
+        case "fm:grid":
+          return new GridPresentationNode(pNode);
+        case "fm:row":
+          return new GridRowPresentationNode(pNode);
+        case "fm:cell":
+          return new GridCellPresentationNode(pNode);
+        case "fm:info-box":
+          return new InfoBoxPresentationNode(pNode);
+        case "fm:page-controls-out":
+          return new PagerControlPresentationNode(pNode);
+        case "fm:include-header-resources":
+          return new IncludeHeaderResourcesPresentationNode(pNode);
+        case "fm:tab-group":
+          return new TabGroupPresentationNode(pNode);
+        case "fm:tab-prompt-link":
+          return new TabGroupPresentationNode.TabPromptPresentationNode(pNode);
+        default:
+          if (pNode.getName().startsWith("fm:")) {
+            // Non-handled fm-prefixed elements throw an unhandled error
+            throw new ExInternal("Unknown fm: prefixed presentation-level element: " + pNode.outputNodeToString(true));
+          }
+          else {
+            // If it's a non-handled element that doesn't start with an fm-prefix then it's likely to be a regular HTML node
+            return new HtmlPresentationNode(pNode);
+          }
       }
-
-      lParsedPresentationNode = new HtmlPresentationNode(pNode);
     }
     else if (pNode.isText()) {
-      lParsedPresentationNode = new TextPresentationNode(pNode);
-      if (!PRESERVE_WHITESPACE && ((TextPresentationNode)lParsedPresentationNode).getText().trim().length() == 0) {
-        lParsedPresentationNode = null;
-      }
+      return new TextPresentationNode(pNode);
     }
     else if (pNode.isComment()) {
-      if (!PRESERVE_COMMENTS) {
-        lParsedPresentationNode = null;
-      }
-      else {
-        lParsedPresentationNode = new CommentPresentationNode(pNode);
-      }
+      return new CommentPresentationNode(pNode);
     }
     else if (pNode.isProcessingInstruction()) {
       Track.info("BadMarkup", "Found a processing instruction in a buffer...this will have no effect and was probably meant to be a comment", TrackFlag.BAD_MARKUP);
@@ -185,26 +149,28 @@ public class ParseTree {
       throw new ExInternal("Unhandled node type: " + pNode.outputNodeToString(true));
     }
 
-    return lParsedPresentationNode;
+    return null;
   }
 
   /**
    * Recursively parse DOM Nodes to construct a PresentationNode tree from them
-   *
-   * @param pParentNode PresentationNode to add the parsed DOM noce children to
+   *  @param pParentNode PresentationNode to add the parsed DOM node children to
    * @param pNode DOM holding un-parsed nodes
+   * @param pPreserveComments
    */
-  public static void parseDOMChildren(PresentationNode pParentNode, DOM pNode) {
+  public static void parseDOMChildren(PresentationNode pParentNode, DOM pNode, boolean pPreserveComments) {
     if (pParentNode == null) {
       throw new ExInternal("Cannot parse children without a parent node to add them too");
     }
 
     DOMList lDOMChildNodeList = pNode.getChildNodes();
-    int lDOMChildCount = lDOMChildNodeList.getLength();
-    for (int i = 0; i < lDOMChildCount; i++) {
-      PresentationNode lChildNode = null;
+    for (DOM lDOMChildNode : lDOMChildNodeList) {
+      if (!pPreserveComments && lDOMChildNode.isComment()) {
+        // Don't bother parsing this child node if we're not preserving comments
+        continue;
+      }
 
-      lChildNode = parseDOMNode(lDOMChildNodeList.item(i));
+      PresentationNode lChildNode = parseDOMNode(lDOMChildNode);
 
       if (lChildNode != null) {
         pParentNode.addChildNode(lChildNode);

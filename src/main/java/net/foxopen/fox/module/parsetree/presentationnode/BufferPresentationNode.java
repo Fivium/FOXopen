@@ -22,7 +22,7 @@ public class BufferPresentationNode extends PresentationNode {
     mPreserveComments = "true".equals(pCurrentNode.getAttr("preserve-comments"));
 
     // Process children
-    ParseTree.parseDOMChildren(this, pCurrentNode);
+    ParseTree.parseDOMChildren(this, pCurrentNode, mPreserveComments);
   }
 
   /**
