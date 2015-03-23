@@ -28,7 +28,7 @@ public class HtmlPresentationNode extends GenericAttributesPresentationNode {
     mForceSelfCloseTag = pCurrentNode.hasAttr(FORCE_SELF_CLOSE_TAG_NAME);
 
     // Process children
-    ParseTree.parseDOMChildren(this, pCurrentNode);
+    ParseTree.parseDOMChildren(this, pCurrentNode, false);
   }
 
   /**

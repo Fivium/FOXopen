@@ -20,7 +20,7 @@ public class GridCellPresentationNode extends PresentationNode {
     mClasses = pCurrentNode.getAttr("class");
 
     // Process children
-    ParseTree.parseDOMChildren(this, pCurrentNode);
+    ParseTree.parseDOMChildren(this, pCurrentNode, false);
   }
 
   public String toString() {

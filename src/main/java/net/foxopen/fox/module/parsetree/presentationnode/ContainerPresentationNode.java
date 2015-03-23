@@ -22,7 +22,7 @@ public class ContainerPresentationNode extends PresentationNode {
     mTagName = pSourceDOM.getName();
 
     // Process children
-    ParseTree.parseDOMChildren(this, pSourceDOM);
+    ParseTree.parseDOMChildren(this, pSourceDOM, false);
   }
 
   @Override

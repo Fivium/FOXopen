@@ -18,7 +18,7 @@ public class GridRowPresentationNode extends PresentationNode {
     mClasses = pCurrentNode.getAttr("class");
 
     // Process children
-    ParseTree.parseDOMChildren(this, pCurrentNode);
+    ParseTree.parseDOMChildren(this, pCurrentNode, false);
   }
 
   public EvaluatedGridRowPresentationNode evaluate(EvaluatedPresentationNode<? extends PresentationNode> pParent, EvaluatedParseTree pEvaluatedParseTree, DOM pEvalContext) {
