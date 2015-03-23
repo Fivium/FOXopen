@@ -8,6 +8,7 @@ import net.foxopen.fox.entrypoint.FoxSession;
 import net.foxopen.fox.entrypoint.servlets.EntryPointServlet;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.thread.RequestContext;
+import net.foxopen.fox.track.Track;
 import net.foxopen.fox.util.SizeUtil;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.json.simple.JSONObject;
@@ -72,14 +73,28 @@ extends EntryPointServlet {
   private FoxResponse processStatus(FoxRequest pFoxRequest) {
 
     UploadInfo lUploadInfo = getUploadInfo(pFoxRequest);
-
-    String lStatus = lUploadInfo.getStatusMsg();
-
     JSONObject lStatusObject = new JSONObject();
-    lStatusObject.put("statusText", lStatus);
-    lStatusObject.put("percentComplete", lUploadInfo.getTransferProgress());
-    lStatusObject.put("uploadSpeed", SizeUtil.getBytesSpecificationDescription(lUploadInfo.getTransferRateBytesPerSecond())+"/sec");
-    lStatusObject.put("timeRemaining", lUploadInfo.calculateTimeRemaining());
+
+    if(lUploadInfo != null) {
+      String lStatus = lUploadInfo.getStatusMsg();
+
+      lStatusObject.put("statusText", lStatus);
+
+      if(lUploadInfo.getStatus() != UploadStatus.NOT_STARTED && lUploadInfo.getStatus() != UploadStatus.STARTED) {
+        //Upload info only has transfer process when the status is RECEIVING or later
+        lStatusObject.put("percentComplete", lUploadInfo.getTransferProgress());
+      }
+      else {
+        lStatusObject.put("percentComplete", 0);
+      }
+
+      lStatusObject.put("uploadSpeed", SizeUtil.getBytesSpecificationDescription(lUploadInfo.getTransferRateBytesPerSecond()) + "/sec");
+      lStatusObject.put("timeRemaining", lUploadInfo.calculateTimeRemaining());
+    }
+    else {
+      Track.alert("Upload status request did not find an UploadInfo in cache");
+      lStatusObject.put("statusText", "unknown");
+    }
 
     return new FoxResponseCHAR("text/plain", new StringBuffer(lStatusObject.toJSONString()), 0L);
   }

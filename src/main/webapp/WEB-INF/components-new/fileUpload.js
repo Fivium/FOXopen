@@ -396,7 +396,7 @@ FileInfo.prototype = {
   },
 
   updateStatus: function(statusObject) {
-    if(this.allowStatusUpdates) {
+    if(this.allowStatusUpdates && statusObject.statusText != "unknown") {
       this.setStatusString(statusObject.statusText);
       this.setUploadSpeedString(statusObject.uploadSpeed);
       this.setTimeRemainingString(statusObject.timeRemaining);
