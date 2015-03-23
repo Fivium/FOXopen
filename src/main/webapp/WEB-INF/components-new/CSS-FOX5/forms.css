@@ -64,6 +64,7 @@ label {
 .setoutForm textarea,
 .setoutForm .tagger,
 .setoutForm .text-widget,
+.setoutForm .radio-or-tickbox-group,
 .setoutForm .prompt {
   margin-bottom: 1em;
 }
@@ -74,6 +75,7 @@ label {
 .tightForm textarea,
 .tightForm .tagger,
 .tightForm .text-widget,
+.tightForm .radio-or-tickbox-group,
 .tightForm .prompt {
   margin-bottom: 0.3em;
 }
@@ -85,6 +87,7 @@ select.noBottomMargin,
 textarea.noBottomMargin,
 .tagger.noBottomMargin,
 .text-widget.noBottomMargin,
+.radio-or-tickbox-group.noBottomMargin,
 .prompt.noBottomMargin,
 .noBottomMargin {
   margin-bottom: 0em;
@@ -349,6 +352,7 @@ a.button,
   color: #666;
   padding: 0.3em 1.3em 0.32em 1.3em;
   font-size: 1em;
+  font-size: 1rem;
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
@@ -386,6 +390,7 @@ button.big-button,
 .big-menu-out button,
 .big-menu-out .button {
   font-size: 1.2em;
+  font-size: 1.2rem;
 }
 
 button.small-button,
@@ -393,6 +398,7 @@ button.small-button,
 .small-menu-out button,
 .small-menu-out .button {
   font-size: 0.8em;
+  font-size: 0.8rem;
   padding: 0.2em 1em 0.3em 1em;
   border-radius: 3px;
 }

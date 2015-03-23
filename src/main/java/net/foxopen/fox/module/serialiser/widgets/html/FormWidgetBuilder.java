@@ -124,6 +124,9 @@ public class FormWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
                 // Add the input group class when not a prompt column and has hints
                 lCellClasses.add("input-group");
               }
+              if (lColumnItem.getItemNode().getWidgetBuilderType() == WidgetBuilderType.RADIO || lColumnItem.getItemNode().getWidgetBuilderType() != WidgetBuilderType.TICKBOX) {
+                lCellClasses.add("radio-or-tickbox-group");
+              }
               if (lColumnItem.getItemNode().hasError()) {
                 lCellClasses.add("input-error");
               }
