@@ -1,6 +1,7 @@
 /* Generic */
 #downloadHelper {
   position: fixed;
+  z-index: 1000;
   top: 30px;
   right: 30px;
   color: #ffffff;
@@ -22,6 +23,7 @@
 /* Might want to customise for different systems */
 #downloadHelperConfig {
   position: fixed;
+  z-index: 1000;
   top: 30px;
   right: 30px;
   color: #ffffff;  
