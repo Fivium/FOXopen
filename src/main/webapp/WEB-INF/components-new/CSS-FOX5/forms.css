@@ -64,6 +64,7 @@ label {
 .setoutForm textarea,
 .setoutForm .tagger,
 .setoutForm .text-widget,
+.setoutForm .mce-panel,
 .setoutForm .radio-or-tickbox-group,
 .setoutForm .prompt {
   margin-bottom: 1em;
@@ -75,6 +76,7 @@ label {
 .tightForm textarea,
 .tightForm .tagger,
 .tightForm .text-widget,
+.tightForm .mce-panel,
 .tightForm .radio-or-tickbox-group,
 .tightForm .prompt {
   margin-bottom: 0.3em;
@@ -87,6 +89,7 @@ select.noBottomMargin,
 textarea.noBottomMargin,
 .tagger.noBottomMargin,
 .text-widget.noBottomMargin,
+.mce-panel.noBottomMargin,
 .radio-or-tickbox-group.noBottomMargin,
 .prompt.noBottomMargin,
 .noBottomMargin {
