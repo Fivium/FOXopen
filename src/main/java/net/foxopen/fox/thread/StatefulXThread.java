@@ -59,6 +59,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 import java.io.StringWriter;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -792,7 +793,10 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
           try {
             lFoxResponse = new FoxResponseCHARStream("text/html; charset=UTF-8", pRequestContext.getFoxRequest(), "GET".equals(pRequestContext.getFoxRequest().getHttpRequest().getMethod()) ? 0 : ComponentManager.getComponentBrowserCacheMS());
             lFoxResponse.setHttpHeader("Cache-Control", "private");
-            lOutputSerialiser.serialise(((FoxResponseCHARStream) lFoxResponse).getWriter());
+            Writer lWriter = ((FoxResponseCHARStream) lFoxResponse).getWriter();
+            lOutputSerialiser.serialise(lWriter);
+            //Immediately flush the writer so user sees the generated page as soon as possible
+            lWriter.flush();
           }
           catch (Throwable th) {
             // TODO - NP - The streaming error handling should be handled by the error filter, checking the response method and using an output serialiser set...somewhere
