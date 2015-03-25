@@ -1,5 +1,6 @@
 package net.foxopen.fox.module.fieldset.fvm;
 
+import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfoItem;
@@ -25,8 +26,17 @@ import java.util.Set;
 public class MapSetFVM
 extends FieldValueMapping {
 
+  /** Name of the mapset being used to provide the options for this FVM. */
   private final String mMapSetName;
-  private final DOM mMapSetAttach;
+  /** Optional FOXID of the map-set-attach element, if one was specified. */
+  private final String mMapSetAttachRef;
+
+  /**
+   * Hard reference to the mapset attach DOM. Cached here for performance. Will be null if no map-set-attach was specified
+   * or if this FVM has been deserialised.
+   * Important: do NOT allow this to be serialised. Instead the DOM ref is serialised and can be used to re-resolve the node JIT.
+   */
+  private transient final DOM mMapSetAttach;
 
   /**
    * Tests that the given ENI contains a valid mapset definition which can be used to construct a mapset FVM.
@@ -64,6 +74,7 @@ extends FieldValueMapping {
   protected MapSetFVM(String pMapSetName, DOM pMapSetAttach) {
     mMapSetName = pMapSetName;
     mMapSetAttach = pMapSetAttach;
+    mMapSetAttachRef = pMapSetAttach != null ? pMapSetAttach.getFoxId() : null;
   }
 
   @Override
@@ -88,7 +99,19 @@ extends FieldValueMapping {
 
   @Override
   public List<FVMOption> getFVMOptionList(ActionRequestContext pRequestContext, DOM pTargetDOM) {
-    MapSet lMapSet = pRequestContext.resolveMapSet(mMapSetName, pTargetDOM, mMapSetAttach);
+
+    //Attempt to resolve the original map-set-attach node
+    DOM lMapsetAttach = null;
+    if(mMapSetAttach != null) {
+      //If a direct DOM ref is already available on this object, use it
+      lMapsetAttach = mMapSetAttach;
+    }
+    else if(!XFUtil.isNull(mMapSetAttachRef)) {
+      //If a FOXID is known use it to re-resolve the attach DOM
+      lMapsetAttach = pRequestContext.getContextUElem().getElemByRef(mMapSetAttachRef);
+    }
+
+    MapSet lMapSet = pRequestContext.resolveMapSet(mMapSetName, pTargetDOM, lMapsetAttach);
     return lMapSet.getFVMOptionList();
   }
 }
