@@ -232,7 +232,7 @@ ul.small-tabs img {
   max-height: 11px;
 }
 
-.tab-content.contained-tabs {
+.tab-content.contained-tab-content {
   border: 1px solid #ccc;
   border-top: none;
   margin-bottom: 1em;
