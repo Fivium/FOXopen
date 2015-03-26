@@ -43,17 +43,22 @@ public class HeaderResourcesComponentBuilder extends ComponentBuilder<HTMLSerial
 
     //TODO PN logging should be based on flag on request, or at least on engine config
     if(RequestLogger.LOG_USER_EXPERIENCE_TIMES) {
-
       javascript(pSerialiser, pSerialisationContext.getContextResourceURI("/boomerang/boomerang.js"));
       javascript(pSerialiser, pSerialisationContext.getContextResourceURI("/boomerang/plugins/rt.js"));
       javascript(pSerialiser, pSerialisationContext.getContextResourceURI("/boomerang/plugins/navtiming.js"));
 
       pSerialiser.append("<script>\n" +
-      "  BOOMR.init({\n" +
-      "    beacon_url: '" + pSerialisationContext.createURIBuilder().buildBangHandlerURI(BoomerangBangHandler.instance()) + "',\n" +
+        "  BOOMR.init({\n" +
+        "    beacon_url: '");
+      pSerialiser.append(pSerialisationContext.createURIBuilder().buildBangHandlerURI(BoomerangBangHandler.instance()));
+      pSerialiser.append("',\n" +
       "    log: null\n" +
       "  });\n" +
-      "  BOOMR.addVar('" + BoomerangBangHandler.REQUEST_ID_PARAM_NAME + "','" + pSerialisationContext.getRequestLogId() + "');\n" +
+      "  BOOMR.addVar('");
+      pSerialiser.append(BoomerangBangHandler.REQUEST_ID_PARAM_NAME);
+      pSerialiser.append("','");
+      pSerialiser.append(pSerialisationContext.getRequestLogId());
+      pSerialiser.append("');\n" +
       "  BOOMR.subscribe('before_beacon', function(o) {\n" +
       "    DevToolbar.setUserExperienceTime(o.t_done)\n" +
       "  });\n" +
@@ -66,10 +71,8 @@ public class HeaderResourcesComponentBuilder extends ComponentBuilder<HTMLSerial
     javascript(pSerialiser, pSerialisationContext.getStaticResourceURI("js/json2.js"));
     javascript(pSerialiser, pSerialisationContext.getStaticResourceURI("js/html5shiv.js"));
 
-    if (1==1) { // TODO - Need a good way to summarise when this is needed
-      javascript(pSerialiser, pSerialisationContext.getStaticResourceURI("js/tooltipster.js"));
-      css(pSerialiser, pSerialisationContext.getStaticResourceURI("css/tooltipster.css"));
-    }
+    javascript(pSerialiser, pSerialisationContext.getStaticResourceURI("js/tooltipster.js"));
+    css(pSerialiser, pSerialisationContext.getStaticResourceURI("css/tooltipster.css"));
 
     javascript(pSerialiser, pSerialisationContext.getStaticResourceURI("js/fontspy.js"));
 
@@ -85,7 +88,6 @@ public class HeaderResourcesComponentBuilder extends ComponentBuilder<HTMLSerial
     }
 
     if (pSerialisationContext.getImplicatedWidgets().contains(WidgetBuilderType.FILE)) {
-
       javascript(pSerialiser, pSerialisationContext.getContextResourceURI("/jquery_file_upload/js/vendor/jquery.ui.widget.js"));
       javascript(pSerialiser, pSerialisationContext.getContextResourceURI("/jquery_file_upload/js/jquery.iframe-transport.js"));
       javascript(pSerialiser, pSerialisationContext.getContextResourceURI("/jquery_file_upload/js/jquery.fileupload.js"));
@@ -96,7 +98,7 @@ public class HeaderResourcesComponentBuilder extends ComponentBuilder<HTMLSerial
       css(pSerialiser, pSerialisationContext.getStaticResourceURI("css/fileUpload.css"));
     }
 
-    //TODO PN serialiser implicated components (only include this if tabs have been served)
+    // TODO PN add in serialiser implicated components (only include this if tabs have been served)
     javascript(pSerialiser, pSerialisationContext.getStaticResourceURI("js/tabs.js"));
 
     if(pSerialisationContext.getDownloadLinks().size() > 0) {
@@ -116,7 +118,6 @@ public class HeaderResourcesComponentBuilder extends ComponentBuilder<HTMLSerial
 
     javascript(pSerialiser, pSerialisationContext.getStaticResourceURI("js/autosize.js"));
 
-
     javascript(pSerialiser, pSerialisationContext.getStaticResourceURI("js/fox.js"));
     css(pSerialiser, pSerialisationContext.getStaticResourceURI("css/fox.css"));
 
@@ -128,6 +129,7 @@ public class HeaderResourcesComponentBuilder extends ComponentBuilder<HTMLSerial
 
   /**
    * Insert CSS links from CSS lists in modules and libraries
+   *
    * @param pSerialisationContext
    * @param pSerialiser
    */
@@ -139,15 +141,18 @@ public class HeaderResourcesComponentBuilder extends ComponentBuilder<HTMLSerial
           ("standard".equals(lCSSItem.getType()) && !pSerialisationContext.isAccessibilityMode()) ||
           "standard-and-accessible".equals(lCSSItem.getType())) {
 
-        // TODO - NP - Dose of mustache needed
-        String lLink = "<link rel=\"stylesheet\" type=\"text/css\" href=\"" + pSerialisationContext.getStaticResourceOrFixedURI(lCSSItem.getStyleSheetPath()) + "\">";
-
         String lBrowserCondition = lCSSItem.getBrowserCondition();
         if(!XFUtil.isNull(lBrowserCondition)) {
-          lLink = "<!--[if "+lBrowserCondition+"]>"+lLink+"<![endif]-->";
+          pSerialiser.append("<!--[if ");
+          pSerialiser.append(lBrowserCondition);
+          pSerialiser.append("]>");
         }
 
-        pSerialiser.append(lLink);
+        css(pSerialiser, pSerialisationContext.getStaticResourceOrFixedURI(lCSSItem.getStyleSheetPath()));
+
+        if(!XFUtil.isNull(lBrowserCondition)) {
+          pSerialiser.append("<![endif]-->");
+        }
       }
     }
   }
