@@ -37,6 +37,7 @@
       <xs:element name="br" type="html-with-attrs-or-fox-html-tags"/>
       <xs:element name="div" type="html-with-attrs-or-fox-html-tags"/>
       <xs:element name="span" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="pre" type="html-with-attrs-or-fox-html-tags"/>
       <xs:element name="accronym" type="html-with-attrs-or-fox-html-tags"/>
       <xs:element name="abbr" type="html-with-attrs-or-fox-html-tags"/>
       <xs:element name="strong" type="html-with-attrs-or-fox-html-tags"/>
