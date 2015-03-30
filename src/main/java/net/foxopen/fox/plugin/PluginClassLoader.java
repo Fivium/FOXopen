@@ -2,16 +2,14 @@ package net.foxopen.fox.plugin;
 
 
 import com.google.common.base.Joiner;
-
-import java.net.URL;
-import java.net.URLClassLoader;
-
-import java.util.Set;
-import java.util.TreeSet;
-
 import net.foxopen.fox.plugin.api.PluginManagerContext;
 import net.foxopen.fox.plugin.api.command.FxpCommandContext;
 import net.foxopen.fox.thread.ActionRequestContext;
+
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * URLClassLoader which gives precedence to its known classes BEFORE delegating to the parent. Used by plugins to ensure
@@ -19,6 +17,9 @@ import net.foxopen.fox.thread.ActionRequestContext;
  */
 public class PluginClassLoader
 extends URLClassLoader {
+
+  /** All class names asked for but not held by this loader, for debug info */
+  private final Set<String> mMissingClasses = new TreeSet<>();
 
   /** All class names loaded by this loader, for debug info */
   private final Set<String> mLoadedClasses = new TreeSet<>();
@@ -48,13 +49,17 @@ extends URLClassLoader {
         return lFindClass;
       }
       else {
+        //Log unknown class names (apart from the ones we're expecting to be unknown)
+        if(!pName.startsWith("java.") && !pName.startsWith("javax.") && !pName.startsWith("net.foxopen.fox.plugin.api.")) {
+          mMissingClasses.add(pName);
+        }
         return super.loadClass(pName);
       }
     }
   }
 
   public String getDebugInfo() {
-    return "URLs:\n\n" + Joiner.on("\n").join(getURLs()) + "\n\nLoaded Classes:\n\n" + Joiner.on("\n").join(mLoadedClasses);
+    return "URLs:\n\n" + Joiner.on("\n").join(getURLs()) + "\n\nMissing Classes:\n\n" + Joiner.on("\n").join(mMissingClasses) + "\n\nLoaded Classes:\n\n" + Joiner.on("\n").join(mLoadedClasses);
   }
 
   public FxpCommandContext createCommandContext(ActionRequestContext pRequestContext, PluginManagerContext pPluginManagerContext) {
