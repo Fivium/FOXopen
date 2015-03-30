@@ -11,6 +11,8 @@ package net.foxopen.fox.job;
  */
 public interface FoxJobTask {
 
-  public TaskCompletionMessage executeTask();
+  String getTaskDescription();
+
+  TaskCompletionMessage executeTask();
 
 }

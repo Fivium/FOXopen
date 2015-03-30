@@ -9,7 +9,7 @@ import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.ex.ExDB;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExServiceUnavailable;
-import net.foxopen.fox.job.FoxJobPool;
+import net.foxopen.fox.job.BasicFoxJobPool;
 import net.foxopen.fox.job.FoxJobTask;
 import net.foxopen.fox.job.TaskCompletionMessage;
 import net.foxopen.fox.sql.SQLManager;
@@ -27,7 +27,7 @@ public class ErrorLogger {
 
   private static final ErrorLogger INSTANCE = new ErrorLogger();
 
-  private final FoxJobPool mErrorWriterJobPool = FoxJobPool.createSingleThreadedPool("ErrorLogger");
+  private final BasicFoxJobPool mErrorWriterJobPool = BasicFoxJobPool.createSingleThreadedPool("ErrorLogger");
 
   public static ErrorLogger instance() {
     return INSTANCE;
@@ -92,7 +92,12 @@ public class ErrorLogger {
           throw new ExInternal("Failed to write error log", e);
         }
 
-        return new TaskCompletionMessage("Error log successfully written");
+        return new TaskCompletionMessage(this, "Error log successfully written");
+      }
+
+      @Override
+      public String getTaskDescription() {
+        return "LogError";
       }
     });
 

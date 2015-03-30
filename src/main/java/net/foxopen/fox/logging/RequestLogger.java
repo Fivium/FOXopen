@@ -11,7 +11,7 @@ import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.ex.ExDB;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExServiceUnavailable;
-import net.foxopen.fox.job.FoxJobPool;
+import net.foxopen.fox.job.BasicFoxJobPool;
 import net.foxopen.fox.job.FoxJobTask;
 import net.foxopen.fox.job.TaskCompletionMessage;
 import net.foxopen.fox.sql.SQLManager;
@@ -41,7 +41,7 @@ public class RequestLogger {
     EXCLUDE_URI_PATTERNS.add(Pattern.compile("^.*/upload/status$"));
   }
 
-  private final FoxJobPool mLogWriterJobPool = FoxJobPool.createSingleThreadedPool("RequestLogger");
+  private final BasicFoxJobPool mLogWriterJobPool = BasicFoxJobPool.createSingleThreadedPool("RequestLogger");
 
   public static RequestLogger instance() {
     return INSTANCE;
@@ -90,11 +90,16 @@ public class RequestLogger {
             throw new ExInternal("Start request log failed for request " + lRequestLogId, e);
           }
 
-          return new TaskCompletionMessage("Request log start written for request " + lRequestLogId);
+          return new TaskCompletionMessage(this, "Request log start written for request " + lRequestLogId);
         }
         else {
-          return new TaskCompletionMessage("Request log start skipped to due exclusion pattern match for URI " + lRequestURI + ", request " + lRequestLogId);
+          return new TaskCompletionMessage(this, "Request log start skipped to due exclusion pattern match for URI " + lRequestURI + ", request " + lRequestLogId);
         }
+      }
+
+      @Override
+      public String getTaskDescription() {
+        return "RequestLogStart";
       }
     });
 
@@ -126,11 +131,16 @@ public class RequestLogger {
             throw new ExInternal("End request log failed for request " + pRequestLogId, e);
           }
 
-          return new TaskCompletionMessage("Request log finalise written for request " + pRequestLogId);
+          return new TaskCompletionMessage(this, "Request log finalise written for request " + pRequestLogId);
         }
         else {
-          return new TaskCompletionMessage("Request log end skipped to due exclusion pattern match for URI " + lRequestURI + ", request " + pRequestLogId);
+          return new TaskCompletionMessage(this, "Request log end skipped to due exclusion pattern match for URI " + lRequestURI + ", request " + pRequestLogId);
         }
+      }
+
+      @Override
+      public String getTaskDescription() {
+        return "RequestLogFinalise";
       }
     });
   }
@@ -164,7 +174,12 @@ public class RequestLogger {
           throw new ExInternal("Set UX time failed for request " + pRequestId, e);
         }
 
-        return new TaskCompletionMessage("Request log UX time written for request " + pRequestId);
+        return new TaskCompletionMessage(this, "Request log UX time written for request " + pRequestId);
+      }
+
+      @Override
+      public String getTaskDescription() {
+        return "RequestLogUX";
       }
     });
   }

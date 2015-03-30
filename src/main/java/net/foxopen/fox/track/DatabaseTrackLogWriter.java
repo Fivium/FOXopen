@@ -10,7 +10,7 @@ import net.foxopen.fox.database.sql.bind.BindObject;
 import net.foxopen.fox.database.sql.bind.BindSQLType;
 import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.ex.ExInternal;
-import net.foxopen.fox.job.FoxJobPool;
+import net.foxopen.fox.job.BasicFoxJobPool;
 import net.foxopen.fox.job.FoxJobTask;
 import net.foxopen.fox.job.TaskCompletionMessage;
 import net.foxopen.fox.sql.SQLManager;
@@ -44,7 +44,7 @@ implements TrackLogWriter {
     INSTANCE = new DatabaseTrackLogWriter();
   }
 
-  private final FoxJobPool mTrackWriterJobPool = FoxJobPool.createSingleThreadedPool("Track Writer");
+  private final BasicFoxJobPool mTrackWriterJobPool = BasicFoxJobPool.createSingleThreadedPool("Track Writer");
 
   private final ParsedStatement mInsertStatement;
 
@@ -146,11 +146,16 @@ implements TrackLogWriter {
           lUCon.executeAPI(mInsertStatement, lBindMap);
           lUCon.commit();
           //UCon closed by try-with-resources
-          return new TaskCompletionMessage("Track written for track id " + lTrackId);
+          return new TaskCompletionMessage(this, "Track written for track id " + lTrackId);
         }
         catch (Throwable th) {
           throw new ExInternal("Track log write failed", th);
         }
+      }
+
+      @Override
+      public String getTaskDescription() {
+        return "TrackLog";
       }
     });
   }

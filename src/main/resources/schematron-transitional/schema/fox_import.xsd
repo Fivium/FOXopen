@@ -37,6 +37,7 @@
       <xs:element name="br" type="html-with-attrs-or-fox-html-tags"/>
       <xs:element name="div" type="html-with-attrs-or-fox-html-tags"/>
       <xs:element name="span" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="pre" type="html-with-attrs-or-fox-html-tags"/>
       <xs:element name="accronym" type="html-with-attrs-or-fox-html-tags"/>
       <xs:element name="abbr" type="html-with-attrs-or-fox-html-tags"/>
       <xs:element name="strong" type="html-with-attrs-or-fox-html-tags"/>
@@ -75,13 +76,7 @@
     <xs:attribute name="alt" use="optional"/>
     <xs:attribute name="title" use="optional"/>
     <xs:attribute name="rel" use="optional"/>
-    <xs:attribute name="href" use="optional">
-      <xs:simpleType>
-        <xs:restriction base="xs:string">
-          <xs:pattern value="#.*"/>
-        </xs:restriction>
-      </xs:simpleType>
-    </xs:attribute>
+    <xs:attribute name="href" use="optional"/>
     <xs:attribute name="height" use="optional"/>
     <xs:attribute name="width" use="optional"/>
     <xs:attribute name="size" use="optional"/>
