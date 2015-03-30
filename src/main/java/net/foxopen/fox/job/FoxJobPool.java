@@ -22,16 +22,15 @@ import java.util.HashMap;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Extension of a standard Java ThreadPoolExecutor which additionally captures errors and provides message reporting.
- * Individual work items should be submitted as FoxJobTasks.
+ * Individual work items should be submitted as FoxJobTasks. Subclasses control the ThreadPoolExecutor used to provide
+ * the implementation.
  */
-public class FoxJobPool {
+public abstract class FoxJobPool {
 
   private static final String JOB_NAME_PREFIX = "Fox-Job-";
   private static final int LAST_ERROR_QUEUE_SIZE = 10;
@@ -46,67 +45,58 @@ public class FoxJobPool {
   private static final Map<String, FoxJobPool> gPoolNameToPoolMap = new HashMap<>();
 
   private final String mPoolName;
-  private final ThreadPoolExecutor mExecutor;
   private final Queue<ErrorInfo> mLastErrors = EvictingQueue.create(LAST_ERROR_QUEUE_SIZE);
   private final Queue<TaskCompletionMessage> mLastMessages = EvictingQueue.create(LAST_MESSAGE_QUEUE_SIZE);
 
-  private static ThreadFactory createThreadFactory(String pPoolName) {
+  protected static void registerPool(FoxJobPool pNewJobPool) {
+
+    String lPoolName = pNewJobPool.mPoolName;
+
+    //Check pool name is valid
+    if(gPoolNameToPoolMap.containsKey(lPoolName)) {
+      throw new ExInternal("Job pool " + lPoolName + " already defined");
+    }
+    gPoolNameToPoolMap.put(lPoolName, pNewJobPool);
+
+  }
+
+  protected static ThreadFactory createThreadFactory(String pPoolName) {
     return new ThreadFactoryBuilder()
       .setNameFormat(JOB_NAME_PREFIX + pPoolName +  "-%d")
       .setDaemon(true)
       .build();
   }
 
-  public static FoxJobPool createSingleThreadedPool(String pPoolName) {
-    FoxJobPool lNewJobPool = new FoxJobPool(pPoolName);
-
-    //Check pool name is valid
-    if(gPoolNameToPoolMap.containsKey(pPoolName)) {
-      throw new ExInternal("Job pool " + pPoolName + " already defined");
-    }
-    gPoolNameToPoolMap.put(pPoolName, lNewJobPool);
-
-    return lNewJobPool;
-  }
-
   public static void shutdownAllPools() {
     FoxLogger.getLogger().info("Shutting down all job pools");
     synchronized (gPoolNameToPoolMap) {
       for (Map.Entry<String, FoxJobPool> lJobPoolEntry : gPoolNameToPoolMap.entrySet()) {
-        lJobPoolEntry.getValue().mExecutor.shutdown();
+        lJobPoolEntry.getValue().getExecutor().shutdown();
         FoxLogger.getLogger().trace("Shutting down {} job pool", lJobPoolEntry.getKey());
       }
       gPoolNameToPoolMap.clear();
     }
   }
 
-  private FoxJobPool(String pPoolName) {
+  protected FoxJobPool(String pPoolName) {
     mPoolName = pPoolName;
-
-    //Create a new ThreadPoolExecutor with the afterExecute method overriden so we can log errors.
-    ThreadPoolExecutor lExecutor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), createThreadFactory(pPoolName)) {
-      @Override
-      protected void afterExecute(Runnable pRunnable, Throwable pThrowable) {
-        super.afterExecute(pRunnable, pThrowable);
-        if(pThrowable != null) {
-          mLastErrors.add(new ErrorInfo(pThrowable, new Date()));
-        }
-      }
-    };
-
-    mExecutor = lExecutor;
   }
 
-  public void submitTask(final FoxJobTask pTask) {
-    mExecutor.execute(new Runnable() {
-      public void run() {
-        long lStartTime = System.currentTimeMillis();
-        TaskCompletionMessage lCompletionMessage = pTask.executeTask();
-        lCompletionMessage.setTimeTakenMS(System.currentTimeMillis() - lStartTime);
-        mLastMessages.add(lCompletionMessage);
-      }
-    });
+  protected void registerError(Throwable pThrowable) {
+    if(pThrowable != null) {
+      mLastErrors.add(new ErrorInfo(pThrowable, new Date()));
+    }
   }
+
+  protected void registerMessage(TaskCompletionMessage pMessage) {
+    mLastMessages.add(pMessage);
+  }
+
+  /**
+   * Gets the underlying executor for running tasks.
+   * @return
+   */
+  protected abstract ThreadPoolExecutor getExecutor();
 
   private static class JobPoolStatusProvider
   implements StatusProvider {
@@ -135,13 +125,15 @@ public class FoxJobPool {
             ListIterator<TaskCompletionMessage> lMessageIter = new ArrayList<>(lPool.mLastMessages).listIterator(lPool.mLastMessages.size());
             while(lMessageIter.hasPrevious()) {
               TaskCompletionMessage lMessage = lMessageIter.previous();
-              lMessageCollection.addItem(new StatusMessage(lDateFormat.format(lMessage.getCompletionTime()), lMessage.getMessage() + " [completed in " + lMessage.getTimeTakenMS() + " ms]"));
+              String lStatusMessageString = "(" + lMessage.getTaskDescription() + ") " + lMessage.getMessage() + " [completed in " + lMessage.getTimeTakenMS() + " ms]";
+              StatusMessage lStatusMessage = new StatusMessage(lDateFormat.format(lMessage.getCompletionTime()), lStatusMessageString);
+              lMessageCollection.addItem(lStatusMessage);
             }
 
             pRowDestination.addRow(lPool.mPoolName)
               .setColumn(lPool.mPoolName)
-              .setColumn(Integer.toString(lPool.mExecutor.getQueue().size()))
-              .setColumn(Long.toString(lPool.mExecutor.getCompletedTaskCount()))
+              .setColumn(Integer.toString(lPool.getExecutor().getQueue().size()))
+              .setColumn(Long.toString(lPool.getExecutor().getCompletedTaskCount()))
               .setColumn(new StatusDetail("Last Messages", lMessageCollection))
               .setColumn(lPoolErrors);
           }
@@ -162,6 +154,31 @@ public class FoxJobPool {
     @Override
     public boolean isCategoryExpandedByDefault() {
       return true;
+    }
+  }
+
+  /**
+   * Runnable for running in a job pool and handling error/message reporting.
+   */
+  protected class RunnableFoxJobTask
+  implements Runnable {
+
+    private final FoxJobTask mTask;
+
+    RunnableFoxJobTask(FoxJobTask pTask) {
+      mTask = pTask;
+    }
+
+    public void run() {
+      try {
+        long lStartTime = System.currentTimeMillis();
+        TaskCompletionMessage lCompletionMessage = mTask.executeTask();
+        lCompletionMessage.setTimeTakenMS(System.currentTimeMillis() - lStartTime);
+        registerMessage(lCompletionMessage);
+      }
+      catch (Throwable th) {
+        registerError(th);
+      }
     }
   }
 

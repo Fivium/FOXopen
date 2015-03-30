@@ -11,12 +11,14 @@ import net.foxopen.fox.enginestatus.StatusTable;
 import net.foxopen.fox.ex.ExDB;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExServiceUnavailable;
-import net.foxopen.fox.job.FoxJobPool;
+import net.foxopen.fox.job.BasicFoxJobPool;
 import net.foxopen.fox.job.FoxJobTask;
+import net.foxopen.fox.job.ScheduledFoxJobPool;
 import net.foxopen.fox.job.TaskCompletionMessage;
 import net.foxopen.fox.logging.FoxLogger;
 import net.foxopen.fox.track.Track;
 import net.foxopen.fox.track.TrackTimer;
+import oracle.xdb.XMLType;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -40,12 +42,29 @@ public class ConnectionAgent {
 
   static {
     EngineStatus.instance().registerStatusProvider(new ConnectionStatusProvider());
+
+    /*
+      Run a daily cleanup of the XMLType cache. This works around a memory leak present in the Oracle 11.2.0.4 XDB JAR,
+      which permanently holds stale connection references in its BinXMLProcessor cache.
+     */
+    ScheduledFoxJobPool.instance().scheduleTask(new FoxJobTask() {
+      @Override
+      public String getTaskDescription() {
+        return "XMLTypeCleanup";
+      }
+
+      @Override
+      public TaskCompletionMessage executeTask() {
+        XMLType.cleanupCache(true);
+        return new TaskCompletionMessage(this, "XMLType cache cleanup successful");
+      }
+    });
   }
 
   /**
    * Job pool for recycling returned connections.
    */
-  private static final FoxJobPool RECYCLE_JOB_POOL = FoxJobPool.createSingleThreadedPool("UCon Recycle");
+  private static final BasicFoxJobPool RECYCLE_JOB_POOL = BasicFoxJobPool.createSingleThreadedPool("UCon Recycle");
 
   /**
    * Weak map between the base connection objects and the amount of times they have been recycled
@@ -246,17 +265,22 @@ public class ConnectionAgent {
 
           // Call general release to pool method for the connection
           mRecycleUCon.getConnectionPool().releaseConnection(lActualConnection);
-          return new TaskCompletionMessage("Closed connection returned to pool");
+          return new TaskCompletionMessage(this, "Closed connection returned to pool");
         }
         else {
           // Force close a connection if it hit its recycle limit
           mRecycleUCon.getConnectionPool().forceCloseConnection(lActualConnection);
-          return new TaskCompletionMessage("Closed connection forcibly closed");
+          return new TaskCompletionMessage(this, "Closed connection forcibly closed");
         }
       }
       catch(Throwable th) {
         throw new ExInternal("Failed to return connection to pool " +  lPoolName, th);
       }
+    }
+
+    @Override
+    public String getTaskDescription() {
+      return "UConRecycle";
     }
   }
 
