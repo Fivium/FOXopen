@@ -6,6 +6,7 @@ import net.foxopen.fox.FoxResponseCHAR;
 import net.foxopen.fox.dom.DOM;
 import org.json.simple.JSONObject;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 
 /**
@@ -21,9 +22,11 @@ public class GenericWebServiceResponse
 extends WebServiceResponse {
 
   private final Map<String, ?> mPropertyMap;
+  private final int mStatusCode;
 
   public GenericWebServiceResponse(Map<String, ?> pPropertyMap) {
     mPropertyMap = pPropertyMap;
+    mStatusCode = HttpServletResponse.SC_OK;
   }
 
   @Override
@@ -40,7 +43,9 @@ extends WebServiceResponse {
       lJSONContainer.put("status", "ok");
       lJSONContainer.put("result", mPropertyMap);
 
-      return new FoxResponseCHAR(JSON_CONTENT_TYPE, new StringBuffer(lJSONContainer.toJSONString()), 0L);
+      FoxResponseCHAR lResponse = new FoxResponseCHAR(JSON_CONTENT_TYPE, new StringBuffer(lJSONContainer.toJSONString()), 0L);
+      lResponse.setStatus(mStatusCode);
+      return lResponse;
     }
     else {
       DOM lDOM = DOM.createDocument("FOXWebServiceResponse");
@@ -51,7 +56,9 @@ extends WebServiceResponse {
         lResultDOM.addElem(lEntry.getKey(), lEntry.getValue().toString());
       }
 
-      return new FoxResponseCHAR(XML_CONTENT_TYPE, new StringBuffer(lDOM.outputDocumentToString(false)), 0L);
+      FoxResponseCHAR lResponse = new FoxResponseCHAR(XML_CONTENT_TYPE, new StringBuffer(lDOM.outputDocumentToString(false)), 0L);
+      lResponse.setStatus(mStatusCode);
+      return lResponse;
     }
   }
 }
