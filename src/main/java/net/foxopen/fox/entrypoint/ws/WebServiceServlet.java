@@ -272,7 +272,7 @@ extends EntryPointServlet {
       lJSONContainer.put("status", "error");
       lJSONContainer.put("error-details", lErrorDetails);
 
-      return new JSONWebServiceResponse(lJSONContainer);
+      return new JSONWebServiceResponse(lJSONContainer, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
     else {
       DOM lErrorXML = DOM.createDocument("web-service-response");
@@ -281,7 +281,7 @@ extends EntryPointServlet {
         .addElem("message", pError.getMessage()).getParentOrNull()
         .addElem("stack-trace", lStackTrace);
 
-      return new XMLWebServiceResponse(lErrorXML);
+      return new XMLWebServiceResponse(lErrorXML, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
   }
 

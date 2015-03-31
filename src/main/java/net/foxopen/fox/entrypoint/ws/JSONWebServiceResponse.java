@@ -3,8 +3,9 @@ package net.foxopen.fox.entrypoint.ws;
 import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.FoxResponse;
 import net.foxopen.fox.FoxResponseCHAR;
-
 import org.json.simple.JSONAware;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Overriden WebService response which will return the exact JSON object specified. Only use this object if you need
@@ -16,9 +17,16 @@ public class JSONWebServiceResponse
 extends WebServiceResponse {
 
   private final JSONAware mJSONObject;
+  private final int mStatusCode;
 
   public JSONWebServiceResponse(JSONAware pJSONObject) {
     mJSONObject = pJSONObject;
+    mStatusCode = HttpServletResponse.SC_OK;
+  }
+
+  JSONWebServiceResponse(JSONAware pJSONObject, int pStatusCode) {
+    mJSONObject = pJSONObject;
+    mStatusCode = pStatusCode;
   }
 
   @Override
@@ -28,6 +36,8 @@ extends WebServiceResponse {
 
   @Override
   FoxResponse generateResponse(FoxRequest pFoxRequest, Type pType) {
-    return new FoxResponseCHAR(JSON_CONTENT_TYPE, new StringBuffer(mJSONObject.toJSONString()), 0L);
+    FoxResponseCHAR lResponse = new FoxResponseCHAR(JSON_CONTENT_TYPE, new StringBuffer(mJSONObject.toJSONString()), 0L);
+    lResponse.setStatus(mStatusCode);
+    return lResponse;
   }
 }
