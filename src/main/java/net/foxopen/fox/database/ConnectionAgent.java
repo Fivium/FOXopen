@@ -18,6 +18,7 @@ import net.foxopen.fox.job.TaskCompletionMessage;
 import net.foxopen.fox.logging.FoxLogger;
 import net.foxopen.fox.track.Track;
 import net.foxopen.fox.track.TrackTimer;
+import oracle.jdbc.OracleConnection;
 import oracle.xdb.XMLType;
 
 import javax.management.MBeanServer;
@@ -238,8 +239,8 @@ public class ConnectionAgent {
       try {
         Connection lActualConnection = mRecycleUCon.getJDBCConnection();
 
-        // Increment the recycle count
-        Integer lRecycleCount = CONNECTION_RECYCLE_COUNT_MAP.get(lActualConnection);
+        // Increment the recycle count (make sure we retrieve the physical DB connection to use as a map key, not the Hikari wrapper)
+        Integer lRecycleCount = CONNECTION_RECYCLE_COUNT_MAP.get(lActualConnection.unwrap(OracleConnection.class));
         if (lRecycleCount == null) {
           lRecycleCount = 0;
         }
@@ -260,7 +261,7 @@ public class ConnectionAgent {
           }
 
           // Put connection back in the pool
-          CONNECTION_RECYCLE_COUNT_MAP.put(lActualConnection, ++lRecycleCount);
+          CONNECTION_RECYCLE_COUNT_MAP.put(lActualConnection.unwrap(OracleConnection.class), ++lRecycleCount);
           mRecycleUCon.setModuleInfo("READY Recycled " + lRecycleCount);
 
           // Call general release to pool method for the connection
