@@ -631,7 +631,7 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
 
     //Check the action is allowed to be run
     if (!mFieldSetIn.isExternalActionRunnable(pActionName, pActionContextRef)) {
-      throw new ExInternal("Action '"+pActionName+"' not found for this fieldset.");
+      throw new ExInternal("Action '"+pActionName+"' not found for this fieldset for action context " + pActionContextRef);
       //LEGACY:
     //      ExUserRequest e = new ExUserRequest("Action '"+pActionName+"' not found for this fieldset.");
     //      e.setHttpStatusCode(403); // Set 403 (Forbidden) http return code
