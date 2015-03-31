@@ -58,6 +58,7 @@ import net.foxopen.fox.track.TrackTimer;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Collection;
@@ -67,6 +68,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 
 public class StatefulXThread
@@ -496,13 +498,10 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     if(!mThreadPropertyMap.getBooleanProperty(ThreadProperty.Type.IS_RESUME_ALLOWED)) {
       throw new ExInternal("Thread is not externally resumable");
     }
-    else {
-      //Only allow one external entry
-      setBooleanThreadProperty(ThreadProperty.Type.IS_RESUME_ALLOWED, false);
-    }
+    //Previously this set the resume flag to false to prevent re-resumes, this has been disabled because it breaks the idempotent GET rule
 
     //Check externally resumable
-    //Separate flag for "skip session check" (set both to false after)
+    //Separate flag for "skip session check" (immediately set to false to only allow this behaviour once)
     Track.pushInfo("ThreadExternalResume");
     try {
       if(mThreadPropertyMap.getBooleanProperty(ThreadProperty.Type.IS_SKIP_FOX_SESSION_CHECK)) {
@@ -762,6 +761,7 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     }
   }
 
+  //TODO refactor into "ThreadOutputGenerator" strategy
   private FoxResponse generateHTMLResponse(ActionRequestContext pRequestContext) {
 
     //If the thread has been restored from the database and an action hasn't been invoked, the top ModuleCall's DOMs may not
@@ -785,13 +785,15 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
         HTMLSerialiser lOutputSerialiser = new HTMLSerialiser(lEPT);
         FoxResponse lFoxResponse;
 
+        long lBrowserCacheTimeMS = establishResponseCacheTimeMS(pRequestContext);
+
         // TODO - Add in method to switch between streamed and regular response
         //TODO PN better cache timeout logic
         ResponseMethod lResponseMethod = pRequestContext.getRequestApp().getResponseMethod();
         if (lResponseMethod == ResponseMethod.STREAMING) {
           // Streaming output mode
           try {
-            lFoxResponse = new FoxResponseCHARStream("text/html; charset=UTF-8", pRequestContext.getFoxRequest(), "GET".equals(pRequestContext.getFoxRequest().getHttpRequest().getMethod()) ? 0 : ComponentManager.getComponentBrowserCacheMS());
+            lFoxResponse = new FoxResponseCHARStream("text/html; charset=UTF-8", pRequestContext.getFoxRequest(), lBrowserCacheTimeMS);
             lFoxResponse.setHttpHeader("Cache-Control", "private");
             Writer lWriter = ((FoxResponseCHARStream) lFoxResponse).getWriter();
             lOutputSerialiser.serialise(lWriter);
@@ -815,7 +817,7 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
           // Regular buffer and output mode
           StringWriter lSB = new StringWriter();
           lOutputSerialiser.serialise(lSB);
-          lFoxResponse = new FoxResponseCHAR("text/html; charset=UTF-8", lSB.getBuffer(), "GET".equals(pRequestContext.getFoxRequest().getHttpRequest().getMethod()) ? 0 : ComponentManager.getComponentBrowserCacheMS());
+          lFoxResponse = new FoxResponseCHAR("text/html; charset=UTF-8", lSB.getBuffer(), lBrowserCacheTimeMS);
           lFoxResponse.setHttpHeader("Cache-Control", "private");
         }
         else {
@@ -833,6 +835,30 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
       Track.timerPause(TrackTimer.OUTPUT_GENERATION);
       Track.pop("HTMLGenerator");
     }
+  }
+
+  private long establishResponseCacheTimeMS(ActionRequestContext pRequestContext) {
+
+    HttpServletRequest lHttpRequest = pRequestContext.getFoxRequest().getHttpRequest();
+
+    long lBrowserCacheTimeMS;
+    if(!"GET".equals(lHttpRequest.getMethod()) ||  lHttpRequest.getParameterMap().size() > 0) {
+      //If this is a POST, or a GET with parameters (i.e. a stateful GET), send a proper timeout to prevent browsers re-requesting the page on back/forward navigation
+      if(pRequestContext.getAuthenticationContext().isAuthenticated()) {
+        //If we're authenticated we should use the user's session timeout value so the page isn't cached after session expiry
+        lBrowserCacheTimeMS = TimeUnit.MINUTES.toMillis(pRequestContext.getAuthenticationContext().getSessionTimeoutMins());
+      }
+      else {
+        //Otherwise treat the page like a standard component with a normal timeout value
+        lBrowserCacheTimeMS = ComponentManager.getComponentBrowserCacheMS();
+      }
+    }
+    else {
+      //If this is a GET with no params, set a 0 timeout so the browser doesn't cache dynamic content (i.e. the LOGIN module)
+      lBrowserCacheTimeMS = 0;
+    }
+
+    return lBrowserCacheTimeMS;
   }
 
   private void finaliseBeforeResponse(RequestContext pRequestContext) {
