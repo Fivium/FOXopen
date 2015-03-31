@@ -32,7 +32,6 @@ import java.util.Set;
 public class StandardAuthenticationContext
 implements AuthenticationContext {
 
-  private static final String SESSION_CREATE_FILENAME = "SessionCreate.sql";
   private static final String SESSION_VERIFY_FILENAME = "SessionVerify.sql";
   private static final String SESSION_END_FILENAME = "SessionEnd.sql";
   private static final String GET_USER_DOM_FILENAME = "GetUserDOM.sql";
@@ -323,5 +322,10 @@ implements AuthenticationContext {
 
     Track.setProperty(TrackProperty.AUTHENTICATED_USER_ID, mAuthenticatedUser.getAccountID());
     Track.setProperty(TrackProperty.AUTHENTICATED_SESSION_ID, mSessionId);
+  }
+
+  @Override
+  public int getSessionTimeoutMins() {
+    return mSessionTimeoutMins;
   }
 }
