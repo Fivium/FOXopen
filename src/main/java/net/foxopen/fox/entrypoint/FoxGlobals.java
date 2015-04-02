@@ -291,8 +291,17 @@ public class FoxGlobals {
     return mFoxXPathEvaluator;
   }
 
+  /**
+   * Gets an obvious, readable FOX version number for this engine (i.e. either the manifest value or "FOXrUNKNOWN").
+   * @return Readable version number
+   */
   public String getEngineVersionNumber() {
-    return mEngineVersionInfo.getVersionNumber();
+    if(mEngineVersionInfo.isVersionKnown()) {
+      return mEngineVersionInfo.getVersionNumber();
+    }
+    else {
+      return "FOXrUNKNOWN";
+    }
   }
 
   public EngineVersionInfo getEngineVersionInfo() {

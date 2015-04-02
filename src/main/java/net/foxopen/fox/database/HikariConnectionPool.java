@@ -3,9 +3,12 @@ package net.foxopen.fox.database;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import net.foxopen.fox.entrypoint.FoxGlobals;
+import oracle.jdbc.OracleConnection;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Properties;
 
 
 public class HikariConnectionPool
@@ -24,6 +27,12 @@ implements ConnectionPool {
     lConfig.addDataSourceProperty("URL", "jdbc:oracle:thin:@" + mConfig.getURL());
     lConfig.addDataSourceProperty("user", mConfig.getUser());
     lConfig.addDataSourceProperty("password", mConfig.getPassword());
+
+    //Pass a properties object through to the OracleConnection so we can set the "program" session value to the current FOX version
+    Properties lProperties = new Properties();
+    lProperties.put(OracleConnection.CONNECTION_PROPERTY_THIN_VSESSION_PROGRAM, FoxGlobals.getInstance().getEngineVersionNumber());
+    lConfig.addDataSourceProperty("connectionProperties", lProperties);
+
     lConfig.setUsername(mConfig.getUser());
     lConfig.setPassword(mConfig.getPassword());
 

@@ -6,18 +6,21 @@ import java.util.jar.Manifest;
 
 public class EngineVersionInfo {
 
+  private static final String UNKNOWN = "unknown";
+  private static final String UNSPECIFIED = "unspecified";
+
   private final String mVersionNumber;
   private final String mBuildTag;
   private final String mBuildTime;
 
   static EngineVersionInfo unknownInstance() {
-    return new EngineVersionInfo("unknown", "unknown", "unknown");
+    return new EngineVersionInfo(UNKNOWN, UNKNOWN, UNKNOWN);
   }
 
   static EngineVersionInfo fromManifest(Manifest pManifest) {
-    String lVersion = XFUtil.nvl(pManifest.getMainAttributes().getValue("FOX-Version"), "unknown");
-    String lBuildTag = XFUtil.nvl(pManifest.getMainAttributes().getValue("Build-Tag"), "unknown");
-    String lTime = XFUtil.nvl(pManifest.getMainAttributes().getValue("Build-Time"), "unknown");
+    String lVersion = XFUtil.nvl(pManifest.getMainAttributes().getValue("FOX-Version"), UNSPECIFIED);
+    String lBuildTag = XFUtil.nvl(pManifest.getMainAttributes().getValue("Build-Tag"), UNSPECIFIED);
+    String lTime = XFUtil.nvl(pManifest.getMainAttributes().getValue("Build-Time"), UNSPECIFIED);
 
     return new EngineVersionInfo(lVersion, lBuildTag, lTime);
   }
@@ -38,5 +41,9 @@ public class EngineVersionInfo {
 
   public String getBuildTime() {
     return mBuildTime;
+  }
+
+  public boolean isVersionKnown() {
+    return !(UNKNOWN.equals(mVersionNumber) || UNSPECIFIED.equals(mVersionNumber));
   }
 }

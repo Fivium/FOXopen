@@ -110,7 +110,7 @@ extends HttpServlet {
       FoxConfigHelper.getInstance().loadEngineBootConfig();
 
       // Set the global info for freshly created connections
-      UCon.setGlobalInfo(FoxGlobals.getInstance().getContextName() + ' ' + XFUtil.nvl(FoxGlobals.getInstance().getEngineVersionNumber()));
+      UCon.setGlobalInfo("/" + FoxGlobals.getInstance().getContextName());
 
       // Register a default engine connection pool
       FoxGlobals.getInstance().initialiseEngineConnectionPool();
