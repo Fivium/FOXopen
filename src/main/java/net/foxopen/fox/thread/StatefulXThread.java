@@ -788,7 +788,6 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
         long lBrowserCacheTimeMS = establishResponseCacheTimeMS(pRequestContext);
 
         // TODO - Add in method to switch between streamed and regular response
-        //TODO PN better cache timeout logic
         ResponseMethod lResponseMethod = pRequestContext.getRequestApp().getResponseMethod();
         if (lResponseMethod == ResponseMethod.STREAMING) {
           // Streaming output mode
@@ -842,8 +841,8 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     HttpServletRequest lHttpRequest = pRequestContext.getFoxRequest().getHttpRequest();
 
     long lBrowserCacheTimeMS;
-    if(!"GET".equals(lHttpRequest.getMethod()) ||  lHttpRequest.getParameterMap().size() > 0) {
-      //If this is a POST, or a GET with parameters (i.e. a stateful GET), send a proper timeout to prevent browsers re-requesting the page on back/forward navigation
+    if(!"GET".equals(lHttpRequest.getMethod()) || FoxMainServlet.isThreadResumeRequest(lHttpRequest)) {
+      //If this is a POST, or a thread resume (i.e. a stateful GET), send a proper timeout to prevent browsers re-requesting the page on back/forward navigation
       if(pRequestContext.getAuthenticationContext().isAuthenticated()) {
         //If we're authenticated we should use the user's session timeout value so the page isn't cached after session expiry
         lBrowserCacheTimeMS = TimeUnit.MINUTES.toMillis(pRequestContext.getAuthenticationContext().getSessionTimeoutMins());
@@ -854,7 +853,7 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
       }
     }
     else {
-      //If this is a GET with no params, set a 0 timeout so the browser doesn't cache dynamic content (i.e. the LOGIN module)
+      //If this is a normal GET, set a 0 timeout so the browser doesn't cache dynamic content (i.e. the LOGIN module, or an entry theme with GET params)
       lBrowserCacheTimeMS = 0;
     }
 

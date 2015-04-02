@@ -83,6 +83,15 @@ extends EntryPointServlet {
     return XFUtil.pathPopHead(new StringBuilder(XFUtil.nvl(pRequest.getPathInfo())), true);
   }
 
+  /**
+   * Determines if the given request is being used to resume an existing thread.
+   * @param pRequest Request to check.
+   * @return True if the request is a "thread resume" request.
+   */
+  public static boolean isThreadResumeRequest(HttpServletRequest pRequest) {
+    return "GET".equals(pRequest.getMethod()) && pRequest.getParameterMap().containsKey(THREAD_ID_PARAM_NAME);
+  }
+
   @Override
   protected String establishAppMnem(HttpServletRequest pRequest) {
     return getAppMnemFromRequestPath(pRequest);
