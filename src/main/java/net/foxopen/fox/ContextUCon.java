@@ -185,8 +185,11 @@ public class ContextUCon implements FxpContextUCon<UCon> {
      * @param pRetainConnection If true, the Connection is set to be retained when popped.
      */
     private void validateAndReturnUCon(UCon pUCon, String pPurpose, boolean pRetainConnection) {
-      //TODO this method should probably not throw anything (this may supress original errors when it is called from a finally block.
-      //Instead should make a record on track?
+
+      //Note: exceptions from this method MAY clobber root exceptions as this method is often called from finally blocks.
+      //The exceptions below are considered "development time" errors and should be encountered by engine/app developers
+      //before the code is deployed to production.
+
       String lTopPurpose = mPurposeStack.getFirst();
       if(!lTopPurpose.equals(pPurpose)) {
         throw new ExInternal("Connection stack error: purpose mismatch. Expected returned purpose of '" + lTopPurpose + "' but was given '" + pPurpose + "'. " +
@@ -204,6 +207,7 @@ public class ContextUCon implements FxpContextUCon<UCon> {
         mRetainConnection = true;
       }
 
+      //This method suppresses all exceptions
       returnUConInternal(pPurpose, false);
 
       //Pop the latest status for this connection
@@ -213,45 +217,54 @@ public class ContextUCon implements FxpContextUCon<UCon> {
     /**
      * Decides if the current UCon should be closed. The default behaviour is to close it if it has no more purposes on
      * the purpose stack, the UCon or connection is not being retained and there is no transaction active on the UCon.
+     * Note: this method suppresses exceptions.
      * @param pPurpose Used for logging messages.
      * @param pForceClose Override the default behaviour and closes the UCon regardless.
      */
     private void returnUConInternal(String pPurpose, boolean pForceClose) {
 
-      boolean lClose = pForceClose;
+      try {
+        boolean lClose = pForceClose;
 
-      //Note order of if statement - check the transaction last as this is a slow operation.
-      if(!lClose) {
-        if(mRetainConnection || mRetainUCon) {
-          Track.debug("ReturnUCon", "Retaining UCon for connection " + getConnectionID() + " as " +
-          (mRetainUCon ? "UCon" : "Connection") + " retention requested after use for " + pPurpose);
+        //Note order of if statement - check the transaction last as this is a slow operation.
+        if(!lClose) {
+          if(mRetainConnection || mRetainUCon) {
+            Track.debug("ReturnUCon", "Retaining UCon for connection " + getConnectionID() + " as " +
+            (mRetainUCon ? "UCon" : "Connection") + " retention requested after use for " + pPurpose);
+          }
+          else if ((mPurposeStack.size() > 1)) {
+            Track.debug("ReturnUCon", "Retaining UCon for connection " + getConnectionID() + " as the purpose stack is not empty (still in use) - returned purpose was " + pPurpose);
+          }
+          else if(isTransactionActive()) {
+            Track.debug("ReturnUCon", "Retaining UCon for connection " + getConnectionID() + " as transaction active after use for " + pPurpose);
+          }
+          else {
+            lClose = true;
+          }
         }
-        else if ((mPurposeStack.size() > 1)) {
-          Track.debug("ReturnUCon", "Retaining UCon for connection " + getConnectionID() + " as the purpose stack is not empty (still in use) - returned purpose was " + pPurpose);
-        }
-        else if(isTransactionActive()) {
-          Track.debug("ReturnUCon", "Retaining UCon for connection " + getConnectionID() + " as transaction active after use for " + pPurpose);
-        }
-        else {
-          lClose = true;
+
+        if (lClose){
+          //No need to retain, so close
+          Track.debug("ReturnUCon", "Closing UCon for connection " + getConnectionID() + " as no transaction active and retention not required after use for " + pPurpose);
+          if(mOptionalCachedUCon != null) {
+            closeUCon(true);
+          }
         }
       }
-
-      if (lClose){
-        //No need to retain, so close
-        Track.debug("ReturnUCon", "Closing UCon for connection " + getConnectionID() + " as no transaction active and retention not required after use for " + pPurpose);
-        if(mOptionalCachedUCon != null) {
-          closeUCon(true);
-        }
+      catch (Throwable th) {
+        //Don't allow errors to propagate out of this method
+        //If a severe error has occurred upstream (e.g. ORA-600) the connection will be closed and this method will fail
+        //Suppressed errors should be printed to stdout by the logger
+        Track.recordSuppressedException("returnUConInternal", th);
       }
     }
 
     /**
      * Closes the attached UCon and dereferences it from this Connection.
-     * @param pRecyle If true, the UCon will be recycled.
+     * @param pRecycle If true, the UCon will be recycled.
      */
-    private void closeUCon(boolean pRecyle) {
-      if(pRecyle) {
+    private void closeUCon(boolean pRecycle) {
+      if(pRecycle) {
         mOptionalCachedUCon.closeForRecycle();
       }
       else {
@@ -493,7 +506,15 @@ public class ContextUCon implements FxpContextUCon<UCon> {
     for(Connection lEntry : mConnectionMap.values()) {
       if(lEntry.mOptionalCachedUCon != null) {
         try {
-          lEntry.mOptionalCachedUCon.rollback();
+          //Don't allow rollback failures to prevent the UCon from being closed - otherwise the CP won't know to release the connection
+          try {
+            lEntry.mOptionalCachedUCon.rollback();
+          }
+          catch (Throwable th) {
+            Track.recordSuppressedException("RollbackAndCloseAll", th);
+          }
+
+          //Important: always ensure the connection is closed
           lEntry.closeUCon(pAllowRecycle);
         }
         catch (Throwable th) {

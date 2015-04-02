@@ -211,6 +211,7 @@ public class ConnectionAgent {
    * @param pDatabaseCon Connection to close
    */
   public static void closeConnection(UCon pDatabaseCon){
+    Track.info("CloseConnection", "Connection agent is forcibly closing a UCon");
     pDatabaseCon.getConnectionPool().forceCloseConnection(pDatabaseCon.getJDBCConnection());
   }
 
@@ -221,6 +222,7 @@ public class ConnectionAgent {
    */
   public static void checkInForRecycle(UCon pDatabaseCon){
     // Add the UCon to a queue to be picked up by the recycle thread
+    Track.info("RecycleConnection", "Connection agent is queuing a UCon for recycle");
     RECYCLE_JOB_POOL.submitTask(new UConRecycleTask(pDatabaseCon));
   }
 
