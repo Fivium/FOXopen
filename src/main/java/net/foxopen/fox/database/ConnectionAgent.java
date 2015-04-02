@@ -18,6 +18,7 @@ import net.foxopen.fox.job.TaskCompletionMessage;
 import net.foxopen.fox.logging.FoxLogger;
 import net.foxopen.fox.track.Track;
 import net.foxopen.fox.track.TrackTimer;
+import oracle.jdbc.OracleConnection;
 import oracle.xdb.XMLType;
 
 import javax.management.MBeanServer;
@@ -210,6 +211,7 @@ public class ConnectionAgent {
    * @param pDatabaseCon Connection to close
    */
   public static void closeConnection(UCon pDatabaseCon){
+    Track.info("CloseConnection", "Connection agent is forcibly closing a UCon");
     pDatabaseCon.getConnectionPool().forceCloseConnection(pDatabaseCon.getJDBCConnection());
   }
 
@@ -220,6 +222,7 @@ public class ConnectionAgent {
    */
   public static void checkInForRecycle(UCon pDatabaseCon){
     // Add the UCon to a queue to be picked up by the recycle thread
+    Track.info("RecycleConnection", "Connection agent is queuing a UCon for recycle");
     RECYCLE_JOB_POOL.submitTask(new UConRecycleTask(pDatabaseCon));
   }
 
@@ -238,8 +241,8 @@ public class ConnectionAgent {
       try {
         Connection lActualConnection = mRecycleUCon.getJDBCConnection();
 
-        // Increment the recycle count
-        Integer lRecycleCount = CONNECTION_RECYCLE_COUNT_MAP.get(lActualConnection);
+        // Increment the recycle count (make sure we retrieve the physical DB connection to use as a map key, not the Hikari wrapper)
+        Integer lRecycleCount = CONNECTION_RECYCLE_COUNT_MAP.get(lActualConnection.unwrap(OracleConnection.class));
         if (lRecycleCount == null) {
           lRecycleCount = 0;
         }
@@ -260,7 +263,7 @@ public class ConnectionAgent {
           }
 
           // Put connection back in the pool
-          CONNECTION_RECYCLE_COUNT_MAP.put(lActualConnection, ++lRecycleCount);
+          CONNECTION_RECYCLE_COUNT_MAP.put(lActualConnection.unwrap(OracleConnection.class), ++lRecycleCount);
           mRecycleUCon.setModuleInfo("READY Recycled " + lRecycleCount);
 
           // Call general release to pool method for the connection

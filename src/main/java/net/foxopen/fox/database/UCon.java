@@ -642,7 +642,7 @@ public class UCon implements FxpUCon<ParsedStatement, UConBindMap>, Closeable {
   public final boolean setModuleInfo(String pModuleInfo) {
     mModuleInfo = pModuleInfo;
     if (mModuleInfo.length() > 48) {
-      Track.alert("UCon.setModuleInfo", "String longer than 48 characters, data will be truncated: " + mModuleInfo);
+      Track.info("UConSetModuleInfo", "String longer than 48 characters, data will be truncated: " + mModuleInfo);
     }
 
     try {
@@ -668,7 +668,7 @@ public class UCon implements FxpUCon<ParsedStatement, UConBindMap>, Closeable {
    */
   public final boolean setClientInfo(String pClientInfo) {
     if (pClientInfo.length() > 64) {
-      Track.alert("UCon.setClientInfo", "String longer than 64 characters, data will be truncated: " + pClientInfo);
+      Track.info("UConSetClientInfo", "String longer than 64 characters, data will be truncated: " + pClientInfo);
     }
 
     try {
@@ -693,7 +693,7 @@ public class UCon implements FxpUCon<ParsedStatement, UConBindMap>, Closeable {
    */
   public static final void setGlobalInfo(String pGlobalInfo) {
     if (pGlobalInfo.length() > 32) {
-      Track.alert("UCon.setGlobalInfo", "String longer than 32 characters, data will be truncated: " + pGlobalInfo);
+      Track.info("UConSetGlobalInfo", "String longer than 32 characters, data will be truncated: " + pGlobalInfo);
     }
 
     gGlobalInfo = pGlobalInfo;
