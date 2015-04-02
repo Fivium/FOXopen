@@ -148,7 +148,7 @@ public enum NodeAttribute {
   TIGHT_WIDGETS("tightWidgets", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   UPLOAD_COMPLETE_ACTION("upload-complete-action", ValueType.CONSTANT, ResultType.STRING),
   UPLOAD_FAIL_ACTION("upload-fail-action", ValueType.CONSTANT, ResultType.STRING),
-  UPLOAD_FILE_TYPE("upload-file-type", ValueType.CONSTANT, ResultType.STRING),
+  UPLOAD_FILE_TYPE("upload-file-type", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   UPLOAD_WHOLE_PAGE_DROPZONE("uploadWholePageDropZone", ValueType.EVALUATABLE_XPATH, ResultType.BOOLEAN),
   UPLOAD_SUCCESS_ACTION("upload-success-action", ValueType.CONSTANT, ResultType.STRING),
   WIDGET("widget", ValueType.CONSTANT, ResultType.STRING);

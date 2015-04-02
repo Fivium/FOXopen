@@ -62,7 +62,7 @@ extends EvaluatedNodeInfoItem {
     String lDefaultHint = null;
 
     if(!lDescriptionDefined || !lHintDefined) {
-      FileUploadType lFileUploadType = getEvaluatedParseTree().getApp().getFileUploadType(pNodeInfo.getFoxNamespaceAttribute(NodeAttribute.UPLOAD_FILE_TYPE));
+      FileUploadType lFileUploadType = getEvaluatedParseTree().getApp().getFileUploadType(getStringAttribute(NodeAttribute.UPLOAD_FILE_TYPE));
 
       //Establish the default description attribute if not override by user
       if(!lDescriptionDefined) {
