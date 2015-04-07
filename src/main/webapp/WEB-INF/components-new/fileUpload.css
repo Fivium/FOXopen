@@ -175,17 +175,20 @@ ul.fileList {
   list-style-type: none;
 }
 
-.fileUpload .deleteUpload,
-.fileUpload .cancelUpload{
+.fileUpload .deleteUpload {
   padding-right: 0.5em;
   float: right;
 }
 
-.fileUpload .deleteUpload a,
-.fileUpload .cancelUpload a{
+.fileUpload .deleteUpload a {
   text-decoration: none;
-  font-weight: 700;
-  color: #999;
+  color: #666;
+}
+
+.fileUpload .deleteUpload a::before {
+  margin-right: 0;
+  margin-left: 1em;
+  font-size: 0.8em;
 }
 
 .fileUpload .downloadUrl a {
