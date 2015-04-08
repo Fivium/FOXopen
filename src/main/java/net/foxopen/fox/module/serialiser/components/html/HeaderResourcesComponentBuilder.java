@@ -35,6 +35,14 @@ public class HeaderResourcesComponentBuilder extends ComponentBuilder<HTMLSerial
     pSerialiser.append("\">");
   }
 
+  private static void css(HTMLSerialiser pSerialiser, String pPath, String pBrowserCondition) {
+    pSerialiser.append("<!--[if ");
+    pSerialiser.append(pBrowserCondition);
+    pSerialiser.append("]>");
+    css(pSerialiser, pPath);
+    pSerialiser.append("<![endif]-->");
+  }
+
   @Override
   public void buildComponent(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedPresentationNode pEvalNode) {
     if (pSerialiser.isHeaderResourcesIncluded()) {
@@ -96,6 +104,7 @@ public class HeaderResourcesComponentBuilder extends ComponentBuilder<HTMLSerial
 
       javascript(pSerialiser, pSerialisationContext.getStaticResourceURI("js/fileUpload.js"));
       css(pSerialiser, pSerialisationContext.getStaticResourceURI("css/fileUpload.css"));
+      css(pSerialiser, pSerialisationContext.getStaticResourceURI("css/fileUploadLTIE8.css"),"LT IE 8");
     }
 
     // TODO PN add in serialiser implicated components (only include this if tabs have been served)

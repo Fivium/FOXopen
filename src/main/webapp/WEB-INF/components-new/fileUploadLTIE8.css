@@ -1,0 +1,18 @@
+/* Reset file uploads to their browser default appearance */
+label.fileUploadLink {
+  display: none;
+}
+
+.fileUploadInput {
+  display: block;
+  font-size: 1em;
+  filter: none;
+  max-height: none;
+  max-width: none;
+  opacity: 1;
+  position: static;
+  text-align: left;
+  padding: 0;
+  margin: 0;
+  cursor: auto;
+}

@@ -89,12 +89,14 @@ extends EvaluatedNodeInfoItem {
     private final String mCompleteAction;
     private final String mSuccessAction;
     private final String mFailAction;
+    private final String mUploadChoosePrompt;
 
     private UploadWidgetOptions() {
 
       mCompleteAction = getStringAttribute(NodeAttribute.UPLOAD_COMPLETE_ACTION);
       mSuccessAction = getStringAttribute(NodeAttribute.UPLOAD_SUCCESS_ACTION);
       mFailAction = getStringAttribute(NodeAttribute.UPLOAD_FAIL_ACTION);
+      mUploadChoosePrompt = getStringAttribute(NodeAttribute.UPLOAD_CHOOSE_PROMPT);
 
       if(!XFUtil.isNull(mCompleteAction) && (!XFUtil.isNull(mSuccessAction) || !XFUtil.isNull(mFailAction))) {
         throw new ExInternal("Error with node " + getIdentityInformation() + " - cannot specify a fail or success action if a complete action is also specified");
@@ -128,6 +130,10 @@ extends EvaluatedNodeInfoItem {
     else {
       return 1;
     }
+  }
+
+  public String getUploadChoosePrompt() {
+    return XFUtil.nvl(mUploadWidgetOptions.mUploadChoosePrompt, "Choose file...");
   }
 
   /**

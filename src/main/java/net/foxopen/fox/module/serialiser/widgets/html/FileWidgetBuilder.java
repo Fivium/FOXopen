@@ -70,16 +70,11 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
     }
 
     //TODO PN need to handle all attributes (like generic template vars for other widgets) e.g. tightField, fieldClass, etc
-
-    // id="fileupload"
-    boolean lHideFileInput = false; //TODO make configurable in widget
-    if(lHideFileInput) {
-      pSerialiser.append("<a href=\"#\" class=\"uploadControl chooseFile\">Choose file...</a>");
-    }
+    pSerialiser.append("<label class=\"fileUploadLink\" for=\"file" + lFieldId + "\">" + pEvalNode.getUploadChoosePrompt() + "</label>");
 
     if(lFieldMgr.getVisibility() == NodeVisibility.EDIT) {
       pSerialiser.append("<input type=\"file\" " + (pEvalNode.getMaxFilesAllowed() > 1 ? "multiple" : "") + " name=\"file" + lFieldId + "\" " +
-        "class=\"uploadControl fileUploadInput" + (lHideFileInput ? " offscreen" : "") + "\">");
+        "class=\"uploadControl fileUploadInput\">");
     }
 
     List<UploadedFileInfo> lFileInfoList = pEvalNode.getUploadedFileInfoList();

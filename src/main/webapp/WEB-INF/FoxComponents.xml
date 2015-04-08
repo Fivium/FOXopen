@@ -121,6 +121,13 @@
     <FILE_FORMAT>CHAR</FILE_FORMAT>
     <OVERLOADABLE>TRUE</OVERLOADABLE>
   </COMPONENT>
+  <COMPONENT>
+    <NAME>css/fileUploadLTIE8.css</NAME>
+    <TYPE>text/css</TYPE>
+    <FILE_PATH>\WEB-INF\components-new\fileUploadLTIE8.css</FILE_PATH>
+    <FILE_FORMAT>CHAR</FILE_FORMAT>
+    <OVERLOADABLE>TRUE</OVERLOADABLE>
+  </COMPONENT>
 
   <!-- Client-side tabs -->
   <COMPONENT>
