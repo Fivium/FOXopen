@@ -255,11 +255,18 @@ ul.small-tabs img {
   font-weight: 700;
   box-shadow: none;
   text-shadow: none;
+  font-size: 1em;
+  font-size: 1rem;
+  vertical-align: middle;
 }
 
 .small-label,
-.button.small-label {
+.button.small-label,
+.button.small-label:hover,
+.button.small-label:active,
+.button.small-label:visited {
   font-size: 0.7em;
+  font-size: 0.7rem;
 }
 
 .green-label,
