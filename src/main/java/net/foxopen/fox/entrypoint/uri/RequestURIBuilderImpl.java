@@ -9,6 +9,7 @@ import net.foxopen.fox.entrypoint.servlets.StaticServlet;
 import net.foxopen.fox.entrypoint.servlets.TempResourceServlet;
 import net.foxopen.fox.entrypoint.ws.PathParamTemplate;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.image.ImageServlet;
 import net.foxopen.fox.thread.RequestContext;
 import net.foxopen.fox.thread.storage.TempResource;
 import org.apache.http.client.utils.URIBuilder;
@@ -169,19 +170,7 @@ implements RequestURIBuilder {
       return buildStaticResourceOrFixedURI(pImageURI);
     }
     else {
-      //TODO PN - composite images
-      throw new ExInternal("Composite images not supported yet");
-//      // Multi-component image
-//      String lCompositeURL = pImageURL;
-//      try {
-//        lCompositeURL =
-//            "!COMPOSITE-IMAGE?app_mnem=" + getThreadInfoProvider().getThreadAppMnem()
-//                + "&images=" + URLEncoder.encode(pImageURL, "UTF-8");
-//      }
-//      catch (UnsupportedEncodingException e) {
-//        throw new ExInternal("Failed to encode the URL data", e);
-//      }
-//      return XFUtil.resolveLink(getFoxServletMnem(), lCompositeURL);
+      return buildURIHead(ImageServlet.SERVLET_PATH) + ImageServlet.generateImageCombinatorURISuffix(mAppMnem, pImageURI);
     }
   }
 }

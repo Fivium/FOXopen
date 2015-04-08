@@ -67,6 +67,11 @@ public class PathParamTemplate {
     mParsedTemplate = lParsedTemplate.toString();
   }
 
+  private Matcher getMatcher(String pURIPath) {
+    Pattern p = Pattern.compile(mParsedTemplate);
+    return p.matcher(XFUtil.pathStripLeadSlashes(pURIPath));
+  }
+
   /**
    * Parses the given URI path into a map of string parameters, based on the current template. The URI path should only
    * contain the relevant part of the URI, for instance for the pattern:<br><br>
@@ -83,8 +88,7 @@ public class PathParamTemplate {
    */
   public Map<String, String> parseURI(String pURIPath) {
 
-    Pattern p = Pattern.compile(mParsedTemplate);
-    Matcher m = p.matcher(XFUtil.pathStripLeadSlashes(pURIPath));
+    Matcher m = getMatcher(pURIPath);
     if(m.matches()) {
       //For each param, get the value from its corresponding regex match group (note +1 as group 0 is the whole matched pattern)
       Map<String, String> lParamMap = new HashMap<>();
@@ -96,6 +100,15 @@ public class PathParamTemplate {
     else {
       throw new ExInternal("Provided URI path " + pURIPath + " does not match expected pattern " + mOriginalTemplate);
     }
+  }
+
+  /**
+   * Tests if the given URI path is a valid match for this PathParamTemplate.
+   * @param pURIPath Path to check.
+   * @return True if a valid match.
+   */
+  public boolean matchesURI(String pURIPath) {
+    return getMatcher(pURIPath).matches();
   }
 
   /**
