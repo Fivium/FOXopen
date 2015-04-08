@@ -50,6 +50,7 @@ h6 {
 .heading-extra-info {
   font-size: 0.7em; /* Fallback for browsers that don't support rem */
   font-size: 0.7rem;
+  font-weight: normal;
   color: #666;
   margin-left: 1em;
 }
