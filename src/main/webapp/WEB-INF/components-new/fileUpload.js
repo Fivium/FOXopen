@@ -465,11 +465,11 @@ FileInfo.prototype = {
     });
   },
 
-  addDeleteButton: function() {
+  addDeleteButton: function(parentElement) {
     //Only show the delete button if we have a valid DOM ref to delete
     if(this.uploadDomRef != null && !this.owner.widgetOptions.readOnly) {
       var deleteSpan = $('<span class="deleteUpload"><a href="#" class="icon-cross" title="Delete"><span class="screen-reader-only">Delete this file</span></a></span>');
-      deleteSpan.appendTo(this.container);
+      deleteSpan.prependTo(parentElement);
       var _this = this;
       deleteSpan.click(function () {
         _this.deleteFile();
@@ -480,17 +480,17 @@ FileInfo.prototype = {
 
   displayDownloadUrl: function() {
 
-    this.addDeleteButton();
-
     var downloadSpan = $('<span class="downloadUrl"><a class="downloadLink"></a><span class="filesize">' + this.fileSize +  '</span></span>');
     downloadSpan.appendTo(this.container);
 
     downloadSpan.children('.downloadLink').attr('href', this.downloadUrl + '?' + this.owner.widgetOptions.downloadModeParam);
     downloadSpan.children('.downloadLink').text(this.filename);
+
+    this.addDeleteButton(this.container.find('.downloadUrl'));
   },
 
   displayErrorMessage: function() {
-    this.addDeleteButton();
+    this.addDeleteButton(this.container);
     var errorSpan = $('<span class="uploadError errorMessage\">' + this.errorMessage +  '<span class="errorStack" style="display:none;">' + this.errorStack + '</span></span>');
     errorSpan.appendTo(this.container);
   },
@@ -502,8 +502,9 @@ FileInfo.prototype = {
   createProgressBar: function() {
     this.container.append(
         '<div class="uploadProgress">' +
+        '<div class="filename">' + this.filename +
         '<span class="cancelUpload deleteUpload"><a href="#" class="icon-cross" title="Cancel"><span class="screen-reader-only">Cancel this upload</span></a></span>' +
-        '<div class="filename">' + this.filename + '</div>' +
+        '</div>' +
         '<div class="statusContainer"><span class="status">&nbsp;</span></div>' +
         '<div class="uploadSpeedContainer">Speed: <span class="uploadSpeed">&nbsp;</span></div>' +
         '<div class="timeRemainingContainer">Time Remaining: <span class="timeRemaining">&nbsp;</span></div>' +
