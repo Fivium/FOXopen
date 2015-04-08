@@ -39,6 +39,15 @@ label.fileUploadLink:hover {
   color: #0C71AA;
 }
 
+ul.flow-across label.fileUploadLink {
+  padding-right: 0.5em;
+  display: inline;
+}
+
+ul.small-menu-out label.fileUploadLink {
+  font-size: 0.8em;
+}
+
 .fileUploadInput {
   display: block;
   font-size: 999px;
