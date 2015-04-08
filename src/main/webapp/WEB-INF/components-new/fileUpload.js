@@ -12,7 +12,7 @@ function FileUpload (container, urlBase, urlParams, fileList, widgetOptions) {
   var _this = this;
 
   //Initialise the fileupload plugin on the file input
-  var fileUpload = container.children('.fileUploadInput').fileupload({
+  var fileUpload = container.find('.fileUploadInput').fileupload({
     url: _this.generateURL('start', null),
     dataType: 'json',
     dropZone: $('div[data-dropzone-id="' + _this.container.attr('id') + '"]'),
@@ -59,11 +59,9 @@ function FileUpload (container, urlBase, urlParams, fileList, widgetOptions) {
   if(this.fileList.length >= this.widgetOptions.maxFiles) {
     this.disableUpload();
   }
-
-  //Attach event listener to redirect "choose file" click to file input
-  container.children('.chooseFile').click(function() {
-    container.children('.fileUploadInput').click();
-  });
+  else {
+    this.enableUpload();
+  }
 
   //Attach event listeners to file upload
 
@@ -71,11 +69,11 @@ function FileUpload (container, urlBase, urlParams, fileList, widgetOptions) {
     //Called once for each file added by default. If singleFileUploads is set to false in the plugin options
     //this will fire once for each selection
     if (_this.checkMaxFilesOnAdd(e, data) == true) {
-        $.each(data.files, function (index, file) {
-          var fileInfo = _this.addFileInfo({filename: file.name});
-          //Store a reference to our FileInfo in the library's object for retrieval later
-          file._foxFileInfo = fileInfo;
-        });
+      $.each(data.files, function (index, file) {
+        var fileInfo = _this.addFileInfo({filename: file.name});
+        //Store a reference to our FileInfo in the library's object for retrieval later
+        file._foxFileInfo = fileInfo;
+      });
     }
   });
 
@@ -148,13 +146,14 @@ FileUpload.prototype = {
   },
 
   getUploadInput: function() {
-    return this.container.children('.fileUploadInput');
+    return this.container.find('.fileUploadInput');
   },
 
   enableUpload: function() {
     if(this.fileList.length < this.widgetOptions.maxFiles) {
       this.getUploadInput().toggle(true);
       this.getUploadInput().fileupload('enable');
+      this.container.removeClass('disableUpload');
       this.container.find('.dropzone').removeClass('disableUpload');
       $('body>.dropzone').removeClass('disableUpload');
     }
@@ -163,6 +162,7 @@ FileUpload.prototype = {
   disableUpload: function() {
     this.getUploadInput().fileupload('disable');
     this.getUploadInput().toggle(false);
+    this.container.addClass('disableUpload');
     this.container.find('.dropzone').addClass('disableUpload');
     $('body>.dropzone').addClass('disableUpload');
   },
@@ -250,9 +250,9 @@ FileUpload.prototype = {
     var filesAllowed = _this.widgetOptions.maxFiles - $.grep(_this.fileList,function(file, index) { return file.fileId != undefined; }).length;
 
     if(data.originalFiles.length > filesAllowed) {
-      this.container.children('.fileUploadInput').unbind('fileuploadsubmit');
+      this.container.find('.fileUploadInput').unbind('fileuploadsubmit');
 
-      _this.container.children('.fileUploadInput').bind('fileuploadsubmit', function(e, data) {
+      _this.container.find('.fileUploadInput').bind('fileuploadsubmit', function(e, data) {
         //This will fire once for each file. We only want to alert once, so do it for the first file
         if(data.files[0] == data.originalFiles[0]) {
           alert('You tried to upload ' + data.originalFiles.length + ' files, but there\'s only room for ' + filesAllowed + '. Please try again with fewer files.');
@@ -265,7 +265,7 @@ FileUpload.prototype = {
       return false;
     }
     else {
-      this.container.children('.fileUploadInput').unbind('fileuploadsubmit');
+      this.container.find('.fileUploadInput').unbind('fileuploadsubmit');
 
       return true;
     }
@@ -283,14 +283,14 @@ $(document).ready(function() {
 
   $(document).on('dragenter', function (e) {
     $('.dropzone').not('.disableUpload').show();
-    $('.fileUploadInput').css('visibility','hidden');
+    $('.fileUploadLink').css('visibility','hidden');
   });
 
   $(document).on('dragleave', function (e) {
     //Avoid IE/Chrome flickering bugs by checking if the drag was outside the window bounds
     if (e.originalEvent.pageX <= 0 || e.originalEvent.pageY <= 0 || e.originalEvent.pageX >= window.innerWidth || e.originalEvent.pageY >= window.innerHeight) {
       $('.dropzone').hide();
-      $('.fileUploadInput').css('visibility','visible');
+      $('.fileUploadLink').css('visibility','visible');
     }
     else {
       return false;
@@ -299,7 +299,7 @@ $(document).ready(function() {
 
   $(document).on('drop', function (e) {
     $('.dropzone').hide();
-    $('.fileUploadInput').css('visibility','visible');
+    $('.fileUploadLink').css('visibility','visible');
   });
 
   $('.dropzone').on('dragover', function (e) {
@@ -501,14 +501,14 @@ FileInfo.prototype = {
 
   createProgressBar: function() {
     this.container.append(
-      '<div class="uploadProgress">' +
+        '<div class="uploadProgress">' +
         '<span class="cancelUpload deleteUpload"><a href="#" class="icon-cross" title="Cancel"><span class="screen-reader-only">Cancel this upload</span></a></span>' +
         '<div class="filename">' + this.filename + '</div>' +
         '<div class="statusContainer"><span class="status">&nbsp;</span></div>' +
         '<div class="uploadSpeedContainer">Speed: <span class="uploadSpeed">&nbsp;</span></div>' +
         '<div class="timeRemainingContainer">Time Remaining: <span class="timeRemaining">&nbsp;</span></div>' +
         '<div class="progressBar"><div class="progressBarPct">0%</div></div>' +
-      '</div>'
+        '</div>'
     );
 
     if(this.owner.widgetOptions.widgetMode == "modal" && $('.modalUploadBlocker').length == 0) {
