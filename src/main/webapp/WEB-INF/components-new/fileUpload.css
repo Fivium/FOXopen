@@ -189,7 +189,7 @@ ul.fileList {
 }
 
 .fileUpload .deleteUpload {
-  padding-right: 0.5em;
+  padding-left: 0.5em;
   float: right;
 }
 
@@ -221,4 +221,5 @@ ul.fileList {
   margin-bottom: 0.2em;
   border: 1px solid #eee;
   border-radius: 5px;
+  overflow: hidden;
 }
