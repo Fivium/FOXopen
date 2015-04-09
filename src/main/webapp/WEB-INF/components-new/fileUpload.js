@@ -468,7 +468,7 @@ FileInfo.prototype = {
   addDeleteButton: function(parentElement) {
     //Only show the delete button if we have a valid DOM ref to delete
     if(this.uploadDomRef != null && !this.owner.widgetOptions.readOnly) {
-      var deleteSpan = $('<span class="deleteUpload"><a href="#" class="icon-cross" title="Delete"><span class="screen-reader-only">Delete this file</span></a></span>');
+      var deleteSpan = $('<span class="deleteUpload"><a href="#" class="icon-cross" title="Delete" aria-label="Delete ' + this.filename +'"></a></span>');
       deleteSpan.prependTo(parentElement);
       var _this = this;
       deleteSpan.click(function () {
@@ -503,7 +503,7 @@ FileInfo.prototype = {
     this.container.append(
         '<div class="uploadProgress">' +
         '<div class="filename">' + this.filename +
-        '<span class="cancelUpload deleteUpload"><a href="#" class="icon-cross" title="Cancel"><span class="screen-reader-only">Cancel this upload</span></a></span>' +
+        '<span class="cancelUpload deleteUpload"><a href="#" class="icon-cross" title="Cancel" aria-label="Cancel upload of ' + this.filename +'"></a></span>' +
         '</div>' +
         '<div class="statusContainer"><span class="status">&nbsp;</span></div>' +
         '<div class="uploadSpeedContainer">Speed: <span class="uploadSpeed">&nbsp;</span></div>' +
