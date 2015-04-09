@@ -74,7 +74,7 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
 
     if(lFieldMgr.getVisibility() == NodeVisibility.EDIT) {
       pSerialiser.append("<input type=\"file\" " + (pEvalNode.getMaxFilesAllowed() > 1 ? "multiple" : "") + " name=\"file" + lFieldId + "\" " +
-        "class=\"uploadControl fileUploadInput\">");
+        "class=\"uploadControl fileUploadInput\" aria-label=\"" + pEvalNode.getPrompt().getString() + ": " + pEvalNode.getUploadChoosePrompt() +"\">");
     }
 
     List<UploadedFileInfo> lFileInfoList = pEvalNode.getUploadedFileInfoList();
