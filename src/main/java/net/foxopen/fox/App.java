@@ -434,9 +434,7 @@ public class App {
     return mResourceQueryDefinitions.getResourceTableParsedStatement();
   }
 
-  private ComponentImage getImage(String pImageName)
-  throws ExInternal, ExServiceUnavailable, ExModule, ExApp
-  {
+  public ComponentImage getImage(String pImageName)  {
     // Get image component and check it's an image-type
     try {
       FoxComponent lFoxComponent = ComponentManager.getComponent(pImageName, getAppMnem());
@@ -447,8 +445,8 @@ public class App {
 
       return (ComponentImage)lFoxComponent;
     }
-    catch(ExUserRequest x) {
-      throw new ExModule("Error loading image '"+pImageName+"'", x);
+    catch(ExUserRequest | ExApp | ExServiceUnavailable | ExModule e) {
+      throw new ExInternal("Error loading image '"+pImageName+"'", e);
     }
   }
 

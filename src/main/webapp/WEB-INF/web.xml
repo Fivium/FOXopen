@@ -102,10 +102,16 @@
     <servlet-class>net.foxopen.fox.entrypoint.servlets.TempResourceServlet</servlet-class>
   </servlet>
   <servlet>
-    <description>Entry point for all temp resource requests</description>
+    <description>Entry point for all administrative BANG requests</description>
     <display-name>Bang Handler</display-name>
     <servlet-name>BangHandler</servlet-name>
     <servlet-class>net.foxopen.fox.banghandler.BangHandlerServlet</servlet-class>
+  </servlet>
+  <servlet>
+    <description>Entry point for all image processing requests</description>
+    <display-name>Image Processor</display-name>
+    <servlet-name>Image</servlet-name>
+    <servlet-class>net.foxopen.fox.image.ImageServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>FOXMain</servlet-name>
@@ -151,6 +157,11 @@
     <servlet-name>BangHandler</servlet-name>
     <url-pattern>/handle</url-pattern>
     <url-pattern>/handle/*</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>Image</servlet-name>
+    <url-pattern>/image</url-pattern>
+    <url-pattern>/image/*</url-pattern>
   </servlet-mapping>
   <session-config>
     <session-timeout>200</session-timeout>

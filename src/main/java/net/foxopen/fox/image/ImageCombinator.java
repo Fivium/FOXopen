@@ -34,7 +34,7 @@ package net.foxopen.fox.image;
 
 import net.foxopen.fox.ComponentImage;
 import net.foxopen.fox.ex.ExInternal;
-import net.foxopen.fox.ex.ExServiceUnavailable;
+import net.foxopen.fox.track.Track;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -42,6 +42,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Joins together multiple images, for example, transparent GIF files. Images
@@ -54,19 +55,51 @@ import java.io.IOException;
  * and licensing issues. This has been resolved in Java 1.6. PNG should be used
  * as a workaround for this.
  */
-public class ImageCombinator
-{
+public class ImageCombinator {
+
   private final BufferedImage mBufferedImage;
-  private String mContentType = null;
+  private final String mContentType;
+
+  /**
+   * Combines the given images, with the 0th image in the list being the bottom layer. The images must have the same dimensions
+   * and image type. The returned object is in a state where the final image can be read using one of the byte getter methods.
+   * @param pImageList List of at least 2 images of the same dimensions.
+   * @return ImageCombinator containing all the given images combined.
+   */
+  public static ImageCombinator createAndCombine(List<ComponentImage> pImageList) {
+
+    if(pImageList.size() < 2) {
+      throw new ExInternal("Image list must contain at least 2 images");
+    }
+
+    Track.pushInfo("CombinatorCreate");
+    ImageCombinator lCombinator;
+    try {
+      lCombinator = new ImageCombinator(pImageList.get(0));
+    }
+    finally {
+      Track.pop("CombinatorCreate");
+    }
+
+    for(int i=1; i<pImageList.size(); i++) {
+      ComponentImage lImage = pImageList.get(i);
+      Track.pushInfo("CombinatorAddLayer", "Image " + lImage.getName());
+      try {
+        lCombinator.addLayer(lImage);
+      }
+      finally {
+        Track.pop("CombinatorAddLayer");
+      }
+    }
+
+    return lCombinator;
+  }
 
   /**
    * Constructs a new ImageCombinator for joining together images.
    * @param pFoxComponent ComponentImage to convert to BufferedImage and use as base layer
-   * @throws ExInternal
-   * @throws ExServiceUnavailable
    */
-  public ImageCombinator (ComponentImage pFoxComponent)
-  throws ExInternal, ExServiceUnavailable {
+  private ImageCombinator (ComponentImage pFoxComponent) {
     if (pFoxComponent != null) {
       mContentType = pFoxComponent.getType();
       mBufferedImage = createBufferedImage(pFoxComponent);
@@ -74,14 +107,14 @@ public class ImageCombinator
     else {
       throw new ExInternal("Null ComponentImage passed to ImageCombinator constructor");
     }
-  } // ImageCombinator
+  }
 
   /**
    * Adds an image layer to the existing image.
    * @param pFoxComponent ComponentImage to add as layer
    * @throws ExInternal
    */
-  public void addLayer (ComponentImage pFoxComponent)
+  private void addLayer (ComponentImage pFoxComponent)
   throws ExInternal {
     if (pFoxComponent != null) {
       BufferedImage lTemp = createBufferedImage(pFoxComponent);
@@ -99,7 +132,7 @@ public class ImageCombinator
     else {
       throw new ExInternal("Null ComponentImage passed to ImageCombinator.addLayer()");
     }
-  } // addLayer
+  }
 
   /**
    * Gets the byte array from the ComponentImage passed and converts to a BufferedImage.
@@ -107,9 +140,7 @@ public class ImageCombinator
    * @return new BufferedImage instance
    * @throws ExInternal
    */
-  private BufferedImage createBufferedImage (ComponentImage pFoxComponent)
-  throws ExInternal
-  {
+  private BufferedImage createBufferedImage (ComponentImage pFoxComponent) {
     // Check that added layers match the type
     if (!mContentType.equals(pFoxComponent.getType())) {
       throw new ExInternal("Image types must match: base image is " + mContentType + ", new layer image ("
@@ -131,7 +162,7 @@ public class ImageCombinator
     catch (IOException ex) {
       throw new ExInternal("Couldn't read image in ImageCombinator.createBufferedImage", ex);
     }
-  } // createBufferedImage
+  }
 
   /**
    * Draws an Image on top of a BufferedImage.
@@ -139,22 +170,20 @@ public class ImageCombinator
    * @param pImageToDraw the Image to draw over the top
    * @throws ExInternal
    */
-  private static void drawImageToBuffer (BufferedImage pBufferedImage, Image pImageToDraw)
-  throws ExInternal {
+  private static void drawImageToBuffer (BufferedImage pBufferedImage, Image pImageToDraw) {
     Graphics lGraphics = pBufferedImage.createGraphics();
     lGraphics.drawImage(pImageToDraw, 0, 0, null);
     lGraphics.dispose();
-  } // drawImageToBuffer
+  }
 
   /**
    * Get the current BufferedImage as a byte array.
    * @return byte array
    * @throws ExInternal
    */
-  public byte[] getOutputByteArray()
-  throws ExInternal {
+  public byte[] getOutputByteArray() {
     return getByteArrayOutputStream().toByteArray();
-  } // getOutputByteArray
+  }
 
   /**
    * Get the current BufferedImage via an output stream.
@@ -165,13 +194,13 @@ public class ImageCombinator
   throws ExInternal {
     ByteArrayOutputStream lByteArrayOutputStream = new ByteArrayOutputStream();
     try {
-      ImageIO.write(mBufferedImage, mContentType.replaceAll("image/",""), lByteArrayOutputStream);
+      ImageIO.write(mBufferedImage, mContentType.replace("image/", ""), lByteArrayOutputStream);
     }
     catch (IOException ex) {
       throw new ExInternal("Could not write BufferedImage to byte array output stream in ImageCombinator.getOutputByteArray()", ex);
     }
     return lByteArrayOutputStream;
-  } // getByteArrayOutputStream
+  }
 
   /**
    * Gets the height of the current base image buffer.
@@ -179,7 +208,7 @@ public class ImageCombinator
    */
   public int getHeight () {
     return mBufferedImage.getHeight();
-  } // getHeight
+  }
 
   /**
    * Gets the width of the current base image buffer.
@@ -187,7 +216,7 @@ public class ImageCombinator
    */
   public int getWidth () {
     return mBufferedImage.getWidth();
-  } // getWidth
+  }
 
   /**
    * Gets the content type of the base image.
@@ -195,5 +224,6 @@ public class ImageCombinator
    */
   public String getContentType () {
     return mContentType;
-  } // getContentType
-} // class ImageCombinator
+  }
+
+}

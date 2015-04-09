@@ -53,6 +53,13 @@ extends HttpServlet {
     return XFUtil.nvl(lAppMnem, FoxGlobals.getInstance().getFoxEnvironment().getDefaultAppMnem());
   }
 
+  /**
+   * This method is invoked if no app_mnem parameter is provided on the request, and should be overloaded to provide custom
+   * behaviour for app mnem lookup based on the servlet's requirements. The default implementation returns null - this indicates
+   * the engine's default app should be used.
+   * @param pRequest Incoming request.
+   * @return App mnem string or null.
+   */
   protected String establishAppMnem(HttpServletRequest pRequest) {
     return null;
   }
@@ -66,16 +73,38 @@ extends HttpServlet {
     return null;
   }
 
+  /**
+   * Creates a FoxSession implementation which the servlet requires for authentication.
+   * @param pRequestContext Current RequestContext.
+   * @return A FoxSession object. If no auth is required, return an {@link net.foxopen.fox.entrypoint.UnauthenticatedFoxSession}.
+   */
   public abstract FoxSession establishFoxSession(RequestContext pRequestContext);
 
   protected String getContextUConPurpose() {
     return "Request";
   }
 
+  /**
+   * Gets the name of the initial "connection" to use when constructing a ContextUCon for the request. This should help
+   * identify the purpose of the connection for debugging and logging.
+   * @return
+   */
   protected abstract String getContextUConInitialConnectionName() ;
 
+  /**
+   * Gets the root element name for the track being created by this servlet. This is used in logging tables to filter
+   * tracks based on request type.
+   * @param pRequestContext Current RequestContext.
+   * @return Descriptive track root element name.
+   */
   protected abstract String getTrackElementName(RequestContext pRequestContext);
 
+  /**
+   * Creates a TrackLogger for the request which will be used to record track information. Implementations can override
+   * this to return a {@link net.foxopen.fox.track.NoOpTrackLogger} (for instance) if they don't require request logging.
+   * @param pRequestContext Current RequestContext.
+   * @return TrackLogger to use for the request.
+   */
   protected TrackLogger getTrackLogger(RequestContext pRequestContext) {
     return TrackUtils.createDefaultTrackLogger(pRequestContext);
   }
