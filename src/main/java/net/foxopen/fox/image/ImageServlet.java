@@ -10,6 +10,7 @@ import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.entrypoint.FoxSession;
 import net.foxopen.fox.entrypoint.UnauthenticatedFoxSession;
 import net.foxopen.fox.entrypoint.servlets.EntryPointServlet;
+import net.foxopen.fox.entrypoint.uri.RequestURIBuilder;
 import net.foxopen.fox.entrypoint.ws.PathParamTemplate;
 import net.foxopen.fox.ex.ExApp;
 import net.foxopen.fox.ex.ExInternal;
@@ -32,12 +33,19 @@ extends EntryPointServlet {
   public static final String SERVLET_PATH = "image";
 
   private static final String ACTION_COMBINE = "combine";
+  private static final String ACTION_DISPLAY = "display";
 
-  private static final PathParamTemplate COMBINATOR_PATH = new PathParamTemplate("/" + ACTION_COMBINE + "/{app_mnem}/{image_list}");
+  private static final String APP_MNEM_PARAM = "app_mnem";
+  private static final String IMAGE_ID_PARAM = "image_id";
+  private static final String IMAGE_WIDTH_PARAM = "width";
+  private static final String IMAGE_HEIGHT_PARAM = "height";
+
+  private static final String IMAGE_ROTATION_PARAM = "rotation";
+  private static final PathParamTemplate COMBINATOR_PATH_PARAMS = new PathParamTemplate("/" + ACTION_COMBINE + "/{" + APP_MNEM_PARAM + "}/{image_list}");
+  private static final PathParamTemplate DISPLAY_PATH_PARAMS = new PathParamTemplate("/" + ACTION_DISPLAY + "/{" + APP_MNEM_PARAM + "}/{" +  IMAGE_ID_PARAM +"}");
 
   private static final String FORWARD_SLASH_SUBSTITUTE = "$fs$";
   private static final String BACK_SLASH_SUBSTITUTE = "$bs$";
-
   /**
    * Generates a URI path suffix for a combined image URL. This should be appended to this servlet's servlet path.
    * @param pAppMnem App which the images will be read from.
@@ -46,7 +54,7 @@ extends EntryPointServlet {
    */
   public static String generateImageCombinatorURISuffix(String pAppMnem, String pImageList) {
     Map<String, String> lParamMap = new HashMap<>(2);
-    lParamMap.put("app_mnem", pAppMnem);
+    lParamMap.put(APP_MNEM_PARAM, pAppMnem);
     //We cannot have encoded slashes as part of the URI due to Apache config; replace into placeholders
     pImageList = pImageList.replace("/", FORWARD_SLASH_SUBSTITUTE);
     pImageList = pImageList.replace("\\", BACK_SLASH_SUBSTITUTE);
@@ -55,7 +63,26 @@ extends EntryPointServlet {
     pImageList = pImageList.replace(" " , "");
 
     lParamMap.put("image_list", pImageList);
-    return COMBINATOR_PATH.generateURIFromParamMap(lParamMap);
+    return COMBINATOR_PATH_PARAMS.generateURIFromParamMap(lParamMap);
+  }
+
+  public static String generateImageDisplayURI(RequestURIBuilder pURIBuilder, String pImageId, Integer pWidth, Integer pHeight, int pRotation) {
+
+    //App mnem doesn't matter at the moment
+    pURIBuilder.setParam(APP_MNEM_PARAM, FoxGlobals.getInstance().getFoxEnvironment().getDefaultAppMnem());
+    pURIBuilder.setParam(IMAGE_ID_PARAM, pImageId);
+
+    pURIBuilder.setParam(IMAGE_ROTATION_PARAM, Integer.toString(pRotation));
+
+    if(pWidth != null) {
+      pURIBuilder.setParam(IMAGE_WIDTH_PARAM, pWidth.toString());
+    }
+
+    if(pHeight != null) {
+      pURIBuilder.setParam(IMAGE_HEIGHT_PARAM, pHeight.toString());
+    }
+
+    return pURIBuilder.buildServletURI(SERVLET_PATH, DISPLAY_PATH_PARAMS);
   }
 
   @Override
@@ -108,6 +135,15 @@ extends EntryPointServlet {
         Track.pop("CombineImage");
       }
     }
+    else if(ACTION_DISPLAY.equals(lAction)) {
+      Track.pushInfo("DisplayImage");
+      try {
+        processDisplayRequest(pRequestContext);
+      }
+      finally {
+        Track.pop("DisplayImage");
+      }
+    }
     else {
       throw new ExInternal("Unknown image request action " + lAction);
     }
@@ -118,8 +154,8 @@ extends EntryPointServlet {
    * @param pRequestContext
    */
   private void processCombinatorRequest(RequestContext pRequestContext) {
-    Map<String, String> lURIParams = COMBINATOR_PATH.parseURI(pRequestContext.getFoxRequest().getRequestURI());
-    String lAppMnem = lURIParams.get("app_mnem");
+    Map<String, String> lURIParams = COMBINATOR_PATH_PARAMS.parseURI(pRequestContext.getFoxRequest().getRequestURI());
+    String lAppMnem = lURIParams.get(APP_MNEM_PARAM);
     String lImageList = lURIParams.get("image_list");
 
     //Resolve an app from the URI
@@ -149,6 +185,36 @@ extends EntryPointServlet {
     lImageResponse.respond(pRequestContext.getFoxRequest());
   }
 
+  /**
+   * Locates an image from the FOX4 processed images table with the given rotation and dimensions, and streams the image
+   * as the response.
+   * @param pRequestContext
+   */
+  private void processDisplayRequest(RequestContext pRequestContext) {
+
+    Map<String, String> lURIParams = DISPLAY_PATH_PARAMS.parseURI(pRequestContext.getFoxRequest().getRequestURI());
+    String lImageId = lURIParams.get(IMAGE_ID_PARAM);
+
+    Integer lImageWidth = null;
+    Integer lImageHeight = null;
+    try {
+      String lWidthParam = pRequestContext.getFoxRequest().getParameter(IMAGE_WIDTH_PARAM);
+      if(!XFUtil.isNull(lWidthParam)) {
+        lImageWidth = Integer.parseInt(lWidthParam);
+      }
+
+      String lHeightParam = pRequestContext.getFoxRequest().getParameter(IMAGE_HEIGHT_PARAM);
+      if(!XFUtil.isNull(lHeightParam)) {
+        lImageHeight = Integer.parseInt(lHeightParam);
+      }
+    }
+    catch (NumberFormatException e) {
+      throw new ExInternal("Invalid image dimension specified", e);
+    }
+
+    ImageLocator lImageLocator = new ImageLocator(lImageId, lImageWidth, lImageHeight, 0);
+    lImageLocator.locateAndRespond(pRequestContext);
+  }
 
   /** Holds action and app mnem params from URI path */
   private static class ImageRequestParams {

@@ -1,4 +1,4 @@
 {{^ReadOnly}}
-    <a {{> HrefAttribute}}{{#LinkTitle}} title="{{LinkTitle}}"{{/LinkTitle}}{{> ClassAttribute}}{{> StyleAttribute}}{{#AccessiblePromptText}} aria-label="{{AccessiblePromptText}}"{{/AccessiblePromptText}}>{{{PromptText}}}</a>{{/ReadOnly}}
+    <a {{> HrefAttribute}}{{> LinkTitleAttribute}}{{> ClassAttribute}}{{> StyleAttribute}}{{#AccessiblePromptText}} aria-label="{{AccessiblePromptText}}"{{/AccessiblePromptText}}>{{{PromptText}}}</a>{{/ReadOnly}}
 {{#ReadOnly}}
     <span{{> ClassAttribute}}{{> StyleAttribute}}>{{{PromptText}}}</span>{{/ReadOnly}}

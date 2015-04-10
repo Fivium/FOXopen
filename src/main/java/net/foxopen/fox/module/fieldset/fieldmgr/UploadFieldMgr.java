@@ -74,4 +74,8 @@ public class UploadFieldMgr extends FieldMgr {
       super.getOwningFieldSet().registerClientAction(new DeleteUploadedFileClientAction(lItemContextRef, mEvaluatedNode.getMaxFilesAllowed() > 1));
     }
   }
+
+  protected EvaluatedNodeInfoFileItem getEvaluatedNode() {
+    return mEvaluatedNode;
+  }
 }

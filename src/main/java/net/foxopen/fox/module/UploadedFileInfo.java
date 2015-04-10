@@ -88,6 +88,10 @@ public class UploadedFileInfo {
     return mFilename;
   }
 
+  public String getFileId() {
+    return mFileId;
+  }
+
   public String getBrowserContentType() {
     return mBrowserContentType;
   }

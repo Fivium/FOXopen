@@ -41,7 +41,7 @@ public class URLWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode>
       Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialiser, pEvalNode);
       lTemplateVars.put("ActionJS", StringEscapeUtils.escapeHtml4(pSerialiser.buildFOXjsOpenWinJSON(lURL, "fullwin")));
       lTemplateVars.put("PromptText", XFUtil.nvl(lTemplateVars.get("PromptText"), lURL));
-      lTemplateVars.put("LinkTitle", XFUtil.nvl(lTemplateVars.get("PromptText"), lURL)); // TODO - NP - Expose attr to set this specifically
+      lTemplateVars.put("LinkTitle", XFUtil.nvl(XFUtil.nvl(pEvalNode.getStringAttribute(NodeAttribute.LINK_TITLE), lTemplateVars.get("PromptText")), lURL));
 
       MustacheFragmentBuilder.applyMapToTemplate(MUSTACHE_TEMPLATE, lTemplateVars, pSerialiser.getWriter());
     }
