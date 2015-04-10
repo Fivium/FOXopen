@@ -109,7 +109,7 @@ extends EntryPointServlet {
       catch (Throwable th) {
         //Failed to properly close - roll back everything and log the error
         lContextUCon.rollbackAndCloseAll(true);
-        throw new ExInternal("Improper ContextUCon usage detected in download servlet", th);
+        Track.recordSuppressedException("DownloadServletCommit", new ExInternal("Improper ContextUCon usage detected in download servlet", th));
       }
     }
   }
