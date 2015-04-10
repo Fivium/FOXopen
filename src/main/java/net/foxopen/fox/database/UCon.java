@@ -709,7 +709,7 @@ public class UCon implements FxpUCon<ParsedStatement, UConBindMap>, Closeable {
       mSavepointNamesUsedList.clear();
     }
     catch (SQLException e) {
-      throw new ExServiceUnavailable("UCon.commit()", e);
+      throw new ExServiceUnavailable("Failed to commit transaction", e);
     }
     finally {
       Track.pop("Commit");
