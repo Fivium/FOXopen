@@ -1057,14 +1057,16 @@ extends FoxComponent implements Validatable {
   }
 
   /**
-   * Returns the specified file storage location or null, if one with the
-   * specified name does not exist.
+   * Returns the specified file storage location. Throws an error if it does not exist.
    *
-   * @param name the name of the file storage location to obtain, or null if
-   *        none with the specified name cannot be found.
+   * @param name the name of the file storage location to obtain.
    */
   public FileStorageLocation getFileStorageLocation(String name) {
-    return mFileStorageLocations.get(name);
+    FileStorageLocation lFileStorageLocation = mFileStorageLocations.get(name);
+    if(lFileStorageLocation == null) {
+      throw new ExInternal("File storage location '" + name + "' cannot be located in module " + getName());
+    }
+    return lFileStorageLocation;
   }
 
   /**
