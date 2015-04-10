@@ -4,6 +4,7 @@ import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.EvaluatedNodeAction;
+import net.foxopen.fox.module.datanode.EvaluatedNodeInfoFileItem;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfoItem;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfoPhantomItem;
 import net.foxopen.fox.module.datanode.NodeVisibility;
@@ -81,6 +82,11 @@ public abstract class FieldMgr {
         case FILE:
           return new UploadFieldMgr(pEvaluatedNodeInfoItem, pFieldSet, pNewFieldId);
         case IMAGE:
+          //Don't attempt to create an image widget FieldMgr if the ENI is of the wrong type (currently because of missing FSL attr)
+          //TODO - need a better way to map FieldMgrs to ENI types
+          if(!(pEvaluatedNodeInfoItem instanceof EvaluatedNodeInfoFileItem)) {
+            throw new ExInternal("Image widgets must have a file-storage-location specified");
+          }
           return new ImageFieldMgr(pEvaluatedNodeInfoItem, pFieldSet, pNewFieldId);
         case PHANTOM_BUFFER:
         case PHANTOM_MENU:

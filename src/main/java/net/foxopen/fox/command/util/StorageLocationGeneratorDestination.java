@@ -1,8 +1,5 @@
 package net.foxopen.fox.command.util;
 
-import java.sql.Blob;
-import java.sql.Clob;
-
 import net.foxopen.fox.database.storage.dom.XMLWorkDoc;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExInternal;
@@ -14,6 +11,9 @@ import net.foxopen.fox.thread.storage.FileStorageLocation;
 import net.foxopen.fox.thread.storage.WorkingDataDOMStorageLocation;
 import net.foxopen.fox.thread.storage.WorkingFileStorageLocation;
 import net.foxopen.fox.track.Track;
+
+import java.sql.Blob;
+import java.sql.Clob;
 
 /**
  * GeneratorDestination for writing to a Clob or Blob identified by a Storage Location definition.
@@ -28,11 +28,7 @@ implements GeneratorDestination {
   }
 
   private FileStorageLocation getStorageLocation(ActionRequestContext pRequestContext) {
-    FileStorageLocation lStorageLocation = pRequestContext.getCurrentModule().getFileStorageLocation(mStorageLocationName);
-    if(lStorageLocation == null) {
-      throw new ExInternal("Could not find a storage location called " + mStorageLocationName);
-    }
-    return lStorageLocation;
+    return pRequestContext.getCurrentModule().getFileStorageLocation(mStorageLocationName);
   }
 
   @Override
