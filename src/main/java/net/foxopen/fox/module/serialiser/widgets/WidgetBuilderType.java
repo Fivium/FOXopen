@@ -25,6 +25,7 @@ public enum WidgetBuilderType {
   FILE(new WidgetBuilderProperties(), "file", "file-new"),
   FORM(new WidgetBuilderProperties(WidgetFlag.INTERNAL_ONLY), "form"),
   HTML(new WidgetBuilderProperties(WidgetFlag.TEXT_VALUE, WidgetFlag.RUNNABLE), "html"),
+  IMAGE(new WidgetBuilderProperties(WidgetFlag.RUNNABLE), "image"),
   INPUT(new WidgetBuilderProperties(WidgetFlag.TEXT_VALUE, WidgetFlag.RUNNABLE), "input", "input-resizable"),
   LINK(new WidgetBuilderProperties(WidgetFlag.ACTION, WidgetFlag.RUNNABLE), "link", "alive"),
   LIST(new WidgetBuilderProperties(WidgetFlag.INTERNAL_ONLY), "list"),

@@ -50,6 +50,7 @@ import net.foxopen.fox.module.serialiser.widgets.html.ErrorRefWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.html.FileWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.html.FormWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.html.HTMLWidgetBuilder;
+import net.foxopen.fox.module.serialiser.widgets.html.ImageWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.html.InputWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.html.LinkWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.html.ListWidgetBuilder;
@@ -115,6 +116,7 @@ extends WriterOutputSerialiser {
     HTML_WIDGET_MAP.put(WidgetBuilderType.TIMER, TimerWidgetBuilder.getInstance());
     HTML_WIDGET_MAP.put(WidgetBuilderType.HTML, HTMLWidgetBuilder.getInstance());
     HTML_WIDGET_MAP.put(WidgetBuilderType.FILE, FileWidgetBuilder.getInstance());
+    HTML_WIDGET_MAP.put(WidgetBuilderType.IMAGE, ImageWidgetBuilder.getInstance());
     HTML_WIDGET_MAP.put(WidgetBuilderType.CELLMATES, CellmateWidgetBuilder.getInstance());
     HTML_WIDGET_MAP.put(WidgetBuilderType.ERROR_REF, ErrorRefWidgetBuilder.getInstance());
 

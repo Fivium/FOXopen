@@ -1198,7 +1198,7 @@ public class ImageWidgetProcessing {
     }
   }
 
-  public Map getImageSeriesInfo(String pImageSeriesName) {
+  public Map<String, Object> getImageSeriesInfo(String pImageSeriesName) {
     HashMap lMap = (HashMap)mImageSeries.get(pImageSeriesName);
     if(lMap == null) {
       return null;

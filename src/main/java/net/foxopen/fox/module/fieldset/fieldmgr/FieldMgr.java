@@ -80,6 +80,8 @@ public abstract class FieldMgr {
       switch(lWidgetBuilderType){
         case FILE:
           return new UploadFieldMgr(pEvaluatedNodeInfoItem, pFieldSet, pNewFieldId);
+        case IMAGE:
+          return new ImageFieldMgr(pEvaluatedNodeInfoItem, pFieldSet, pNewFieldId);
         case PHANTOM_BUFFER:
         case PHANTOM_MENU:
           return new PhantomFieldMgr(pEvaluatedNodeInfoItem, pFieldSet, pNewFieldId);

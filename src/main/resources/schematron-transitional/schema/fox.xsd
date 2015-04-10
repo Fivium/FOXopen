@@ -169,6 +169,7 @@
     <xs:attribute ref="file-storage-location"/>
     <xs:attribute ref="hint"/>
     <xs:attribute ref="linkHint"/>
+    <xs:attribute ref="linkTitle"/>
     <xs:attribute ref="hintTitle"/>
     <xs:attribute ref="hint-url"/>
     <xs:attribute ref="init-db-interface"/>
@@ -440,6 +441,7 @@
   </xs:attribute>
   <xs:attribute name="hint"/>
   <xs:attribute name="linkHint"/>
+  <xs:attribute name="linkTitle" type="entered-string"/>
   <xs:attribute name="hintTitle"/>
   <xs:attribute name="error-url" type="fox-xpath-type"/>
   <xs:attribute name="error-url-prompt" type="fox-xpath-type"/>
