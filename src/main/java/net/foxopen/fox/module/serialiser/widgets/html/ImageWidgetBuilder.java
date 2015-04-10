@@ -94,6 +94,10 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
     if(!XFUtil.isNull(lDisplaySize)) {
       Map<String, Object> lImageSeriesInfo = pSerialisationContext.getApp().getImageWidgetProcessing().getImageSeriesInfo(lDisplaySize);
 
+      if(lImageSeriesInfo == null) {
+        throw new ExInternal("Failed to locate an image series called " + lDisplaySize + " for widget "  + pEvalNode.getIdentityInformation());
+      }
+
       lDisplayWidth = (Integer) lImageSeriesInfo.get("MaxWidth");
       lDisplayHeight = (Integer) lImageSeriesInfo.get("MaxHeight");
     }
