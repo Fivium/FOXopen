@@ -56,32 +56,35 @@ extends BuiltInCommand {
         lTabGroupAttach = lContextUElem.extendedXPath1E(mTabGroupAttachXPath);
       }
       catch (ExTooFew | ExTooMany | ExActionFailed e) {
-        throw new ExInternal("Failed to evaluate tabGroupAttach attrtibute", e);
+        throw new ExInternal("Failed to evaluate tabGroupAttach attribute", e);
       }
     }
     else {
       lTabGroupAttach = lContextUElem.attachDOM();
     }
 
-    TabGroup lTabGroup = pRequestContext.getModuleFacetProvider(TabGroupProvider.class).getTabGroup(mTabGroupName, lTabGroupAttach);
+    //Get OR create a tab group - we may need the create if this is the first attempt to access a tab group in a module call
+    //(i.e. before it's been set out).
+    TabGroupProvider lTabGroupProvider = pRequestContext.getModuleFacetProvider(TabGroupProvider.class);
+    TabGroup lTabGroup = lTabGroupProvider.getOrCreateEmptyTabGroup(mTabGroupName, lTabGroupAttach);
 
     //Set the group to either the tab DOM or tab key specified
     if(!XFUtil.isNull(mTabDOMXPath)) {
       try {
-       DOM lTabDOM = lContextUElem.extendedXPath1E(mTabDOMXPath);
-       lTabGroup.selectTab(pRequestContext.getPersistenceContext(), lTabDOM);
+        DOM lTabDOM = lContextUElem.extendedXPath1E(mTabDOMXPath);
+        lTabGroup.selectTab(pRequestContext.getPersistenceContext(), lTabDOM);
       }
       catch (ExTooFew | ExTooMany | ExActionFailed e) {
-        throw new ExInternal("Failed to evaluate tabGroupAttach attrtibute", e);
+        throw new ExInternal("Failed to evaluate tabDOM attribute", e);
       }
     }
     else {
       try {
-       String lTabKey = lContextUElem.extendedStringOrXPathString(lContextUElem.attachDOM(), mTabKeyXPath);
-       lTabGroup.selectTab(pRequestContext.getPersistenceContext(), lTabKey);
+        String lTabKey = lContextUElem.extendedStringOrXPathString(lContextUElem.attachDOM(), mTabKeyXPath);
+        lTabGroup.selectTab(pRequestContext.getPersistenceContext(), lTabKey);
       }
       catch (ExActionFailed e) {
-        throw new ExInternal("Failed to evaluate tabGroupAttach attrtibute", e);
+        throw new ExInternal("Failed to evaluate tabKey attribute", e);
       }
     }
 
