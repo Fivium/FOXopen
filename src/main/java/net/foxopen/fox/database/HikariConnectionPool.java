@@ -30,7 +30,8 @@ implements ConnectionPool {
 
     //Pass a properties object through to the OracleConnection so we can set the "program" session value to the current FOX version
     Properties lProperties = new Properties();
-    lProperties.put(OracleConnection.CONNECTION_PROPERTY_THIN_VSESSION_PROGRAM, FoxGlobals.getInstance().getEngineVersionNumber());
+    //Note: database 11.2.0.3 fails to return binary XML correctly when "JDBC Thin Client" is not a substring of v$session.program
+    lProperties.put(OracleConnection.CONNECTION_PROPERTY_THIN_VSESSION_PROGRAM, FoxGlobals.getInstance().getEngineVersionNumber() + " - JDBC Thin Client");
     lConfig.addDataSourceProperty("connectionProperties", lProperties);
 
     lConfig.setUsername(mConfig.getUser());
