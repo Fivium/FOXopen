@@ -32,17 +32,6 @@ $Id$
 */
 package net.foxopen.fox.command.builtin;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import net.foxopen.fox.ContextLabel;
 import net.foxopen.fox.ContextUCon;
 import net.foxopen.fox.ContextUElem;
@@ -61,11 +50,21 @@ import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.ex.ExTooMany;
 import net.foxopen.fox.module.Mod;
-import net.foxopen.fox.module.mapset.MapSet;
 import net.foxopen.fox.module.datanode.NodeInfo;
 import net.foxopen.fox.module.datanode.NodeType;
+import net.foxopen.fox.module.mapset.MapSet;
 import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.track.Track;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -1217,9 +1216,8 @@ public class ValidateCommand
                         // its found in the list so its no longer mandatory
                         mandatory = false;
                      }
-                     else
-                     {
-                        addError(pDataToCheck, XFUtil.nvl(dataDfn.getAttribute("fox", "validate-map-set-msg"), "Invalid entry (not on list)"), pErrorCtx);
+                     else if(!mandatory) {
+                         addError(pDataToCheck, XFUtil.nvl(dataDfn.getAttribute("fox", "validate-map-set-msg"), "Invalid entry (not on list)"), pErrorCtx);
                      }
                   }
                }
