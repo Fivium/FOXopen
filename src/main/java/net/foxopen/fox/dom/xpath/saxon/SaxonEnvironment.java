@@ -120,7 +120,8 @@ public class SaxonEnvironment {
   /**
    * This class cannot be instantiated.
    */
-  private SaxonEnvironment() {}
+  private SaxonEnvironment() {
+  }
 
   /**
    * Setup for the XPathFactory - registers function resolvers, namespace resolvers etc.
@@ -134,7 +135,7 @@ public class SaxonEnvironment {
       @Override
       public Source resolve(String href, String base)
       throws TransformerException {
-       throw new ExInternal("External URIs are not permitted in FOX XPaths");
+        throw new ExInternal("External URIs are not permitted in FOX XPaths");
       }
     });
 
@@ -168,6 +169,7 @@ public class SaxonEnvironment {
     gSaxonProcessor.registerExtensionFunction(new PagerStatusFunction());
     gSaxonProcessor.registerExtensionFunction(new UploadTypeInfoFunction());
     gSaxonProcessor.registerExtensionFunction(new UserPrivilegeFunction());
+    gSaxonProcessor.registerExtensionFunction(new CastDateSafeFunction());
 
     //Create and set up a global XQuery compiler.
     gXQueryCompiler = gSaxonProcessor.newXQueryCompiler();
@@ -185,13 +187,14 @@ public class SaxonEnvironment {
 
   /**
    * Get this thread's current ContextUElem for use in XPath evaluation. Errors if not set.
+   *
    * @return The thread's ContextUElem.
    */
-  static ContextUElem getThreadLocalContextUElem(){
+  static ContextUElem getThreadLocalContextUElem() {
     WeakReference<ContextUElem> lRef = gThreadLocalContextUElem.get();
-    if(lRef != null){
+    if (lRef != null) {
       ContextUElem lContext = lRef.get();
-      if(lContext != null){
+      if (lContext != null) {
         return lContext;
       }
       else {
@@ -200,20 +203,21 @@ public class SaxonEnvironment {
     }
     else {
       throw new ExInternal("getThreadLocalContextUElem would have returned null due to ThreadLocal reference not being set. " +
-        "setThreadLocalContextUElem must be called before running any XPaths which use FOX context functions.");
+                           "setThreadLocalContextUElem must be called before running any XPaths which use FOX context functions.");
     }
   }
 
   /**
    * Gets the RequestContext for the request currently active on the underlying Java thread. If it has not been set, an
    * error is raised.
+   *
    * @return
    */
-  static ActionRequestContext getThreadLocalRequestContext(){
+  static ActionRequestContext getThreadLocalRequestContext() {
     WeakReference<ActionRequestContext> lRef = gThreadLocalRequestContext.get();
-    if(lRef != null){
+    if (lRef != null) {
       ActionRequestContext lRequestContext = lRef.get();
-      if(lRequestContext != null){
+      if (lRequestContext != null) {
         return lRequestContext;
       }
       else {
@@ -222,46 +226,47 @@ public class SaxonEnvironment {
     }
     else {
       throw new ExInternal("getThreadLocalRequestContext would have returned null due to ThreadLocal reference not being set. " +
-        "setThreadLocalRequestContext must be called before running any XPaths which use module state based functions.");
+                           "setThreadLocalRequestContext must be called before running any XPaths which use module state based functions.");
     }
   }
 
   /**
    * @return The global Saxon configuration for this FOX engine.
    */
-  public static Configuration getSaxonConfiguration(){
+  public static Configuration getSaxonConfiguration() {
     return gSaxonConfiguration;
   }
 
   /**
    * @return The global Saxon processor for this FOX engine.
    */
-  public static Processor getSaxonProcessor(){
+  public static Processor getSaxonProcessor() {
     return gSaxonProcessor;
   }
 
   /**
    * @return The global XQuery compiler for this FOX engine. This object is thread-safe.
    */
-  public static XQueryCompiler getXQueryCompiler(){
+  public static XQueryCompiler getXQueryCompiler() {
     return gXQueryCompiler;
   }
 
   /**
    * @return The global XSLT compiler for this FOX engine. This object is thread-safe.
    */
-  public static XsltCompiler getXsltCompiler(){
+  public static XsltCompiler getXsltCompiler() {
     return gXsltCompiler;
   }
 
   /**
    * Set the ThreadLocal reference to a ContextUElem so context-aware Fox XPaths can resolve :{contexts}. Be sure to call
    * {@link SaxonEnvironment#clearThreadLocalContextUElem} in a finally block after calling this method.
+   *
    * @param pContextUElem The contextUElem for this thread.
    */
-  public static void setThreadLocalContextUElem(ContextUElem pContextUElem){
+  public static void setThreadLocalContextUElem(ContextUElem pContextUElem) {
     //Sanity check
-    if(gThreadLocalContextUElem.get() != null){
+    if (gThreadLocalContextUElem.get() != null) {
       //Don't error, this was being called from getMapset within an XPath function which is fine
       Track.debug("ThreadLocalContextUElem", "setThreadLocalContextUElem called when already set");
     }
@@ -270,11 +275,11 @@ public class SaxonEnvironment {
     }
   }
 
-  public static void setThreadLocalRequestContext(ActionRequestContext pRequestContext){
+  public static void setThreadLocalRequestContext(ActionRequestContext pRequestContext) {
     //Sanity check
-    if(gThreadLocalRequestContext.get() != null){
+    if (gThreadLocalRequestContext.get() != null) {
       throw new ExInternal("Cannot set ThreadLocal RequestContext because it is already set. Ensure calls to this method " +
-        "are properly cleaned up by using clearThreadLocalRequestContext().");
+                           "are properly cleaned up by using clearThreadLocalRequestContext().");
     }
     gThreadLocalRequestContext.set(new WeakReference<>(pRequestContext));
   }
@@ -282,18 +287,19 @@ public class SaxonEnvironment {
   /**
    * Clean up the ThreadLocal ContextUElem after XPath execution has completed.
    */
-  public static void clearThreadLocalContextUElem(){
+  public static void clearThreadLocalContextUElem() {
     gThreadLocalContextUElem.remove();
   }
 
-  public static void clearThreadLocalRequestContext(){
+  public static void clearThreadLocalRequestContext() {
     gThreadLocalRequestContext.remove();
   }
 
   /**
    * Get a Saxon XPathEvaluator for the purposes of compiling an XPath.
+   *
    * @param pBackwardsCompatible If true, turns XPath 1.0 backwards compatibility mode on.
-   * @param pNamespaceMap Optional NamespaceContext for resolution of arbitrary namespaces. Leave null to use default.
+   * @param pNamespaceMap        Optional NamespaceContext for resolution of arbitrary namespaces. Leave null to use default.
    * @return A new single-use XPathEvaluator.
    */
   public static XPathEvaluator getXPathEvaluator(boolean pBackwardsCompatible, DynamicNamespaceContext pNamespaceMap) {
@@ -301,7 +307,7 @@ public class SaxonEnvironment {
     XPathEvaluator lXPE = new XPathEvaluator(SaxonEnvironment.getSaxonConfiguration());
     lXPE.getStaticContext().setBackwardsCompatibilityMode(pBackwardsCompatible);
 
-    if(pNamespaceMap == null) {
+    if (pNamespaceMap == null) {
       lXPE.setNamespaceContext(gFoxNamespaceContext);
     }
     else {
@@ -314,14 +320,15 @@ public class SaxonEnvironment {
    * Rewrites the given 'external' XPath (i.e. as the developer wrote it) into an internally executable XPath, namely by
    * replacing <i>:{context}</i>s to <i>fox:ctxt('context')</i> function calls. Also populates pLabelSet, if provided,
    * with a list of the context labels in the expression, ordered by the order of their occurence in the original string.
+   *
    * @param pExternalXPath A FOX XPath string.
-   * @param pLabelSet An optional set to populate with context labels.
+   * @param pLabelSet      An optional set to populate with context labels.
    * @return A Saxon-compliant XPath 2.0 String.
    */
-  public static String replaceFoxMarkup(final String pExternalXPath, final LinkedHashSet<String> pLabelSet){
+  public static String replaceFoxMarkup(final String pExternalXPath, final LinkedHashSet<String> pLabelSet) {
 
     //Sanity check that the replacement tokens do not already exist in the XPath
-    if(pExternalXPath.indexOf(SQ_OPEN) != -1 || pExternalXPath.indexOf(SQ_CLOSE) != -1){
+    if (pExternalXPath.indexOf(SQ_OPEN) != -1 || pExternalXPath.indexOf(SQ_CLOSE) != -1) {
       throw new ExInternal("Invalid String sequence found in XPath: " + pExternalXPath);
     }
 
@@ -330,20 +337,20 @@ public class SaxonEnvironment {
 
     //Do a basic parse of the string to make sure we don't rewrite :{context} labels within quoted strings
     //I.e. being used in an eval expression - concat('<fm:run-query name="', :{theme}/QRY, '" match=":{action}">')
-    for(int i = 0; i < pExternalXPath.length(); i++){
+    for (int i = 0; i < pExternalXPath.length(); i++) {
       char lChar = pExternalXPath.charAt(i);
 
       //If we enter/leave single quotes, flip the bit
       //NOTE: weakness here is that either " or ' is a valid string delimeter in XPath
       //However the vast majority of Fox XPaths will use ' as they are specified in XML attributes.
-      if(lChar == '\''){
+      if (lChar == '\'') {
         lIsInQuotes = !lIsInQuotes;
       }
 
-      if(lChar == '{' && lIsInQuotes){
+      if (lChar == '{' && lIsInQuotes) {
         lXPathBuilder.append(SQ_OPEN);
       }
-      else if (lChar == '}' && lIsInQuotes){
+      else if (lChar == '}' && lIsInQuotes) {
         lXPathBuilder.append(SQ_CLOSE);
       }
       else {
@@ -354,17 +361,17 @@ public class SaxonEnvironment {
     String lXPath = lXPathBuilder.toString();
 
     //Replace "exists-context(:{context})" with fox:exists-context('context')
-    if(lXPath.indexOf("exists-context") != -1){
+    if (lXPath.indexOf("exists-context") != -1) {
       Matcher m = EXISTS_CONTEXT_MATCH_PATTERN.matcher(lXPath);
       lXPath = m.replaceAll(EXISTS_CONTEXT_REPLACE_STRING);
     }
 
     //Replace ":{context}" with "fox:ctxt('context')"
-    if(lXPath.indexOf(":{") != -1){
+    if (lXPath.indexOf(":{") != -1) {
       Matcher m = FOX_CONTEXT_MATCH_PATTERN.matcher(lXPath);
-      if(pLabelSet != null){
+      if (pLabelSet != null) {
         pLabelSet.clear();
-        while(m.find()){
+        while (m.find()) {
           pLabelSet.add(m.group(1));
         }
       }
@@ -378,23 +385,24 @@ public class SaxonEnvironment {
     return lXPath;
   }
 
-  public static FoxXsltErrorListner newFoxXsltErrorListener(){
+  public static FoxXsltErrorListner newFoxXsltErrorListener() {
     return new FoxXsltErrorListner();
   }
 
   /**
    * Tests if the given data model value is null or equivalent to null (including empty string).
+   *
    * @param pXdmValue Value to test.
    * @return True if the value is null.
    */
-  static boolean isValueNull(XdmValue pXdmValue){
-    if(pXdmValue == null){
+  static boolean isValueNull(XdmValue pXdmValue) {
+    if (pXdmValue == null) {
       return true;
     }
-    else if(pXdmValue instanceof XdmEmptySequence){
+    else if (pXdmValue instanceof XdmEmptySequence) {
       return true;
     }
-    else if(pXdmValue instanceof XdmAtomicValue){
+    else if (pXdmValue instanceof XdmAtomicValue) {
       String lResultString = ((XdmAtomicValue) pXdmValue).getStringValue();
       return XFUtil.isNull(lResultString);
     }
@@ -425,10 +433,10 @@ public class SaxonEnvironment {
       mExceptionList.add(pException);
     }
 
-    public void processErrors(){
-      if(mExceptionList.size() > 0){
+    public void processErrors() {
+      if (mExceptionList.size() > 0) {
         throw new ExInternal(mExceptionList.size() + " exception(s) occured during transform. " +
-          "See nested for first; examine Track for all.", mExceptionList.get(0));
+                             "See nested for first; examine Track for all.", mExceptionList.get(0));
       }
     }
 
