@@ -12,6 +12,7 @@ import net.foxopen.fox.module.serialiser.components.ComponentBuilder;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
 import net.foxopen.fox.module.tabs.EvaluatedTabInfo;
 import net.foxopen.fox.module.tabs.TabGroup;
+import net.foxopen.fox.track.Track;
 
 public class TabGroupComponentBuilder
 extends ComponentBuilder<HTMLSerialiser, EvaluatedTabGroupPresentationNode> {
@@ -104,6 +105,9 @@ extends ComponentBuilder<HTMLSerialiser, EvaluatedTabGroupPresentationNode> {
     //Always serialise the selected tab
     if(lSelectedTabInfo != null) {
       serialiseTabContentDiv(pSerialisationContext, pSerialiser, pEvalNode, lTabGroup.getTabGroupKey(), lSelectedTabInfo, lTabClass, "");
+    }
+    else {
+      Track.alert("NoSelectedTabs", "No selected tabs in tab group " + lTabGroup.getTabGroupKey());
     }
 
     //Serialise other tabs if this is a client side tab group

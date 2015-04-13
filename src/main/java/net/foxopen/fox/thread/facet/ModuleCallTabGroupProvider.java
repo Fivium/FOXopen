@@ -10,8 +10,10 @@ import net.foxopen.fox.module.tabs.TabGroupProvider;
 import net.foxopen.fox.module.tabs.TabInfoProvider;
 import net.foxopen.fox.thread.persistence.PersistenceContext;
 import net.foxopen.fox.thread.stack.ModuleCall;
+import net.foxopen.fox.track.Track;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -38,11 +40,6 @@ implements TabGroupProvider {
   }
 
   @Override
-  public TabGroup getTabGroup(String pTabGroupName, DOM pTabGroupAttach) {
-    return getTabGroupByKey(getTabGroupKey(pTabGroupName, pTabGroupAttach));
-  }
-
-  @Override
   public TabGroup getTabGroupByKey(String pTabGroupKey) {
     TabGroup lTabGroup = getFacetByKey(pTabGroupKey);
     if(lTabGroup == null) {
@@ -53,7 +50,24 @@ implements TabGroupProvider {
   }
 
   @Override
+  public TabGroup getOrCreateEmptyTabGroup(String pTabGroupName, DOM pTabGroupAttach) {
+    return getOrCreateTabGroupInternal(pTabGroupName, pTabGroupAttach, Collections.<TabInfoProvider>emptyList(), null);
+  }
+
+  @Override
   public TabGroup getOrCreateTabGroup(String pTabGroupName, DOM pTabGroupAttach, List<TabInfoProvider> pTabInfoProviderList, ContextUElem pContextUElem) {
+    return getOrCreateTabGroupInternal(pTabGroupName, pTabGroupAttach, pTabInfoProviderList, pContextUElem);
+  }
+
+  /**
+   * Gets/creates a tab group and refreshes its tab info list if a TabInfoProviderList and ContextUElem are provided.
+   * @param pTabGroupName Tab group name.
+   * @param pTabGroupAttach Tab group attach DOM.
+   * @param pTabInfoProviderList Cannot be null but can be 0-length.
+   * @param pContextUElem Can be null if pTabInfoProviderList is 0-length.
+   * @return New/existing tab group, refreshed if possible.
+   */
+  private TabGroup getOrCreateTabGroupInternal(String pTabGroupName, DOM pTabGroupAttach, List<TabInfoProvider> pTabInfoProviderList, ContextUElem pContextUElem) {
     String lTabGroupKey = getTabGroupKey(pTabGroupName, pTabGroupAttach);
     TabGroup lTabGroup = getFacetByKey(lTabGroupKey);
 
@@ -62,8 +76,15 @@ implements TabGroupProvider {
       lIsNewTabGroup = true;
       lTabGroup = new ModuleCallTabGroup(lTabGroupKey, getModuleCall().getCallId());
 
+      Track.info("CreateNewTabGroup", "Creating new TabGroup for key " + lTabGroupKey + " (" + pTabInfoProviderList.size() + " info providers)");
+
       //Mark as requiring an insert
       registerNewFacet(lTabGroup);
+    }
+
+    //Belt and braces to check this method's been called correctly - we only need a ContextUElem if we're constructing tab info objects at this point
+    if(pTabInfoProviderList.size() > 0 && pContextUElem == null) {
+      throw new ExInternal("ContextUElem cannot be null if tab info providers are available");
     }
 
     //Refresh the tab info list every time in case DOM has changed etc
