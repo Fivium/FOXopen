@@ -1,9 +1,5 @@
 package net.foxopen.fox.command.builtin;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.zip.Deflater;
-
 import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.command.flow.XDoControlFlow;
@@ -20,6 +16,10 @@ import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.track.Track;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.zip.Deflater;
 
 public class ShowPopupQueryCommand
 extends BuiltInCommand {
@@ -93,7 +93,7 @@ extends BuiltInCommand {
           int lZipCompressionLevel = Deflater.DEFAULT_COMPRESSION;
           if (mZipCompressionLevel != null) { //No compression attribute set
             String lZipCompressionLevelPostXPath = lContextUElem.extendedStringOrXPathString(lContextUElem.attachDOM(), mZipCompressionLevel);
-            if (lZipCompressionLevelPostXPath != "") { //Xpath evaluates to nothing
+            if (!XFUtil.isNull(lZipCompressionLevelPostXPath)) {
               try {
                 lZipCompressionLevel = Integer.valueOf(lZipCompressionLevelPostXPath);
               }
