@@ -50,6 +50,7 @@ import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.ex.ExTooMany;
 import net.foxopen.fox.module.Mod;
+import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.datanode.NodeInfo;
 import net.foxopen.fox.module.datanode.NodeType;
 import net.foxopen.fox.module.mapset.MapSet;
@@ -1025,25 +1026,42 @@ public class ValidateCommand
                blankEntry = true;
             }
 
-            String mandatoryXpath = dataDfn.getAttribute("fox", "mand");
+            String lMandXPath = dataDfn.getAttribute("fox", NodeAttribute.MAND.getExternalString());
+            String lMandatoryXPath = dataDfn.getAttribute("fox", NodeAttribute.MANDATORY.getExternalString());
+
+            if(!XFUtil.isNull(lMandatoryXPath) && !XFUtil.isNull(lMandXPath)) {
+              throw new ExInternal("fox:mand and fox:mandatory attributes are mutually exclusive - node " + dataDfn.getAbsolutePath());
+            }
+
+            String lMandXPathToUse = XFUtil.nvl(lMandatoryXPath, lMandXPath);
+
             // Mandatory validate
-            if (!(mandatoryXpath == null || mandatoryXpath.equals("")))
+            if (XFUtil.exists(lMandXPathToUse))
             {
-               try
-               {
-                  // if the key is defined then validate for first complex node using "THE RULE" se jason about "THE RULE"
-                  if (dataDfn.getIsItem())
-                  {
-                     mandatory = pContextUElem.extendedXPathBoolean(pDataToCheck, mandatoryXpath);
+              try
+              {
+                  // Legacy bug: item node is used as initial context node for "mand" attribute evaluation
+                  // If "mandatory" is specified the evaluate context rule should be used
+                  if(XFUtil.exists(lMandXPath)) {
+                      if (dataDfn.getIsItem()) {
+                        mandatory = pContextUElem.extendedXPathBoolean(pDataToCheck, lMandXPath);
+                      }
+                      else {
+                        mandatory = pContextUElem.extendedXPathBoolean(pDataToCheck.getParentOrSelf(), lMandXPath);
+                      }
                   }
-                  else
-                  {
-                      mandatory = pContextUElem.extendedXPathBoolean(pDataToCheck.getParentOrSelf(), mandatoryXpath);
+                  else {
+                      if (dataDfn.getIsItem()) {
+                        mandatory = pContextUElem.extendedXPathBoolean(pDataToCheck.getParentOrSelf(), lMandatoryXPath);
+                      }
+                      else {
+                        mandatory = pContextUElem.extendedXPathBoolean(pDataToCheck, lMandatoryXPath);
+                      }
                   }
                }
                catch (ExInternal ex)
                {
-                  throw new ExInternal("Invalid xpath (" + mandatoryXpath + ") given for fox:mand attribute ", ex);
+                  throw new ExInternal("Invalid xpath (" + lMandXPathToUse + ") given for fox:mand[atory] attribute ", ex);
                }
             }
          }
