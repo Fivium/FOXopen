@@ -159,7 +159,7 @@ implements DevToolbarContext {
     else {
       //Force a thread ramp to refresh the workdoc if the thread has not been mounted at least once (i.e. it has been deserialised)
       if (lContextUElem.getDOMHandlerForLabel(pDOMName) instanceof WorkDocDOMHandler && !mXThread.hasBeenMounted()) {
-        mXThread.rampAndRun(pRequestContext, new StatefulXThread.XThreadRunnable() {
+        mXThread.rampAndRun(pRequestContext, new RampedThreadRunnable() {
           public void run(ActionRequestContext pRequestContext)
           throws ExUserRequest {
           }
@@ -179,7 +179,7 @@ implements DevToolbarContext {
 
     final StringBuffer lOut = new StringBuffer();
 
-    StatefulXThread.XThreadRunnable lXPathRunner = new StatefulXThread.XThreadRunnable() {
+    RampedThreadRunnable lXPathRunner = new RampedThreadRunnable() {
       @Override
       public void run(ActionRequestContext pRequestContext) {
 

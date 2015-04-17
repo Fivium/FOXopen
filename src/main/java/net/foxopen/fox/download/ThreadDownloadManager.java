@@ -27,7 +27,6 @@ import java.util.Map;
 public class ThreadDownloadManager
 implements DownloadManager {
 
-  private static final String DOWNLOAD_MODE_PARAM_NAME = "mode";
   private static final int PARCEL_CACHE_MAX_SIZE = 30;
   private static final Iterator<String> gUniqueIterator = XFUtil.getUniqueIterator();
 
@@ -50,21 +49,14 @@ implements DownloadManager {
   }
 
   @Override
-  public String getDownloadModeParamName() {
-    return DOWNLOAD_MODE_PARAM_NAME;
-  }
-
-  @Override
   public String generateURL(RequestContext pRequestContext, DownloadParcel pDownloadParcel) {
-    return DownloadServlet.buildDownloadURI(pRequestContext.createURIBuilder(), mXThread.getThreadId(), pDownloadParcel.getParcelId(), pDownloadParcel.getFilename());
+    return DownloadServlet.buildParcelDownloadURI(pRequestContext.createURIBuilder(), mXThread.getThreadId(), pDownloadParcel.getParcelId(), pDownloadParcel.getFilename(), null);
   }
 
   @Override
   public String generateURL(RequestContext pRequestContext, DownloadParcel pDownloadParcel, DownloadMode pDownloadMode) {
     RequestURIBuilder lURIBuilder = pRequestContext.createURIBuilder();
-    lURIBuilder.setParam(DOWNLOAD_MODE_PARAM_NAME, pDownloadMode.getHttpParameterValue());
-
-    return DownloadServlet.buildDownloadURI(lURIBuilder, mXThread.getThreadId(), pDownloadParcel.getParcelId(), pDownloadParcel.getFilename());
+    return DownloadServlet.buildParcelDownloadURI(lURIBuilder, mXThread.getThreadId(), pDownloadParcel.getParcelId(), pDownloadParcel.getFilename(), pDownloadMode);
   }
 
   public DownloadParcel getDownloadParcel(String pParcelId) {

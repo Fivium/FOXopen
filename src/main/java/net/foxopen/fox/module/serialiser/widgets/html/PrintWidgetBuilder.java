@@ -39,7 +39,7 @@ public class PrintWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNod
       return;
     }
 
-    Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialiser, pEvalNode);
+    Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
     lTemplateVars.put("AltText", lTemplateVars.get("PromptText"));
     lTemplateVars.put("Value", lTemplateVars.get("PromptText"));
     lTemplateVars.put("InputType", "button");

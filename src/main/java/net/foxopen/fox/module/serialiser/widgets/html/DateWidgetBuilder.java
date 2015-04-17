@@ -30,7 +30,7 @@ public class DateWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
       pSerialiser.getWidgetBuilder(WidgetBuilderType.TEXT).buildWidget(pSerialisationContext, pSerialiser, pEvalNode);
     }
     else {
-      Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialiser, pEvalNode);
+      Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
       lTemplateVars.put("InputType", "text");
       lTemplateVars.put("Value", pEvalNode.getFieldMgr().getSingleTextValue());
       if (pEvalNode.getWidgetBuilderType() == WidgetBuilderType.DATE_TIME) {

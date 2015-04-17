@@ -25,8 +25,8 @@ import net.foxopen.fox.ex.ExUserRequest;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.module.entrytheme.EntryTheme;
 import net.foxopen.fox.thread.RequestContext;
-import net.foxopen.fox.thread.RequestContextImpl;
 import net.foxopen.fox.thread.StatefulXThread;
+import net.foxopen.fox.thread.ThreadLockManager;
 import net.foxopen.fox.thread.XThreadBuilder;
 import net.foxopen.fox.track.Track;
 import net.foxopen.fox.track.TrackProperty;
@@ -117,132 +117,105 @@ extends EntryPointServlet {
     processHttpRequest(pRequestContext);
   }
 
-  private class CallThreadInfo {
-    public String mThreadID = null;
-    public StatefulXThread mXThread = null;
-    public RequestContext mRequestContext = null;
-    public FoxResponse mResponse = null;
-  }
-
   @Override
   protected String getContextUConInitialConnectionName() {
     return MAIN_CONNECTION_NAME;
   }
 
   private void processHttpRequest(RequestContext pRequestContext) {
-    CallThreadInfo lCurrentCallThreadInfo = new CallThreadInfo();
 
-    lCurrentCallThreadInfo.mRequestContext = pRequestContext;
     FoxRequest lFoxRequest = pRequestContext.getFoxRequest();
-    ContextUCon lContextUCon = lCurrentCallThreadInfo.mRequestContext.getContextUCon();
+    ContextUCon lContextUCon = pRequestContext.getContextUCon();
 
-    lCurrentCallThreadInfo.mThreadID = lFoxRequest.getParameter(THREAD_ID_PARAM_NAME);
+    String lThreadId = XFUtil.nvl(lFoxRequest.getParameter(THREAD_ID_PARAM_NAME)).trim();
 
+    FoxResponse lFoxResponse;
     try {
       String lClientInfo = "IP="+InetAddress.getLocalHost().getHostAddress()+", REMOTE-ADDR="+lFoxRequest.getHttpRequest().getRemoteAddr();
-      String lAppInfo = "FOX-SYSTEM: " + XFUtil.nvl("TODO thread last module", "(direct entry)");
 
-      if(lCurrentCallThreadInfo.mThreadID == null){
-        lCurrentCallThreadInfo = createNewThread(lFoxRequest, lCurrentCallThreadInfo, lClientInfo, lAppInfo);
+      if(XFUtil.isNull(lThreadId)){
+        //No ID provided - create a new thread (avoid the locking mechanism - new threads don't need to be locked)
+        lFoxResponse = createNewThread(pRequestContext, lClientInfo);
+
+        //Validates all transactions except the MAIN transaction are committed
+        lContextUCon.closeAllRetainedConnections();
+
+        //Commit the MAIN connection - commits all work done by thread
+        lContextUCon.commit(MAIN_CONNECTION_NAME);
       }
       else {
-        resumeThread(lFoxRequest, lCurrentCallThreadInfo, lClientInfo, lAppInfo);
+        //Authenticate, lock thread and run action using the ThreadLockManager
+        lFoxResponse = resumeThread(pRequestContext, lThreadId, lClientInfo);
       }
-
-      //Validates all but MAIN transaction are committed
-      lContextUCon.closeAllRetainedConnections();
-
-      //Commit the MAIN connection - commits all work done by thread
-      lContextUCon.commit(MAIN_CONNECTION_NAME);
-
-      //Now release the thread lock - THIS ISSUES ANOTHER COMMIT
-      if (lCurrentCallThreadInfo.mXThread != null) {
-        StatefulXThread.unlockThread(lCurrentCallThreadInfo.mRequestContext, lCurrentCallThreadInfo.mXThread);
-      }
-
-      //This could throw an error but we're already committed everything - TODO what to do - need to report the error but likely to be a developer problem and not too serious
-      lContextUCon.popConnection(MAIN_CONNECTION_NAME);
     }
     catch (Throwable th) {
-      //On any error, rollback contents of all connections, including main connection and release back to pool
-      lContextUCon.rollbackAndCloseAll(true);
-
-      try {
-        if(lCurrentCallThreadInfo.mXThread != null) {
-          //Ensure we always have a decent connection to unlock the thread
-          lContextUCon.pushConnection(MAIN_CONNECTION_NAME);
-          StatefulXThread.unlockThread(lCurrentCallThreadInfo.mRequestContext, lCurrentCallThreadInfo.mXThread);
-          lContextUCon.popConnection(MAIN_CONNECTION_NAME);
-        }
-      }
-      catch (Throwable th2) {
-        Track.recordSuppressedException("ErrorHandlerUnlockThread", th2);
-        Track.alert("UnlockThread", "Error unlocking thread:" + th2.getMessage());
-      }
-
-      if(lCurrentCallThreadInfo.mThreadID != null) {
-        //Only attempt to purge the thread if we got to the point of knowing its ID
-        StatefulXThread.purgeThreadFromCache(lCurrentCallThreadInfo.mThreadID);
-      }
-
       throw new ExInternal("Error processing request", th);
     }
 
     Track.pushInfo("SendResponse");
     try {
-      lCurrentCallThreadInfo.mResponse.respond(lFoxRequest);
+      lFoxResponse.respond(lFoxRequest);
     }
     finally {
       Track.pop("SendResponse");
     }
   }
 
-  private void resumeThread(FoxRequest pFoxRequest, CallThreadInfo pCurrentCallThreadInfo, String pClientInfo, String pAppInfo)
+  private FoxResponse resumeThread(RequestContext pRequestContext, String pThreadId, final String pClientInfo)
   throws ExServiceUnavailable, ExApp, ExUserRequest {
 
-    HttpServletRequest lRequest = pFoxRequest.getHttpRequest();
+    Track.setProperty(TrackProperty.THREAD_ID, pThreadId);
 
-    Track.setProperty(TrackProperty.THREAD_ID, pCurrentCallThreadInfo.mThreadID);
+    ThreadLockManager<FoxResponse> lThreadLockManager = new ThreadLockManager<>(pThreadId, MAIN_CONNECTION_NAME);
+    return lThreadLockManager.lockAndPerformAction(pRequestContext, new ThreadLockManager.LockedThreadRunnable<FoxResponse>() {
+      @Override
+      public FoxResponse doWhenLocked(RequestContext pRequestContext, StatefulXThread pXThread) {
 
-    //Get XThread from cache - NOTE THIS ISSUES A COMMIT ON CURRENT UCON
-    //TODO - if thread has 0 state calls, interpret as a timeout and redirect to timeout screen
-    // (so UX is improved when user exits, hits back and tries another action)
-    pCurrentCallThreadInfo.mXThread = StatefulXThread.getAndLockXThread(pCurrentCallThreadInfo.mRequestContext, lRequest.getParameter("thread_id").trim());
+        FoxResponse lFoxResponse;
+        try {
+          //Check the database WUS for the thread is still valid
+          AuthenticationResult lAuthResult;
+          Track.pushInfo("RequestAuthentication");
+          try {
+            AuthenticationContext lAuthContext = pXThread.getAuthenticationContext();
+            lAuthResult = lAuthContext.verifySession(pRequestContext, pClientInfo, "TODO thread last module");
+          }
+          finally {
+            Track.pop("RequestAuthentication");
+          }
 
-    AuthenticationResult lAuthResult;
-    Track.pushInfo("RequestAuthentication");
-    try {
-      AuthenticationContext lAuthContext = pCurrentCallThreadInfo.mXThread.getAuthenticationContext();
-      lAuthResult = lAuthContext.verifySession(pCurrentCallThreadInfo.mRequestContext, pClientInfo, pAppInfo);
-    }
-    finally {
-      Track.pop("RequestAuthentication");
-    }
+          //TODO - if thread has 0 state calls, interpret as a timeout and redirect to timeout screen (so UX is improved when user exits, hits back and tries another action)
 
-    if(lAuthResult.getCode() != AuthenticationResult.Code.VALID && lAuthResult.getCode() != AuthenticationResult.Code.GUEST){
+          if(lAuthResult.getCode() != AuthenticationResult.Code.VALID && lAuthResult.getCode() != AuthenticationResult.Code.GUEST){
 
-      //TODO disallow guest access for auth required modules
-      App lCurrentApp = FoxGlobals.getInstance().getFoxEnvironment().getAppByMnem(pCurrentCallThreadInfo.mXThread.getThreadAppMnem(), true);
+            //TODO disallow guest access for auth required modules
+            App lCurrentApp = FoxGlobals.getInstance().getFoxEnvironment().getAppByMnem(pXThread.getThreadAppMnem(), true);
 
-      Track.info("SessionInvalid", "Session is no longer valid (" + lAuthResult.getCode().toString() + "); handling timeout");
+            Track.info("SessionInvalid", "Session is no longer valid (" + lAuthResult.getCode().toString() + "); handling timeout");
 
-      CallThreadInfo lTimeoutThread = handleTimeout(pCurrentCallThreadInfo.mRequestContext, lCurrentApp);
-      // Push Timeout Thread ID and response on current thread
-      pCurrentCallThreadInfo.mThreadID = lTimeoutThread.mThreadID;
-      pCurrentCallThreadInfo.mResponse = lTimeoutThread.mResponse;
-    }
-    else {
-      if(RESUME_PARAM_TRUE_VALUE.equals(lRequest.getParameter(RESUME_PARAM_NAME))) {
-        //If this is an external resume, do not attempt to process an action
-        pCurrentCallThreadInfo.mResponse = pCurrentCallThreadInfo.mXThread.processExternalResume(pCurrentCallThreadInfo.mRequestContext);
+            lFoxResponse = handleTimeout(pRequestContext, lCurrentApp);
+          }
+          else {
+            FoxRequest lFoxRequest = pRequestContext.getFoxRequest();
+            if(RESUME_PARAM_TRUE_VALUE.equals(lFoxRequest.getParameter(RESUME_PARAM_NAME))) {
+              //If this is an external resume, do not attempt to process an action
+              lFoxResponse = pXThread.processExternalResume(pRequestContext);
+            }
+            else {
+              //Not an external resume so must be an action request (i.e. form churn) - process the action
+              String lActionName = lFoxRequest.getParameter("action_name");
+              String lContextRef = lFoxRequest.getParameter("context_ref");
+              lFoxResponse = pXThread.processAction(pRequestContext, lActionName, lContextRef, lFoxRequest.getHttpRequest().getParameterMap());
+            }
+          }
+        }
+        catch (ExServiceUnavailable | ExApp | ExUserRequest e) {
+          throw new ExInternal("Failed to resume thread", e);
+        }
+
+        return lFoxResponse;
       }
-      else {
-        //Process the action
-        String lActionName = lRequest.getParameter("action_name");
-        String lContextRef = lRequest.getParameter("context_ref");
-        pCurrentCallThreadInfo.mResponse = pCurrentCallThreadInfo.mXThread.processAction(pCurrentCallThreadInfo.mRequestContext, lActionName, lContextRef, lRequest.getParameterMap());
-      }
-    }
+    });
   }
 
   private EntryTheme establishEntryThemeFromRequest(HttpServletRequest pRequest) {
@@ -276,10 +249,10 @@ extends EntryPointServlet {
     }
   }
 
-  private CallThreadInfo createNewThread(FoxRequest pFoxRequest, CallThreadInfo pCurrentCallThreadInfo, String pClientInfo, String pAppInfo)
+  private FoxResponse createNewThread(RequestContext pRequestContext, String pClientInfo)
   throws ExUserRequest {
     //No thread id - construct a new thread
-    EntryTheme lEntryTheme = establishEntryThemeFromRequest(pFoxRequest.getHttpRequest());
+    EntryTheme lEntryTheme = establishEntryThemeFromRequest(pRequestContext.getFoxRequest().getHttpRequest());
     App lApp = lEntryTheme.getModule().getApp();
 
     if(lApp.isEntryThemeSecurityOn() && !lEntryTheme.isExternallyAccessible()) {
@@ -287,16 +260,18 @@ extends EntryPointServlet {
       throw new ExUserRequest("Entry theme not externally accessible");
     }
 
+    FoxResponse lFoxResponse;
     try {
       // Attempt to get Auth Context/Result, re-trying with a new FOX Session if the cookie one was timed out/invalid
       AuthenticationContext lAuthContext;
       AuthenticationResult lAuthResult;
       Track.pushInfo("RequestAuthentication");
       try {
-        lAuthContext = lEntryTheme.getAuthType().processBeforeEntry(pCurrentCallThreadInfo.mRequestContext);
-        lAuthResult = lAuthContext.verifySession(pCurrentCallThreadInfo.mRequestContext, pClientInfo, pAppInfo);
+        lAuthContext = lEntryTheme.getAuthType().processBeforeEntry(pRequestContext);
+        lAuthResult = lAuthContext.verifySession(pRequestContext, pClientInfo, "(direct entry)");
       }
       catch (ExSessionTimeout e) {
+        //Sent FOX session ID was stale/expired
         if (lEntryTheme.getModule().isAuthenticationRequired()) {
           // If the module they're trying to access requires auth, throw this error
           Track.info("SessionTimeout", "Session timed out and auth required");
@@ -305,12 +280,10 @@ extends EntryPointServlet {
         else {
           // If the module they're trying has guest access, re-try with a fresh FOX Session
           Track.info("SessionTimeout", "Session timed out but auth not required; creating new FOX session");
-          //TODO PN LOOK AT THIS CAREFULLY
-          FoxSession lNewSession = CookieBasedFoxSession.createNewSession(pCurrentCallThreadInfo.mRequestContext, false, null);
-          pCurrentCallThreadInfo.mRequestContext = RequestContextImpl.createFromExisting(pCurrentCallThreadInfo.mRequestContext, lNewSession);
+          pRequestContext.forceNewFoxSession(CookieBasedFoxSession.createNewSession(pRequestContext, false, null));
 
-          lAuthContext = lEntryTheme.getAuthType().processBeforeEntry(pCurrentCallThreadInfo.mRequestContext);
-          lAuthResult = lAuthContext.verifySession(pCurrentCallThreadInfo.mRequestContext, pClientInfo, pAppInfo);
+          lAuthContext = lEntryTheme.getAuthType().processBeforeEntry(pRequestContext);
+          lAuthResult = lAuthContext.verifySession(pRequestContext, pClientInfo, "(direct entry)");
         }
       }
       finally {
@@ -322,33 +295,32 @@ extends EntryPointServlet {
       if (lNotAuthenticated && lEntryTheme.getModule().isAuthenticationRequired()) {
         // TODO TIMEOUT HANDLING, differentiate between authenticated/guest
         Track.info("SessionTimeout", "Auth result invalid and authentication required on current entry theme; redirecting to timeout module");
-        pCurrentCallThreadInfo = handleTimeout(pCurrentCallThreadInfo.mRequestContext, lApp);
+        lFoxResponse = handleTimeout(pRequestContext, lApp);
       }
       else if (lAuthResult.getCode() == AuthenticationResult.Code.PASSWORD_EXPIRED && !lEntryTheme.isAllowedPasswordExpiredAccess()) {
         // TODO - Show expired screen
         Track.info("PasswordExpired", "Auth result password expired and current entry theme does not allow access");
-        pCurrentCallThreadInfo.mResponse = new FoxResponseCHAR("text/html", new StringBuffer("Password expired"), 0);
+        lFoxResponse = new FoxResponseCHAR("text/html", new StringBuffer("Password expired"), 0);
       }
       else {
-
+        //Authentication passed - create the new thread
         XThreadBuilder lXThreadBuilder = new XThreadBuilder(lApp.getMnemonicName(), lAuthContext);
 
-        pCurrentCallThreadInfo.mXThread =  lXThreadBuilder.createXThread(pCurrentCallThreadInfo.mRequestContext);
-        pCurrentCallThreadInfo.mThreadID = pCurrentCallThreadInfo.mXThread.getThreadId();
-        DOM lParamsDOM = ParamsDOMUtils.paramsDOMFromRequest(pCurrentCallThreadInfo.mRequestContext.getFoxRequest());
+        StatefulXThread lNewXThread =  lXThreadBuilder.createXThread(pRequestContext);
+        DOM lParamsDOM = ParamsDOMUtils.paramsDOMFromRequest(pRequestContext.getFoxRequest());
 
-        pCurrentCallThreadInfo.mResponse = pCurrentCallThreadInfo.mXThread.startThread(pCurrentCallThreadInfo.mRequestContext, lEntryTheme, lParamsDOM, true);
+        lFoxResponse = lNewXThread.startThread(pRequestContext, lEntryTheme, lParamsDOM, true);
       }
     }
     catch (ExSessionTimeout e) {
-      // Force new FOX Session on context
+      // Force a new FOX Session on response so subsequent requests don't have the same problem
       Track.info("SessionTimeout", "Forcing new session and handling timeout");
-      FoxSession lNewSession = CookieBasedFoxSession.createNewSession(pCurrentCallThreadInfo.mRequestContext, false, null);
-      pCurrentCallThreadInfo.mRequestContext = RequestContextImpl.createFromExisting(pCurrentCallThreadInfo.mRequestContext, lNewSession);
+      pRequestContext.forceNewFoxSession(CookieBasedFoxSession.createNewSession(pRequestContext, false, null));
 
-      pCurrentCallThreadInfo = handleTimeout(pCurrentCallThreadInfo.mRequestContext, lApp);
+      lFoxResponse = handleTimeout(pRequestContext, lApp);
     }
-    return pCurrentCallThreadInfo;
+
+    return lFoxResponse;
   }
 
   /**
@@ -359,19 +331,14 @@ extends EntryPointServlet {
    * @return new CallThreadInfo to override current CallThreadInfo or merge in
    * @throws ExUserRequest Thrown if it fails to get the timeout module
    */
-  private CallThreadInfo handleTimeout(RequestContext pRequestContext, App pRequestApp) throws ExUserRequest {
-    CallThreadInfo lNewThread = new CallThreadInfo();
-
-    EntryTheme lTimeoutEntryTheme = pRequestApp.getTimeoutMod().getEntryTheme(pRequestApp.getTimeoutMod().getDefaultEntryThemeName());
+  private FoxResponse handleTimeout(RequestContext pRequestContext, App pRequestApp) throws ExUserRequest {
+    EntryTheme lTimeoutEntryTheme = pRequestApp.getTimeoutMod().getDefaultEntryTheme();
 
     XThreadBuilder lXThreadBuilder = new XThreadBuilder(pRequestApp.getMnemonicName(), new StandardAuthenticationContext(pRequestContext));
+
     //TODO - mark thread as not requiring persistence
 
-    lNewThread.mXThread = lXThreadBuilder.createXThread(pRequestContext);
-    lNewThread.mThreadID = lNewThread.mXThread.getThreadId();
-    lNewThread.mRequestContext = pRequestContext;
-    lNewThread.mResponse = lNewThread.mXThread.startThread(pRequestContext, lTimeoutEntryTheme, ParamsDOMUtils.defaultEmptyDOM(), true);
-
-    return lNewThread;
+    StatefulXThread lNewThread = lXThreadBuilder.createXThread(pRequestContext);
+    return lNewThread.startThread(pRequestContext, lTimeoutEntryTheme, ParamsDOMUtils.defaultEmptyDOM(), true);
   }
 }

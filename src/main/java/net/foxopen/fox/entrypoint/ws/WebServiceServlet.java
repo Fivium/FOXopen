@@ -345,9 +345,6 @@ extends EntryPointServlet {
 
           //Commit the MAIN connection - commits all work done by web service
           pRequestContext.getContextUCon().commit(MAIN_CONNECTION_NAME);
-
-          //This could throw an error but we're already committed everything - TODO what to do - need to report the error but likely to be a developer problem and not too serious
-          pRequestContext.getContextUCon().popConnection(MAIN_CONNECTION_NAME);
         }
         catch(Throwable th) {
           pRequestContext.getContextUCon().rollbackAndCloseAll(true);

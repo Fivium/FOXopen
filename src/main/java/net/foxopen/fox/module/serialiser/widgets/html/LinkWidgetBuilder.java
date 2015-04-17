@@ -38,7 +38,7 @@ public class LinkWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
       return;
     }
 
-    Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialiser, pEvalNode);
+    Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
 
     // Links without prompts can be hard for developers to spot, so hard error as they don't have any purpose and could lead to actions being set out by mistake
     if (XFUtil.isNull(lTemplateVars.get("PromptText"))) {

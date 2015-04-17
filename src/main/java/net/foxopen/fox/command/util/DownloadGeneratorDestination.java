@@ -114,7 +114,7 @@ implements GeneratorDestination {
       lXDoResult = new ResponseOverride(DownloadServlet.streamDownloadToResponse(pRequestContext.getFoxRequest(), pRequestContext.getContextUCon(), pDownloadParcel, lDownloadMode));
     }
     else {
-      lXDoResult = new DownloadLinkXDoResult(pRequestContext.getDownloadManager().generateURL(pRequestContext, pDownloadParcel, lDownloadMode), pFileName);
+      lXDoResult = new DownloadLinkXDoResult(pDownloadParcel.getParcelId(), pRequestContext.getDownloadManager().generateURL(pRequestContext, pDownloadParcel, lDownloadMode), pFileName);
     }
 
     pRequestContext.addXDoResult(lXDoResult);

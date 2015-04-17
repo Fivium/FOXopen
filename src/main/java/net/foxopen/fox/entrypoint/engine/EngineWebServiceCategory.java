@@ -18,8 +18,7 @@ implements WebServiceCategory {
   public Collection<? extends WebService> getAllWebServices() {
     return Arrays.asList(
       new AliveWebService(),
-      new ThreadWebService(),
-      new DevToolbarWebService()
+      new ThreadWebService()
     );
   }
 }

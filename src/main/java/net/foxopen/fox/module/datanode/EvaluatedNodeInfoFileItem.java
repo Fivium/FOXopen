@@ -5,6 +5,7 @@ import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.download.DownloadManager;
 import net.foxopen.fox.download.DownloadMode;
+import net.foxopen.fox.download.DownloadServlet;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.evaluatedattributeresult.FixedStringAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
@@ -146,7 +147,12 @@ extends EvaluatedNodeInfoItem {
 
   public String getDownloadModeParameter() {
     DownloadMode lDownloadMode = getBooleanAttribute(NodeAttribute.DOWNLOAD_AS_ATTACHMENT, true) ? DownloadMode.ATTACHMENT : DownloadMode.INLINE;
-    return getEvaluatedParseTree().getDownloadManager().getDownloadModeParamName() + "=" + lDownloadMode.getHttpParameterValue();
+    if(lDownloadMode != DownloadServlet.DEFAULT_DOWNLOAD_MODE) {
+      return DownloadServlet.DOWNLOAD_MODE_PARAM_NAME + "=" + lDownloadMode.getHttpParameterValue();
+    }
+    else {
+      return "";
+    }
   }
 
   protected StringAttributeResult getDefaultHint() {

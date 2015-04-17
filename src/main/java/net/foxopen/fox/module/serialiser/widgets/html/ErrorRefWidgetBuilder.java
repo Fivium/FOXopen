@@ -53,7 +53,7 @@ public class ErrorRefWidgetBuilder extends WidgetBuilderHTMLSerialiser<Evaluated
 
     String lErrorItemNavAction = getNavActionName(lMatchedItemNodeInfo);
 
-    Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialiser, pEvalNode);
+    Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
 
     lTemplateVars.put("PromptText", getPrompt(lMatchedItemNodeInfo, pEvalNode));
 

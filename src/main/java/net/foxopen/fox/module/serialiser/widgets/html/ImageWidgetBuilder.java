@@ -38,7 +38,7 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
     //Work out target width/height, either from a named "image series" or an explicit width/height value defined on the node info
     ImageDimensions lImageDimensions = getDisplayDimensions(pSerialisationContext, pEvalNode);
 
-    Map<String, Object> lTemplateVars = getGenericTemplateVars(pSerialiser, pEvalNode);
+    Map<String, Object> lTemplateVars = getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
 
     UploadedFileInfo lFileInfo = lFileInfoList.get(0);
     String lImgSrc = ImageServlet.generateImageDisplayURI(pSerialisationContext.createURIBuilder(), lFileInfo.getFileId(), lImageDimensions.mWidth, lImageDimensions.mHeight, 0);

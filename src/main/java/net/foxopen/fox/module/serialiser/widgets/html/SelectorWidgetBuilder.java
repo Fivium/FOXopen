@@ -50,7 +50,7 @@ public class SelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Evaluated
       outputReadOnlyOptions(pSerialiser, lFieldMgr);
     }
     else {
-      Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialiser, pEvalNode);
+      Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
       List<FieldSelectOption> lSelectOptions = lFieldMgr.getSelectOptions();
 
       if(pEvalNode.getSelectorMaxCardinality() > 1) {

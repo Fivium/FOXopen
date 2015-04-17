@@ -4,7 +4,7 @@ import net.foxopen.fox.ex.ExInternal;
 
 public class AuthenticationResult {
 
-  public static enum Code {
+  public enum Code {
     VALID,
     INVALID,
     GUEST,

@@ -30,7 +30,7 @@ import net.foxopen.fox.queue.ServiceQueueHandler;
 import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.thread.RequestContext;
 import net.foxopen.fox.thread.StatefulXThread;
-import net.foxopen.fox.thread.StatefulXThread.XThreadRunnable;
+import net.foxopen.fox.thread.RampedThreadRunnable;
 import net.foxopen.fox.thread.persistence.xstream.XStreamManager;
 import net.foxopen.fox.thread.storage.FileStorageLocation;
 import net.foxopen.fox.thread.storage.WorkingFileStorageLocation;
@@ -80,7 +80,7 @@ public class UploadProcessor {
     return lNewUploadInfo;
   }
 
-  private class UploadThreadInitialiser implements XThreadRunnable {
+  private class UploadThreadInitialiser implements RampedThreadRunnable {
 
     private final MultipartUploadReader mMultipartUploadReader;
 
@@ -564,7 +564,7 @@ public class UploadProcessor {
     final String LOCK_CONNECTION_NAME = "LOCK_THREAD";
     final String lUploadTargetNodeRef = mUploadTargetNodeRef;
 
-    class ThreadUpdater implements XThreadRunnable {
+    class ThreadUpdater implements RampedThreadRunnable {
       UploadedFileInfo mUploadedFileInfo;
       public void run(ActionRequestContext pRequestContext) {
         //Note: this will cause a failure if the upload target cannot be found

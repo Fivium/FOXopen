@@ -41,7 +41,7 @@ public class ButtonWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNo
       return;
     }
 
-    Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialiser, pEvalNode);
+    Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
     lTemplateVars.put("InputType", mInputType);
     lTemplateVars.put("Value", pEvalNode.getPrompt().getString());
     lTemplateVars.put("AltText", pEvalNode.getPrompt().getString());

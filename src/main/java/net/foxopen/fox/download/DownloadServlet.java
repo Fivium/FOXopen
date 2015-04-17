@@ -15,27 +15,62 @@ import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.thread.RequestContext;
 import net.foxopen.fox.thread.StatefulXThread;
+import net.foxopen.fox.thread.ThreadActionResultGenerator;
+import net.foxopen.fox.thread.ThreadLockManager;
+import net.foxopen.fox.thread.RampedThreadRunnable;
 import net.foxopen.fox.track.Track;
 import net.foxopen.fox.track.TrackProperty;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
 
 
 public class DownloadServlet
 extends EntryPointServlet {
 
-  public DownloadServlet() {}
+  public static final String DOWNLOAD_MODE_PARAM_NAME = "mode";
+  public static final DownloadMode DEFAULT_DOWNLOAD_MODE = DownloadMode.ATTACHMENT;
 
   private static final String SERVLET_PATH = "download";
   private static final String CONNECTION_NAME = "DOWNLOAD";
-  private static final PathParamTemplate DOWNLOAD_PATH_TEMPLATE = new PathParamTemplate("/thread/{thread_id}/{parcel_id}/{filename}");
 
-  public static String buildDownloadURI(RequestURIBuilder pURIBuilder, String pThreadId, String pParcelId, String pFilename) {
-    pURIBuilder.setParam("thread_id", pThreadId);
-    pURIBuilder.setParam("parcel_id", pParcelId);
-    pURIBuilder.setParam("filename", pFilename);
-    return pURIBuilder.buildServletURI(SERVLET_PATH, DOWNLOAD_PATH_TEMPLATE);
+  private static final String PARCEL_DOWNLOAD_TYPE = "parcel";
+  private static final String ACTION_DOWNLOAD_TYPE = "action";
+
+  private static final String THREAD_ID_URI_PARAM = "thread_id";
+  private static final String PARCEL_ID_URI_PARAM = "parcel_id";
+  private static final String FILENAME_URI_PARAM = "filename";
+  private static final String ACTION_NAME_URI_PARAM = "action_name";
+  private static final String CONTEXT_REF_URI_PARAM = "context_ref";
+
+  private static final PathParamTemplate PARCEL_PATH_TEMPLATE = new PathParamTemplate("/" + PARCEL_DOWNLOAD_TYPE + "/{" + THREAD_ID_URI_PARAM + "}/{" + PARCEL_ID_URI_PARAM + "}/{" + FILENAME_URI_PARAM + "}");
+  private static final PathParamTemplate ACTION_PATH_TEMPLATE = new PathParamTemplate("/" + ACTION_DOWNLOAD_TYPE + "/{" + THREAD_ID_URI_PARAM + "}/{" + ACTION_NAME_URI_PARAM + "}/{" + CONTEXT_REF_URI_PARAM + "}/{" + FILENAME_URI_PARAM + "}");
+
+  public DownloadServlet() {}
+
+  public static String buildParcelDownloadURI(RequestURIBuilder pURIBuilder, String pThreadId, String pParcelId, String pFilename, DownloadMode pDownloadMode) {
+    pURIBuilder.setParam(THREAD_ID_URI_PARAM, pThreadId);
+    pURIBuilder.setParam(PARCEL_ID_URI_PARAM, pParcelId);
+    pURIBuilder.setParam(FILENAME_URI_PARAM, pFilename);
+    if(pDownloadMode != null && pDownloadMode != DEFAULT_DOWNLOAD_MODE) {
+      pURIBuilder.setParam(DownloadServlet.DOWNLOAD_MODE_PARAM_NAME, pDownloadMode.getHttpParameterValue());
+    }
+
+    return pURIBuilder.buildServletURI(SERVLET_PATH, PARCEL_PATH_TEMPLATE);
+  }
+
+  public static String buildActionDownloadURI(RequestURIBuilder pURIBuilder, String pThreadId, String pActionName, String pActionContextRef, String pFilename, DownloadMode pDownloadMode) {
+    pURIBuilder.setParam(THREAD_ID_URI_PARAM, pThreadId);
+    pURIBuilder.setParam(ACTION_NAME_URI_PARAM, pActionName);
+    pURIBuilder.setParam(CONTEXT_REF_URI_PARAM, pActionContextRef);
+    pURIBuilder.setParam(FILENAME_URI_PARAM, pFilename);
+    if(pDownloadMode != null && pDownloadMode != DEFAULT_DOWNLOAD_MODE) {
+      pURIBuilder.setParam(DownloadServlet.DOWNLOAD_MODE_PARAM_NAME, pDownloadMode.getHttpParameterValue());
+    }
+
+    return pURIBuilder.buildServletURI(SERVLET_PATH, ACTION_PATH_TEMPLATE);
   }
 
   @Override
@@ -56,39 +91,46 @@ extends EntryPointServlet {
   @Override
   public void processGet(RequestContext pRequestContext) {
 
-    //TODO PN/NP - ensure request is authenticated
+    final String lDownloadType = XFUtil.pathPopHead(pRequestContext.getFoxRequest().getRequestURIStringBuilder(), true);
 
-    StringBuilder lRequestURL = pRequestContext.getFoxRequest().getRequestURIStringBuilder();
-    String lFilename = XFUtil.pathPopTail(lRequestURL);
-    String lParcelId = XFUtil.pathPopTail(lRequestURL);
-    String lThreadId = XFUtil.pathPopTail(lRequestURL);
-
-    DownloadParcel lDownloadParcel;
-    DownloadManager lDownloadManager;
-    StatefulXThread lXThread = StatefulXThread.getAndLockXThread(pRequestContext, lThreadId);
-    try {
-      //Ramp up the thread to force a authentication of the fox_session_id cookie
-      //TODO this should be more explicit/disabled for "public" downloads
-      lXThread.rampAndRun(pRequestContext, new StatefulXThread.XThreadRunnable() {
-        @Override
-        public void run(ActionRequestContext pRequestContext) {
-          Track.info("DownloadAuthentication", "Ramping thread to force authentication");
-        }
-      }, "DownloadAutenticate");
-      pRequestContext.getContextUCon().commit(CONNECTION_NAME);
-
-      //Ensure any checking/reading is done while we hold a thread lock to avoid concurrency problems
-      lDownloadManager = lXThread.getDownloadManager();
-      lDownloadParcel = lDownloadManager.getDownloadParcel(lParcelId);
+    //Establish download type and get params from URI
+    //"action" requires an external action to be run, "parcel" is a download from an existing parcel
+    Map<String, String> lURIParams;
+    if (ACTION_DOWNLOAD_TYPE.equals(lDownloadType)) {
+      lURIParams = ACTION_PATH_TEMPLATE.parseURI(pRequestContext.getFoxRequest().getRequestURI());
     }
-    finally {
-      StatefulXThread.unlockThread(pRequestContext, lXThread);
+    else if (PARCEL_DOWNLOAD_TYPE.equals(lDownloadType)) {
+      lURIParams = PARCEL_PATH_TEMPLATE.parseURI(pRequestContext.getFoxRequest().getRequestURI());
     }
-    Track.setProperty(TrackProperty.THREAD_ID, lThreadId);
+    else {
+      throw new ExInternal("Unknown download type " + lDownloadType);
+    }
 
-    String lModeParam = pRequestContext.getFoxRequest().getParameter(lDownloadManager.getDownloadModeParamName());
+    String lThreadId = lURIParams.get(THREAD_ID_URI_PARAM);
+    ThreadLockManager<DownloadParcel> lThreadLockManager = new ThreadLockManager<>(lThreadId, CONNECTION_NAME);
+
+    String lModeParam = pRequestContext.getFoxRequest().getParameter(DOWNLOAD_MODE_PARAM_NAME);
     DownloadMode lMode = DownloadMode.fromParameterString(lModeParam);
 
+    Track.setProperty(TrackProperty.THREAD_ID, lThreadId);
+
+    //Lock the thread to retrieve the download parcel, based on the download type
+    DownloadParcel lDownloadParcel;
+    if (ACTION_DOWNLOAD_TYPE.equals(lDownloadType)) {
+      String lActionName = lURIParams.get(ACTION_NAME_URI_PARAM);
+      String lContextRef = lURIParams.get(CONTEXT_REF_URI_PARAM);
+      lDownloadParcel = lThreadLockManager.lockAndPerformAction(pRequestContext, getActionParcelRetriever(lActionName, lContextRef));
+    }
+    else if (PARCEL_DOWNLOAD_TYPE.equals(lDownloadType)) {
+      String lParcelId = lURIParams.get(PARCEL_ID_URI_PARAM);
+      lDownloadParcel = lThreadLockManager.lockAndPerformAction(pRequestContext, getIdParcelRetriever(lParcelId));
+    }
+    else {
+      //This should have been hit above
+      throw new ExInternal("Unknown download type " + lDownloadType);
+    }
+
+    //Stream the response
     ContextUCon lContextUCon = pRequestContext.getContextUCon();
     try {
       FoxRequest lFoxRequest = pRequestContext.getFoxRequest();
@@ -104,14 +146,52 @@ extends EntryPointServlet {
       //Attempt to close properly
       try {
         lContextUCon.commit(CONNECTION_NAME);
-        lContextUCon.popConnection(CONNECTION_NAME);
       }
       catch (Throwable th) {
-        //Failed to properly close - roll back everything and log the error
-        lContextUCon.rollbackAndCloseAll(true);
+        //Failed to properly close - log the error (rollback should be handled in entry point)
         Track.recordSuppressedException("DownloadServletCommit", new ExInternal("Improper ContextUCon usage detected in download servlet", th));
       }
     }
+  }
+
+  private ThreadLockManager.LockedThreadRunnable<DownloadParcel> getActionParcelRetriever(final String pActionName, final String pContextRef) {
+    return new ThreadLockManager.LockedThreadRunnable<DownloadParcel>() {
+      @Override
+      public DownloadParcel doWhenLocked(RequestContext pRequestContext, final StatefulXThread pXThread) {
+        return pXThread.processAction(pRequestContext, pActionName, pContextRef, new ThreadActionResultGenerator<DownloadParcel>() {
+          @Override
+          public DownloadParcel establishResult(ActionRequestContext pRequestContext) {
+            List<DownloadLinkXDoResult> lDownloadResults = pRequestContext.getXDoResults(DownloadLinkXDoResult.class);
+
+            if(lDownloadResults.size() != 1) {
+              throw new ExInternal("Download action link should result in a download returning exactly 1 download link, got " + lDownloadResults.size());
+            }
+
+            String lParcelId = lDownloadResults.get(0).getParcelId();
+            return pXThread.getDownloadManager().getDownloadParcel(lParcelId);
+          }
+        });
+      }
+    };
+  }
+
+  private ThreadLockManager.LockedThreadRunnable<DownloadParcel> getIdParcelRetriever(final String pParcelId) {
+    return new ThreadLockManager.LockedThreadRunnable<DownloadParcel>(){
+      @Override
+      public DownloadParcel doWhenLocked(RequestContext pRequestContext, final StatefulXThread pXThread) {
+
+        //Ramp up the thread to force a authentication of the fox_session_id cookie
+        pXThread.rampAndRun(pRequestContext, new RampedThreadRunnable() {
+          @Override
+          public void run(ActionRequestContext pRequestContext) {
+            Track.info("DownloadAuthentication", "Ramping thread to force authentication");
+          }
+        }, "DownloadAuthenticate");
+
+        //Use thread download manager to retrieve cookie
+        return pXThread.getDownloadManager().getDownloadParcel(pParcelId);
+      }
+    };
   }
 
   /**

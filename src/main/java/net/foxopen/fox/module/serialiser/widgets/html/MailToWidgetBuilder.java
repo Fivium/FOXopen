@@ -73,7 +73,7 @@ public class MailToWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNo
         lMailToLink.append(URLEncoder.encode(lSubject, "UTF-8"));
       }
 
-      Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialiser, pEvalNode);
+      Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
       lTemplateVars.put("MailToLink", lMailToLink);
       lTemplateVars.put("PromptText", XFUtil.nvl(lTemplateVars.get("PromptText"), lEmailAddress));
 

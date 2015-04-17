@@ -63,7 +63,7 @@ public class MultiOptionSelectWidget extends WidgetBuilderHTMLSerialiser<Evaluat
           LayoutFieldValueMappingItemColumn lColumnItem = (LayoutFieldValueMappingItemColumn) lItem;
           FieldSelectOption lSelectOption = lColumnItem.getFieldSelectOption();
           if (!lColumnItem.isFiller()) {
-            Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialiser, pEvalNode);
+            Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
             lTemplateVars.put("InputType", lHtmlInputType);
             lTemplateVars.put("FieldID", lSelectOption.getExternalFieldValue());
             lTemplateVars.put("Checked", lSelectOption.isSelected());
@@ -97,7 +97,7 @@ public class MultiOptionSelectWidget extends WidgetBuilderHTMLSerialiser<Evaluat
           pSerialiser.append(" columns\">");
 
           if (!lColumnItem.isFiller()) {
-            Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialiser, pEvalNode);
+            Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
             lTemplateVars.put("InputType", lHtmlInputType);
             lTemplateVars.put("FieldID", lSelectOption.getExternalFieldValue());
             lTemplateVars.put("Checked", lSelectOption.isSelected());
