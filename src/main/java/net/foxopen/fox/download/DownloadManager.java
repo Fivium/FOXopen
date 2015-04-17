@@ -24,7 +24,7 @@ public interface DownloadManager {
    * @param pDownloadParcel Parcel to generate URL for.
    * @return Download URL for the given parcel.
    */
-  public String generateURL(RequestContext pRequestContext, DownloadParcel pDownloadParcel);
+  String generateURL(RequestContext pRequestContext, DownloadParcel pDownloadParcel);
 
   /**
    * Generates a download URL for the given parcel, including the download mode.
@@ -33,29 +33,23 @@ public interface DownloadManager {
    * @param pDownloadMode Download mode of the generated URL.
    * @return Download URL for the given parcel.
    */
-  public String generateURL(RequestContext pRequestContext, DownloadParcel pDownloadParcel, DownloadMode pDownloadMode);
-
-  /**
-   * Gets the parameter name (i.e. for a HTTP request) which is used to determine the download mode of a DownloadParcel.
-   * @return
-   */
-  public String getDownloadModeParamName();
+  String generateURL(RequestContext pRequestContext, DownloadParcel pDownloadParcel, DownloadMode pDownloadMode);
 
   /**
    * Gets the DownloadParcel corresponding to the given ID. If the parcel cannot be found, an error is raised.
    * @param pParcelId
    * @return
    */
-  public DownloadParcel getDownloadParcel(String pParcelId);
+  DownloadParcel getDownloadParcel(String pParcelId);
 
-  public UploadedFileInfo addFileDownload(RequestContext pRequestContext, FileStorageLocation pFileStorageLocation, DOM pUploadTargetDOM, ContextUElem pContextUElem);
+  UploadedFileInfo addFileDownload(RequestContext pRequestContext, FileStorageLocation pFileStorageLocation, DOM pUploadTargetDOM, ContextUElem pContextUElem);
 
-  public UploadedFileInfo addFileDownload(RequestContext pRequestContext, WorkingFileStorageLocation pWFSL, String pUploadContainerDOMRef, UploadInfo pUploadInfo);
+  UploadedFileInfo addFileDownload(RequestContext pRequestContext, WorkingFileStorageLocation pWFSL, String pUploadContainerDOMRef, UploadInfo pUploadInfo);
 
-  public DownloadParcel addDownload(WorkingFileStorageLocation pWFSL, String pFilename, String pContentType);
+  DownloadParcel addDownload(WorkingFileStorageLocation pWFSL, String pFilename, String pContentType);
 
-  public DownloadParcel addQueryDownload(ExecutableQuery pExecutableQuery, String pFilename);
+  DownloadParcel addQueryDownload(ExecutableQuery pExecutableQuery, String pFilename);
 
-  public DownloadParcel addZipQueryDownload(List<ExecutableQuery> pExecutableQueryList, String pFilename, int pZipCompressionLevel);
+  DownloadParcel addZipQueryDownload(List<ExecutableQuery> pExecutableQueryList, String pFilename, int pZipCompressionLevel);
 
 }

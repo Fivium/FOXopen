@@ -136,6 +136,9 @@
     <xs:attribute ref="href"/>
     <xs:attribute ref="enableFocusHintDisplay"/>
     <xs:attribute ref="accessiblePrompt"/>
+    <xs:attribute ref="actionType"/>
+    <xs:attribute ref="downloadFileName"/>
+    <xs:attribute ref="downloadAsAttachment"/>
   </xs:attributeGroup>
   <xs:attributeGroup name="zzz-action-attr-grp">
     <xs:attributeGroup ref="zzz-action-out-attr-grp"/>
@@ -355,10 +358,8 @@
     <xs:attribute ref="description"/>
     <xs:attribute ref="descriptionDisplay"/>
     <xs:attribute ref="downloadAsAttachment"/>
-    <!-- START of fileUploadAttGrp attributes.
-          GAW: This is bad. XMLSpy V4 Rel5 will not accept the attribute group, fileUploadAttGrp, and does not
-          bring it its attributes. So for the time being, I've had to include its attributes directly here! -->
-    <!-- END of fileUploadAttGrp attributes. -->
+    <xs:attribute ref="actionType"/>
+    <xs:attribute ref="downloadFileName"/>
   </xs:attributeGroup>
   <xs:attributeGroup name="zzz-cellmate-attr-grp">
     <xs:attribute ref="cellmateKey"/>
@@ -1079,6 +1080,22 @@
    <xs:attribute name="downloadAsAttachment" type="fox-xpath-type">
     <xs:annotation>
       <xs:documentation>Controls whether the download from a file widget is served as an attachment (i.e. user is prompted with a 'Save As...' dialog) or not (i.e. the browser will attempt to open the file directly). Default is true.</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="actionType">
+    <xs:annotation>
+      <xs:documentation>Controls how the action is invoked by the user. "Churn" results in a form post. "Download" displays a download link directly to a file. The invoked action must result in a download being generated.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="entered-string">
+        <xs:enumeration value="churn"/>
+        <xs:enumeration value="download"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:attribute>
+  <xs:attribute name="downloadFileName" type="entered-string">
+    <xs:annotation>
+      <xs:documentation>XPath to determine a filename to be appended to a download link URL when actionType = "download". This is used to help some browsers determine the name of a downloaded file.</xs:documentation>
     </xs:annotation>
   </xs:attribute>
 </xs:schema>

@@ -29,7 +29,7 @@ public class TimerWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNod
     // TODO - NP - This could be prettified a lot in the future, left as an input for now though
     FieldMgr lFieldMgr = pEvalNode.getFieldMgr();
 
-    Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialiser, pEvalNode);
+    Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
     lTemplateVars.put("InputType", "text");
     lTemplateVars.put("Value", lFieldMgr.getSingleTextValue());
     lTemplateVars.put("Readonly", true);

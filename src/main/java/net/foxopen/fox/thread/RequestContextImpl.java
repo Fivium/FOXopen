@@ -21,7 +21,7 @@ implements RequestContext {
   private final FoxRequest mFoxRequest;
   private final ContextUCon mContextUCon;
   private final String mRequestAppMnem;
-  private final FoxSession mFoxSession;
+  private FoxSession mFoxSession;
 
   private static App getApp(String pAppMnem) {
     App lApp;
@@ -38,10 +38,6 @@ implements RequestContext {
     ContextUCon lContextUCon = ContextUCon.createContextUCon(pConnectionPoolName, pContextUConPurpose);
     lContextUCon.pushConnection(pInitialConnectionName);
     return new RequestContextImpl(pServlet, pFoxRequest, lContextUCon, pApp.getMnemonicName());
-  }
-
-  public static RequestContext createFromExisting(RequestContext pRequestContext, FoxSession pFoxSession) {
-    return new RequestContextImpl(pRequestContext.getFoxRequest(), pRequestContext.getContextUCon(), pRequestContext.getRequestAppMnem(), pFoxSession);
   }
 
   public static RequestContextImpl createFromFoxRequest(FoxRequest pFoxRequest, App pApp, String pContextUConPurpose, String pInitialConnectionName, FoxSession pFoxSession)  {
@@ -92,6 +88,11 @@ implements RequestContext {
   @Override
   public FoxSession getFoxSession() {
     return mFoxSession;
+  }
+
+  @Override
+  public void forceNewFoxSession(FoxSession pNewSession) {
+    mFoxSession = pNewSession;
   }
 
   @Override

@@ -33,7 +33,7 @@ public class TextWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
 
   @Override
   public void buildWidgetInternal(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNode pEvalNode) {
-    Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialiser, pEvalNode);
+    Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
     lTemplateVars.put("Class", "text-widget " + XFUtil.nvl(lTemplateVars.get("Class"), ""));
 
     lTemplateVars.put("UnescapedValue", StringEscapeUtils.escapeHtml4(pEvalNode.getFieldMgr().getSingleTextValue()).replaceAll("\r?\n","<br>"));

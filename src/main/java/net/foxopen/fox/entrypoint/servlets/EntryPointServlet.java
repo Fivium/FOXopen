@@ -135,7 +135,7 @@ extends HttpServlet {
     //Construct new FoxRequest
     FoxRequest lFoxRequest = new FoxRequestHttp(pRequest, pResponse, (String) pRequest.getAttribute(RequestLogFilter.REQUEST_ATTRIBUTE_LOG_ID), lUseSecureCookies);
 
-    //Creates a new RequestContext and pushes a new connection onto the ContextUCon
+    //Creates a new RequestContext - note this pushes a new connection onto the ContextUCon, which we pop off at the end
     String lConnectionPoolName = XFUtil.nvl(getConnectionPoolName(lFoxRequest), lApp.getConnectionPoolName());
     RequestContext lRequestContext = RequestContextImpl.createForServlet(this, lFoxRequest, lApp, lConnectionPoolName, getContextUConPurpose(), getContextUConInitialConnectionName());
 
@@ -146,12 +146,21 @@ extends HttpServlet {
         pRequestProcessor.processRequest(lRequestContext);
       }
       finally {
+        //Validates that the expected connection is at the top of the stack (if not this is indicates an engine bug)
+        try {
+          lRequestContext.getContextUCon().popConnection(getContextUConInitialConnectionName());
+        }
+        catch (Throwable th) {
+          //We've already committed everything - just log this development time problem as a suppressed error
+          Track.recordSuppressedException("EntryPointPopConnection", th);
+        }
+
         //Ensure all ContextUCon connections are closed and returned
         try {
           lRequestContext.getContextUCon().rollbackAndCloseAll(true);
         }
         catch (Throwable th) {
-          //Don't allow errors from UCon closing to propogate
+          //Don't allow errors from UCon closing to propagate
           Track.recordSuppressedException("EntryPointRollbackAndCloseAll", th);
         }
       }

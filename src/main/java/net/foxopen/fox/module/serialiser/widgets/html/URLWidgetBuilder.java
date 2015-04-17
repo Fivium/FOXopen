@@ -38,7 +38,7 @@ public class URLWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode>
     if (!XFUtil.isNull(lURL)) {
       lURL = pSerialisationContext.getStaticResourceOrFixedURI(lURL);
 
-      Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialiser, pEvalNode);
+      Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
       lTemplateVars.put("ActionJS", StringEscapeUtils.escapeHtml4(pSerialiser.buildFOXjsOpenWinJSON(lURL, "fullwin")));
       lTemplateVars.put("PromptText", XFUtil.nvl(lTemplateVars.get("PromptText"), lURL));
       lTemplateVars.put("LinkTitle", XFUtil.nvl(XFUtil.nvl(pEvalNode.getStringAttribute(NodeAttribute.LINK_TITLE), lTemplateVars.get("PromptText")), lURL));

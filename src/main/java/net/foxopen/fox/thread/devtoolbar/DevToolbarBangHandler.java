@@ -4,6 +4,7 @@ import com.google.common.collect.Sets;
 import net.foxopen.fox.App;
 import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.FoxResponse;
+import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.banghandler.BangHandler;
 import net.foxopen.fox.entrypoint.CookieBasedFoxSession;
 import net.foxopen.fox.entrypoint.FoxGlobals;
@@ -14,6 +15,7 @@ import net.foxopen.fox.ex.ExServiceUnavailable;
 import net.foxopen.fox.thread.RequestContext;
 import net.foxopen.fox.thread.RequestContextImpl;
 import net.foxopen.fox.thread.StatefulXThread;
+import net.foxopen.fox.thread.ThreadLockManager;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -29,7 +31,7 @@ implements BangHandler {
   public FoxResponse respond(FoxRequest pFoxRequest) {
 
     //TODO PN this should get an app from the request params (i.e. so it's specific to the thread)
-    RequestContext lRequestContext;
+    final RequestContext lRequestContext;
     try {
       FoxSession lFoxSession = CookieBasedFoxSession.getFoxSession(pFoxRequest);
       App lApp = FoxGlobals.getInstance().getFoxEnvironment().getDefaultApp();
@@ -39,14 +41,17 @@ implements BangHandler {
       throw new ExInternal("Default app not available", e);
     }
 
+    String lThreadId = XFUtil.nvl(pFoxRequest.getHttpRequest().getParameter("thread_id")).trim();
     try {
-      StatefulXThread lThread = StatefulXThread.getAndLockXThread(lRequestContext, pFoxRequest.getHttpRequest().getParameter("thread_id").trim());
-      try {
-        return getResponseInternal(lRequestContext, lThread);
-      }
-      finally {
-        StatefulXThread.unlockThread(lRequestContext, lThread);
-      }
+      ThreadLockManager<FoxResponse> lLockManager = new ThreadLockManager<>(lThreadId, CONNECTION_NAME);
+
+      //Lock the thread and delegate to subclasses to get a response
+      return lLockManager.lockAndPerformAction(lRequestContext, new ThreadLockManager.LockedThreadRunnable<FoxResponse>() {
+        @Override
+        public FoxResponse doWhenLocked(RequestContext pRequestContext, StatefulXThread pXThread) {
+          return getResponseInternal(lRequestContext, pXThread);
+        }
+      });
     }
     finally {
       lRequestContext.getContextUCon().popConnection(CONNECTION_NAME);

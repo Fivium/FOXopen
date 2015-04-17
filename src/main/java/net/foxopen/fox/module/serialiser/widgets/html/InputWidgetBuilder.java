@@ -35,7 +35,7 @@ public class InputWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNod
       pSerialiser.getWidgetBuilder(WidgetBuilderType.TEXT).buildWidget(pSerialisationContext, pSerialiser, pEvalNode);
     }
     else {
-      Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialiser, pEvalNode);
+      Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
       lTemplateVars.put("InputType", mInputType);
 
       String lTextValue = pEvalNode.getFieldMgr().getSingleTextValue();

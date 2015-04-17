@@ -9,17 +9,19 @@ import net.foxopen.fox.entrypoint.uri.RequestURIBuilder;
 
 public interface RequestContext {
 
-  public FoxRequest getFoxRequest();
+  FoxRequest getFoxRequest();
 
-  public ContextUCon getContextUCon();
+  ContextUCon getContextUCon();
 
-  public String getRequestAppMnem();
+  String getRequestAppMnem();
 
-  public App getRequestApp();
+  App getRequestApp();
 
-  public FoxSession getFoxSession();
+  FoxSession getFoxSession();
 
-  public SecurityScope getCurrentSecurityScope();
+  void forceNewFoxSession(FoxSession pNewSession);
 
-  public RequestURIBuilder createURIBuilder();
+  SecurityScope getCurrentSecurityScope();
+
+  RequestURIBuilder createURIBuilder();
 }

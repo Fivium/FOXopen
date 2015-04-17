@@ -39,10 +39,25 @@ public abstract class FoxRequest {
 
   public abstract String getRequestLogId();
 
+  /**
+   * Gets the path info for the current request, i.e. the part after the context name and servlet name. The URI will have
+   * a preceding slash.
+   * @return Current request path.
+   */
   public abstract String getRequestURI();
 
+  /**
+   * Gets the path info for the current request, i.e. the part after the context name and servlet name. The URI will have
+   * a preceding slash.
+   * @return Current request path.
+   */
   public abstract StringBuffer getRequestURIStringBuffer();
 
+  /**
+   * Gets the path info for the current request, i.e. the part after the context name and servlet name. The URI will have
+   * a preceding slash.
+   * @return Current request path.
+   */
   public abstract StringBuilder getRequestURIStringBuilder();
 
   public abstract void addCookie (String pName, String pValue);

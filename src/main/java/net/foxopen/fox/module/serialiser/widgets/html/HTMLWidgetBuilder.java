@@ -65,7 +65,7 @@ public class HTMLWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
         convertMailMergeTagsToSpans(lSendingXML);
       }
 
-      Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialiser, pEvalNode);
+      Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
       lTemplateVars.put("Value", lSendingXML.outputNodeContentsToString(false));
       lTemplateVars.put("Class", "htmltextarea clv-ignore " + XFUtil.nvl(lTemplateVars.get("Class"), ""));
       lTemplateVars.put("Style", "visibility: hidden;" + XFUtil.nvl(lTemplateVars.get("Style"), ""));
@@ -75,7 +75,7 @@ public class HTMLWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
 
       // TODO - NP - Does this need to call Generic vars again? Maybe it should expand upon the previous template vars
       //             or perhaps it could clone the original result of the call to getGenericTemplateVars()?
-      Map<String, Object> lJSTemplateVars = super.getGenericTemplateVars(pSerialiser, pEvalNode);
+      Map<String, Object> lJSTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
 
       // TODO - NP - Re-enable this if we reimplement spellcheck
 //      if (lFieldMgr.isSpellEnabled() && lFieldMgr.isSpellIcon()) {

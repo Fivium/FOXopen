@@ -73,6 +73,7 @@ import java.util.concurrent.TimeUnit;
 
 public class StatefulXThread
 implements XThreadInterface, ThreadInfoProvider, Persistable {
+
   private static final String ORPHAN_FLAG_PARAM_NAME = "orphan_flag";
 
   private static final Iterator<String> CHANGE_NO_UNIQUE_ITERATOR = XFUtil.getUniqueIterator();
@@ -117,6 +118,7 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
 
   /**
    * NOTE: THIS COMMITS THE TOP UCON
+   * TODO PN - make package private
    * @param pRequestContext
    * @param pThreadId
    * @return
@@ -415,29 +417,28 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
   }
 
   /**
-   * Processing to be performed when the thread is fully ramped up.
+   * Ramps the thread up and runs the given RampedThreadRunnable against it. Use this variant if you don't require a value
+   * to be returned.
+   * @param pRequestContext Current RequestContext.
+   * @param pRunnable Action to run against the ramped thread.
+   * @param pTrackActionType Action type for track and logging purposes.
    */
-  //TODO PN should be package private
-  public interface XThreadRunnable {
-    void run(ActionRequestContext pRequestContext) throws ExUserRequest;
-  }
-
-  //TODO PN should be package private
-  public void rampAndRun(RequestContext pRequestContext, XThreadRunnable pRunnable, String pTrackActionType) {
-    rampAndRun(pRequestContext, pRunnable, pTrackActionType, false);
+  public void rampAndRun(RequestContext pRequestContext, RampedThreadRunnable pRunnable, String pTrackActionType) {
+    rampAndRun(pRequestContext, pTrackActionType, pRunnable, null);
   }
 
   /**
-   * Ramps the thread up and performs any processing provided in the given XThreadRunnable. The thread is ramped down after
-   * running the XThreadRunnable. If requested, a response is determined and returned based on the results of any action
-   * processing. If any error occurs the thread is aborted.
-   * @param pRequestContext
-   * @param pRunnable Processing to perform when the thread is ramped.
-   * @param pTrackActionType Action type for track and logging purposes.
-   * @param pResponseRequired Set to true if the XThread is expected to generate a response from this processing.
+   * Ramps the thread up and performs any processing provided in the given RampedThreadRunnable. The thread is ramped down after
+   * running the RampedThreadRunnable. If a ThreadActionResultGenerator is provided, it is used to determine the result returned
+   * by this method. If any error occurs the thread is aborted.
+   * @param pRequestContext   Current RequestContext.
+   * @param pTrackActionType  Action type for track and logging purposes.
+   * @param pRunnable         Processing to perform when the thread is ramped.
+   * @param pResultGenerator  Used to establish a result object to be returned, if required. Can be null.
+   * @param <T>               Type of object to be returned from the ThreadActionResultGenerator.
    * @return FoxResponse or null.
    */
-  private FoxResponse rampAndRun(RequestContext pRequestContext, XThreadRunnable pRunnable, String pTrackActionType, boolean pResponseRequired) {
+  public <T> T rampAndRun(RequestContext pRequestContext, String pTrackActionType, RampedThreadRunnable pRunnable, ThreadActionResultGenerator<T> pResultGenerator) {
     ActionRequestContext lActionRequestContext = new XThreadActionRequestContext(pRequestContext, this);
 
     Track.pushInfo(pTrackActionType);
@@ -460,21 +461,22 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
       //Do any work required before we respond (setting HTTP headers etc)
       finaliseBeforeResponse(pRequestContext);
 
-      //Decide how to respond based on the results of action processing
-      FoxResponse lResultResponse;
-      if(pResponseRequired) {
-        lResultResponse = establishResponse(lActionRequestContext);
+      //Decide what to return based on the results of action processing and the requirements of the thread invoker
+      //E.g. a FoxResponse for a page churn, or some arbitrary object for other processing types
+      T lResult;
+      if(pResultGenerator != null) {
+        lResult = pResultGenerator.establishResult(lActionRequestContext);
       }
       else {
-        lResultResponse = null;
+        lResult = null;
       }
 
       //Clear temp DOM etc, save fieldset
       finaliseAfterActionProcessing(lActionRequestContext);
 
-      return lResultResponse;
+      return lResult;
     }
-    catch(Throwable th){
+    catch (Throwable th) {
       //Abort DOMHandlers
       abort();
 
@@ -536,9 +538,20 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     }
   }
 
+  /**
+   * Ramps up the XThread and runs an external action against it. The action name and context ref tuple is validated against
+   * the outgoing FieldSet to ensure it is valid. A FoxResponse is generated based on the result of action processing.
+   * Typically this will be an HTML generator response but this may be overridden based on the action which has been run.
+   * This method should only be invoked for the processing of a posted HTML form.
+   * @param pRequestContext Current RequestContext.
+   * @param pActionName Name of the action to run.
+   * @param pActionRef Context ref identifying the :{action} context node.
+   * @param pPostedFormValuesMap Posted form values from the HTTP POST request.
+   * @return FoxResponse based on the result of action processing.
+   */
   public FoxResponse processAction(RequestContext pRequestContext, final String pActionName, final String pActionRef, final Map<String, String[]> pPostedFormValuesMap) {
 
-    XThreadRunnable lActionRunner = new XThreadRunnable() {
+    RampedThreadRunnable lActionRunner = new RampedThreadRunnable() {
       @Override
       public void run(ActionRequestContext pActionRequestContext) throws ExUserRequest {
         //Test the submitted fieldset value matches the expected one - if not, don't apply the field set or run any actions
@@ -570,11 +583,44 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
       }
     };
 
-    return rampAndRun(pRequestContext, lActionRunner, "ProcessAction", true);
+    return rampAndRun(pRequestContext, "ProcessAction", lActionRunner, new FoxResponseResultGenerator());
   }
 
-  private FoxResponse establishResponse(ActionRequestContext pRequestContext){
+  /**
+   * Ramps up the XThread and runs an external action against it. The action name and context ref tuple is validated against
+   * the outgoing FieldSet to ensure it is valid. After running the action, the provided ThreadActionResultGenerator is used
+   * to determine a result object to return. If this is null the return value of the method will be null.
+   * @param pRequestContext Current RequestContext.
+   * @param pActionName Name of the action to run.
+   * @param pActionRef Context ref identifying the :{action} context node.
+   * @param pResultGenerator Used to establish a result to be returned.
+   * @param <T> Result type returned by the ThreadActionResultGenerator.
+   * @return The result of running the action. Can be null depending on the return value or absence of the ThreadActionResultGenerator.
+   */
+  public <T> T processAction(RequestContext pRequestContext, final String pActionName, final String pActionRef, ThreadActionResultGenerator<T> pResultGenerator) {
+    RampedThreadRunnable lActionRunner = new RampedThreadRunnable() {
+      @Override
+      public void run(ActionRequestContext pActionRequestContext) throws ExUserRequest {
+        processExternalAction(pActionRequestContext, pActionName, pActionRef);
+      }
+    };
 
+    return rampAndRun(pRequestContext, "ProcessAction", lActionRunner, pResultGenerator);
+  }
+
+  /**
+   * ThreadActionResultGenerator which delegates to the #establishResponse method to generate an appropriate FoxResponse.
+   * Used internally by {@link #processAction(RequestContext, String, String, Map)}.
+   */
+  private class FoxResponseResultGenerator
+  implements ThreadActionResultGenerator<FoxResponse> {
+    @Override
+    public FoxResponse establishResult(ActionRequestContext pRequestContext) {
+      return establishResponse(pRequestContext);
+    }
+  }
+
+  private FoxResponse establishResponse(ActionRequestContext pRequestContext) {
     //Check for a pre-cached response, i.e. if this is a modeless resume
     FoxResponse lCachedResponse = getAndClearCachedResponse();
     if(lCachedResponse != null){

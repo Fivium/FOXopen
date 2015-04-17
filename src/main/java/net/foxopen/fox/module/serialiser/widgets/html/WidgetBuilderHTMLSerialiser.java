@@ -3,11 +3,16 @@ package net.foxopen.fox.module.serialiser.widgets.html;
 import com.google.common.base.Joiner;
 import net.foxopen.fox.StringUtil;
 import net.foxopen.fox.XFUtil;
+import net.foxopen.fox.download.DownloadMode;
+import net.foxopen.fox.download.DownloadServlet;
+import net.foxopen.fox.entrypoint.uri.RequestURIBuilder;
+import net.foxopen.fox.module.ActionType;
 import net.foxopen.fox.module.MandatoryDisplayOption;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.datanode.NodeVisibility;
 import net.foxopen.fox.module.fieldset.fieldmgr.FieldMgr;
+import net.foxopen.fox.module.serialiser.SerialisationContext;
 import net.foxopen.fox.module.serialiser.fragmentbuilder.MustacheFragmentBuilder;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
@@ -81,6 +86,26 @@ extends WidgetBuilder<HTMLSerialiser, EN>  {
     return lActionJSON.toString().replaceAll("##SAFE_ESCAPE_LINEBREAK##", "\\\\n");
   }
 
+  private void addActionTemplateVars(SerialisationContext pSerialisationContext, EN pEvalNode, Map<String, Object> pTemplateVars) {
+
+    ActionType lActionType = ActionType.fromExternalString(pEvalNode.getStringAttribute(NodeAttribute.ACTION_TYPE));
+
+    if(lActionType == ActionType.DOWNLOAD) {
+      //If this is a download action type, generate the download URL and serve it out directly as the link HREF
+      RequestURIBuilder lURIBuilder = pSerialisationContext.createURIBuilder();
+      String lFilename = pEvalNode.getStringAttribute(NodeAttribute.DOWNLOAD_FILENAME, "file");
+
+      DownloadMode lDownloadMode = pEvalNode.getBooleanAttribute(NodeAttribute.DOWNLOAD_AS_ATTACHMENT, true) ? DownloadMode.ATTACHMENT : DownloadMode.INLINE;
+
+      String lURI = DownloadServlet.buildActionDownloadURI(lURIBuilder, pSerialisationContext.getThreadInfoProvider().getThreadId(), pEvalNode.getActionName(), pEvalNode.getActionContextRef(), lFilename, lDownloadMode);
+      pTemplateVars.put("ActionHref", lURI);
+    }
+    else {
+      pTemplateVars.put("AttributeSafeActionJS", StringEscapeUtils.escapeHtml4(getActionSubmitString(pEvalNode)));
+      pTemplateVars.put("RawActionJS", getActionSubmitString(pEvalNode));
+    }
+  }
+
   protected String getActionSubmitString(EN pEvaluatedNode) {
     String lSubmitSection = "FOXjs.action(" + getActionSubmitJSONString(pEvaluatedNode.getActionName(), pEvaluatedNode.getActionContextRef(),  pEvaluatedNode.getConfirmMessage()) + ");";
 
@@ -105,10 +130,12 @@ extends WidgetBuilder<HTMLSerialiser, EN>  {
    *   <li>HintID - Hint icon ID to trigger hints on focus if turned on</li>
    * </ul>
    *
+   *
+   * @param pSerialisationContext
    * @param pEvalNode
    * @return Map of variables for widget mustache templates
    */
-  protected Map<String, Object> getGenericTemplateVars(HTMLSerialiser pSerialiser, EN pEvalNode) {
+  protected Map<String, Object> getGenericTemplateVars(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EN pEvalNode) {
     FieldMgr lFieldMgr = pEvalNode.getFieldMgr();
 
     Map<String, Object> lTemplateVars = new HashMap<>();
@@ -153,8 +180,7 @@ extends WidgetBuilder<HTMLSerialiser, EN>  {
     }
 
     if (lFieldMgr.isRunnable()) {
-      lTemplateVars.put("AttributeSafeActionJS", StringEscapeUtils.escapeHtml4(getActionSubmitString(pEvalNode)));
-      lTemplateVars.put("RawActionJS", getActionSubmitString(pEvalNode));
+      addActionTemplateVars(pSerialisationContext, pEvalNode, lTemplateVars);
     }
 
     if (pEvalNode.hasHint() && pEvalNode.isEnableFocusHintDisplay()) {

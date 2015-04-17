@@ -8,18 +8,25 @@ import net.foxopen.fox.command.XDoResult;
 public class DownloadLinkXDoResult
 implements XDoResult {
 
+  private final String mParcelId;
   private final String mDownloadURL;
   private final String mFilename;
 
   /**
    * Create a new DownloadLink which will be sent to the user when the page generates and result in a download popup.
+   * @param pParcelId    Stream parcel ID for the download.
    * @param pDownloadURL Relative download URL.
    * @param pFilename Filename to be displayed in the link on the page. This should typically correspond to the filename
    * of the target download parcel, but it does not have to.
    */
-  public DownloadLinkXDoResult(String pDownloadURL, String pFilename) {
+  public DownloadLinkXDoResult(String pParcelId, String pDownloadURL, String pFilename) {
+    mParcelId = pParcelId;
     mDownloadURL = pDownloadURL;
     mFilename = pFilename;
+  }
+
+  public String getParcelId() {
+    return mParcelId;
   }
 
   public String getDownloadURL() {
