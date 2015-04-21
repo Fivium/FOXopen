@@ -63,10 +63,10 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
 
       for (FieldSelectOption lOption : lSelectOptions) {
         if (lOption.isSelected()) {
-          pSerialiser.append("  <option value=\"" + lOption.getExternalFieldValue() + "\" selected=\"selected\">" + lOption.getDisplayKey() + "</option>");
+          pSerialiser.append("  <option value=\"" + lOption.getExternalFieldValue() + "\" selected=\"selected\">" + StringEscapeUtils.escapeHtml4(lOption.getDisplayKey()) + "</option>");
         }
         else {
-          pSerialiser.append("  <option value=\"" + lOption.getExternalFieldValue() + "\">" + lOption.getDisplayKey() + "</option>");
+          pSerialiser.append("  <option value=\"" + lOption.getExternalFieldValue() + "\">" + StringEscapeUtils.escapeHtml4(lOption.getDisplayKey()) + "</option>");
         }
       }
       pSerialiser.append("</select>");
@@ -209,9 +209,6 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
       }
       // Add suggestion text or default to the key
       if (XFUtil.isNull(lSuggestion)) {
-        lJSONEntry.put("suggestion", lSearchableItem.getDisplayKey());
-      }
-      else {
         lJSONEntry.put("suggestion", StringEscapeUtils.escapeHtml4(lSuggestion.replaceAll("%IMAGE_BASE%", pBaseURL)));
       }
       // If it was selected add that entry
