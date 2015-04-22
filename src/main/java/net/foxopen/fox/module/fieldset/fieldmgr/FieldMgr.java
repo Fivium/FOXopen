@@ -6,7 +6,6 @@ import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.EvaluatedNodeAction;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfoFileItem;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfoItem;
-import net.foxopen.fox.module.datanode.EvaluatedNodeInfoPhantomItem;
 import net.foxopen.fox.module.datanode.NodeVisibility;
 import net.foxopen.fox.module.fieldset.FieldSelectConfig;
 import net.foxopen.fox.module.fieldset.FieldSet;
@@ -46,12 +45,7 @@ public abstract class FieldMgr {
     WidgetBuilderType lWidgetBuilderType = pEvaluatedNodeInfoItem.getWidgetBuilderType();
     FieldSelectConfig lFieldSelectConfig = lWidgetBuilderType.getFieldSelectConfig();
 
-    if(EvaluatedNodeInfoPhantomItem.isPhantomDataNode(pEvaluatedNodeInfoItem)) {
-      //Skip creation of a "proper" FieldMgr for phantom data xpath nodes. If they correctly resolve a target they should
-      //get the ENI and therefore the FieldMgr for their target node.
-      return new PhantomFieldMgr(pEvaluatedNodeInfoItem, pFieldSet, pNewFieldId);
-    }
-    else if(lFieldSelectConfig != null) {
+    if(lFieldSelectConfig != null) {
       return OptionFieldMgr.createOptionFieldMgr(pEvaluatedNodeInfoItem, pFieldSet, lFieldSelectConfig, pNewFieldId);
     }
     else if(lWidgetBuilderType.isTextValue()) {

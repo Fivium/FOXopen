@@ -4,9 +4,7 @@ import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.fieldset.FieldSet;
 import net.foxopen.fox.module.fieldset.fieldinfo.FieldInfo;
 import net.foxopen.fox.module.fieldset.fvm.FieldSelectOption;
-import net.foxopen.fox.track.Track;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -37,18 +35,16 @@ public class PhantomFieldMgr extends FieldMgr {
 
   @Override
   public List<FieldSelectOption> getSelectOptions() {
-    //Don't blow up here, there may be a phantom data xpath with an invalid target
-    Track.alert("PhantomGetSelectOptions","Cannot return select options for a phantom - check phantom-data-xpath definition on " + mEvaluatedNode.getIdentityInformation());
-    return Collections.emptyList();
+    throw new UnsupportedOperationException(getClass().getName() + " cannot provide a select options for node " + mEvaluatedNode.getIdentityInformation() + " - only applicable to data items");
   }
 
   @Override
   public String getSingleTextValue() {
-    throw new UnsupportedOperationException(getClass().getName() + " cannot provide a Text Value - only applicable to data items");
+    throw new UnsupportedOperationException(getClass().getName() + " cannot provide a Text Value for node " + mEvaluatedNode.getIdentityInformation() + " - only applicable to data items");
   }
 
   @Override
   public FieldInfo createFieldInfoOrNull() {
-    throw new UnsupportedOperationException(getClass().getName() + " cannot provide Field Info - only applicable to data items");
+    throw new UnsupportedOperationException(getClass().getName() + " cannot provide Field Info for node " + mEvaluatedNode.getIdentityInformation() + " - only applicable to data items");
   }
 }

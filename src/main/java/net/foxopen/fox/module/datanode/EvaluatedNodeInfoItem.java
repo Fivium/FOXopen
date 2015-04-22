@@ -20,7 +20,7 @@ public class EvaluatedNodeInfoItem extends EvaluatedNodeInfoGeneric {
   static EvaluatedNodeInfoItem getEvaluatedNode(EvaluatedNode pParent, GenericAttributesEvaluatedPresentationNode<? extends GenericAttributesPresentationNode> pEvaluatedPresentationNode,
                                                 NodeEvaluationContext pNodeEvaluationContext, NodeVisibility pVisibility, NodeInfo pNodeInfo) {
     EvaluatedNodeInfoItem lEvaluatedNodeInfoItem;
-    if(pNodeInfo.isMultiUploadItem()) {
+    if(pNodeInfo.isUploadItem()) {
       lEvaluatedNodeInfoItem = new EvaluatedNodeInfoFileItem(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, pVisibility, pNodeInfo);
     }
     else if("phantom".equals(pNodeInfo.getDataType()) && pNodeEvaluationContext.hasNodeAttribute(NodeAttribute.PHANTOM_BUFFER)) {
@@ -29,12 +29,12 @@ public class EvaluatedNodeInfoItem extends EvaluatedNodeInfoGeneric {
     else if("phantom".equals(pNodeInfo.getDataType()) && pNodeEvaluationContext.hasNodeAttribute(NodeAttribute.PHANTOM_MENU_MODE)) {
       lEvaluatedNodeInfoItem = new EvaluatedNodeInfoPhantomMenuItem(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, pVisibility, pNodeInfo);
     }
+    else if("phantom".equals(pNodeInfo.getDataType()) && pNodeEvaluationContext.hasNodeAttribute(NodeAttribute.PHANTOM_DATA_XPATH)) {
+      lEvaluatedNodeInfoItem = EvaluatedNodeInfoPhantomItem.createPhantomDataXPathENI(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, pVisibility, pNodeInfo);
+    }
     else {
       lEvaluatedNodeInfoItem = new EvaluatedNodeInfoItem(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, pVisibility, pNodeInfo);
     }
-
-    //See if there is a phantom-data-xpath defined on this nodeinfo and deal with it as appropriate
-    lEvaluatedNodeInfoItem = EvaluatedNodeInfoPhantomItem.resolvePhantomDataXPath(lEvaluatedNodeInfoItem, pEvaluatedPresentationNode);
 
     return lEvaluatedNodeInfoItem;
   }
@@ -119,7 +119,9 @@ public class EvaluatedNodeInfoItem extends EvaluatedNodeInfoGeneric {
       else if ("xs:dateTime".equals(getNodeInfo().getDataType())) {
         lWidgetType = WidgetType.fromBuilderType(WidgetBuilderType.DATE_TIME);
       }
-      else if ("phantom".equals(getNodeInfo().getDataType())) {
+      else if ("phantom".equals(getNodeInfo().getDataType()) && !isPhantomDataNode()) {
+        //Normal phantoms should be a link because they're probably an action
+        //For phantom data XPaths, fall back to the standard default
         lWidgetType = WidgetType.fromBuilderType(WidgetBuilderType.LINK);
       }
       else if ("xs:boolean".equals(getNodeInfo().getDataType())) {
@@ -163,7 +165,6 @@ public class EvaluatedNodeInfoItem extends EvaluatedNodeInfoGeneric {
     return mFieldMgr.getExternalFieldName(); //TODO PN this is loosely coupled logic (relying on implicit FieldSet behaviour)
   }
 
-
   @Override
   protected String getAutoFieldWidth() {
     if (getWidgetBuilderType().isAction()) {
@@ -172,5 +173,14 @@ public class EvaluatedNodeInfoItem extends EvaluatedNodeInfoGeneric {
     }
 
     return super.getAutoFieldWidth();
+  }
+
+  /**
+   * Returns true if this ENI represents a phantom-data-xpath definition node, which may need to be treated specially
+   * in some cases.
+   * @return True if this node is a phantom data node.
+   */
+  public boolean isPhantomDataNode(){
+    return false;
   }
 }
