@@ -118,12 +118,11 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
 
   /**
    * NOTE: THIS COMMITS THE TOP UCON
-   * TODO PN - make package private
    * @param pRequestContext
    * @param pThreadId
    * @return
    */
-  public static StatefulXThread getAndLockXThread(RequestContext pRequestContext, String pThreadId) {
+  static StatefulXThread getAndLockXThread(RequestContext pRequestContext, String pThreadId) {
     //Lock the thread symbolically before doing anything else
     String lDbChangeNumber;
     Track.pushInfo("LockThread", pThreadId, TrackTimer.THREAD_LOCK);
@@ -194,7 +193,7 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
    * @param pRequestContext
    * @param pXThread
    */
-  public static void unlockThread(RequestContext pRequestContext, StatefulXThread pXThread) {
+  static void unlockThread(RequestContext pRequestContext, StatefulXThread pXThread) {
     Track.pushInfo("UnlockThread", "Releasing lock", TrackTimer.THREAD_UNLOCK);
     Track.timerStart(TrackTimer.THREAD_LOCK_MANAGEMENT);
     try {

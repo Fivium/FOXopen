@@ -80,7 +80,7 @@ extends EntryPointServlet {
 
       lStatusObject.put("statusText", lStatus);
 
-      if(lUploadInfo.getStatus() != UploadStatus.NOT_STARTED && lUploadInfo.getStatus() != UploadStatus.STARTED) {
+      if(lUploadInfo.getStatus() != UploadStatus.NOT_STARTED && lUploadInfo.getStatus() != UploadStatus.STARTED && lUploadInfo.getStatus() != UploadStatus.FAILED) {
         //Upload info only has transfer process when the status is RECEIVING or later
         lStatusObject.put("percentComplete", lUploadInfo.getTransferProgress());
       }

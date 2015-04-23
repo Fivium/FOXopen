@@ -1,6 +1,7 @@
 package net.foxopen.fox.entrypoint.servlets;
 
 import net.foxopen.fox.App;
+import net.foxopen.fox.ContextUCon;
 import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.FoxRequestHttp;
 import net.foxopen.fox.XFUtil;
@@ -146,18 +147,22 @@ extends HttpServlet {
         pRequestProcessor.processRequest(lRequestContext);
       }
       finally {
+        ContextUCon lContextUCon = lRequestContext.getContextUCon();
+
         //Validates that the expected connection is at the top of the stack (if not this is indicates an engine bug)
         try {
-          lRequestContext.getContextUCon().popConnection(getContextUConInitialConnectionName());
+          if(lContextUCon.getConnectionStackSize() > 0) {
+            lContextUCon.popConnection(getContextUConInitialConnectionName());
+          }
         }
         catch (Throwable th) {
           //We've already committed everything - just log this development time problem as a suppressed error
           Track.recordSuppressedException("EntryPointPopConnection", th);
         }
 
-        //Ensure all ContextUCon connections are closed and returned
+        //Ensure all ContextUCon connections are closed and returned - consumers should have committed any work they did
         try {
-          lRequestContext.getContextUCon().rollbackAndCloseAll(true);
+          lContextUCon.rollbackAndCloseAll(true);
         }
         catch (Throwable th) {
           //Don't allow errors from UCon closing to propagate

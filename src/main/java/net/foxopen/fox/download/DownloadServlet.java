@@ -107,7 +107,7 @@ extends EntryPointServlet {
     }
 
     String lThreadId = lURIParams.get(THREAD_ID_URI_PARAM);
-    ThreadLockManager<DownloadParcel> lThreadLockManager = new ThreadLockManager<>(lThreadId, CONNECTION_NAME);
+    ThreadLockManager<DownloadParcel> lThreadLockManager = new ThreadLockManager<>(lThreadId, CONNECTION_NAME, false);
 
     String lModeParam = pRequestContext.getFoxRequest().getParameter(DOWNLOAD_MODE_PARAM_NAME);
     DownloadMode lMode = DownloadMode.fromParameterString(lModeParam);
