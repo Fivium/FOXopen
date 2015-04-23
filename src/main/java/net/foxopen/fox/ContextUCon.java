@@ -359,6 +359,10 @@ public class ContextUCon implements FxpContextUCon<UCon> {
     mConnectionNameUsageStack.addFirst(pConnectionName);
   }
 
+  public int getConnectionStackSize() {
+    return mConnectionNameUsageStack.size();
+  }
+
   /**
    * Removes the top connection from the connection stack. The connection name should be provided to validate that the stack
    * is in the expected state. The connection may be retained if it is still in use further up the stack, or if such behaviour
@@ -367,6 +371,12 @@ public class ContextUCon implements FxpContextUCon<UCon> {
    * @param pConnectionName
    */
   public void popConnection(String pConnectionName) {
+
+    //Validate that there's a connection left to pop
+    if(mConnectionNameUsageStack.size() == 0) {
+      throw new ExInternal("Connection stack error: attempted to pop connection " + pConnectionName + " from an empty stack");
+    }
+
     Connection lTopConnection = getTopConnection();
 
     if(!mConnectionNameUsageStack.getFirst().equals(pConnectionName)) {

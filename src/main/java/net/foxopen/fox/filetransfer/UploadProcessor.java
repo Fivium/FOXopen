@@ -2,7 +2,6 @@ package net.foxopen.fox.filetransfer;
 
 
 import net.foxopen.fox.App;
-import net.foxopen.fox.ContextUCon;
 import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.FileUploadType;
 import net.foxopen.fox.FoxRequest;
@@ -28,9 +27,10 @@ import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.datanode.NodeInfo;
 import net.foxopen.fox.queue.ServiceQueueHandler;
 import net.foxopen.fox.thread.ActionRequestContext;
+import net.foxopen.fox.thread.RampedThreadRunnable;
 import net.foxopen.fox.thread.RequestContext;
 import net.foxopen.fox.thread.StatefulXThread;
-import net.foxopen.fox.thread.RampedThreadRunnable;
+import net.foxopen.fox.thread.ThreadLockManager;
 import net.foxopen.fox.thread.persistence.xstream.XStreamManager;
 import net.foxopen.fox.thread.storage.FileStorageLocation;
 import net.foxopen.fox.thread.storage.WorkingFileStorageLocation;
@@ -170,36 +170,34 @@ public class UploadProcessor {
         Track.pop("InitialFormRead");
       }
 
-      UploadThreadInitialiser lInitialiser = new UploadThreadInitialiser(lMultipartUploadReader);
-      UploadLogger lUploadLogger;
+      final UploadThreadInitialiser lInitialiser = new UploadThreadInitialiser(lMultipartUploadReader);
 
-      StatefulXThread lXThread = StatefulXThread.getAndLockXThread(pRequestContext, mThreadId);
-      try {
-        //Validate that an upload is allowed to the target context (decided by FieldSet)
-        if(!lXThread.checkUploadAllowed(mUploadContainerContextRef)) {
-          throw new ExInternal("Upload to context ref " + mUploadContainerContextRef + " not allowed");
+      ThreadLockManager<UploadLogger> lThreadLockManager = new ThreadLockManager<>(mThreadId, UploadServlet.UPLOAD_CONNECTION_NAME, false);
+      UploadLogger lUploadLogger = lThreadLockManager.lockAndPerformAction(pRequestContext, new ThreadLockManager.LockedThreadRunnable<UploadLogger>() {
+        @Override
+        public UploadLogger doWhenLocked(RequestContext pRequestContext, StatefulXThread pXThread) {
+
+          //Validate that an upload is allowed to the target context (decided by FieldSet)
+          if (!pXThread.checkUploadAllowed(mUploadContainerContextRef)) {
+            throw new ExInternal("Upload to context ref " + mUploadContainerContextRef + " not allowed");
+          }
+
+          //Initialise (clean out) the target DOM and get state info from the thread
+          pXThread.rampAndRun(pRequestContext, lInitialiser, "UploadInit");
+
+          //Construct a new logger and insert the log start
+          UploadLogger lUploadLogger = new UploadLogger(pRequestContext.getRequestApp(), lInitialiser.mWuaId, lInitialiser.mModule.getName(), lInitialiser.mStateName);
+          UCon lUCon = pRequestContext.getContextUCon().getUCon("Upload Log Start");
+          try {
+            lUploadLogger.startLog(lUCon, lInitialiser.mUploadInfo, pRequestContext.getFoxRequest().getHttpRequest().getRemoteAddr());
+          }
+          finally {
+            pRequestContext.getContextUCon().returnUCon(lUCon, "Upload Log Start");
+          }
+
+          return lUploadLogger;
         }
-
-        //Initialise (clean out) the target DOM and get state info from the thread
-        lXThread.rampAndRun(pRequestContext, lInitialiser, "UploadInit");
-
-        //Construct a new logger and insert the log start
-        lUploadLogger = new UploadLogger(pRequestContext.getRequestApp(), lInitialiser.mWuaId, lInitialiser.mModule.getName(), lInitialiser.mStateName);
-        UCon lUCon = pRequestContext.getContextUCon().getUCon("Upload Log Start");
-        try {
-          lUploadLogger.startLog(lUCon, lInitialiser.mUploadInfo, pRequestContext.getFoxRequest().getHttpRequest().getRemoteAddr());
-        }
-        finally {
-          pRequestContext.getContextUCon().returnUCon(lUCon, "Upload Log Start");
-        }
-
-        //Commit the DOM write and upload log
-        pRequestContext.getContextUCon().commit(UploadServlet.UPLOAD_CONNECTION_NAME);
-      }
-      finally {
-        //Unlock thread (commits again!)
-        StatefulXThread.unlockThread(pRequestContext, lXThread);
-      }
+      });
 
       return receiveUpload(pRequestContext, lMultipartUploadReader, lInitialiser.mUploadInfo, lInitialiser.mWorkingSL, lUploadLogger);
     }
@@ -369,7 +367,7 @@ public class UploadProcessor {
         lUCon.rollback();
       }
       catch (ExDB e) {
-        Track.recordSuppressedException("Upload failure rollback", th);
+        Track.recordSuppressedException("Upload failure rollback", e);
       }
       lAllowLogFailure = false;
       return handleUploadException(pRequestContext, th, pUploadInfo, pWorkingSL, lUCon, lWorkDoc);
@@ -561,7 +559,6 @@ public class UploadProcessor {
    */
   private UploadedFileInfo retrieveDOMWriteMetadataAndCommit(RequestContext pRequestContext, final UploadInfo pUploadInfo, final boolean pWasError, final WorkingFileStorageLocation pWFSL) {
 
-    final String LOCK_CONNECTION_NAME = "LOCK_THREAD";
     final String lUploadTargetNodeRef = mUploadTargetNodeRef;
 
     class ThreadUpdater implements RampedThreadRunnable {
@@ -584,32 +581,13 @@ public class UploadProcessor {
       }
     }
 
-    ContextUCon lContextUCon = pRequestContext.getContextUCon();
-    lContextUCon.pushRetainedConnection(LOCK_CONNECTION_NAME);
-    StatefulXThread lXThread;
-    try {
-      lXThread = StatefulXThread.getAndLockXThread(pRequestContext, mThreadId);
-    }
-    finally {
-      lContextUCon.popConnection(LOCK_CONNECTION_NAME);
-    }
+    ThreadUpdater lThreadUpdater = new ThreadUpdater();
+    //Create a new ThreadLockManager which uses a separate connection to lock the thread - don't want to commit the main connection (with the upload on)
+    ThreadLockManager<Object> lThreadLockManager = new ThreadLockManager<>(mThreadId, UploadServlet.UPLOAD_CONNECTION_NAME, true);
+    //Lock thread, update the DOM and get the resultant UploadedFileInfo - this also commits the upload
+    lThreadLockManager.lockRampAndRun(pRequestContext, "UploadComplete", lThreadUpdater);
 
-    try {
-      ThreadUpdater lThreadUpdater = new ThreadUpdater();
-      lXThread.rampAndRun(pRequestContext, lThreadUpdater, "UploadComplete");
-      lContextUCon.commit(UploadServlet.UPLOAD_CONNECTION_NAME);
-
-      return lThreadUpdater.mUploadedFileInfo;
-    }
-    finally {
-      lContextUCon.pushConnection(LOCK_CONNECTION_NAME);
-      try {
-        StatefulXThread.unlockThread(pRequestContext, lXThread);
-      }
-      finally {
-        lContextUCon.popConnection(LOCK_CONNECTION_NAME);
-      }
-    }
+    return lThreadUpdater.mUploadedFileInfo;
   }
 
   private void setUploadStatusAndFireEvent(UploadStatus pNewStatus, UploadInfo pUploadInfo, UCon pUCon, WorkingUploadStorageLocation pWorkingSL, WorkDoc pWorkDoc) {

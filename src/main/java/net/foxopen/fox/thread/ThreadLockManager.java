@@ -14,6 +14,12 @@ import net.foxopen.fox.track.Track;
  * to an {@link ActionRequestContext} but requires the thread to be fully ramped up before the action is invoked. The latter
  * does not ramp the thread but only allows operations against the thread in its unramped state - i.e. no access to DOMs.<br><br>
  *
+ * The ThreadLockManager uses 1 or 2 connections depending on the pLockWithDedicatedConnection constructor parameter. Most
+ * use cases only require a single "main" connection, which is more efficient. This can be used to lock the thread, run the action,
+ * and unlock the thread, which involves committing the connection after each step. If you do not want the main connection to be
+ * committed when the thread is locked/unlocked, you need to use the dedicated connection behaviour. The main connection is always
+ * committed after running the action.<br><br>
+ *
  * The "action" may return an arbitrary object if the consumer requires this. Generics should be used to ensure type safety.
  *
  * @param <T> Object type to be returned from an action, if required.
@@ -22,10 +28,20 @@ public class ThreadLockManager<T> {
 
   private final String mThreadId;
   private final String mConnectionName;
+  private final LockingBehaviour mLockingBehaviour;
 
-  public ThreadLockManager(String pThreadId, String pConnectionName) {
+  /**
+   * Constructs a new ThreadLockManager for managing a single lock/action/unlock cycle.
+   * @param pThreadId ID of XThread to lock.
+   * @param pConnectionName Name of main connection, i.e. to top connection on the ContextUCon. This is committed after the
+   *                        action is run.
+   * @param pLockWithDedicatedConnection If true, a separate connection is used for locking and unlocking. Set this to true
+   *                                     if you do not want the main connection to be committed immediately after the thread is locked.
+   */
+  public ThreadLockManager(String pThreadId, String pConnectionName, boolean pLockWithDedicatedConnection) {
     mThreadId = pThreadId;
     mConnectionName = pConnectionName;
+    mLockingBehaviour = pLockWithDedicatedConnection ? new DedicatedConnectionLockingBehaviour() : new SharedConnectionLockingBehaviour();
   }
 
   public void lockRampAndRun(RequestContext pRequestContext, final String pTrackActionType, final RampedThreadRunnable pRampedThreadRunnable) {
@@ -48,10 +64,12 @@ public class ThreadLockManager<T> {
   }
 
   /**
-   * Locks the required thread, runs the given action against it, then release the lock. Note the current UCon
-   * will be committed by the thread lock/unlock action. A commit is also issued immediately after the action is run.
-   * In the event of an exception the connection is rolled back, the thread is purged from cache and an attempt is made
-   * to unlock the thread.
+   * Locks the required thread, runs the given action against it, then releases the lock. The main connection is committed
+   * immediately after the action is run. The locking connection is also committed before and after action processing. Note
+   * that these may be the same connection depending on how the ThreadLockManager was set up.<br><br>
+   *
+   * In the event of an exception the main connection is rolled back, the thread is purged from cache and an attempt is made
+   * to unlock the thread using a new connection.
    *
    * @param pRequestContext Current RequestContext.
    * @param pLockedThreadRunnable Action to run on the locked thread.
@@ -64,8 +82,8 @@ public class ThreadLockManager<T> {
     StatefulXThread lXThread = null;
     T lResult;
     try {
-      //Get the and lock the thread - THIS ISSUES A COMMIT
-      lXThread = StatefulXThread.getAndLockXThread(pRequestContext, mThreadId);
+      //Lock the thread - this will COMMIT for SharedConnection locking behaviour
+      lXThread = mLockingBehaviour.lockXThread(pRequestContext);
 
       //Delegate to the consumer to perform whatever action is required with the locked thread
       lResult = pLockedThreadRunnable.doWhenLocked(pRequestContext, lXThread);
@@ -76,8 +94,8 @@ public class ThreadLockManager<T> {
       //Commit the MAIN connection - commits all work done by thread
       lContextUCon.commit(mConnectionName);
 
-      //Now release the thread lock - THIS ISSUES ANOTHER COMMIT
-      StatefulXThread.unlockThread(pRequestContext, lXThread);
+      //Now release the thread - this will COMMIT for SharedConnection locking behaviour
+      mLockingBehaviour.unlockThread(pRequestContext, lXThread);
     }
     catch (Throwable th) {
       //On any error, rollback contents of all connections, including main connection and release back to pool
@@ -86,10 +104,8 @@ public class ThreadLockManager<T> {
       try {
         //Unlock the thread if we managed to lock it
         if(lXThread != null) {
-          //Ensure we always have a decent connection to unlock the thread
-          lContextUCon.pushConnection(mConnectionName);
-          StatefulXThread.unlockThread(pRequestContext, lXThread);
-          lContextUCon.popConnection(mConnectionName);
+          //Thread should be unlocked on a new connection
+          new DedicatedConnectionLockingBehaviour().unlockThread(pRequestContext, lXThread);
         }
       }
       catch (Throwable th2) {
@@ -116,12 +132,59 @@ public class ThreadLockManager<T> {
     /**
      * Allows a consumer to implement behaviour to perform on a locked Thread. The thread will be unlocked by the ThreadLockManager
      * after this method is invoked. Note the thread's DOMs will not have been ramped up - implementations requiring DOM access
-     * etc will need to invoke rampAndRun on the XThread from within this method.
+     * etc will need to invoke rampAndRun on the XThread from within this method. If a rampAndRun is all that is required, the
+     * lockRampAndRun methods on ThreadLockManager are more appropriate.
      *
      * @param pRequestContext Current RequestContext.
      * @param pXThread Locked XThread to perform actions on.
      * @return Optional result object of the desired return type.
      */
     T doWhenLocked(RequestContext pRequestContext, StatefulXThread pXThread);
+  }
+
+  /** How to manage connections when locking/unlocking a thread */
+  private interface LockingBehaviour {
+    StatefulXThread lockXThread(RequestContext pRequestContext);
+    void unlockThread(RequestContext pRequestContext, StatefulXThread pXThread);
+  }
+
+  private class SharedConnectionLockingBehaviour implements LockingBehaviour {
+    @Override
+    public StatefulXThread lockXThread(RequestContext pRequestContext) {
+      //Get the and lock the thread - THIS ISSUES A COMMIT
+      return StatefulXThread.getAndLockXThread(pRequestContext, mThreadId);
+    }
+
+    @Override
+    public void unlockThread(RequestContext pRequestContext, StatefulXThread pXThread) {
+      //Now release the thread lock - THIS ISSUES A COMMIT
+      StatefulXThread.unlockThread(pRequestContext, pXThread);
+    }
+  }
+
+  private class DedicatedConnectionLockingBehaviour implements LockingBehaviour {
+    public StatefulXThread lockXThread(RequestContext pRequestContext) {
+
+      pRequestContext.getContextUCon().pushConnection("LOCK_THREAD");
+      try {
+        //Get the and lock the thread - THIS ISSUES A COMMIT
+        return StatefulXThread.getAndLockXThread(pRequestContext, mThreadId);
+      }
+      finally {
+        pRequestContext.getContextUCon().popConnection("LOCK_THREAD");
+      }
+    }
+
+    public void unlockThread(RequestContext pRequestContext, StatefulXThread pXThread) {
+
+      pRequestContext.getContextUCon().pushConnection("UNLOCK_THREAD");
+      try {
+        //Now release the thread lock - THIS ISSUES A COMMIT
+        StatefulXThread.unlockThread(pRequestContext, pXThread);
+      }
+      finally {
+        pRequestContext.getContextUCon().popConnection("UNLOCK_THREAD");
+      }
+    }
   }
 }
