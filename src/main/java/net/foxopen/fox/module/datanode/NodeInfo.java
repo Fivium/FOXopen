@@ -365,15 +365,15 @@ public class NodeInfo {
    * @return If this NodeInfo is a selector or file storage location item
    */
   public boolean isMultiOptionItem() {
-    return isMultiSelectorItem() || isMultiUploadItem();
+    return isMultiSelectorItem() || isUploadItem();
   }
 
   /**
-   * IS this item marked up as a multi upload container
+   * Is this item marked up as an upload container
    *
    * @return
    */
-  public boolean isMultiUploadItem() {
+  public boolean isUploadItem() {
     return getNamespaceAttributeTable().containsAttribute(NodeAttribute.FILE_STORAGE_LOCATION);
   }
 

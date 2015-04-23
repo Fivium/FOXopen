@@ -28,46 +28,48 @@ extends DataFieldMgr {
   protected final FieldSelectConfig mConfig;
   protected final FieldValueMapping mFVM;
 
-  static DataFieldMgr createOptionFieldMgr(EvaluatedNodeInfoItem pEvaluatedNodeInfoItem, FieldSet pFieldSet, FieldSelectConfig pFieldSelectConfig, String pFieldId){
+  static DataFieldMgr createOptionFieldMgr(EvaluatedNodeInfoItem pEvalNode, FieldSet pFieldSet, FieldSelectConfig pFieldSelectConfig, String pFieldId){
 
     //Establish the FVM
     FieldValueMapping lFVM;
-    NodeInfo lNodeInfo = pEvaluatedNodeInfoItem.getNodeInfo();
+    NodeInfo lNodeInfo = pEvalNode.getNodeInfo();
     boolean lStrictBoolean = false;
 
-    if("xs:boolean".equals(lNodeInfo.getDataType())) {
+    //Assume presence of "key-true/false" indicates a type of xs:boolean for phantom data nodes
+    //A phantom-data-xpath with no corresponding target node must have a schema type of "phantom", so the developer needs some way of indicating that they require a boolean field
+    if("xs:boolean".equals(lNodeInfo.getDataType()) || (pEvalNode.isPhantomDataNode() && (pEvalNode.isAttributeDefined(NodeAttribute.KEY_TRUE) || pEvalNode.isAttributeDefined(NodeAttribute.KEY_FALSE)))) {
       //Force "strict" booleans for radio buttons in groups - doesn't make sense to show true/false option tuples if at most one is selectable
-      lStrictBoolean = pFieldSelectConfig.isStrictBoolean() || pEvaluatedNodeInfoItem.isInRadioGroup();
+      lStrictBoolean = pFieldSelectConfig.isStrictBoolean() || pEvalNode.isInRadioGroup();
       lFVM = BooleanFVM.getInstance(lStrictBoolean);
     }
-    else if(pEvaluatedNodeInfoItem.getSchemaEnumeration() != null) {
-      lFVM = SchemaEnumFVM.createSchemaEnumFVM(pEvaluatedNodeInfoItem);
+    else if(pEvalNode.getSchemaEnumeration() != null) {
+      lFVM = SchemaEnumFVM.createSchemaEnumFVM(pEvalNode);
     }
-    else if(MapSetFVM.validateENI(pEvaluatedNodeInfoItem)) {
+    else if(MapSetFVM.validateENI(pEvalNode)) {
       //Note mapset may be defined on repeating child element for legacy modules
-      lFVM = MapSetFVM.createMapSetFVM(pEvaluatedNodeInfoItem);
+      lFVM = MapSetFVM.createMapSetFVM(pEvalNode);
     }
     else {
-      throw new ExInternal("Error in definition for " + pEvaluatedNodeInfoItem.getIdentityInformation() + " - the widget has no source of options (map-set, schema enumeration or xs:boolean type)");
+      throw new ExInternal("Error in definition for " + pEvalNode.getIdentityInformation() + " - the widget has no source of options (map-set, schema enumeration or xs:boolean type)");
     }
 
     DataFieldMgr lNewFieldMgr;
-    if(!pEvaluatedNodeInfoItem.isMultiSelect()) {
+    if(!pEvalNode.isMultiSelect()) {
       //Construct the new FieldMgr
       if(lStrictBoolean) {
-        lNewFieldMgr = new StrictBooleanFieldMgr(pEvaluatedNodeInfoItem, pFieldSet, pFieldSelectConfig, pFieldId);
+        lNewFieldMgr = new StrictBooleanFieldMgr(pEvalNode, pFieldSet, pFieldSelectConfig, pFieldId);
       }
       else {
-        lNewFieldMgr = new SingleOptionFieldMgr(pEvaluatedNodeInfoItem, pFieldSet, pFieldSelectConfig, pFieldId, lFVM);
+        lNewFieldMgr = new SingleOptionFieldMgr(pEvalNode, pFieldSet, pFieldSelectConfig, pFieldId, lFVM);
       }
     }
     else {
-      lNewFieldMgr = new MultiOptionFieldMgr(pEvaluatedNodeInfoItem, pFieldSet, pFieldSelectConfig, pFieldId, lFVM);
+      lNewFieldMgr = new MultiOptionFieldMgr(pEvalNode, pFieldSet, pFieldSelectConfig, pFieldId, lFVM);
     }
 
     //If this field is in a radio group, we need to wrap the fieldmgr
-    if(pEvaluatedNodeInfoItem.isInRadioGroup()) {
-      return new RadioGroupValueFieldMgr(pEvaluatedNodeInfoItem, pFieldSet, pFieldId, lNewFieldMgr);
+    if(pEvalNode.isInRadioGroup()) {
+      return new RadioGroupValueFieldMgr(pEvalNode, pFieldSet, pFieldId, lNewFieldMgr);
     }
     else {
       return lNewFieldMgr;

@@ -122,15 +122,17 @@ var FOXjs = {
       changeMonth: true,
       changeYear: true,
       dateFormat: "dd'-'M'-'yy",
-      showButtonPanel: true
+      showButtonPanel: true,
+      yearRange: "c-100:c+100"
     });
 
     $( ".date-time-input" ).not('[readonly="readonly"]').datetimepicker({
-        controlType: $.timepicker.textTimeControl,
-        changeMonth: true,
-        changeYear: true,
-        dateFormat: "dd'-'M'-'yy",
-        showButtonPanel: true
+      controlType: $.timepicker.textTimeControl,
+      changeMonth: true,
+      changeYear: true,
+      dateFormat: "dd'-'M'-'yy",
+      showButtonPanel: true,
+      yearRange: "c-100:c+100"
     });
 
     $( ".date-icon").click(function(){
