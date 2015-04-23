@@ -69,6 +69,8 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
       insertDropzoneDiv(pSerialiser, lFieldId);
     }
 
+    pSerialiser.append("<div class=\"fileUploadInputContainer\">");
+
     //TODO PN need to handle all attributes (like generic template vars for other widgets) e.g. tightField, fieldClass, etc
     pSerialiser.append("<label class=\"fileUploadLink\" for=\"file" + lFieldId + "\">" + pEvalNode.getUploadChoosePrompt() + "</label>");
 
@@ -76,6 +78,8 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
       pSerialiser.append("<input type=\"file\" " + (pEvalNode.getMaxFilesAllowed() > 1 ? "multiple" : "") + " name=\"file" + lFieldId + "\" " +
         "class=\"uploadControl fileUploadInput\" aria-label=\"" + pEvalNode.getPrompt().getString() + ": " + pEvalNode.getUploadChoosePrompt() +"\">");
     }
+
+    pSerialiser.append("</div>");
 
     List<UploadedFileInfo> lFileInfoList = pEvalNode.getUploadedFileInfoList();
     //Make the JSON array null if no files have been uploaded
