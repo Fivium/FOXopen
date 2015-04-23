@@ -476,6 +476,9 @@ FileInfo.prototype = {
         return false;
       });
     }
+    else if (this.owner.widgetOptions.readOnly) {
+      this.container.addClass("readonly");
+    }
   },
 
   displayDownloadUrl: function() {
