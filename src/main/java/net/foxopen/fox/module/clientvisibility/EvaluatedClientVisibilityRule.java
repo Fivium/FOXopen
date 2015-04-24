@@ -8,12 +8,13 @@ import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.ex.ExCardinality;
 import net.foxopen.fox.ex.ExInternal;
-import net.foxopen.fox.module.fieldset.FieldSet;
-import net.foxopen.fox.module.fieldset.fieldmgr.FieldMgr;
-import net.foxopen.fox.module.fieldset.fieldmgr.OptionFieldMgr;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfo;
 import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.datanode.NodeVisibility;
+import net.foxopen.fox.module.fieldset.FieldSet;
+import net.foxopen.fox.module.fieldset.fieldmgr.FieldMgr;
+import net.foxopen.fox.module.fieldset.fieldmgr.OptionFieldMgr;
+import net.foxopen.fox.module.fieldset.fieldmgr.RadioGroupValueFieldMgr;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -368,6 +369,11 @@ public class EvaluatedClientVisibilityRule {
             "Fields targeted in rules must be displayed on the screen.");
       }
 
+      //If it's a radio group, get the wrapped FieldMgr
+      if(lFieldMgr instanceof RadioGroupValueFieldMgr) {
+        lFieldMgr = ((RadioGroupValueFieldMgr) lFieldMgr).getWrappedFieldMgr();
+      }
+
       //Assert that we are targeting a supported widget type
       if(!(lFieldMgr instanceof OptionFieldMgr)) {
         throw new ExInternal("Client visibility rule " + mRuleName + ", XPath " + mTriggerXPath + ":\n" +
@@ -382,7 +388,16 @@ public class EvaluatedClientVisibilityRule {
     public JSONObject getJSON(FieldSet pFieldSet) {
 
       //Already checked type is OK
-      OptionFieldMgr lFieldMgr = (OptionFieldMgr) pFieldSet.getFieldMgrForFoxIdOrNull(mTriggerDOM.getRef());
+      FieldMgr lUncastFieldMgr = pFieldSet.getFieldMgrForFoxIdOrNull(mTriggerDOM.getRef());
+      OptionFieldMgr lFieldMgr;
+
+      //If the trigger is a radio group, get the wrapped FieldMgr
+      if(lUncastFieldMgr instanceof RadioGroupValueFieldMgr) {
+        lFieldMgr = (OptionFieldMgr) ((RadioGroupValueFieldMgr) lUncastFieldMgr).getWrappedFieldMgr();
+      }
+      else {
+        lFieldMgr = (OptionFieldMgr) lUncastFieldMgr;
+      }
 
       JSONObject lResultJSON = new JSONObject();
       lResultJSON.put(JSON_OPERATION_TYPE_NAME, JSON_OPERATION_TYPE_TEST);
@@ -413,8 +428,16 @@ public class EvaluatedClientVisibilityRule {
         lTestExternalValue = lFieldMgr.getExternalValueForNullSelection();
       }
 
+      String lTestExternalName;
+      if(lUncastFieldMgr instanceof RadioGroupValueFieldMgr) {
+        lTestExternalName = ((RadioGroupValueFieldMgr) lUncastFieldMgr).getExternalFieldName();
+      }
+      else {
+        lTestExternalName = lFieldMgr.getExternalFieldName();
+      }
+
       lResultJSON.put(JSON_OPERATION_TRIGGER_VALUE_NAME, lTestExternalValue);
-      lResultJSON.put(JSON_OPERATION_TRIGGER_NAME_NAME, lFieldMgr.getExternalFieldName());
+      lResultJSON.put(JSON_OPERATION_TRIGGER_NAME_NAME, lTestExternalName);
       lResultJSON.put(JSON_OPERATION_TEST_TYPE_NAME, JSON_OPERATION_TEST_TYPE_WIDGET);
       lResultJSON.put(JSON_INVERT_CONDITION_NAME, lInvert);
 
