@@ -49,6 +49,7 @@ label {
 
 .input-error .fieldDescription {
   margin-top: 0.55em;
+  margin-left: 0.3em;
 }
 
 .setoutForm {
@@ -221,9 +222,15 @@ textarea.tight-field,
   width: auto;
 }
 
-input[type='radio'], input[type='checkbox'] {
+input[type='radio'],
+input[type='checkbox'] {
   margin: 0 0.6em 0 0;
   border: none;
+}
+
+.button-option-label input[type='radio'],
+.button-option-label input[type='checkbox'] {
+  display: none;
 }
 
 .input-group {
@@ -436,10 +443,10 @@ button[disabled].primary-button,
   box-shadow: none;
   background: #8AAFC4;
   border-color: #7FA8B2;
+  color: #fff;
 }
 
 /* Positive action buttons */
-/* Use these for actions that positively affect the state of the data (eg save) */
 button.positive-button,
 a.positive-button,
 .positive-button {
@@ -472,7 +479,6 @@ button[disabled].positive-button,
 }
 
 /* Dangerous action buttons */
-/* Use these for actions that may be dangerous (eg delete) */
 button.danger-button,
 a.danger-button,
 .danger-button {
