@@ -45,4 +45,8 @@ extends DataFieldMgr {
   public String getSingleTextValue() {
     return mWrappedFieldMgr.getSingleTextValue();
   }
+
+  public FieldMgr getWrappedFieldMgr() {
+    return mWrappedFieldMgr;
+  }
 }
