@@ -208,7 +208,7 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
         lJSONEntry.put("level", lLevel);
       }
       // Add suggestion text or default to the key
-      if (XFUtil.isNull(lSuggestion)) {
+      if (!XFUtil.isNull(lSuggestion)) {
         lJSONEntry.put("suggestion", StringEscapeUtils.escapeHtml4(lSuggestion.replaceAll("%IMAGE_BASE%", pBaseURL)));
       }
       // If it was selected add that entry
