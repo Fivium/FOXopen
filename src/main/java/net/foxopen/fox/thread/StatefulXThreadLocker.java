@@ -6,7 +6,9 @@ import net.foxopen.fox.database.UConStatementResult;
 import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.ex.ExDB;
 import net.foxopen.fox.ex.ExDBTimeout;
+import net.foxopen.fox.ex.ExDBTooFew;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.ex.ExInvalidThreadId;
 import net.foxopen.fox.ex.ExServiceUnavailable;
 import net.foxopen.fox.sql.SQLManager;
 
@@ -22,7 +24,8 @@ class StatefulXThreadLocker {
   private static final String SELECT_THREAD_FOR_UPDATE_FILENAME = "SelectThreadForUpdate.sql";
   private static final String SWITCH_LOCK_THREAD_FILENAME = "ThreadLockSwitcher.sql";
 
-  static String acquireLock(RequestContext pRequestContext, String pThreadId){
+  static String acquireLock(RequestContext pRequestContext, String pThreadId)
+  throws ExInvalidThreadId {
 
     UCon lUCon = pRequestContext.getContextUCon().getUCon("Lock Thread " + pThreadId);
     try {
@@ -40,6 +43,10 @@ class StatefulXThreadLocker {
         }
         catch (ExDBTimeout e) {
           lRowLocked = true;
+        }
+        catch (ExDBTooFew e) {
+          //No rows indicates that the thread ID is not valid
+          throw new ExInvalidThreadId("Thread ID " + pThreadId + " not found on database", e);
         }
         catch (ExDB e) {
           throw new ExInternal("Unexpected error acquiring thread lock", e);
