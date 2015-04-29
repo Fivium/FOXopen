@@ -508,6 +508,7 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     Track.pushInfo("ThreadExternalResume");
     try {
       if(mThreadPropertyMap.getBooleanProperty(ThreadProperty.Type.IS_SKIP_FOX_SESSION_CHECK)) {
+        Track.info("SkipFoxSessionCheck", "Skipping Fox session check as thread property is set");
         //Skip the session check for the initial entry and force the thread to have the latest session id
         setBooleanThreadProperty(ThreadProperty.Type.IS_SKIP_FOX_SESSION_CHECK, false);
         //Force a new session ID, in case the sent cookie (if any) has a stale value (this guarantees referential integrity on the database)
