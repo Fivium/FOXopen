@@ -2,6 +2,7 @@ package net.foxopen.fox.thread;
 
 import net.foxopen.fox.ContextUCon;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.ex.ExInvalidThreadId;
 import net.foxopen.fox.track.Track;
 
 /**
@@ -20,7 +21,10 @@ import net.foxopen.fox.track.Track;
  * committed when the thread is locked/unlocked, you need to use the dedicated connection behaviour. The main connection is always
  * committed after running the action.<br><br>
  *
- * The "action" may return an arbitrary object if the consumer requires this. Generics should be used to ensure type safety.
+ * The "action" may return an arbitrary object if the consumer requires this. Generics should be used to ensure type safety.<br><br>
+ *
+ * Note: the thread ID is only validated when an action is run. If there is the possibility that the lock manager will be
+ * given an invalid/stale thread ID, consumers should catch {@link ExInvalidThreadId} exceptions from the run methods.
  *
  * @param <T> Object type to be returned from an action, if required.
  */
@@ -44,7 +48,8 @@ public class ThreadLockManager<T> {
     mLockingBehaviour = pLockWithDedicatedConnection ? new DedicatedConnectionLockingBehaviour() : new SharedConnectionLockingBehaviour();
   }
 
-  public void lockRampAndRun(RequestContext pRequestContext, final String pTrackActionType, final RampedThreadRunnable pRampedThreadRunnable) {
+  public void lockRampAndRun(RequestContext pRequestContext, final String pTrackActionType, final RampedThreadRunnable pRampedThreadRunnable)
+  throws ExInvalidThreadId {
     lockAndPerformAction(pRequestContext, new LockedThreadRunnable<T>() {
       @Override
       public T doWhenLocked(RequestContext pRequestContext, StatefulXThread pXThread) {
@@ -54,7 +59,8 @@ public class ThreadLockManager<T> {
     });
   }
 
-  public T lockRampAndRun(RequestContext pRequestContext, final String pTrackActionType, final RampedThreadRunnable pRampedThreadRunnable, final ThreadActionResultGenerator<? extends T> pActionResultGenerator) {
+  public T lockRampAndRun(RequestContext pRequestContext, final String pTrackActionType, final RampedThreadRunnable pRampedThreadRunnable, final ThreadActionResultGenerator<? extends T> pActionResultGenerator)
+  throws ExInvalidThreadId {
     return lockAndPerformAction(pRequestContext, new LockedThreadRunnable<T>() {
       @Override
       public T doWhenLocked(RequestContext pRequestContext, StatefulXThread pXThread) {
@@ -74,8 +80,10 @@ public class ThreadLockManager<T> {
    * @param pRequestContext Current RequestContext.
    * @param pLockedThreadRunnable Action to run on the locked thread.
    * @return An arbitrary object of the desired return type, as returned from the LockedThreadRunnable. This may be null.
+   * @throws ExInvalidThreadId If the thread ID given to this ThreadLockManager is not a valid ID.
    */
-  public T lockAndPerformAction(RequestContext pRequestContext, LockedThreadRunnable<? extends T> pLockedThreadRunnable) {
+  public T lockAndPerformAction(RequestContext pRequestContext, LockedThreadRunnable<? extends T> pLockedThreadRunnable)
+  throws ExInvalidThreadId {
 
     ContextUCon lContextUCon = pRequestContext.getContextUCon();
 
@@ -96,6 +104,11 @@ public class ThreadLockManager<T> {
 
       //Now release the thread - this will COMMIT for SharedConnection locking behaviour
       mLockingBehaviour.unlockThread(pRequestContext, lXThread);
+    }
+    catch (ExInvalidThreadId e) {
+      //Explicit re-throw of invalid thread ID exception (doesn't need to purge thread etc because no thread exists)
+      lContextUCon.rollbackAndCloseAll(true);
+      throw e;
     }
     catch (Throwable th) {
       //On any error, rollback contents of all connections, including main connection and release back to pool
@@ -144,13 +157,13 @@ public class ThreadLockManager<T> {
 
   /** How to manage connections when locking/unlocking a thread */
   private interface LockingBehaviour {
-    StatefulXThread lockXThread(RequestContext pRequestContext);
+    StatefulXThread lockXThread(RequestContext pRequestContext) throws ExInvalidThreadId;
     void unlockThread(RequestContext pRequestContext, StatefulXThread pXThread);
   }
 
   private class SharedConnectionLockingBehaviour implements LockingBehaviour {
     @Override
-    public StatefulXThread lockXThread(RequestContext pRequestContext) {
+    public StatefulXThread lockXThread(RequestContext pRequestContext) throws ExInvalidThreadId {
       //Get the and lock the thread - THIS ISSUES A COMMIT
       return StatefulXThread.getAndLockXThread(pRequestContext, mThreadId);
     }
@@ -163,8 +176,7 @@ public class ThreadLockManager<T> {
   }
 
   private class DedicatedConnectionLockingBehaviour implements LockingBehaviour {
-    public StatefulXThread lockXThread(RequestContext pRequestContext) {
-
+    public StatefulXThread lockXThread(RequestContext pRequestContext) throws ExInvalidThreadId {
       pRequestContext.getContextUCon().pushConnection("LOCK_THREAD");
       try {
         //Get the and lock the thread - THIS ISSUES A COMMIT

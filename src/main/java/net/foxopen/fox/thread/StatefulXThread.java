@@ -26,6 +26,7 @@ import net.foxopen.fox.entrypoint.servlets.FoxMainServlet;
 import net.foxopen.fox.entrypoint.uri.RequestURIBuilder;
 import net.foxopen.fox.ex.ExAlreadyHandled;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.ex.ExInvalidThreadId;
 import net.foxopen.fox.ex.ExUserRequest;
 import net.foxopen.fox.logging.ErrorLogger;
 import net.foxopen.fox.module.ActionDefinition;
@@ -122,7 +123,8 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
    * @param pThreadId
    * @return
    */
-  static StatefulXThread getAndLockXThread(RequestContext pRequestContext, String pThreadId) {
+  static StatefulXThread getAndLockXThread(RequestContext pRequestContext, String pThreadId)
+  throws ExInvalidThreadId {
     //Lock the thread symbolically before doing anything else
     String lDbChangeNumber;
     Track.pushInfo("LockThread", pThreadId, TrackTimer.THREAD_LOCK);
@@ -506,8 +508,12 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     Track.pushInfo("ThreadExternalResume");
     try {
       if(mThreadPropertyMap.getBooleanProperty(ThreadProperty.Type.IS_SKIP_FOX_SESSION_CHECK)) {
+        Track.info("SkipFoxSessionCheck", "Skipping Fox session check as thread property is set");
         //Skip the session check for the initial entry and force the thread to have the latest session id
         setBooleanThreadProperty(ThreadProperty.Type.IS_SKIP_FOX_SESSION_CHECK, false);
+        //Force a new session ID, in case the sent cookie (if any) has a stale value (this guarantees referential integrity on the database)
+        pRequestContext.getFoxSession().forceNewFoxSessionID(pRequestContext, mAuthenticationContext.getSessionId());
+        //Record new session ID on this thread
         setFoxSessionID(pRequestContext.getFoxSession().getSessionId());
       }
       else {

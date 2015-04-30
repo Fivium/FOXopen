@@ -740,12 +740,12 @@ public class App {
       throw new ExInternal("Failed to locate timeout module for App '" + mAppMnem + "'");
     }
 
-    Mod lTimeoutMod = null;
+    Mod lTimeoutMod;
     try{
       lTimeoutMod = getMod(mTimeoutModuleName);
     }
     catch (Throwable e){
-      throw new ExInternal("Failed to parse timeout module for App '" + mAppMnem + "' (module name = '" + mTimeoutModuleName +  "')");
+      throw new ExInternal("Failed to parse timeout module for App '" + mAppMnem + "' (module name = '" + mTimeoutModuleName +  "')", e);
     }
     return lTimeoutMod;
   }

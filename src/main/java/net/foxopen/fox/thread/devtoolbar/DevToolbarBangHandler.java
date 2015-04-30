@@ -42,20 +42,15 @@ implements BangHandler {
     }
 
     String lThreadId = XFUtil.nvl(pFoxRequest.getHttpRequest().getParameter("thread_id")).trim();
-    try {
-      ThreadLockManager<FoxResponse> lLockManager = new ThreadLockManager<>(lThreadId, CONNECTION_NAME, false);
+    ThreadLockManager<FoxResponse> lLockManager = new ThreadLockManager<>(lThreadId, CONNECTION_NAME, false);
 
-      //Lock the thread and delegate to subclasses to get a response
-      return lLockManager.lockAndPerformAction(lRequestContext, new ThreadLockManager.LockedThreadRunnable<FoxResponse>() {
-        @Override
-        public FoxResponse doWhenLocked(RequestContext pRequestContext, StatefulXThread pXThread) {
-          return getResponseInternal(lRequestContext, pXThread);
-        }
-      });
-    }
-    finally {
-      lRequestContext.getContextUCon().popConnection(CONNECTION_NAME);
-    }
+    //Lock the thread and delegate to subclasses to get a response
+    return lLockManager.lockAndPerformAction(lRequestContext, new ThreadLockManager.LockedThreadRunnable<FoxResponse>() {
+      @Override
+      public FoxResponse doWhenLocked(RequestContext pRequestContext, StatefulXThread pXThread) {
+        return getResponseInternal(lRequestContext, pXThread);
+      }
+    });
   }
 
   @Override

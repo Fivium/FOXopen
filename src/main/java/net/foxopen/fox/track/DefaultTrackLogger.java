@@ -281,8 +281,8 @@ implements TrackLogger {
   }
 
   @Override
-  public void recordSuppressedException(String pDescription, Throwable pSuppressedException) {
-    ErrorLogger.instance().logError(pSuppressedException, ErrorLogger.ErrorType.SUPPRESSED, getRequestId(), pDescription);
+  public void recordException(String pDescription, ErrorLogger.ErrorType pErrorType, Throwable pSuppressedException) {
+    ErrorLogger.instance().logError(pSuppressedException, pErrorType, getRequestId(), pDescription);
   }
 
   @Override

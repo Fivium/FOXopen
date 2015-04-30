@@ -20,9 +20,13 @@ public class ErrorLogger {
 
   private static final String INSERT_LOG_FILENAME = "InsertErrorLog.sql";
 
-  public static enum ErrorType {
+  public enum ErrorType {
+    /** Serious errors which have resulted in an error page. */
     FATAL,
-    SUPPRESSED;
+    /** Errors which have occurred during error handling and are being suppressed to allow the original exception to propogate. */
+    SUPPRESSED,
+    /** Errors which may represent a problem, which have been handled by redirecting the user to avoid displaying an error page. */
+    REDIRECTED;
   }
 
   private static final ErrorLogger INSTANCE = new ErrorLogger();

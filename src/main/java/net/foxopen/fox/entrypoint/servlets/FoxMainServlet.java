@@ -18,6 +18,7 @@ import net.foxopen.fox.entrypoint.uri.RequestURIBuilder;
 import net.foxopen.fox.entrypoint.ws.PathParamTemplate;
 import net.foxopen.fox.ex.ExApp;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.ex.ExInvalidThreadId;
 import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.ex.ExServiceUnavailable;
 import net.foxopen.fox.ex.ExSessionTimeout;
@@ -167,55 +168,72 @@ extends EntryPointServlet {
     Track.setProperty(TrackProperty.THREAD_ID, pThreadId);
 
     ThreadLockManager<FoxResponse> lThreadLockManager = new ThreadLockManager<>(pThreadId, MAIN_CONNECTION_NAME, false);
-    return lThreadLockManager.lockAndPerformAction(pRequestContext, new ThreadLockManager.LockedThreadRunnable<FoxResponse>() {
-      @Override
-      public FoxResponse doWhenLocked(RequestContext pRequestContext, StatefulXThread pXThread) {
+    try {
+      return lThreadLockManager.lockAndPerformAction(pRequestContext, new ThreadLockManager.LockedThreadRunnable<FoxResponse>() {
+        @Override
+        public FoxResponse doWhenLocked(RequestContext pRequestContext, StatefulXThread pXThread) {
 
-        FoxResponse lFoxResponse;
-        try {
-          //Check the database WUS for the thread is still valid
-          AuthenticationResult lAuthResult;
-          Track.pushInfo("RequestAuthentication");
+          FoxResponse lFoxResponse;
           try {
-            AuthenticationContext lAuthContext = pXThread.getAuthenticationContext();
-            lAuthResult = lAuthContext.verifySession(pRequestContext, pClientInfo, "TODO thread last module");
-          }
-          finally {
-            Track.pop("RequestAuthentication");
-          }
+            //Check the database WUS for the thread is still valid
+            AuthenticationResult lAuthResult;
+            Track.pushInfo("RequestAuthentication");
+            try {
+              AuthenticationContext lAuthContext = pXThread.getAuthenticationContext();
+              lAuthResult = lAuthContext.verifySession(pRequestContext, pClientInfo, "TODO thread last module");
+            }
+            finally {
+              Track.pop("RequestAuthentication");
+            }
 
-          //TODO - if thread has 0 state calls, interpret as a timeout and redirect to timeout screen (so UX is improved when user exits, hits back and tries another action)
+            //TODO - if thread has 0 state calls, interpret as a timeout and redirect to timeout screen (so UX is improved when user exits, hits back and tries another action)
 
-          if(lAuthResult.getCode() != AuthenticationResult.Code.VALID && lAuthResult.getCode() != AuthenticationResult.Code.GUEST){
+            if(lAuthResult.getCode() != AuthenticationResult.Code.VALID && lAuthResult.getCode() != AuthenticationResult.Code.GUEST){
 
-            //TODO disallow guest access for auth required modules
-            App lCurrentApp = FoxGlobals.getInstance().getFoxEnvironment().getAppByMnem(pXThread.getThreadAppMnem(), true);
+              //TODO disallow guest access for auth required modules
+              App lCurrentApp = FoxGlobals.getInstance().getFoxEnvironment().getAppByMnem(pXThread.getThreadAppMnem(), true);
 
-            Track.info("SessionInvalid", "Session is no longer valid (" + lAuthResult.getCode().toString() + "); handling timeout");
+              Track.info("SessionInvalid", "Session is no longer valid (" + lAuthResult.getCode().toString() + "); handling timeout");
 
-            lFoxResponse = handleTimeout(pRequestContext, lCurrentApp);
-          }
-          else {
-            FoxRequest lFoxRequest = pRequestContext.getFoxRequest();
-            if(RESUME_PARAM_TRUE_VALUE.equals(lFoxRequest.getParameter(RESUME_PARAM_NAME))) {
-              //If this is an external resume, do not attempt to process an action
-              lFoxResponse = pXThread.processExternalResume(pRequestContext);
+              lFoxResponse = handleTimeout(pRequestContext, lCurrentApp);
             }
             else {
-              //Not an external resume so must be an action request (i.e. form churn) - process the action
-              String lActionName = lFoxRequest.getParameter("action_name");
-              String lContextRef = lFoxRequest.getParameter("context_ref");
-              lFoxResponse = pXThread.processAction(pRequestContext, lActionName, lContextRef, lFoxRequest.getHttpRequest().getParameterMap());
+              FoxRequest lFoxRequest = pRequestContext.getFoxRequest();
+              if(RESUME_PARAM_TRUE_VALUE.equals(lFoxRequest.getParameter(RESUME_PARAM_NAME))) {
+                //If this is an external resume, do not attempt to process an action
+                lFoxResponse = pXThread.processExternalResume(pRequestContext);
+              }
+              else {
+                //Not an external resume so must be an action request (i.e. form churn) - process the action
+                String lActionName = lFoxRequest.getParameter("action_name");
+                String lContextRef = lFoxRequest.getParameter("context_ref");
+                lFoxResponse = pXThread.processAction(pRequestContext, lActionName, lContextRef, lFoxRequest.getHttpRequest().getParameterMap());
+              }
             }
           }
-        }
-        catch (ExServiceUnavailable | ExApp | ExUserRequest e) {
-          throw new ExInternal("Failed to resume thread", e);
-        }
+          catch (ExServiceUnavailable | ExApp | ExUserRequest e) {
+            throw new ExInternal("Failed to resume thread", e);
+          }
 
-        return lFoxResponse;
-      }
-    });
+          return lFoxResponse;
+        }
+      });
+    }
+    catch (ExInvalidThreadId e) {
+      Track.recordRedirectedException("Thread Resume Invalid Thread Id", e);
+      //Thread ID is invalid, probably because the user has posted a form with a very old ID in it
+      //Connection will have been closed by the thread lock manager, so we need a new one to handle the timeout at this point
+      ContextUCon lContextUCon = pRequestContext.getContextUCon();
+      lContextUCon.pushConnection(MAIN_CONNECTION_NAME);
+
+      //Move the session ID along in case it's stale
+      pRequestContext.getFoxSession().forceNewFoxSessionID(pRequestContext, "");
+      FoxResponse lFoxResponse = handleTimeout(pRequestContext, pRequestContext.getRequestApp());
+      lContextUCon.commit(MAIN_CONNECTION_NAME);
+
+      //Connection pop will be done by EntryPointServlet
+      return lFoxResponse;
+    }
   }
 
   private EntryTheme establishEntryThemeFromRequest(HttpServletRequest pRequest) {
@@ -280,7 +298,7 @@ extends EntryPointServlet {
         else {
           // If the module they're trying has guest access, re-try with a fresh FOX Session
           Track.info("SessionTimeout", "Session timed out but auth not required; creating new FOX session");
-          pRequestContext.forceNewFoxSession(CookieBasedFoxSession.createNewSession(pRequestContext, false, null));
+          forceNewFoxSession(pRequestContext);
 
           lAuthContext = lEntryTheme.getAuthType().processBeforeEntry(pRequestContext);
           lAuthResult = lAuthContext.verifySession(pRequestContext, pClientInfo, "(direct entry)");
@@ -315,7 +333,7 @@ extends EntryPointServlet {
     catch (ExSessionTimeout e) {
       // Force a new FOX Session on response so subsequent requests don't have the same problem
       Track.info("SessionTimeout", "Forcing new session and handling timeout");
-      pRequestContext.forceNewFoxSession(CookieBasedFoxSession.createNewSession(pRequestContext, false, null));
+      forceNewFoxSession(pRequestContext);
 
       lFoxResponse = handleTimeout(pRequestContext, lApp);
     }
@@ -324,11 +342,20 @@ extends EntryPointServlet {
   }
 
   /**
-   * Create a new thread for the timeout module from an existing CallThreadInfo
+   * Forces a new FoxSession <i>on the RequestContext</i>. This will NOT attempt to move the session ID along. This should
+   * be used to obliterate an invalid session without having to create a new RequestContext.
+   * @param pRequestContext RequestContext to modify.
+   */
+  private void forceNewFoxSession(RequestContext pRequestContext) {
+    pRequestContext.forceNewFoxSession(CookieBasedFoxSession.createNewSession(pRequestContext, false, null));
+  }
+
+  /**
+   * Create a new thread, with the given app's timeout module as the entry point.
    *
-   * @param pCurrentCallThreadInfo The current thread info that timed out
+   * @param pRequestContext Current RequestContext.
    * @param pRequestApp The current App, to get the timeout module from
-   * @return new CallThreadInfo to override current CallThreadInfo or merge in
+   * @return FoxResponse from the timeout module's entry theme.
    * @throws ExUserRequest Thrown if it fails to get the timeout module
    */
   private FoxResponse handleTimeout(RequestContext pRequestContext, App pRequestApp) throws ExUserRequest {

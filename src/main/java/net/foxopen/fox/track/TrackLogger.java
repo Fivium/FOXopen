@@ -1,6 +1,7 @@
 package net.foxopen.fox.track;
 
 import net.foxopen.fox.ex.TrackableException;
+import net.foxopen.fox.logging.ErrorLogger;
 
 import java.util.Collection;
 import java.util.Date;
@@ -46,7 +47,7 @@ public interface TrackLogger {
 
   public void addAttribute(String pAttrName, String pAttrValue);
 
-  public void recordSuppressedException(String pDescription, Throwable pSuppressedException);
+  public void recordException(String pDescription, ErrorLogger.ErrorType pErrorType, Throwable pSuppressedException);
 
   public void recordException(TrackableException pException);
 

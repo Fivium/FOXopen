@@ -1,6 +1,7 @@
 package net.foxopen.fox.track;
 
 import net.foxopen.fox.ex.TrackableException;
+import net.foxopen.fox.logging.ErrorLogger;
 
 
 public final class Track {
@@ -208,8 +209,22 @@ public final class Track {
     gTrackLogger.get().addAttribute(pAttrName, pAttrValue);
   }
 
+  /**
+   * Records an exception which has occurred during exception handling and should be logged but not allowed to propagate.
+   * @param pDescription Brief text describing where this error was encountered.
+   * @param pSuppressedError Error to log.
+   */
   public static void recordSuppressedException(String pDescription, Throwable pSuppressedError){
-    gTrackLogger.get().recordSuppressedException(pDescription, pSuppressedError);
+    gTrackLogger.get().recordException(pDescription, ErrorLogger.ErrorType.SUPPRESSED, pSuppressedError);
+  }
+
+  /**
+   * Records an exception which is potentially serious but where the user has been redirected to a valid page, instead of being shown an error page.
+   * @param pDescription Brief text describing where this error was encountered.
+   * @param pRedirectedError Error to log.
+   */
+  public static void recordRedirectedException(String pDescription, Throwable pRedirectedError){
+    gTrackLogger.get().recordException(pDescription, ErrorLogger.ErrorType.REDIRECTED, pRedirectedError);
   }
 
   public static void recordException(TrackableException pException){
