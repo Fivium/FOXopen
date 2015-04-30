@@ -46,6 +46,7 @@ extends EntryPointServlet {
 
   private static final String FORWARD_SLASH_SUBSTITUTE = "$fs$";
   private static final String BACK_SLASH_SUBSTITUTE = "$bs$";
+  private static final String SEMICOLON_SUBSTITUTE = "$sc$";
   /**
    * Generates a URI path suffix for a combined image URL. This should be appended to this servlet's servlet path.
    * @param pAppMnem App which the images will be read from.
@@ -55,9 +56,10 @@ extends EntryPointServlet {
   public static String generateImageCombinatorURISuffix(String pAppMnem, String pImageList) {
     Map<String, String> lParamMap = new HashMap<>(2);
     lParamMap.put(APP_MNEM_PARAM, pAppMnem);
-    //We cannot have encoded slashes as part of the URI due to Apache config; replace into placeholders
+    //We cannot have encoded slashes or semicolons as part of the URI due to Apache config; replace into placeholders
     pImageList = pImageList.replace("/", FORWARD_SLASH_SUBSTITUTE);
     pImageList = pImageList.replace("\\", BACK_SLASH_SUBSTITUTE);
+    pImageList = pImageList.replace(";", SEMICOLON_SUBSTITUTE);
 
     //Trim out spaces as these aren't handled properly when part of the URI (i.e. "+" is not interpreted as a space)
     pImageList = pImageList.replace(" " , "");
@@ -167,9 +169,10 @@ extends EntryPointServlet {
       throw e.toUnexpected();
     }
 
-    //Replace slashes back in (encoded slashes aren't allowed in URIs by apache)
+    //Replace escaped characters back in (these characters aren't allowed in URIs by apache)
     lImageList = lImageList.replace(FORWARD_SLASH_SUBSTITUTE, "/");
     lImageList = lImageList.replace(BACK_SLASH_SUBSTITUTE, "\\");
+    lImageList = lImageList.replace(SEMICOLON_SUBSTITUTE, ";");
 
     //Resolve image names to components (split and trim image names based on semicolon)
     List<ComponentImage> lComponentImages = new ArrayList<>();
