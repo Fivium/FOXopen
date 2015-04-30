@@ -54,19 +54,25 @@ import java.util.Collections;
 public class ContextSetCommand
 extends BuiltInCommand {
 
+  static final String SCOPE_STATE = "state";
+  static final String SCOPE_LOCALISED = "localised";
+
   private final String mScope;
   private final String mName;
-  private final String mXPATH;
+  private final String mXPath;
 
-  /** Contructs the command from the XML element specified */
+  /** Constructs the command from the XML element specified */
   private ContextSetCommand(DOM pCmdDOM)
   throws ExDoSyntax {
     super(pCmdDOM);
     mScope = pCmdDOM.getAttr("scope");
     mName = pCmdDOM.getAttr("name");
-    mXPATH = pCmdDOM.getAttr("xpath");
-    if(XFUtil.isNull(mScope) || XFUtil.isNull(mName) || XFUtil.isNull(mXPATH)) {
+    mXPath = pCmdDOM.getAttr("xpath");
+    if(XFUtil.isNull(mScope) || XFUtil.isNull(mName) || XFUtil.isNull(mXPath)) {
       throw new ExDoSyntax("context-set: missing attrs: scope, name or xpath");
+    }
+    else if(!mScope.equals(SCOPE_STATE) && !mScope.equals(SCOPE_LOCALISED)) {
+      throw new ExDoSyntax("context-set: scope must be 'state' or 'localised'");
     }
   }
 
@@ -75,11 +81,8 @@ extends BuiltInCommand {
 
     ContextUElem lContextUElem = pRequestContext.getContextUElem();
 
-    //Check not localise - will not set the state level context correctly YET - TODO PN XTHREAD improve this FOXRD-439
-    if(lContextUElem.isLocalised() && "state".equals(mScope)) {
-      throw new ExInternal("context-set: scope='state' (consider localised) not permitted when inside: fm:context-localise; fm:for-each (localised purpose: " + lContextUElem.getLocalisedPurpose() + ")");
-    }
-    else if(!lContextUElem.isLocalised() && "localised".equals(mScope)) {
+    //Cannot set a localised label when ContextUElem is not localised
+    if(!lContextUElem.isLocalised() && SCOPE_LOCALISED.equals(mScope)) {
       throw new ExInternal("context-set: scope='localised' (consider state) not permitted when not inside: fm:context-localise; fm:for-each");
     }
 
@@ -97,24 +100,28 @@ extends BuiltInCommand {
 
     if(ContextUElem.ATTACH.equals(lName)) {
       //Special handling for attach point as it requires scroll position to be reset (legacy behaviour)
-      pRequestContext.changeAttachPoint(mXPATH);
+      pRequestContext.changeAttachPoint(mXPath);
     }
     else {
       //Set a state label
       DOM lDOM;
       try {
-        lDOM = lContextUElem.extendedXPath1E(mXPATH);
+        lDOM = lContextUElem.extendedXPath1E(mXPath);
       }
-      catch (ExActionFailed e) {
-        throw new ExInternal("context-set: Error getting context element location: "+mXPATH, e);
-      }
-      catch (ExCardinality e) {
-        throw new ExInternal("context-set: Error getting context element location: "+mXPATH, e);
+      catch (ExActionFailed | ExCardinality  e) {
+        throw new ExInternal("context-set: Error getting context element location: "+ mXPath, e);
       }
 
-      Track.info("ContextSet", "Setting :{" + lName + "} to node with ID " + lDOM.getFoxId() + " at path " + lDOM.absolute());
+      boolean lLocalised = SCOPE_LOCALISED.equals(mScope);
 
-      lContextUElem.setUElem(lName, ContextualityLevel.STATE, lDOM);
+      Track.info("ContextSet", "Setting :{" + lName + "} to node with ID " + lDOM.getFoxId() + " at path " + lDOM.absolute() + (lLocalised ? " (local)" : " (global)"));
+
+      if(lLocalised) {
+        lContextUElem.setUElem(lName, ContextualityLevel.LOCALISED, lDOM);
+      }
+      else {
+        lContextUElem.setUElemGlobal(lName, ContextualityLevel.STATE, lDOM);
+      }
     }
 
     return XDoControlFlowContinue.instance();

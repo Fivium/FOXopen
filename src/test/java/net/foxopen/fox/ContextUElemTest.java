@@ -65,6 +65,7 @@ import java.util.LinkedHashSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 
@@ -452,7 +453,7 @@ public class ContextUElemTest {
     contextualityLevelTest("3.14",  ContextualityLevel.CONSTANT);
     contextualityLevelTest("5",  ContextualityLevel.CONSTANT);
     contextualityLevelTest("-3",  ContextualityLevel.CONSTANT);
-    contextualityLevelTest("+223.34",  ContextualityLevel.CONSTANT);
+    contextualityLevelTest("+223.34", ContextualityLevel.CONSTANT);
   }
 
   @Test
@@ -854,6 +855,59 @@ public class ContextUElemTest {
     assertEquals("Action context is reset after localise", "SEARCH_CRITERIA", mContextUElem.getUElem("action").getName());
     assertEquals("Action context contextuality level is reset after localise",  ContextualityLevel.STATE, mContextUElem.getLabelContextualityLevel("action"));
     assertFalse("ContextUElem is not localised", mContextUElem.isLocalised());
+  }
+
+  @Test
+  public void testContextLocalise_GlobalSet(){
+    mContextUElem.defineUElem(ContextLabel.ACTION, mRootDOM.get1EOrNull("/*/SEARCH_CRITERIA"));
+    assertEquals("Action context is as expected before localise", "SEARCH_CRITERIA", mContextUElem.getUElem("action").getName());
+    assertEquals("Action context contextuality level is as expected before localise",  ContextualityLevel.STATE, mContextUElem.getLabelContextualityLevel("action"));
+    assertFalse("ContextUElem is not localised", mContextUElem.isLocalised());
+
+    mContextUElem.localise("test");
+    assertEquals("Action context is the same immediately after localise", "SEARCH_CRITERIA", mContextUElem.getUElem("action").getName());
+    assertTrue("ContextUElem is now localised", mContextUElem.isLocalised());
+
+    mContextUElem.setUElemGlobal(ContextLabel.ACTION.asString(), ContextualityLevel.LOCALISED, mThemeDOM.get1EOrNull("/*/CONFIG"));
+    assertEquals("Action context is correctly changed", "CONFIG", mContextUElem.getUElem("action").getName());
+    assertEquals("Action context contextuality level is correctly changed",  ContextualityLevel.LOCALISED, mContextUElem.getLabelContextualityLevel("action"));
+
+
+    mContextUElem.delocalise("test");
+    assertEquals("Action context remains the same after delocalise", "CONFIG", mContextUElem.getUElem("action").getName());
+    assertEquals("Action contextuality level remains the same after delocalise",  ContextualityLevel.LOCALISED, mContextUElem.getLabelContextualityLevel("action"));
+    assertFalse("ContextUElem is not localised", mContextUElem.isLocalised());
+  }
+
+  @Test
+  public void testContextLocalise_clearLabel(){
+    mContextUElem.setUElem("myLabel", ContextualityLevel.STATE, mRootDOM.get1EOrNull("/*/SEARCH_CRITERIA"));
+    assertEquals("myLabel context is as expected before localise", "SEARCH_CRITERIA", mContextUElem.getUElem("myLabel").getName());
+
+    mContextUElem.localise("test");
+    assertEquals("myLabel context is the same immediately after localise", "SEARCH_CRITERIA", mContextUElem.getUElem("myLabel").getName());
+
+    mContextUElem.removeUElem("myLabel");
+
+    assertNull("myLabel is removed from localised context", mContextUElem.getUElemOrNull("myLabel"));
+
+    mContextUElem.delocalise("test");
+    assertEquals("myLabel context is available after delocalise", "SEARCH_CRITERIA", mContextUElem.getUElem("myLabel").getName());
+  }
+
+  @Test
+  public void testContextLocalise_clearLabel_global(){
+    mContextUElem.setUElem("myLabel", ContextualityLevel.STATE, mRootDOM.get1EOrNull("/*/SEARCH_CRITERIA"));
+
+    mContextUElem.localise("test");
+
+    mContextUElem.removeUElemGlobal("myLabel");
+
+    assertNull("myLabel is removed from localised context", mContextUElem.getUElemOrNull("myLabel"));
+
+    mContextUElem.delocalise("test");
+
+    assertNull("myLabel context is not available after delocalise", mContextUElem.getUElemOrNull("myLabel"));
   }
 
   private ContextUElem constructNewContextFromExisting() {

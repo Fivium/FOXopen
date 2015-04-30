@@ -186,7 +186,8 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
       else {
         Track.debug("ContextUElemDeserialise", "Deserialised label :{" + mLabelName + "} for ref '" + mContextRef + "'");
         //Only create a label entry if we found a corresponding DOM - otherwise we'll have problems later when getUElem returns null
-        pContextUElem.putLabelEntry(mLabelName, lLabelDOM, mContextualityLevel);
+        //Shouldn't need to be global as this operation should only be happening to a non-localised ContextUElem
+        pContextUElem.putLabelEntry(mLabelName, lLabelDOM, mContextualityLevel, false);
       }
     }
   }
@@ -289,7 +290,7 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
   public void clearContextualLabels() {
     for (ContextUElem.LabelEntry lLabel : getCurrentLabelEntriesCopy()) {
       if (lLabel.mContextualityLevel != ContextualityLevel.DOCUMENT) {
-        removeUElem(lLabel.mLabelName, false);
+        removeUElem(lLabel.mLabelName, false, false);
       }
     }
   }
@@ -318,14 +319,32 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
     return lLabelSet;
   }
 
-  private LabelEntry putLabelEntry(String pLabel, DOM pDOM, ContextualityLevel pContextualityLevel) {
+  private LabelEntry putLabelEntry(String pLabel, DOM pDOM, ContextualityLevel pContextualityLevel, boolean pGlobal) {
     LabelEntry lNewEntry = new LabelEntry(pLabel, pDOM, pContextualityLevel);
-    mLabelEntryStack.getFirst().put(pLabel, lNewEntry);
+    if(pGlobal) {
+      //If setting globally, add the entry to every level of the stack
+      for(Map<String, LabelEntry> lStackElement : mLabelEntryStack) {
+        lStackElement.put(pLabel, lNewEntry);
+      }
+    }
+    else {
+      //Localised set - just add to current level
+      mLabelEntryStack.getFirst().put(pLabel, lNewEntry);
+    }
     return lNewEntry;
   }
 
-  private void clearLabelEntry(String pLabel) {
-    LabelEntry lEntry = mLabelEntryStack.getFirst().remove(pLabel);
+  private void clearLabelEntry(String pLabel, boolean pGlobal) {
+    if(pGlobal) {
+      //If clearing globally, remove the entry from every level of the stack
+      for(Map<String, LabelEntry> lStackElement : mLabelEntryStack) {
+        lStackElement.remove(pLabel);
+      }
+    }
+    else {
+      //Localised clear - just remove from current level
+      mLabelEntryStack.getFirst().remove(pLabel);
+    }
   }
 
   private DOM getDOMForLabel(String pLabel) {
@@ -403,7 +422,8 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
 
         //Make a note of this document's root foxid for reverse lookup map
         mRefToDocumentLabelMap.put(lDOM.getRef(), pLabel);
-        putLabelEntry(pLabel, lDOM, ContextualityLevel.DOCUMENT);
+        //Shouldn't need to be global as this operation should only be happening to a non-localised ContextUElem
+        putLabelEntry(pLabel, lDOM, ContextualityLevel.DOCUMENT, false);
       }
     }
 
@@ -536,9 +556,11 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
    *
    * @param pLabel         The label to remove.
    * @param pTestClearable If true, a check is performed to see if the label is allowed to be cleared.
+   * @param pGlobal        If true, label will be cleared from all levels of the localisation stack. If false it will only
+   *                       be cleared from the top of the stack.
    * @throws ExInternal If the label is not clearable and pTestClearable is true.
    */
-  private final void removeUElem(String pLabel, boolean pTestClearable)
+  private void removeUElem(String pLabel, boolean pTestClearable, boolean pGlobal)
   throws ExInternal {
 
     if (XFUtil.isNull(pLabel)) {
@@ -546,7 +568,7 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
     }
 
     if (!pTestClearable || isLabelClearable(pLabel)) {
-      clearLabelEntry(pLabel);
+      clearLabelEntry(pLabel, pGlobal);
     }
     else {
       throw new ExInternal("The context label '" + pLabel + "' is not allowed to be cleared.");
@@ -560,7 +582,17 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
    * @throws ExInternal If the label is not clearable.
    */
   public final void removeUElem(String pLabel) {
-    removeUElem(pLabel, true);
+    removeUElem(pLabel, true, false);
+  }
+
+  /**
+   * Removes the label mapping for the given label from every localisation level of this ContextUElem. The DOM itself is not affected.
+   *
+   * @param pLabel The label to remove.
+   * @throws ExInternal If the label is not clearable.
+   */
+  public final void removeUElemGlobal(String pLabel) {
+    removeUElem(pLabel, true, true);
   }
 
   /**
@@ -580,7 +612,6 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
    * <li>With pStringLabel and pContextualityLevel specified if a user command or external command is setting a label
    * programatically.</li>
    * </ol>
-   *
    * @param pContextLabel         The ContextLabel being set (for internal FOX engine use).
    * @param pStringLabel          The String of the label (for external programmatic use).
    * @param pContextualityLevel   The ContextualityLevel of the label. This should only be specified in conjunction with
@@ -590,10 +621,12 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
    * @param pForceFoxIdAssign     If true, forcibly assigns a FOXID attribute to pUElem (if it is an Element).
    * @param pCheckSetability      If true, the method will check to see if the requested label is setable. This is useful
    *                              for validating external input, e.g. to prevent a user from resetting the "root" label.
-   * @param pDocumentContextLabel
+   * @param pDocumentContextLabel Context label of the new label's owning document, or null if not known.
+   * @param pGlobal               If true, the label will apply to every level of the localisation stack. If false it will
+   *                              only apply to the top level of the stack.
    */
-  private final void setUElemInternal(ContextLabel pContextLabel, String pStringLabel, ContextualityLevel pContextualityLevel, DOM pUElem,
-                                      boolean pForceFoxIdAssign, boolean pCheckSetability, String pDocumentContextLabel) {
+  private void setUElemInternal(ContextLabel pContextLabel, String pStringLabel, ContextualityLevel pContextualityLevel, DOM pUElem,
+                                boolean pForceFoxIdAssign, boolean pCheckSetability, String pDocumentContextLabel, boolean pGlobal) {
 
     // Internal validation
     if (pContextLabel != null && pStringLabel != null) {
@@ -651,7 +684,7 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
     }
 
     // Assign context
-    LabelEntry lNewLabelEntry = putLabelEntry(lLabelString, pUElem, lContextualityLevel);
+    LabelEntry lNewLabelEntry = putLabelEntry(lLabelString, pUElem, lContextualityLevel, pGlobal);
 
     //Set up the document label value on the entry now, if available, in case it could not be determined because no documents are loaded yet
     //I.e. when setting the initial attach point before any DOMs are loaded
@@ -696,7 +729,7 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
          */
 
         if (lHandler.isTransient()) {
-          removeUElem(lHandler.getContextLabel(), false);
+          removeUElem(lHandler.getContextLabel(), false, false);
 
           //TODO is there a better way to do this loop
           //Clear the cached DOMs from LabelEntries implicated by this document - they are also potentially stale.
@@ -802,7 +835,7 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
    * @param pUElem The DOM node to map to the label.
    */
   public final void defineUElem(ContextLabel pLabel, DOM pUElem) {
-    setUElemInternal(pLabel, null, null, pUElem, true, false, null);
+    setUElemInternal(pLabel, null, null, pUElem, true, false, null, false);
   }
 
   /**
@@ -815,7 +848,7 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
    * @param pDocumentContextLabel The ContextLabel of the document which the target element exists on.
    */
   public final void defineUElem(ContextLabel pLabel, DOM pUElem, ContextLabel pDocumentContextLabel) {
-    setUElemInternal(pLabel, null, null, pUElem, true, false, pDocumentContextLabel.asString());
+    setUElemInternal(pLabel, null, null, pUElem, true, false, pDocumentContextLabel.asString(), false);
   }
 
   /**
@@ -827,7 +860,7 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
    * @param pUElem The DOM node to map to the label.
    */
   public final void setUElem(ContextLabel pLabel, DOM pUElem) {
-    setUElemInternal(pLabel, null, null, pUElem, true, true, null);
+    setUElemInternal(pLabel, null, null, pUElem, true, true, null, false);
   }
 
   /**
@@ -841,7 +874,7 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
    * @param pDocumentContextLabel The context label of the document which the target element exists on.
    */
   public final void setUElem(ContextLabel pLabel, DOM pUElem, String pDocumentContextLabel) {
-    setUElemInternal(pLabel, null, null, pUElem, true, true, pDocumentContextLabel);
+    setUElemInternal(pLabel, null, null, pUElem, true, true, pDocumentContextLabel, false);
   }
 
   /**
@@ -853,7 +886,19 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
    * @param pUElem              The DOM node to map to the label.
    */
   public final void setUElem(String pLabel, ContextualityLevel pContextualityLevel, DOM pUElem) {
-    setUElemInternal(null, pLabel, pContextualityLevel, pUElem, true, true, null);
+    setUElemInternal(null, pLabel, pContextualityLevel, pUElem, true, true, null, false);
+  }
+
+  /**
+   * Sets a label to UElem mapping across the localisation stack. This effectively ignores any current context localisation.
+   * If the mapping already exists it is repointed. The proposed label name is validated to ensure it is allowed to be set.
+   *
+   * @param pLabel              The label String to set.
+   * @param pContextualityLevel The ContextualityLevel of this label definition. See {@link ContextualityLevel}.
+   * @param pUElem              The DOM node to map to the label.
+   */
+  public final void setUElemGlobal(String pLabel, ContextualityLevel pContextualityLevel, DOM pUElem) {
+    setUElemInternal(null, pLabel, pContextualityLevel, pUElem, true, true, null, true);
   }
 
   /**
@@ -1502,7 +1547,7 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
    */
   private void setBaseSelf(DOM pDOM, String pXPath) {
     if(pXPath.indexOf(ContextLabel.BASESELF.asColonSquiggly()) != -1){
-      setUElemInternal(ContextLabel.BASESELF, null, null, pDOM, true, false, null);
+      setUElemInternal(ContextLabel.BASESELF, null, null, pDOM, true, false, null, false);
     }
   }
 
@@ -1510,7 +1555,7 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
    * Removes the :{baseself} label from this ContextUElem. Invoke this after XPath evaluation.
    */
   private void clearBaseSelf() {
-    removeUElem(ContextLabel.BASESELF.asString(), false);
+    removeUElem(ContextLabel.BASESELF.asString(), false, false);
   }
 
   /**
