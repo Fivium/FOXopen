@@ -32,9 +32,6 @@ $Id$
 */
 package net.foxopen.fox.command.builtin;
 
-import java.util.Collection;
-import java.util.Collections;
-
 import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.command.Command;
@@ -47,6 +44,9 @@ import net.foxopen.fox.ex.ExDoSyntax;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.thread.ActionRequestContext;
+
+import java.util.Collection;
+import java.util.Collections;
 
 public class ContextClearCommand
 extends BuiltInCommand {
@@ -62,6 +62,9 @@ extends BuiltInCommand {
     mName = pCmdDOM.getAttr("name");
     if(XFUtil.isNull(mScope) || XFUtil.isNull(mName)) {
       throw new ExDoSyntax("context-clear: missing attrs: scope or name");
+    }
+    else if(!mScope.equals(ContextSetCommand.SCOPE_STATE) && !mScope.equals(ContextSetCommand.SCOPE_LOCALISED)) {
+      throw new ExDoSyntax("context-clear: scope must be 'state' or 'localised'");
     }
   }
 
@@ -82,17 +85,20 @@ extends BuiltInCommand {
       throw new ExInternal("context-clear: name attr returned null: "+mName);
     }
 
-    //TODO PN previously had a check here for "localised" contexts
-//    // Ensure run context has not been localised - could get meta-code developers very confused
-//    ContextUElem lRootContext = pXThread.getRootContextDOM();
-//    if(lRootContext != pContextUElem && "state".equals(mScope)) {
-//      throw new ExActionFailed("CONTEXTSET", "context-clear: scope='state' (consider localised) not permitted when inside: fm:context-localise; fm:for-each");
-//    }
-//    else if(lRootContext == pContextUElem && "localised".equals(mScope)) {
-//      throw new ExActionFailed("CONTEXTSET", "context-clear: scope='localised' (consider state) not permitted when not inside: fm:context-localise; fm:for-each");
-//    }
+    boolean lLocalisedClear = ContextSetCommand.SCOPE_LOCALISED.equals(mScope);
 
-    lContextUElem.removeUElem(lName);
+    if(lLocalisedClear && !lContextUElem.isLocalised()) {
+      throw new ExInternal("Cannot do a localised context-clear from a context which is not localised");
+    }
+
+    if(lLocalisedClear) {
+      //Remove the label from the current localised level of the ContextUElem
+      lContextUElem.removeUElem(lName);
+    }
+    else {
+      //Remove the label from ALL levels of the ContextUElem
+      lContextUElem.removeUElemGlobal(lName);
+    }
 
     return XDoControlFlowContinue.instance();
   }
