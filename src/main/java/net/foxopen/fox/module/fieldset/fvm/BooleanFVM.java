@@ -54,7 +54,7 @@ extends FieldValueMapping {
       throw new ExInternal("Cannot have more than one selected ref for a boolean FVM, got " + pSelectedRefs.size());
     }
 
-    String lSelectedRef = pSelectedRefs.iterator().next();
+    String lSelectedRef = pSelectedRefs.size() == 0 ? "" :  pSelectedRefs.iterator().next();
 
     EvaluatedNodeInfo lEvaluatedNodeInfo = pFieldMgr.getEvaluatedNodeInfoItem();
 
