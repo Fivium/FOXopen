@@ -124,16 +124,22 @@ public class EvaluatedNodeInfoCellMateCollection extends EvaluatedNodeInfoGeneri
     lReturnValue.append(getClass().getSimpleName());
     lReturnValue.append("[");
 
-    lReturnValue.append("Cellmate Key: '");
-    lReturnValue.append(mCellMates.getCellmateKey());
-    lReturnValue.append("'");
-
-    String lPrompt = getPrompt().getString();
-    if (lPrompt != null) {
-      lReturnValue.append(", ");
-      lReturnValue.append("Prompt: '");
-      lReturnValue.append(lPrompt);
+    //mCellMates might be null during super constructor call
+    if(mCellMates != null) {
+      lReturnValue.append("Cellmate Key: '");
+      lReturnValue.append(mCellMates.getCellmateKey());
       lReturnValue.append("'");
+
+      StringAttributeResult lPrompt = getPrompt();
+      if (lPrompt != null) {
+        lReturnValue.append(", ");
+        lReturnValue.append("Prompt: '");
+        lReturnValue.append(lPrompt.getString());
+        lReturnValue.append("'");
+      }
+    }
+    else {
+      lReturnValue.append("Cellmate key not known");
     }
 
     if (getEvaluatedPresentationNode() != null) {
