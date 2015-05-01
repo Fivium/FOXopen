@@ -118,10 +118,22 @@ extends DataFieldMgr {
     return getFieldId();
   }
 
-  public String getExternalValueForOption(int pOptionIndex) {
-    return getFieldId() + "/" + pOptionIndex;
+  /**
+   * Gets the external value (i.e. the "value" attribute in HTML) for the FVMOption with the given ref of this FieldMgr's
+   * FieldValueMapping.
+   * @param pOptionRef FVM option ref.
+   * @return External value.
+   */
+  public String getExternalValueForOptionRef(String pOptionRef) {
+    return getFieldId() + "/" + pOptionRef;
   }
 
+  /**
+   * Gets the external value (i.e. the "value" attribute in HTML) for an "unrecognised" entry which will never have a
+   * corresponding FVMOption because it is not valid for this FieldMgr's FVM.
+   * @param pUnrecognisedItemDOM DOM containing unrecognised data.
+   * @return External value.
+   */
   protected String getExternalValueForUnrecognisedEntry(DOM pUnrecognisedItemDOM) {
     return getFieldId() + "/" + getSentValueForUnrecognisedEntry(pUnrecognisedItemDOM);
   }
@@ -174,9 +186,9 @@ extends DataFieldMgr {
    */
   public boolean isStringValueSelected(String pStringValue) {
     //TODO PN pass string through directly to FVM (requires API changes - StringOrDOM)
-    int lItemIndex = mFVM.getIndexForItem(this, DOM.createUnconnectedText(pStringValue));
-    if(lItemIndex != -1) {
-      return isIndexSelected(lItemIndex);
+    String lItemRef = mFVM.getFVMOptionRefForItem(this, DOM.createUnconnectedText(pStringValue));
+    if(lItemRef != null) {
+      return isFVMOptionRefSelected(lItemRef);
     }
     else {
       Track.alert("OptionMissing", "Failed to locate value for '" + pStringValue + "' in FieldValueMapping for field " + getEvaluatedNodeInfoItem().getIdentityInformation());
@@ -184,10 +196,16 @@ extends DataFieldMgr {
     }
   }
 
+  /**
+   * Uses the FieldMgr's FVM to determine what the external value (i.e. value HTML attribute) will be for the given string.
+   * I.e. for a mapset the data value "OPTION_1" may have an external value of "g22/1".
+   * @param pOptionValue Data DOM value to determine external value for.
+   * @return External value of if a corresponding FVMOption exists for the given DOM value, or empty string if one doesn't.
+   */
   public String getExternalValueForOption(String pOptionValue) {
-    int lItemIndex = mFVM.getIndexForItem(this, DOM.createUnconnectedText(pOptionValue));
-    if(lItemIndex != -1) {
-      return getFieldId() + "/" + lItemIndex;
+    String lItemRef = mFVM.getFVMOptionRefForItem(this, DOM.createUnconnectedText(pOptionValue));
+    if(lItemRef != null) {
+      return getExternalValueForOptionRef(lItemRef);
     }
     else {
       return "";
@@ -202,5 +220,10 @@ extends DataFieldMgr {
     return mConfig.isStrictBoolean();
   }
 
-  protected abstract boolean isIndexSelected(int pIndex);
+  /**
+   * Tests if the given FVMOption ref is currently selected in this FieldMgr.
+   * @param pRef Ref of an FVMOption.
+   * @return True if selected.
+   */
+  protected abstract boolean isFVMOptionRefSelected(String pRef);
 }

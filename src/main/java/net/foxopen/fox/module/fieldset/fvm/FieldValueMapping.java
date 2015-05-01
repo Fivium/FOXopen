@@ -22,39 +22,45 @@ import java.util.Set;
  * have introduced extra options which the FVM does not know about. Typically this will be to introduce a "null" value which
  * the user can select or to augment unrecognised values into the FVM's option list.<br><br>
  *
- * The order of an FVM's FVMOption List is significant. The indices of the list are immutable once an FVM is constructed
- * and should be used to uniquely identify FVMOptions within the FVM. A numeric key is useful because it is generic across
- * all FVM types and does not leak internal information about the underlying DOM values etc to the output page. Consumers
- * should always use these indices when referring to FVM values.
+ * An FVM should maintain a mapping of "refs" to FVMOptions. An "ref" is a reference which maps an external field value
+ * (in the submitted form) to an FVMOption. The FVM should ensure that a ref mapping will be preserved between form churns.
+ * For example, if a ref of "3" maps to a DOM value of "Option 3" when the form is generated, this mapping MUST also apply
+ * to the inbound value of "3". Otherwise, users may select one value on the form only to have a different value applied to the DOM.
+ * Refs should attempt to obfuscate their mapped value to help improve system security and minimise the risk of internal data
+ * leakage. For this reason, it is recommended that a numeric ref is used unless there is a good reason not to do this.
  */
 public abstract class FieldValueMapping {
 
   /** External value to use for FieldOptions which represent null. */
-  public static final String NULL_VALUE = "N";
+  public static final String NULL_VALUE = "__FX_N";
 
   /** Prefix for external values for FieldOptions representing unrecognised values. */
-  public static final String UNRECOGNISED_PREFIX = "U_";
+  public static final String UNRECOGNISED_PREFIX = "__FX_U_";
 
   /**
-   * Gets the known FVMOptions enumerated by this FieldValueMapping. These will be created based on the underlying FVM
-   * type, i.e. from a mapset, schema enum or boolean value markup. The index of an FVMOption in this list corresponds
-   * to the result of {@link #getIndexForItem}. E.g. for a boolean FVM, the result of calling getIndexForItem() for an
-   * element containing the text value "false" is 1. Therefore the FVMOption at index 1 of this list will be the FVMOption for "false".
+   * Gets the FVMOption for the given ref of this FieldValueMapping. These will be created based on the underlying FVM
+   * type, i.e. from a mapset, schema enum or boolean value markup. The ref of an FVMOption corresponds to the result of
+   * {@link #getFVMOptionRefForItem}. E.g. for a boolean FVM, the result of calling getFVMOptionRefForItem() for an element
+   * containing the text value "false" is "1". Therefore the FVMOption for ref "1" will be the FVMOption for "false".<br><br>
+   *
+   * <b>Important:</b> this method assumes the ref is valid for this FVM. Passing an invalid ref to this method will throw an exception.
+   *
    * @param pRequestContext Current RequestContext.
-   * @param pTargetDOM Used by some FVM implentations if they are contextual to a DOM node (i.e. mapsets).
+   * @param pTargetDOM Used by some FVM implementations if they are contextual to a DOM node (i.e. mapsets).
+   * @param pRef Ref of FVMOption to retrieve.
    * @return List of FVMOptions known to this FVM.
    */
-  public abstract List<FVMOption> getFVMOptionList(ActionRequestContext pRequestContext, DOM pTargetDOM);
+  public abstract FVMOption getFVMOptionForRef(ActionRequestContext pRequestContext, DOM pTargetDOM, String pRef);
 
   /**
-   * Looks up the given data item within this FVM and returns the corresponding index within its FVMOption List. If not
-   * matching entry can be found, the special value of -1 is returned. This method should be used instead of external loops
-   * around the FVMOption List, because some FVM classes may have optimised methods for looking up an item's index.
+   * Looks up the given data item within this FVM and returns its corresponding FVMOption ref. If no matching entry can be
+   * found, this method returns null (not empty string, which should never be returned).
+   *
    * @param pFieldMgr The FieldMgr which owns this FVM, used if the FVM needs to look up enum information for the target node.
    * @param pItemDOM DOM containing the value to be looked up.
-   * @return 0-based index of the FVMOption corresponding to the given item, or -1 if no appropriate option exists.
+   * @return Ref of the FVMOption corresponding to the given item for this FVM, or null if no appropriate option exists.
    */
-  public abstract int getIndexForItem(DataFieldMgr pFieldMgr, DOM pItemDOM);
+  public abstract String getFVMOptionRefForItem(DataFieldMgr pFieldMgr, DOM pItemDOM);
 
   /**
    * Allows a consumer to create additional FieldSelectOptions for this FieldValueMapping. This can be used to augment
@@ -75,10 +81,10 @@ public abstract class FieldValueMapping {
    * Gets a list of FieldSelectOptions which represent the FVMOptions this FVM contains. Consumers may need to augment this
    * list if the widget is allowed to contain additional "unrecognised" options, or a null option, etc.
    * @param pFieldMgr The FieldMgr which owns this FVM, used if the FVM needs to look up enum information for the target node.
-   * @param pSelectedIndexes Indexes of the FVMOptions which are currently selected. This is used when constructing the
-   *                         FieldSelectOptions to determine their initial state.
-   * @return
+   * @param pSelectedRefs Refs of the FVMOptions which are currently selected. This is used when constructing the FieldSelectOptions
+   *                      to determine their initial state.
+   * @return List of FieldSelectOptions, instantiated based on the given selected refs.
    */
-  public abstract List<FieldSelectOption> getSelectOptions(OptionFieldMgr pFieldMgr, Set<Integer> pSelectedIndexes);
+  public abstract List<FieldSelectOption> getSelectOptions(OptionFieldMgr pFieldMgr, Set<String> pSelectedRefs);
 
 }
