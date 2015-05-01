@@ -54,10 +54,8 @@ extends FieldInfo {
 
     //Shortcut out if the posted set exactly matches the sent set
     if(!lPostedStrings.equals(mSentValues)) {
-      List<FVMOption> lFVMOptionList = mFVM.getFVMOptionList(pRequestContext, lTargetDOM);
-
-      boolean lRemoved = removeDeselectedItems(lPostedStrings, lTargetDOM, lFVMOptionList);
-      boolean lAdded = addSelectedItems(lPostedStrings, lTargetDOM, lFVMOptionList);
+      boolean lRemoved = removeDeselectedItems(pRequestContext, lPostedStrings, lTargetDOM);
+      boolean lAdded = addSelectedItems(pRequestContext, lPostedStrings, lTargetDOM);
 
       lChanged = lRemoved || lAdded;
     }
@@ -70,7 +68,7 @@ extends FieldInfo {
     }
   }
 
-  private boolean removeDeselectedItems(Set<String> pPostedStrings, DOM pTargetDOM, List<FVMOption> pFVMOptionList) {
+  private boolean removeDeselectedItems(ActionRequestContext pRequestContext, Set<String> pPostedStrings, DOM pTargetDOM) {
     boolean lChanged = false;
 
     //Determine explicitly deselected items
@@ -96,8 +94,7 @@ extends FieldInfo {
       }
       else {
         //User has deselected a previously selected value; remove from the DOM
-        int lSentValueAsInt = Integer.parseInt(lSentString);
-        FVMOption lFVMOption = pFVMOptionList.get(lSentValueAsInt);
+        FVMOption lFVMOption = mFVM.getFVMOptionForRef(pRequestContext, pTargetDOM, lSentString);
         //Locate and remove child DOM
         DOM_LOOP:
         for(DOM lSelectedNode : pTargetDOM.getUL(mSelectorPath)) {
@@ -112,7 +109,7 @@ extends FieldInfo {
     return lChanged;
   }
 
-  private boolean addSelectedItems(Set<String> pPostedStrings, DOM pTargetDOM, List<FVMOption> pFVMOptionList) {
+  private boolean addSelectedItems(ActionRequestContext pRequestContext, Set<String> pPostedStrings, DOM pTargetDOM) {
     boolean lChanged = false;
 
     //Determine explicitly selected items
@@ -138,9 +135,8 @@ extends FieldInfo {
         }
       }
       else {
-        int lSentValueAsInt = Integer.parseInt(lPostedString);
-        FVMOption lFVMOption = pFVMOptionList.get(lSentValueAsInt);
-        //Search for a DOM node and create if not there (avoid creating dupes if it's already been added into the documment by another thread)
+        FVMOption lFVMOption = mFVM.getFVMOptionForRef(pRequestContext, pTargetDOM, lPostedString);
+        //Search for a DOM node and create if not there (avoid creating dupes if it's already been added into the document by another thread)
         boolean lDOMAlreadyExists = false;
         DOM_LOOP:
         for(DOM lSelectedNode : pTargetDOM.getUL(mSelectorPath)) {

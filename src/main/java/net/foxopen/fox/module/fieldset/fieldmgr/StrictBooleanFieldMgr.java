@@ -34,7 +34,7 @@ extends SingleOptionFieldMgr {
 
   public List<FieldSelectOption> getSelectOptions() {
     //Overloaded parent to prevent addition of null option for strict boolean
-    return mFVM.getSelectOptions(this, Collections.singleton(mSelectedIndex));
+    return mFVM.getSelectOptions(this, Collections.singleton(mSelectedFVMOptionRef));
   }
 
   private static class StrictBooleanFieldInfo

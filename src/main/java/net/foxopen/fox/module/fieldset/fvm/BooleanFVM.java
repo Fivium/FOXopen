@@ -2,15 +2,13 @@ package net.foxopen.fox.module.fieldset.fvm;
 
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExInternal;
-import net.foxopen.fox.module.fieldset.fieldmgr.DataFieldMgr;
-import net.foxopen.fox.module.fieldset.fieldmgr.OptionFieldMgr;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfo;
 import net.foxopen.fox.module.datanode.NodeAttribute;
+import net.foxopen.fox.module.fieldset.fieldmgr.DataFieldMgr;
+import net.foxopen.fox.module.fieldset.fieldmgr.OptionFieldMgr;
 import net.foxopen.fox.thread.ActionRequestContext;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -35,13 +33,11 @@ extends FieldValueMapping {
   public static final String TRUE_VALUE = "0";
   public static final String FALSE_VALUE = "1";
 
-  private static final int TRUE_INDEX = 0;
-  private static final int FALSE_INDEX = 1;
-
   public static final String TRUE_STRING = "true";
   public static final String FALSE_STRING = "false";
 
-  private static final List<FVMOption> BOOLEAN_FVM_OPTION_LIST = Collections.unmodifiableList(Arrays.<FVMOption>asList(new StringFVMOption(TRUE_STRING), new StringFVMOption(FALSE_STRING)));
+  private static final FVMOption TRUE_FVM_OPTION = new StringFVMOption(TRUE_STRING);
+  private static final FVMOption FALSE_FVM_OPTION = new StringFVMOption(FALSE_STRING);
 
   public static BooleanFVM getInstance(boolean pStrictBoolean) {
     return pStrictBoolean ? STRICT_INSTANCE : NON_STRICT_INSTANCE;
@@ -52,41 +48,41 @@ extends FieldValueMapping {
   }
 
   @Override
-  public List<FieldSelectOption> getSelectOptions(OptionFieldMgr pFieldMgr, Set<Integer> pSelectedIndexes) {
+  public List<FieldSelectOption> getSelectOptions(OptionFieldMgr pFieldMgr, Set<String> pSelectedRefs) {
 
-    if(pSelectedIndexes.size() > 1) {
-      throw new ExInternal("Cannot have more than one selected index for a boolean FVM, got " + pSelectedIndexes.size());
+    if(pSelectedRefs.size() > 1) {
+      throw new ExInternal("Cannot have more than one selected ref for a boolean FVM, got " + pSelectedRefs.size());
     }
 
-    int lSelectedIndex = pSelectedIndexes.iterator().next();
+    String lSelectedRef = pSelectedRefs.iterator().next();
 
     EvaluatedNodeInfo lEvaluatedNodeInfo = pFieldMgr.getEvaluatedNodeInfoItem();
 
     //Create an option list based on the schema markup for key-true and key-false attrs
     List<FieldSelectOption> lOptionList = new ArrayList<>();
-    lOptionList.add(new BasicSelectOption(lEvaluatedNodeInfo.getStringAttribute(NodeAttribute.KEY_TRUE, "Yes"), lSelectedIndex == TRUE_INDEX, pFieldMgr.getExternalValueForOption(TRUE_INDEX)));
+    lOptionList.add(new BasicSelectOption(lEvaluatedNodeInfo.getStringAttribute(NodeAttribute.KEY_TRUE, "Yes"), TRUE_VALUE.equals(lSelectedRef), pFieldMgr.getExternalValueForOptionRef(TRUE_VALUE)));
     if(!mStrictFlag) {
-      lOptionList.add(new BasicSelectOption(lEvaluatedNodeInfo.getStringAttribute(NodeAttribute.KEY_FALSE, "No"), lSelectedIndex == FALSE_INDEX, pFieldMgr.getExternalValueForOption(FALSE_INDEX)));
+      lOptionList.add(new BasicSelectOption(lEvaluatedNodeInfo.getStringAttribute(NodeAttribute.KEY_FALSE, "No"), FALSE_VALUE.equals(lSelectedRef), pFieldMgr.getExternalValueForOptionRef(FALSE_VALUE)));
     }
 
     return lOptionList;
   }
 
   @Override
-  public List<FVMOption> getFVMOptionList(ActionRequestContext pRequestContext, DOM pItemDOM) {
-    return BOOLEAN_FVM_OPTION_LIST;
+  public FVMOption getFVMOptionForRef(ActionRequestContext pRequestContext, DOM pTargetDOM, String pRef) {
+    return TRUE_VALUE.equals(pRef) ? TRUE_FVM_OPTION : FALSE_FVM_OPTION;
   }
 
   @Override
-  public int getIndexForItem(DataFieldMgr pFieldMgr, DOM pItemDOM) {
+  public String getFVMOptionRefForItem(DataFieldMgr pFieldMgr, DOM pItemDOM) {
     String lStringValue = pItemDOM.value().trim();
     switch (lStringValue) {
       case TRUE_STRING:
-        return TRUE_INDEX;
+        return TRUE_VALUE;
       case FALSE_STRING:
-        return FALSE_INDEX;
+        return FALSE_VALUE;
       default:
-        return -1;
+        return null;
     }
   }
 }

@@ -1,14 +1,14 @@
 package net.foxopen.fox.module.fieldset.fieldinfo;
 
-import java.util.Collections;
-import java.util.List;
-
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.module.ChangeActionContext;
-import net.foxopen.fox.module.fieldset.fvm.FieldValueMapping;
-import net.foxopen.fox.module.fieldset.fvm.FVMOption;
 import net.foxopen.fox.module.fieldset.fieldmgr.OptionFieldMgr;
+import net.foxopen.fox.module.fieldset.fvm.FVMOption;
+import net.foxopen.fox.module.fieldset.fvm.FieldValueMapping;
 import net.foxopen.fox.thread.ActionRequestContext;
+
+import java.util.Collections;
+import java.util.List;
 
 
 public class SingleOptionFieldInfo
@@ -23,7 +23,7 @@ extends SingleValueFieldInfo {
 
   /**
    * Overloaded getSinglePostedValue for getting slash-seperated suffix from the actual posted value. For Option fields
-   * this suffix either represents the index of the selected option or is a special single character value for the null/unrecognised key.
+   * this suffix either represents the ref of the selected option or is a special single character value for the null/unrecognised key.
    * @param pPostedValues
    * @return
    */
@@ -52,8 +52,7 @@ extends SingleValueFieldInfo {
       DOM lTargetDOM = resolveAndClearTargetDOM(pRequestContext);
 
       if(!FieldValueMapping.NULL_VALUE.equals(lPostedValue)) {
-        int lPostedValueAsInt = Integer.parseInt(lPostedValue);
-        FVMOption lSelectedOption = mFVM.getFVMOptionList(pRequestContext, lTargetDOM).get(lPostedValueAsInt);
+        FVMOption lSelectedOption = mFVM.getFVMOptionForRef(pRequestContext, lTargetDOM, lPostedValue);
         lSelectedOption.applyToNode(lTargetDOM);
       }
 

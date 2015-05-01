@@ -26,7 +26,9 @@ import java.util.Set;
 public class MultiOptionFieldMgr
 extends OptionFieldMgr {
 
-  private final List<Integer> mSelectedIndexes;
+  //TODO PN - this may contain nulls for unrecognised items - needs work
+  /** Currently selected FVMOption ref */
+  private final List<String> mSelectedFVMOptionRefs;
   //Small initial capacity for unrecognised options as typically there should not be any
   private final List<FieldSelectOption> mUnrecognisedOptions = new ArrayList<>(1);
   private final Set<String> mUnrecognisedSentStrings = new HashSet<>(1);
@@ -52,13 +54,13 @@ extends OptionFieldMgr {
     mSelectorPath = lCurrentModelDOM.getRelativeDownToOrNull(lSelectorModelDOM);
     DOMList lChildElements = getValueDOM().getUL(mSelectorPath);
 
-    mSelectedIndexes = new ArrayList<>(lChildElements.size());
+    mSelectedFVMOptionRefs = new ArrayList<>(lChildElements.size());
     for(DOM lChildElement : lChildElements) {
-      int lIndex = mFVM.getIndexForItem(this, lChildElement);
-      mSelectedIndexes.add(lIndex);
+      String lRef = mFVM.getFVMOptionRefForItem(this, lChildElement);
+      mSelectedFVMOptionRefs.add(lRef);
 
       //If unrecognised, create the entry now so we don't have to work it out later
-      if(lIndex == -1) {
+      if(lRef == null) {
         String lUnrecognisedDisplayKey = XFUtil.nvl(getEvaluatedNodeInfoItem().getStringAttribute(NodeAttribute.KEY_UNRECOGNISED), lChildElement.value());
         FieldSelectOption lUnrecognisedOption = mFVM.createFieldSelectOption(lUnrecognisedDisplayKey, true, false, getExternalValueForUnrecognisedEntry(lChildElement));
         mUnrecognisedOptions.add(lUnrecognisedOption);
@@ -69,13 +71,13 @@ extends OptionFieldMgr {
 
   @Override
   protected boolean isNull() {
-    //TODO check this logic is ok - unrecognised?
-    return mSelectedIndexes.size() == 0;
+    //TODO check this logic is ok - unrecognised? (will be > 0 for unrecognised as will contain null entries)
+    return mSelectedFVMOptionRefs.size() == 0;
   }
 
   @Override
   public boolean isRecognisedOptionSelected() {
-    return mSelectedIndexes.size() != 0;
+    return mUnrecognisedOptions.size() == 0 && mSelectedFVMOptionRefs.size() != 0;
   }
 
   @Override
@@ -87,10 +89,10 @@ extends OptionFieldMgr {
     }
     else {
       lSendingValues = new HashSet<>();
-      for(Integer lSelectedInt : mSelectedIndexes) {
+      for(String lSelectedRef : mSelectedFVMOptionRefs) {
         //Record the sending of a recognised item (unrecognised dealt with seperately below)
-        if(lSelectedInt != -1) {
-          lSendingValues.add(String.valueOf(lSelectedInt));
+        if(lSelectedRef != null) {
+          lSendingValues.add(lSelectedRef);
         }
       }
     }
@@ -104,7 +106,7 @@ extends OptionFieldMgr {
   @Override
   public List<FieldSelectOption> getSelectOptions() {
 
-    List<FieldSelectOption> lSelectOptions = mFVM.getSelectOptions(this, new HashSet<>(mSelectedIndexes));
+    List<FieldSelectOption> lSelectOptions = mFVM.getSelectOptions(this, new HashSet<>(mSelectedFVMOptionRefs));
 
     boolean lSuppressUnselected = getEvaluatedNodeInfoItem().getBooleanAttribute(NodeAttribute.SUPPRESS_UNSELECTED_OPTIONS,false) && getEvaluatedNodeInfoItem().getVisibility().asInt() < NodeVisibility.EDIT.asInt();
 
@@ -131,7 +133,7 @@ extends OptionFieldMgr {
   }
 
   @Override
-  protected boolean isIndexSelected(int pIndex) {
-    return mSelectedIndexes.contains(pIndex);
+  protected boolean isFVMOptionRefSelected(String pRef) {
+    return mSelectedFVMOptionRefs.contains(pRef);
   }
 }

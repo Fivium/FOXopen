@@ -22,6 +22,8 @@ import java.util.Set;
  * the MapSet can be retrieved at FieldSet apply time to determine the actual option selected. For dynamic MapSets it is
  * necessary to store all the sent values in case the MapSet has changed by the time the form is posted back - see the
  * DynamicMapSetFVM subclass.
+ *
+ * Note: FVMOption refs for this class are integer values corresponding to the 0-based index of the option within the mapset.
  */
 public class MapSetFVM
 extends FieldValueMapping {
@@ -78,14 +80,15 @@ extends FieldValueMapping {
   }
 
   @Override
-  public List<FieldSelectOption> getSelectOptions(OptionFieldMgr pFieldMgr, Set<Integer> pSelectedIndexes) {
+  public List<FieldSelectOption> getSelectOptions(OptionFieldMgr pFieldMgr, Set<String> pSelectedRefs) {
 
     EvaluatedNodeInfoItem lEvaluatedNodeInfo = pFieldMgr.getEvaluatedNodeInfoItem();
     List<FieldSelectOption> lOptionList = new ArrayList<>();
 
     int i = 0;
     for(MapSetEntry lMapSetItem : lEvaluatedNodeInfo.getMapSet().getEntryList()) {
-      lOptionList.add(new MapSetSelectOption(lMapSetItem, pSelectedIndexes.contains(i), pFieldMgr.getExternalValueForOption(i)));
+      String lIdxAsString = Integer.toString(i);
+      lOptionList.add(new MapSetSelectOption(lMapSetItem, pSelectedRefs.contains(lIdxAsString), pFieldMgr.getExternalValueForOptionRef(lIdxAsString)));
       i++;
     }
 
@@ -93,12 +96,18 @@ extends FieldValueMapping {
   }
 
   @Override
-  public int getIndexForItem(DataFieldMgr pFieldMgr, DOM pItemDOM) {
-    return pFieldMgr.getEvaluatedNodeInfoItem().getMapSet().indexOf(pItemDOM);
+  public String getFVMOptionRefForItem(DataFieldMgr pFieldMgr, DOM pItemDOM) {
+    int lMSIndex = pFieldMgr.getEvaluatedNodeInfoItem().getMapSet().indexOf(pItemDOM);
+    if(lMSIndex == -1) {
+      return null;
+    }
+    else {
+      return Integer.toString(lMSIndex);
+    }
   }
 
   @Override
-  public List<FVMOption> getFVMOptionList(ActionRequestContext pRequestContext, DOM pTargetDOM) {
+  public FVMOption getFVMOptionForRef(ActionRequestContext pRequestContext, DOM pTargetDOM, String pRef) {
 
     //Attempt to resolve the original map-set-attach node
     DOM lMapsetAttach = null;
@@ -112,6 +121,6 @@ extends FieldValueMapping {
     }
 
     MapSet lMapSet = pRequestContext.resolveMapSet(mMapSetName, pTargetDOM, lMapsetAttach);
-    return lMapSet.getFVMOptionList();
+    return lMapSet.getFVMOptionList().get(Integer.valueOf(pRef));
   }
 }

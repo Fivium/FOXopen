@@ -28,8 +28,8 @@ extends MapSetFVM {
   }
 
   @Override
-  public List<FVMOption> getFVMOptionList(ActionRequestContext pRequestContext, DOM pTargetDOM) {
-    return mFVMOptionList;
+  public FVMOption getFVMOptionForRef(ActionRequestContext pRequestContext, DOM pTargetDOM, String pRef) {
+    return mFVMOptionList.get(Integer.valueOf(pRef));
   }
 
 }

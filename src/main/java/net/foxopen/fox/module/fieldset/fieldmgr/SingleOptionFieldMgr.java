@@ -17,10 +17,11 @@ import java.util.List;
 public class SingleOptionFieldMgr
 extends OptionFieldMgr {
 
-  /** Will be -2 if null, -1 if unrecognised, or >= 0 reflecting FVM index */
-  protected final int mSelectedIndex;
+  /** Will be null if value is null or unrecognised */
+  protected final String mSelectedFVMOptionRef;
 
   private final boolean mIsNull;
+  private final boolean mIsUnrecognised;
 
   protected SingleOptionFieldMgr(EvaluatedNodeInfoItem pEvaluatedNodeInfo, FieldSet pFieldSet, FieldSelectConfig pFieldSelectConfig, String pFieldId, FieldValueMapping pFVM) {
     super(pEvaluatedNodeInfo, pFieldSet, pFieldSelectConfig, pFieldId, pFVM);
@@ -30,10 +31,12 @@ extends OptionFieldMgr {
     mIsNull = "".equals(getValueDOM().value().trim()) && getValueDOM().getChildElements().removeAllNamesFromList("fox-error").size() == 0;
 
     if(mIsNull) {
-      mSelectedIndex = -2;
+      mSelectedFVMOptionRef = null;
+      mIsUnrecognised = false;
     }
     else {
-      mSelectedIndex = mFVM.getIndexForItem(this, getValueDOM());
+      mSelectedFVMOptionRef = mFVM.getFVMOptionRefForItem(this, getValueDOM());
+      mIsUnrecognised = mSelectedFVMOptionRef == null;
     }
   }
 
@@ -44,7 +47,7 @@ extends OptionFieldMgr {
 
   @Override
   public boolean isRecognisedOptionSelected() {
-    return mSelectedIndex >= 0;
+    return !mIsUnrecognised;
   }
 
   protected String getSendingStringValue() {
@@ -53,11 +56,11 @@ extends OptionFieldMgr {
     if(mIsNull) {
       lSendingString = FieldValueMapping.NULL_VALUE;
     }
-    else if(mSelectedIndex == -1) {
+    else if(mIsUnrecognised) {
       lSendingString = getSentValueForUnrecognisedEntry(getValueDOM());
     }
     else {
-      lSendingString = String.valueOf(mSelectedIndex);
+      lSendingString = mSelectedFVMOptionRef;
     }
 
     return lSendingString;
@@ -68,17 +71,16 @@ extends OptionFieldMgr {
     return new SingleOptionFieldInfo(getExternalFieldName(), getValueDOM().getRef(), getEvaluatedNodeInfoItem().getChangeActionName(), getSendingStringValue(), mFVM);
   }
 
-
   @Override
   public List<FieldSelectOption> getSelectOptions() {
 
-    List<FieldSelectOption> lSelectOptions = mFVM.getSelectOptions(this, Collections.singleton(mSelectedIndex));
+    List<FieldSelectOption> lSelectOptions = mFVM.getSelectOptions(this, Collections.singleton(mSelectedFVMOptionRef));
 
     //If null, augment null entry
     augmentNullKeyIntoList(lSelectOptions, getEvaluatedNodeInfoItem());
 
     //if unrecognised, augment entry
-    if(mSelectedIndex == -1) {
+    if(mIsUnrecognised) {
       String lUnrecognisedDisplayKey = XFUtil.nvl(getEvaluatedNodeInfoItem().getStringAttribute(NodeAttribute.KEY_UNRECOGNISED), getValueDOM().value());
       FieldSelectOption lUnrecognisedOption = mFVM.createFieldSelectOption(lUnrecognisedDisplayKey, true, false, getExternalValueForUnrecognisedEntry(getValueDOM()));
       lSelectOptions.add(lUnrecognisedOption);
@@ -87,10 +89,9 @@ extends OptionFieldMgr {
     return lSelectOptions;
   }
 
-
   @Override
-  protected boolean isIndexSelected(int pIndex) {
-    //Check consumer isn't trying to test for a special value
-    return mSelectedIndex >= 0 && mSelectedIndex == pIndex;
+  protected boolean isFVMOptionRefSelected(String pRef) {
+    //Selected ref could be null for null/unrecognised value
+    return mSelectedFVMOptionRef != null && mSelectedFVMOptionRef.equals(pRef);
   }
 }

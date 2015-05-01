@@ -1,6 +1,7 @@
 package net.foxopen.fox.module.fieldset.fvm;
 
 import net.foxopen.fox.dom.DOM;
+import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.fieldset.fieldmgr.DataFieldMgr;
 import net.foxopen.fox.module.fieldset.fieldmgr.OptionFieldMgr;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfo;
@@ -18,7 +19,9 @@ import java.util.Set;
  * FieldSet. This can then be used to resolve the schema enumeration for the application of posted values.<br><br>
  *
  * Note that if a module developer modifies a schema enumeration within a module and then posts a page containing a widget
- * based on the enum, they may observe unexpected behaviour as the option indexes will have changed.
+ * based on the enum, they may observe unexpected behaviour as the option refs will have changed.<br><br>
+ *
+ * Note: FVMOption refs for this class are integer values corresponding to the 0-based index of the option within the schema.
  */
 public class SchemaEnumFVM
 extends FieldValueMapping {
@@ -43,14 +46,15 @@ extends FieldValueMapping {
   }
 
   @Override
-  public List<FieldSelectOption> getSelectOptions(OptionFieldMgr pFieldMgr, Set<Integer> pSelectedIndexes) {
+  public List<FieldSelectOption> getSelectOptions(OptionFieldMgr pFieldMgr, Set<String> pSelectedRefs) {
 
     List<String> lSchemaEnumeration = pFieldMgr.getEvaluatedNodeInfoItem().getSchemaEnumeration();
     List<FieldSelectOption> lOptionList = new ArrayList<>(lSchemaEnumeration.size());
 
     int i = 0;
     for(String lEnumOption : lSchemaEnumeration) {
-      lOptionList.add(new BasicSelectOption(lEnumOption, pSelectedIndexes.contains(i), pFieldMgr.getExternalValueForOption(i)));
+      String lIdxString = Integer.toString(i);
+      lOptionList.add(new BasicSelectOption(lEnumOption, pSelectedRefs.contains(lIdxString), pFieldMgr.getExternalValueForOptionRef(lIdxString)));
       i++;
     }
 
@@ -58,36 +62,41 @@ extends FieldValueMapping {
   }
 
   @Override
-  public int getIndexForItem(DataFieldMgr pFieldMgr, DOM pItemDOM) {
+  public String getFVMOptionRefForItem(DataFieldMgr pFieldMgr, DOM pItemDOM) {
 
     String lCurrentValue = pItemDOM.value().trim();
 
     int i = 0;
     for(String lEnumOption : pFieldMgr.getEvaluatedNodeInfoItem().getSchemaEnumeration()) {
       if(lEnumOption.equals(lCurrentValue)) {
-        return i;
+        return Integer.toString(i);
       }
       i++;
     }
-    return -1;
+    return null;
   }
 
-  public List<FVMOption> getFVMOptionList(ActionRequestContext pRequestContext, DOM pItemDOM) {
+  public FVMOption getFVMOptionForRef(ActionRequestContext pRequestContext, DOM pTargetDOM, String pRef) {
 
     NodeInfo lNodeInfo;
     if(".".equals(mNodeInfoPath)) {
-      lNodeInfo = pRequestContext.getCurrentModule().getNodeInfo(pItemDOM);
+      lNodeInfo = pRequestContext.getCurrentModule().getNodeInfo(pTargetDOM);
     }
     else {
       lNodeInfo = pRequestContext.getCurrentModule().getNodeInfo(mNodeInfoPath);
     }
 
-    //TODO PN Temp conversion - should be done by module parser
-    List<FVMOption> lResult = new ArrayList<>();
+    int lIntIndex = Integer.valueOf(pRef);
+
+    //TODO PN - module parser should return a list of StringFVMOptions; this code should just use the list index
+    int i=0;
     for(String lEnumValue : lNodeInfo.getSchemaEnumerationOrNull()) {
-      lResult.add(new StringFVMOption(lEnumValue));
+      if(i++ == lIntIndex) {
+        return new StringFVMOption(lEnumValue);
+      }
     }
 
-    return lResult;
+    //Something went wrong - the requested index was not found
+    throw new ExInternal("Failed to find a schema enum value for index " + lIntIndex + " on node " + mNodeInfoPath);
   }
 }
