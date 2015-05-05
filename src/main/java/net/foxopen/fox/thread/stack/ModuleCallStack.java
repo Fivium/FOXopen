@@ -461,7 +461,7 @@ implements ListeningPersistable, Iterable<ModuleCall>, ThreadEventListener {
   }
 
   @Override
-  public void handleThreadEvent(ThreadEventType pEventType) {
+  public void handleThreadEvent(ActionRequestContext pRequestContext, ThreadEventType pEventType) {
     if(getStackSize() > 0 && pEventType == ThreadEventType.FINISH_REQUEST_PROCESSING) {
       getTopModuleCall().getMapSetManager().handleRequestCompletion();
     }
