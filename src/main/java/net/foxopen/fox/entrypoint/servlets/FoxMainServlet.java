@@ -221,6 +221,8 @@ extends EntryPointServlet {
     }
     catch (ExInvalidThreadId e) {
       Track.recordRedirectedException("Thread Resume Invalid Thread Id", e);
+      Track.alert("InvalidThreadIdTimeout", "Redirecting to timeout module and forcing new session due to invalid thread ID");
+
       //Thread ID is invalid, probably because the user has posted a form with a very old ID in it
       //Connection will have been closed by the thread lock manager, so we need a new one to handle the timeout at this point
       ContextUCon lContextUCon = pRequestContext.getContextUCon();

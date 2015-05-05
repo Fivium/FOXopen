@@ -26,8 +26,7 @@ import java.util.Set;
 public class MultiOptionFieldMgr
 extends OptionFieldMgr {
 
-  //TODO PN - this may contain nulls for unrecognised items - needs work
-  /** Currently selected FVMOption ref */
+  /** Currently selected FVMOption refs */
   private final List<String> mSelectedFVMOptionRefs;
   //Small initial capacity for unrecognised options as typically there should not be any
   private final List<FieldSelectOption> mUnrecognisedOptions = new ArrayList<>(1);
@@ -57,27 +56,30 @@ extends OptionFieldMgr {
     mSelectedFVMOptionRefs = new ArrayList<>(lChildElements.size());
     for(DOM lChildElement : lChildElements) {
       String lRef = mFVM.getFVMOptionRefForItem(this, lChildElement);
-      mSelectedFVMOptionRefs.add(lRef);
 
-      //If unrecognised, create the entry now so we don't have to work it out later
       if(lRef == null) {
+        //If unrecognised, create the entry now so we don't have to work it out later
         String lUnrecognisedDisplayKey = XFUtil.nvl(getEvaluatedNodeInfoItem().getStringAttribute(NodeAttribute.KEY_UNRECOGNISED), lChildElement.value());
         FieldSelectOption lUnrecognisedOption = mFVM.createFieldSelectOption(lUnrecognisedDisplayKey, true, false, getExternalValueForUnrecognisedEntry(lChildElement));
         mUnrecognisedOptions.add(lUnrecognisedOption);
         mUnrecognisedSentStrings.add(getSentValueForUnrecognisedEntry(lChildElement));
+      }
+      else {
+        //Recognised option - record the FVM option ref
+        mSelectedFVMOptionRefs.add(lRef);
       }
     }
   }
 
   @Override
   protected boolean isNull() {
-    //TODO check this logic is ok - unrecognised? (will be > 0 for unrecognised as will contain null entries)
-    return mSelectedFVMOptionRefs.size() == 0;
+    //Test that no recognised OR unrecognised options are selected
+    return mSelectedFVMOptionRefs.size() == 0 && mUnrecognisedOptions.size() == 0;
   }
 
   @Override
   public boolean isRecognisedOptionSelected() {
-    return mUnrecognisedOptions.size() == 0 && mSelectedFVMOptionRefs.size() != 0;
+    return mSelectedFVMOptionRefs.size() > 0;
   }
 
   @Override
@@ -91,9 +93,7 @@ extends OptionFieldMgr {
       lSendingValues = new HashSet<>();
       for(String lSelectedRef : mSelectedFVMOptionRefs) {
         //Record the sending of a recognised item (unrecognised dealt with seperately below)
-        if(lSelectedRef != null) {
-          lSendingValues.add(lSelectedRef);
-        }
+        lSendingValues.add(lSelectedRef);
       }
     }
 

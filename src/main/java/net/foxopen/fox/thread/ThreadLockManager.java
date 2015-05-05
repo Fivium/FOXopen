@@ -107,6 +107,7 @@ public class ThreadLockManager<T> {
     }
     catch (ExInvalidThreadId e) {
       //Explicit re-throw of invalid thread ID exception (doesn't need to purge thread etc because no thread exists)
+      Track.info("InvalidThreadId", "Performing rollback as thread ID was invalid");
       lContextUCon.rollbackAndCloseAll(true);
       throw e;
     }

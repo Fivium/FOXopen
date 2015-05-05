@@ -74,7 +74,7 @@ extends OptionFieldMgr {
   @Override
   public List<FieldSelectOption> getSelectOptions() {
 
-    List<FieldSelectOption> lSelectOptions = mFVM.getSelectOptions(this, Collections.singleton(mSelectedFVMOptionRef));
+    List<FieldSelectOption> lSelectOptions = mFVM.getSelectOptions(this, mIsNull ? Collections.<String>emptySet() : Collections.singleton(mSelectedFVMOptionRef));
 
     //If null, augment null entry
     augmentNullKeyIntoList(lSelectOptions, getEvaluatedNodeInfoItem());
