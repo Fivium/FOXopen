@@ -2,8 +2,8 @@ package net.foxopen.fox.thread.persistence;
 
 
 import net.foxopen.fox.XFUtil;
-import net.foxopen.fox.cache.CacheManager;
 import net.foxopen.fox.cache.BuiltInCacheDefinition;
+import net.foxopen.fox.cache.CacheManager;
 import net.foxopen.fox.cache.FoxCache;
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.UConBindMap;
@@ -129,7 +129,7 @@ extends SharedDOMManager {
   }
 
   @Override
-  protected String updateDOM(RequestContext pRequestContext, DOM pDOM) {
+  protected String updateDOM(PersistenceContext pPersistenceContext, DOM pDOM) {
     //Increment the DOM change number
     String lChangeNumber = gChangeNumberIterator.next();
 
@@ -138,15 +138,14 @@ extends SharedDOMManager {
     lBindMap.defineBind(CHANGE_NUMBER_BIND_NAME, lChangeNumber);
     lBindMap.defineBind(ID_BIND_NAME, getDOMId());
 
-    UCon lUCon = pRequestContext.getContextUCon().getUCon("Update shared DOM");
+    //Downcast as we know that only a DatabaseSerialiser should be associated with a DatabaseSharedDOMManager
+    //TODO - move this behaviour into the Serialiser
+    UCon lUCon = ((DatabaseSerialiser) pPersistenceContext.getSerialiser()).getUCon();
     try {
       lUCon.executeAPI(UPDATE_STATEMENT_MAP.get(getDOMType()), lBindMap);
     }
     catch (ExDB e) {
       throw new ExInternal("Failed to update " + getDOMType() + " DOM", e);
-    }
-    finally {
-      pRequestContext.getContextUCon().returnUCon(lUCon, "Update shared DOM");
     }
 
     return lChangeNumber;
@@ -155,5 +154,16 @@ extends SharedDOMManager {
   @Override
   public String toString() {
     return "DatabaseSharedDOMManager DOM Type = " + getDOMType() + ", DOM ID = " + getDOMId();
+  }
+
+  @Override
+  protected PersistableType gePersistableType() {
+    //We only allow serialisation of session DOMs at this time
+    switch (getDOMType()) {
+      case SESSION:
+        return PersistableType.USER_THREAD_SESSION;
+      default:
+        throw new ExInternal("Cannot persist a " + getDOMType() + " shared DOM");
+    }
   }
 }

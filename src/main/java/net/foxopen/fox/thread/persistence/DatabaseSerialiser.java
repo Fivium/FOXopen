@@ -422,4 +422,12 @@ implements Serialiser {
       Track.pop("DeleteModuleCallFacets");
     }
   }
+
+  /**
+   * Temporarily exposed - consumers should prefer a Serialiser interface method (i.e. one of createXXX/updateXXX/deleteXXX).
+   * @return Current UCon for this DB serialiser.
+   */
+  public UCon getUCon() {
+    return mUCon;
+  }
 }

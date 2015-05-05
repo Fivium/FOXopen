@@ -2,8 +2,12 @@ package net.foxopen.fox.thread.persistence;
 
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
+import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.thread.RequestContext;
 import net.foxopen.fox.track.Track;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * A manager for DOMs which can be shared between threads. Each thread requests a local copy of the DOM from the manager.
@@ -77,18 +81,43 @@ public abstract class SharedDOMManager {
    * @param pRequestContext
    * @param pModifiedDOM Local DOM copy which was modified and needs to be persisted.
    */
-  public void updateModifiedDOM(RequestContext pRequestContext, DOM pModifiedDOM) {
+  public void updateModifiedDOM(final ActionRequestContext pRequestContext, final DOM pModifiedDOM) {
 
-    Track.pushDebug("UpdateSharedDOM", mDOMType.toString());
-    try {
-      synchronized(this) {
-        mLastReadChangeNumber = updateDOM(pRequestContext, pModifiedDOM);
-        mMasterDOM = pModifiedDOM.createDocument();
+    //Don't do the update immediately, as the target row may not exist yet. Instead add a Persistable to the persistence context
+    //and do the update at the end of the persistence cycle.
+    pRequestContext.getPersistenceContext().requiresPersisting(new Persistable() {
+      @Override
+      public Collection<PersistenceResult> create(PersistenceContext pPersistenceContext) {
+        return null; //Doesn't need to do creates
       }
-    }
-    finally {
-      Track.pop("UpdateSharedDOM");
-    }
+
+      @Override
+      public Collection<PersistenceResult> update(PersistenceContext pPersistenceContext) {
+        Track.pushDebug("UpdateSharedDOM", mDOMType.toString());
+        try {
+          //Sync on the SharedDOMManager object - it is possible that two updates could happen concurrently
+          synchronized (SharedDOMManager.this) {
+            mLastReadChangeNumber = updateDOM(pPersistenceContext, pModifiedDOM);
+            mMasterDOM = pModifiedDOM.createDocument();
+          }
+        }
+        finally {
+          Track.pop("UpdateSharedDOM");
+        }
+
+        return Collections.singleton(new PersistenceResult(this, PersistenceMethod.UPDATE));
+      }
+
+      @Override
+      public Collection<PersistenceResult> delete(PersistenceContext pPersistenceContext) {
+        return null; //Doesn't need to do deletes
+      }
+
+      @Override
+      public PersistableType getPersistableType() {
+        return gePersistableType();
+      }
+    }, PersistenceMethod.UPDATE);
   }
 
   protected String getDOMId() {
@@ -115,9 +144,16 @@ public abstract class SharedDOMManager {
 
   /**
    * Update the persisted DOM with the contents of the given DOM. This should cause the change number to be modified.
-   * @param pRequestContext
+   * @param pPersistenceContext PersistenceContext being used to do serialisation
    * @param pDOM DOM to be written.
    * @return New change number.
    */
-  protected abstract String updateDOM(RequestContext pRequestContext, DOM pDOM);
+  protected abstract String updateDOM(PersistenceContext pPersistenceContext, DOM pDOM);
+
+  /**
+   * Gets the PersistableType which "update" type persistables are registered on the PersistenceContext as.
+   * @return PersistableType.
+   */
+  protected abstract PersistableType gePersistableType();
+
 }
