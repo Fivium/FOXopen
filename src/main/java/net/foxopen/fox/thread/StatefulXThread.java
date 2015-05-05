@@ -295,9 +295,9 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     return "StatefulXThread ThreadId: " + mThreadId + " App: " + mAppMnem;
   }
 
-  private void notifyEventListeners(ThreadEventType pEventType) {
+  private void notifyEventListeners(ActionRequestContext pRequestContext, ThreadEventType pEventType) {
     for(ThreadEventListener lListener : mThreadEventListeners) {
-      lListener.handleThreadEvent(pEventType);
+      lListener.handleThreadEvent(pRequestContext, pEventType);
     }
   }
 
@@ -329,7 +329,7 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     pRequestContext.getAuthenticationContext().refreshUserDOM(pRequestContext);
 
     //Notify any event listeners that a request is about to be processed
-    notifyEventListeners(ThreadEventType.START_REQUEST_PROCESSING);
+    notifyEventListeners(pRequestContext, ThreadEventType.START_REQUEST_PROCESSING);
 
     //Configure Saxon now so any XPaths run which need a request context have access to it
     SaxonEnvironment.setThreadLocalRequestContext(pRequestContext);
@@ -922,7 +922,7 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
 
   private void finaliseAfterActionProcessing(ActionRequestContext pRequestContext){
 
-    notifyEventListeners(ThreadEventType.FINISH_REQUEST_PROCESSING);
+    notifyEventListeners(pRequestContext, ThreadEventType.FINISH_REQUEST_PROCESSING);
 
     //Delete the thread on exit if all module calls have been exited
     if(mModuleCallStack.getStackSize() == 0) {

@@ -184,7 +184,7 @@ implements DOMHandlerProvider, ThreadEventListener {
   }
 
   @Override
-  public void handleThreadEvent(ThreadEventType pEventType) {
+  public void handleThreadEvent(ActionRequestContext pRequestContext, ThreadEventType pEventType) {
     if(pEventType == ThreadEventType.FINISH_REQUEST_PROCESSING) {
       mLastTempDOMString = mTempDOMHandler.getDOM().outputNodeToString(true);
       mTempDOMHandler.flushDOM();

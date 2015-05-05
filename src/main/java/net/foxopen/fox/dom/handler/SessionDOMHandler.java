@@ -33,8 +33,6 @@ implements DOMHandler, ThreadEventListener {
 
   @Override
   public void open(ActionRequestContext pRequestContext) {
-    //Keep a reference to the RequestContext for the duration of the churn, so we can do JIT retrieval if we need
-    mRequestContext = pRequestContext;
   }
 
   @Override
@@ -52,6 +50,7 @@ implements DOMHandler, ThreadEventListener {
     //Note: we can't do this in close() because the DOM copy may be required after a close (i.e. in HTML gen)
     mDOMCopy = null;
     mRequestContext = null;
+    mInitialModifiedCount = -1;
   }
 
   @Override
@@ -62,7 +61,7 @@ implements DOMHandler, ThreadEventListener {
   @Override
   public DOM getDOM() {
     if(mRequestContext == null) {
-      throw new ExInternal("SessionDOMHandler must be opened before calling getDOM");
+      throw new ExInternal("SessionDOMHandler cannot retrieve a DOM without a request context");
     }
 
     mDOMCopy = mSharedDOMManager.getDOMCopy(mRequestContext);
@@ -86,7 +85,13 @@ implements DOMHandler, ThreadEventListener {
   }
 
   @Override
-  public void handleThreadEvent(ThreadEventType pEventType) {
+  public void handleThreadEvent(ActionRequestContext pRequestContext, ThreadEventType pEventType) {
+
+    if(pEventType == ThreadEventType.START_REQUEST_PROCESSING) {
+      //Keep a reference to the RequestContext for the duration of the churn, so we can do JIT retrieval if we need
+      //Do this here instead of in open() so we can always retrieve a DOM even if the handler is not "open" (i.e. for HTML generation during a thread resume)
+      mRequestContext = pRequestContext;
+    }
     if(pEventType == ThreadEventType.FINISH_REQUEST_PROCESSING) {
       //Tell session DOM handler to release its churn-specific resources (i.e. its DOM copy)
       cleanup();
