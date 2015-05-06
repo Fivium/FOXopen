@@ -17,6 +17,7 @@ import net.foxopen.fox.entrypoint.engine.EngineWebServiceCategory;
 import net.foxopen.fox.entrypoint.servlets.EntryPointServlet;
 import net.foxopen.fox.ex.ExAlreadyHandled;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.logging.ErrorLogger;
 import net.foxopen.fox.thread.RequestContext;
 import net.foxopen.fox.track.Track;
 import org.json.simple.JSONObject;
@@ -365,7 +366,9 @@ extends EntryPointServlet {
       }
       lFoxResponse.respond(lFoxRequest);
 
-      //Ensure the error logging filter sees this error
+      //Manually log the error here - ExAlreadyHandled errors are assumed to have already been logged
+      ErrorLogger.instance().logError(th, ErrorLogger.ErrorType.FATAL, pRequestContext.getFoxRequest().getRequestLogId());
+      //Ensure the upstream filters see this error (e.g. so it is set on track, etc)
       throw new ExAlreadyHandled("Error in WebService (reported to client)", th);
     }
   }
