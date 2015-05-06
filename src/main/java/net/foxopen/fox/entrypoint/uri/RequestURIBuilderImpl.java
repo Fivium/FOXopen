@@ -8,6 +8,7 @@ import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.entrypoint.servlets.StaticServlet;
 import net.foxopen.fox.entrypoint.servlets.TempResourceServlet;
 import net.foxopen.fox.entrypoint.ws.PathParamTemplate;
+import net.foxopen.fox.entrypoint.ws.WebServiceServlet;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.image.ImageServlet;
 import net.foxopen.fox.thread.RequestContext;
@@ -156,6 +157,20 @@ implements RequestURIBuilder {
     catch (URISyntaxException e) {
       throw new ExInternal("Failed to generate servlet URI", e);
     }
+  }
+
+  private String webServicePath(String pCategoryName, String pWebServiceName, String pEndPointName) {
+    return WebServiceServlet.SERVLET_PATH  + "/" +WebServiceServlet.SERVICE_TYPE_REST + "/" + pCategoryName + "/" + pWebServiceName + "/" + pEndPointName;
+  }
+
+  @Override
+  public String buildWebServiceURI(String pCategoryName, String pWebServiceName, String pEndPointName) {
+    return buildServletURI(webServicePath(pCategoryName, pWebServiceName, pEndPointName));
+  }
+
+  @Override
+  public String buildWebServiceURI(String pCategoryName, String pWebServiceName, String pEndPointName, PathParamTemplate pPathParamTemplate) {
+    return buildServletURI(webServicePath(pCategoryName, pWebServiceName, pEndPointName), pPathParamTemplate);
   }
 
   @Override
