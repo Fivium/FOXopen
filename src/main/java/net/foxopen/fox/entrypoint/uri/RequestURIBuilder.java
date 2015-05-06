@@ -143,6 +143,37 @@ public interface RequestURIBuilder {
   String buildBangHandlerURI(BangHandler pBangHandler);
 
   /**
+   * Builds a URI for accessing a {@link net.foxopen.fox.entrypoint.ws.WebService}. String arguments should be constants
+   * defined on their respective classes. This signature does not use a PathParamTemplate - any parameters in the URI builder
+   * are appended to the URI's query string.<br/><br/>
+   *
+   * E.g. for a category of <tt>engine</tt>, service of <tt>alive</tt> and endpoint of <tt>check</tt>, this method returns
+   * <tt>/englocal/ws/rest/engine/alive/check</tt>.
+   *
+   * @param pCategoryName WebServiceCategory name.
+   * @param pWebServiceName WebService name.
+   * @param pEndPointName EndPoint name.
+   * @return URI for accessing the given WebService.
+   */
+  String buildWebServiceURI(String pCategoryName, String pWebServiceName, String pEndPointName);
+
+  /**
+   * Builds a URI for accessing a {@link net.foxopen.fox.entrypoint.ws.WebService}. String arguments should be constants
+   * defined on their respective classes. The PathParamTemplate is filled in and appended to the end of the URI based on
+   * the parameters provided to this RequestURIBuilder.<br/><br/>
+   *
+   * E.g. for a category of <tt>engine</tt>, service of <tt>alive</tt> and endpoint of <tt>check</tt>, with a template of
+   * <tt>/{id}</tt> and param map <tt>id => 123</tt>, this method returns <tt>/englocal/ws/rest/engine/alive/check/123</tt>.
+   *
+   * @param pCategoryName WebServiceCategory name.
+   * @param pWebServiceName WebService name.
+   * @param pEndPointName EndPoint name.
+   * @param pPathParamTemplate PathParamTemplate to append to end of URI.
+   * @return URI for accessing the given WebService.
+   */
+  String buildWebServiceURI(String pCategoryName, String pWebServiceName, String pEndPointName, PathParamTemplate pPathParamTemplate);
+
+  /**
    * Builds a URI for accessing an image. If the provided URI identifies a composite image, the URI to a composite image
    * is returned. Otherwise, the image is treated as a static resource - see {@link #buildStaticResourceURI(String)}.<br/><br/>
    *

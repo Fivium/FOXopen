@@ -42,9 +42,10 @@ extends EntryPointServlet {
 
   public static final String RESPONSE_TYPE_PARAM_NAME = "responseType";
 
-  private static final String MAIN_CONNECTION_NAME = "WEBSERVICE";
+  public static final String SERVLET_PATH = "ws";
+  public static final String SERVICE_TYPE_REST = "rest";
 
-  private static final String SERVICE_TYPE_REST = "rest";
+  private static final String MAIN_CONNECTION_NAME = "WEBSERVICE";
 
   private static final Map<String, WebServiceCategory> gCategoryMap = new TreeMap<>();
 
