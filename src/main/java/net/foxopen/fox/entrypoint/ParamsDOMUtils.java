@@ -21,14 +21,13 @@ public class ParamsDOMUtils {
     return lNewParamsDOM;
   }
 
+  /**
+   * Converts all HTTP request parameters into corresponding elements in a new params DOM.
+   * @param pFoxRequest Request to create params DOM for.
+   * @return New params DOM.
+   */
   public static DOM paramsDOMFromRequest(FoxRequest pFoxRequest) {
-    //Only create the params DOM from GET params - other methods imply a non-standard route in
-    if("GET".equals(pFoxRequest.getHttpRequest().getMethod())) {
-      return convertParamsMapToContainerDOM(pFoxRequest.getHttpRequest().getParameterMap());
-    }
-    else {
-      return defaultEmptyDOM();
-    }
+    return convertParamsMapToContainerDOM(pFoxRequest.getHttpRequest().getParameterMap());
   }
 
   private static DOM convertParamsMapToContainerDOM(Map mapParams)

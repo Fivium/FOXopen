@@ -85,12 +85,12 @@ extends EntryPointServlet {
   }
 
   /**
-   * Determines if the given request is being used to resume an existing thread.
+   * Determines if the given request is being used to resume an existing thread, i.e. as part of a modeless popup.
    * @param pRequest Request to check.
    * @return True if the request is a "thread resume" request.
    */
   public static boolean isThreadResumeRequest(HttpServletRequest pRequest) {
-    return "GET".equals(pRequest.getMethod()) && pRequest.getParameterMap().containsKey(THREAD_ID_PARAM_NAME);
+    return "GET".equals(pRequest.getMethod()) && pRequest.getParameterMap().containsKey(RESUME_PARAM_NAME);
   }
 
   @Override
