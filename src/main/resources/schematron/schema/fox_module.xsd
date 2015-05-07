@@ -3532,19 +3532,16 @@ If the fm:default element is reached, then its contents are evaluated.
     <xs:sequence>
       <xs:element name="pragma" minOccurs="0">
         <xs:annotation>
-          <xs:documentation>Multifunctional pragmatic command to access and interact with Fox
-            Servlet internals.</xs:documentation>
+          <xs:documentation>Multifunctional pragmatic command to access and interact with Fox Servlet internals.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
           <xs:attribute name="function" use="required">
             <xs:annotation>
-              <xs:documentation>Dump internal Fox Servlet information to target element. See target
-                attribute.</xs:documentation>
+              <xs:documentation>Which pragma function to perform.</xs:documentation>
             </xs:annotation>
             <xs:simpleType>
               <xs:restriction base="fm:entered-string">
-                <xs:enumeration value="load-document-template"/>
-                <xs:enumeration value="save-document-changes"/>
+                <xs:enumeration value="hibernate-thread"/>
                 <xs:enumeration value="set-html-response"/>
                 <xs:enumeration value="set-xml-response"/>
               </xs:restriction>
@@ -3552,15 +3549,19 @@ If the fm:default element is reached, then its contents are evaluated.
           </xs:attribute>
           <xs:attribute name="target" type="fm:fox-xpath-type" use="optional">
             <xs:annotation>
-              <xs:documentation>XPath expression to target one element which will be used to add
-                dump information to. Default element is the current attach point. See dump
-                attribute.</xs:documentation>
+              <xs:documentation>Target element containing content to serve as XML or HTML response.</xs:documentation>
             </xs:annotation>
           </xs:attribute>
-          <xs:attribute name="doc-template-name" type="fm:entered-string" use="optional"/>
-          <xs:attribute name="doc-template-target-metadata" type="fm:fox-xpath-type" use="optional"/>
-          <xs:attribute name="response-mime-type" type="fm:entered-string" use="optional"/>
-          <xs:attribute name="value" type="fm:entered-string" use="optional"/>
+          <xs:attribute name="response-mime-type" type="fm:entered-string" use="optional">
+            <xs:annotation>
+              <xs:documentation>Response MIME type for XML response.</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          <xs:attribute name="resume-action" type="fm:entered-string" use="optional">
+            <xs:annotation>
+              <xs:documentation>Action to run when resuming a hibernated thread.</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
         </xs:complexType>
       </xs:element>
     </xs:sequence>

@@ -8,6 +8,8 @@ import net.foxopen.fox.database.parser.ParsedStatement;
 import net.foxopen.fox.database.parser.StatementParser;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.entrypoint.FoxGlobals;
+import net.foxopen.fox.entrypoint.servlets.FoxMainServlet;
+import net.foxopen.fox.entrypoint.uri.RequestURIBuilder;
 import net.foxopen.fox.ex.ExDB;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExTooMany;
@@ -37,11 +39,11 @@ implements DOMHandler, ModuleStateChangeListener {
 
   private final DOM mSysDOM;
 
-  public static SysDOMHandler createSysDOMHandler(StatefulXThread pThread) {
-    return new SysDOMHandler(pThread);
+  public static SysDOMHandler createSysDOMHandler(RequestContext pRequestContext, StatefulXThread pThread) {
+    return new SysDOMHandler(pThread, pRequestContext.createURIBuilder());
   }
 
-  private SysDOMHandler(StatefulXThread pThread) {
+  private SysDOMHandler(StatefulXThread pThread, RequestURIBuilder pRequestURIBuilder) {
     mThread = pThread;
     mThread.getModuleCallStack().registerStateChangeListener(this);
 
@@ -72,16 +74,10 @@ implements DOMHandler, ModuleStateChangeListener {
     //TODO PN XTHREAD - logout URLs (code copied from previous XThread)
 //    mSysDOM.getCreate1ENoCardinalityEx("portal_urls/logout_url").setText(mThreadDOM.get1SNoEx("logout_url"));
 //    mSysDOM.getCreate1ENoCardinalityEx("portal_urls/return_url").setText(mThreadDOM.get1SNoEx("return_url"));
-//
-//    // Only append url when http request is available (avoid breaking remote action call)
-//    try {
-//      mSysDOM.getCreate1ENoCardinalityEx("portal_urls/engine_url").setText(
-//        (mFoxRequest instanceof FoxRequestHttp) ? mFoxRequest.getRequestURLPathAbsolute(getTopApp()) : "NOT-AVAILABLE"
-//      );
-//    }
-//    catch (ExServiceUnavailable ex) {
-//      throw new ExInternal("Failed to get App", ex);
-//    }
+
+    //Add a URL pointing to the main FOX servlet entry point - used by edge cases such as the payment module which needs to tell the user how to get back to FOX
+    String lEngineURL = pRequestURIBuilder.buildServletURI(FoxMainServlet.SERVLET_PATH);
+    mSysDOM.getCreate1ENoCardinalityEx("portal_urls/engine_url").setText(pRequestURIBuilder.convertToAbsoluteURL(lEngineURL));
 
     try {
       mSysDOM.getCreate1ENoCardinalityEx("host/hostname").setText(InetAddress.getLocalHost().getHostName());

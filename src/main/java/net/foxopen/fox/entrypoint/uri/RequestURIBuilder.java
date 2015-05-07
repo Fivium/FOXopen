@@ -183,4 +183,17 @@ public interface RequestURIBuilder {
    * @return URI for accessing the image.
    */
   String buildImageURI(String pImageURI);
+
+  /**
+   * Converts a relative URI to an absolute URL, based on the user's current request. This method attempts to examine the user's
+   * "host" header to determine the external URL the user is using to access the system, rather than using the server's internal
+   * IP or hostname, which may not be externally accessible.<br><br>
+   *
+   * E.g. for a relative URI of <tt>/englocal/FOX/fox5/LOGIN001L</tt>, an absolute URL may be
+   * <tt>http://www.server.com/englocal/FOX/fox5/LOGIN001L</tt>.
+   *
+   * @param pRelativeURI Relative URI to append to the absolute hostname (may begin with "/" prefix).
+   * @return Absolute URI to the given URL, based on the user's current request.
+   */
+  String convertToAbsoluteURL(String pRelativeURI);
 }

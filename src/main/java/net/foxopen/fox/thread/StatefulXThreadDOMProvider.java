@@ -43,9 +43,9 @@ implements DOMHandlerProvider, ThreadEventListener {
 
   private String mLastTempDOMString;
 
-  public static StatefulXThreadDOMProvider createNew(StatefulXThread pXThread, UserThreadSession pOwningSession, AuthenticationContext pAuthenticationContext) {
+  public static StatefulXThreadDOMProvider createNew(RequestContext pRequestContext, StatefulXThread pXThread, UserThreadSession pOwningSession, AuthenticationContext pAuthenticationContext) {
 
-    SysDOMHandler lSysDOMHandler = SysDOMHandler.createSysDOMHandler(pXThread);
+    SysDOMHandler lSysDOMHandler = SysDOMHandler.createSysDOMHandler(pRequestContext, pXThread);
     TempDOMHandler lTempDOMHandler = TempDOMHandler.createTempDOMHandler(pXThread);
     SessionDOMHandler lSessionDOMHandler = SessionDOMHandler.createHandler(pOwningSession.getSessionDOMManager(), pXThread);
     DOMHandler lUserDOMHandler = pAuthenticationContext.getUserDOMHandler();

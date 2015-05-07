@@ -15,6 +15,7 @@ import net.foxopen.fox.cache.CacheManager;
 import net.foxopen.fox.cache.FoxCache;
 import net.foxopen.fox.command.XDoCommandList;
 import net.foxopen.fox.command.XDoRunner;
+import net.foxopen.fox.command.builtin.PragmaCommand;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.handler.DOMHandler;
 import net.foxopen.fox.dom.handler.PostableDOMHandler;
@@ -284,7 +285,7 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
 
     mUserThreadSession = pUserThreadSession;
 
-    mDOMProvider = StatefulXThreadDOMProvider.createNew(this, pUserThreadSession, pAuthenticationContext);
+    mDOMProvider = StatefulXThreadDOMProvider.createNew(pRequestContext, this, pUserThreadSession, pAuthenticationContext);
 
     mDownloadManager = new ThreadDownloadManager(this);
 
@@ -319,7 +320,13 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
   }
 
   private void initialiseBeforeActionProcessing(ActionRequestContext pRequestContext){
-    //Notify anything depending on the persitence context that a new cycle is starting
+
+    //Validate that the thread is not hibernated
+    if(isHibernated()) {
+      throw new ExInternal("Attempted to run an action on a hibernated thread");
+    }
+
+    //Notify anything depending on the persistence context that a new cycle is starting
     mPersistenceContext.startPersistenceCycle(pRequestContext);
 
     //Reset any pre existing value for the new churn
@@ -503,6 +510,18 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     }
     //Previously this set the resume flag to false to prevent re-resumes, this has been disabled because it breaks the idempotent GET rule
 
+    //Check if we're resuming a hibernated thread, clear the hibernation flag and grab a reference to the action to run later
+    final String lResumeAction;
+    if(isHibernated()) {
+      lResumeAction = mThreadPropertyMap.getStringProperty(ThreadProperty.Type.HIBERNATE_RESUME_ACTION);
+      //Clear hibernation properties
+      setBooleanThreadProperty(ThreadProperty.Type.IS_HIBERNATED, false);
+      setStringThreadProperty(ThreadProperty.Type.HIBERNATE_RESUME_ACTION, "");
+    }
+    else {
+      lResumeAction = "";
+    }
+
     //Check externally resumable
     //Separate flag for "skip session check" (immediately set to false to only allow this behaviour once)
     Track.pushInfo("ThreadExternalResume");
@@ -523,6 +542,16 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
       ActionRequestContext lActionRequestContext = new XThreadActionRequestContext(pRequestContext, this);
 
       initialiseBeforeActionProcessing(lActionRequestContext);
+
+      //Run a resume action if this was a hibernation resume and an action was specified
+      if(!XFUtil.isNull(lResumeAction)) {
+        mModuleCallStack.rampUp(lActionRequestContext);
+
+        //Run action - don't validate against the FieldSet because it won't be in there
+        processExternalAction(lActionRequestContext, lResumeAction, lActionRequestContext.getContextUElem().attachDOM().getRef(), false);
+
+        mModuleCallStack.rampDown(lActionRequestContext);
+      }
 
       finaliseBeforeResponse(pRequestContext);
 
@@ -579,7 +608,7 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
           }
           else {
             //Run a named action
-            processExternalAction(pActionRequestContext, pActionName, pActionRef);
+            processExternalAction(pActionRequestContext, pActionName, pActionRef, true);
           }
         }
 
@@ -606,7 +635,7 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     RampedThreadRunnable lActionRunner = new RampedThreadRunnable() {
       @Override
       public void run(ActionRequestContext pActionRequestContext) throws ExUserRequest {
-        processExternalAction(pActionRequestContext, pActionName, pActionRef);
+        processExternalAction(pActionRequestContext, pActionName, pActionRef, true);
       }
     };
 
@@ -678,10 +707,10 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     }
   }
 
-  private void processExternalAction(ActionRequestContext pRequestContext, String pActionName, String pActionContextRef){
+  private void processExternalAction(ActionRequestContext pRequestContext, String pActionName, String pActionContextRef, boolean pValidateAction){
 
     //Check the action is allowed to be run
-    if (!mFieldSetIn.isExternalActionRunnable(pActionName, pActionContextRef)) {
+    if (pValidateAction && !mFieldSetIn.isExternalActionRunnable(pActionName, pActionContextRef)) {
       throw new ExInternal("Action '"+pActionName+"' not found for this fieldset for action context " + pActionContextRef);
       //LEGACY:
     //      ExUserRequest e = new ExUserRequest("Action '"+pActionName+"' not found for this fieldset.");
@@ -922,6 +951,8 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
 
   private void finaliseAfterActionProcessing(ActionRequestContext pRequestContext){
 
+    checkForHibernateRequests(pRequestContext);
+
     notifyEventListeners(pRequestContext, ThreadEventType.FINISH_REQUEST_PROCESSING);
 
     //Delete the thread on exit if all module calls have been exited
@@ -938,6 +969,19 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
 
     //Clean down the Saxon environment
     SaxonEnvironment.clearThreadLocalRequestContext();
+  }
+
+  private void checkForHibernateRequests(ActionRequestContext pRequestContext) {
+
+    List<PragmaCommand.HibernateThread> lHibernateRequests = pRequestContext.getXDoResults(PragmaCommand.HibernateThread.class);
+    if(lHibernateRequests.size() > 1) {
+      throw new ExInternal("Found " + lHibernateRequests.size() + " hibernation requests - maximum of 1 is allowed");
+    }
+    else if(lHibernateRequests.size() == 1) {
+      setBooleanThreadProperty(ThreadProperty.Type.IS_RESUME_ALLOWED, true);
+      setBooleanThreadProperty(ThreadProperty.Type.IS_HIBERNATED, true);
+      setStringThreadProperty(ThreadProperty.Type.HIBERNATE_RESUME_ACTION, lHibernateRequests.get(0).getResumeAction());
+    }
   }
 
   FoxResponseCHAR debugPage(){
@@ -1093,6 +1137,14 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
 
   private boolean isOrphanThread() {
     return mThreadPropertyMap.getBooleanProperty(ThreadProperty.Type.IS_ORPHAN);
+  }
+
+  /**
+   * Tests if this thread is currently "hibernated" and waiting for a resume before any actions can be run on it.
+   * @return True if hibernated.
+   */
+  private boolean isHibernated() {
+    return mThreadPropertyMap.getBooleanProperty(ThreadProperty.Type.IS_HIBERNATED);
   }
 
   private void setBooleanThreadProperty(ThreadProperty.Type pProperty, boolean pValue) {

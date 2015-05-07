@@ -6,6 +6,8 @@ public class ThreadProperty {
 
   public enum Type {
     EXIT_URI(false, ""),
+    HIBERNATE_RESUME_ACTION(false, ""),
+    IS_HIBERNATED(true, false),
     IS_ORPHAN(true, false),
     IS_RESUME_ALLOWED(true, false),
     IS_SKIP_FOX_SESSION_CHECK(true, false);
@@ -13,7 +15,7 @@ public class ThreadProperty {
     private final boolean mIsBooleanValue;
     private final Object mDefaultValue;
 
-    private Type(boolean pIsBooleanValue, Object pDefaultValue) {
+    Type(boolean pIsBooleanValue, Object pDefaultValue) {
       mIsBooleanValue = pIsBooleanValue;
       mDefaultValue = pDefaultValue;
     }

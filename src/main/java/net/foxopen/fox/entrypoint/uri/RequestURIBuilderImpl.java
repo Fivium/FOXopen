@@ -188,4 +188,24 @@ implements RequestURIBuilder {
       return buildURIHead(ImageServlet.SERVLET_PATH) + ImageServlet.generateImageCombinatorURISuffix(mAppMnem, pImageURI);
     }
   }
+
+  @Override
+  public String convertToAbsoluteURL(String pRelativeURI) {
+
+    String lScheme = mHttpServletRequest.getScheme();
+    int lServerPort = mHttpServletRequest.getServerPort();
+
+    //Only add a port suffix if it's not the standard port for the current scheme
+    String lPort = "";
+    if(!(("http".equals(lScheme) && lServerPort == 80) || ("https".equals(lScheme) && lServerPort == 443))) {
+      lPort = ":" + lServerPort;
+    }
+
+    //Add a slash at the start of the URI if it doesn't already have one
+    if(!pRelativeURI.startsWith("/")) {
+      pRelativeURI = "/" + pRelativeURI;
+    }
+
+    return lScheme + "://" + mHttpServletRequest.getServerName() + lPort + pRelativeURI;
+  }
 }
