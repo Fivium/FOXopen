@@ -103,6 +103,9 @@ function FileUpload (container, urlBase, urlParams, fileList, widgetOptions) {
     //Called in the event of a serious error (i.e. 500 response)
     _this.uploadHadError();
     _this.finishUploads();
+    //Stopgap error message as an interim for proper solution to FOXRD-604
+    var failData = {result : {errorMessage : "Upload error - please check your file is valid. Refresh the page to continue."} };
+    data.files[0]._foxFileInfo.uploadFinished(e, failData);
   });
 }
 
