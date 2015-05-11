@@ -133,8 +133,12 @@ var DevToolbar = {
     var doms = ["root","theme","temp","params","return","result","error","user","session","sys","env"];
     var newList = "";
     for(var i = 0; i < doms.length; i++) {
-      newList += "<li>"+$("a#"+doms[i]+"-dom-link").parent().html()+"</li>";
-      $("a#"+doms[i]+"-dom-link").parent().remove();
+      var domLink = $("a#" + doms[i] + "-dom-link");
+      //DOM link for built-in DOM may not exist if there's no root DOM (for instance)
+      if(domLink.length > 0) {
+        newList += "<li>" + domLink.parent().html() + "</li>";
+        domLink.parent().remove();
+      }
     }
     $('ul#dev-toolbar-doms').append(newList);
   },
