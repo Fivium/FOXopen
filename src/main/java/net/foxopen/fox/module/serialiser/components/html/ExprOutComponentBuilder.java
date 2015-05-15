@@ -25,6 +25,6 @@ public class ExprOutComponentBuilder extends ComponentBuilder<HTMLSerialiser, Ev
     if (pEvalNode.isEscapingRequired()) {
       lEvaluatedExpression = StringEscapeUtils.escapeHtml4(lEvaluatedExpression);
     }
-    pSerialiser.append(lEvaluatedExpression.replaceAll("\r?\n", "<br />"));
+    pSerialiser.append(pSerialiser.escapeNewlines(lEvaluatedExpression));
   }
 }

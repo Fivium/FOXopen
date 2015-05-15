@@ -221,12 +221,12 @@ extends WriterOutputSerialiser {
         append("<div  id=\"");
         append(pHint.getHintID());
         append("\" title=\"");
-        append(StringEscapeUtils.escapeHtml4(lHintContent));
+        append(StringEscapeUtils.escapeHtml4(escapeNewlines(lHintContent)));
         append("\" aria-label=\"");
-        append(StringEscapeUtils.escapeHtml4(lHintContent));
-        if(!XFUtil.isNull(lHintTitle)) {
+        append(StringEscapeUtils.escapeHtml4(escapeNewlines(lHintContent)));
+        if (!XFUtil.isNull(lHintTitle)) {
           append("\" data-tooltip-title=\"");
-          append(StringEscapeUtils.escapeHtml4(lHintTitle));
+          append(StringEscapeUtils.escapeHtml4(escapeNewlines(lHintTitle)));
         }
         append("\" class=\"hint icon-info\"></div>");
 
@@ -237,7 +237,7 @@ extends WriterOutputSerialiser {
       else {
         JSONObject lTooltipJSON = new JSONObject();
         if (!XFUtil.isNull(lHintTitle)) {
-          lTooltipJSON.put("content", "<h4>" + lHintTitle + "</h4>" + lHintContent);
+          lTooltipJSON.put("content", "<h4>" + escapeNewlines(lHintTitle) + "</h4>" + escapeNewlines(lHintContent));
         }
         else {
           lTooltipJSON.put("content", lHintContent);
@@ -245,6 +245,11 @@ extends WriterOutputSerialiser {
         mEvalParseTree.addConditionalLoadJavascript("$('#" + pTargetID + "').tooltipster(" + lTooltipJSON.toJSONString() + ");");
       }
     }
+  }
+
+  @Override
+  public void addHint(OutputHint pHint) {
+    addHint(pHint, null, true);
   }
 
   @Override
@@ -259,9 +264,18 @@ extends WriterOutputSerialiser {
     }
   }
 
+  /**
+   * The HTML Serialiser escapes any \r or \n to a &lt;br&gt; so that the linebreak shows up in HTML
+   *
+   * @param pString string to be escaped
+   * @return
+   */
   @Override
-  public void addHint(OutputHint pHint) {
-    addHint(pHint, null, true);
+  public String escapeNewlines(String pString) {
+    if (pString == null) {
+      return null;
+    }
+    return pString.replaceAll("(\r|\n|\r\n)", "<br />");
   }
 
   /**
