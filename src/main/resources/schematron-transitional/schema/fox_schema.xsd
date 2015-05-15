@@ -7,8 +7,8 @@
 <xs:schema xmlns:fox="http://www.og.dti.gov/fox" xmlns:fm="http://www.og.dti.gov/fox_module" xmlns:hfp="http://www.w3.org/2001/XMLSchema-hasFacetAndProperty" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" blockDefault="#all" version="1.0" xml:lang="EN">
   <xs:annotation>
     <xs:documentation>
-    Part 1 version: Id: XMLSchema.xsd,v 1.48 2001/04/24 18:56:39 ht Exp 
-    Part 2 version: Id: datatypes.xsd,v 1.52 2001/04/27 11:49:21 ht Exp 
+    Part 1 version: Id: XMLSchema.xsd,v 1.48 2001/04/24 18:56:39 ht Exp
+    Part 2 version: Id: datatypes.xsd,v 1.52 2001/04/27 11:49:21 ht Exp
   </xs:documentation>
   </xs:annotation>
   <xs:annotation>
@@ -37,9 +37,9 @@
   <xs:complexType name="openAttrs">
     <xs:annotation>
       <xs:documentation>
-FOX CHANGE: Removed any:anyAttribute to enforce strict validation of fox 
+FOX CHANGE: Removed any:anyAttribute to enforce strict validation of fox
 attributes on XMLSchema elements!
- 
+
        This type is extended by almost all schema types
        to allow attributes from other namespaces to be
        added to user schemas.
@@ -352,6 +352,14 @@ attributes on XMLSchema elements!
       </xs:restriction>
     </xs:complexContent>
   </xs:complexType>
+  <xs:complexType name="foxAttrExtendedComplexType">
+    <xs:complexContent>
+      <xs:extension base="xs:topLevelComplexType">
+        <xs:attributeGroup ref="fox:zzz-schema-element-attr-grp"/>
+        <xs:anyAttribute namespace="##other" processContents="skip"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
   <xs:complexType name="localComplexType">
     <xs:complexContent>
       <xs:restriction base="xs:complexType">
@@ -449,7 +457,7 @@ attributes on XMLSchema elements!
       </xs:complexContent>
     </xs:complexType>
   </xs:element>
-  <xs:element name="complexType" type="xs:topLevelComplexType" id="complexType">
+  <xs:element name="complexType" type="xs:foxAttrExtendedComplexType" id="complexType">
     <xs:annotation>
       <xs:documentation source="http://www.w3.org/TR/xmlschema-1/#element-complexType"/>
     </xs:annotation>
@@ -592,7 +600,7 @@ attributes on XMLSchema elements!
   </xs:complexType>
   <xs:complexType name="namedGroup">
     <xs:annotation>
-      <xs:documentation>Should derive this from realGroup, but too complicated 
+      <xs:documentation>Should derive this from realGroup, but too complicated
                       for now</xs:documentation>
     </xs:annotation>
     <xs:sequence>
@@ -752,6 +760,7 @@ attributes on XMLSchema elements!
       <xs:complexContent>
         <xs:extension base="xs:explicitGroup">
           <xs:attributeGroup ref="fox:zzz-cellmate-attr-grp"/>
+          <xs:anyAttribute namespace="##other" processContents="skip"/>
         </xs:extension>
       </xs:complexContent>
     </xs:complexType>
@@ -802,7 +811,7 @@ attributes on XMLSchema elements!
               ##other    - - any non-conflicting WFXML/attribute from
                               namespace other than targetNS
 
-              ##local    - - any unqualified non-conflicting WFXML/attribute 
+              ##local    - - any unqualified non-conflicting WFXML/attribute
 
               one or     - - any non-conflicting WFXML/attribute from
               more URI        the listed namespaces
@@ -1113,18 +1122,18 @@ use</xs:documentation>
       as follows:
         1) the base URI is the URI of the XML Schema namespace
         2) the fragment identifier is the name of the datatype
-        
+
       For example, to address the int datatype, the URI is:
-      
+
         http://www.w3.org/2001/XMLSchema#int
-      
+
       Additionally, each facet definition element can be uniquely
       addressed via a URI constructed as follows:
         1) the base URI is the URI of the XML Schema namespace
         2) the fragment identifier is the name of the facet
-        
+
       For example, to address the maxInclusive facet, the URI is:
-      
+
         http://www.w3.org/2001/XMLSchema#maxInclusive
 
       Additionally, each facet usage in a built-in datatype definition
@@ -1132,12 +1141,12 @@ use</xs:documentation>
         1) the base URI is the URI of the XML Schema namespace
         2) the fragment identifier is the name of the datatype, followed
            by a period (".") followed by the name of the facet
-        
+
       For example, to address the usage of the maxInclusive facet in
       the definition of int, the URI is:
-      
+
         http://www.w3.org/2001/XMLSchema#int.maxInclusive
-        
+
     </xs:documentation>
   </xs:annotation>
   <xs:simpleType name="string" id="string">
