@@ -18,6 +18,11 @@
   border-bottom: 2px solid #ccc;
 }
 
+.setoutList th .link-button {
+  font-weight: 600;
+  margin: 0;
+}
+
 .setoutList td {
   font-size: 0.9em;
   border-bottom: 1px solid #ccc;
