@@ -89,6 +89,14 @@ public interface OutputSerialiser {
   public String getSafeStringAttribute(StringAttributeResult pStringAttributeResult);
 
   /**
+   * Escape all the newline characters in pString to whatever the serialiser may need to reflect that newline.
+   *
+   * @param pString string to be escaped
+   * @return copy pString with newlines replaced
+   */
+  public String escapeNewlines(String pString);
+
+  /**
    * Add some debug information to the output
    *
    * @param pDebugInformation
