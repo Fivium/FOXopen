@@ -72,6 +72,10 @@ label {
   margin-bottom: 1em;
 }
 
+.setoutForm .mce-panel.mce-toolbar-grp {
+  margin-bottom: 0;
+}
+
 .tightForm input,
 .tightForm button,
 .tightForm select,
@@ -230,7 +234,13 @@ input[type='checkbox'] {
 
 .button-option-label input[type='radio'],
 .button-option-label input[type='checkbox'] {
-  display: none;
+  /* Not display: none because of IE bug - http://stackoverflow.com/questions/1252690/ie-hidden-radio-button-not-checked-when-the-corresponding-label-is-clicked */
+  position:absolute;
+  left:-10000px;
+  top:auto;
+  width:1px;
+  height:1px;
+  overflow:hidden;
 }
 
 .input-group {
@@ -276,6 +286,10 @@ input[type='checkbox'] {
 .hint::before {
   margin: 0;
   color: #1065AF;
+}
+
+.hint:hover {
+  cursor: default;
 }
 
 .individual-input {
