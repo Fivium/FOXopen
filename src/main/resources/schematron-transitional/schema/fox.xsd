@@ -139,6 +139,7 @@
     <xs:attribute ref="actionType"/>
     <xs:attribute ref="downloadFileName"/>
     <xs:attribute ref="downloadAsAttachment"/>
+    <xs:attribute ref="namespacePreference"/>
   </xs:attributeGroup>
   <xs:attributeGroup name="zzz-action-attr-grp">
     <xs:attributeGroup ref="zzz-action-out-attr-grp"/>
