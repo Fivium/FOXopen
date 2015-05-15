@@ -335,6 +335,7 @@
     <xs:attribute ref="autoResizeMaxHeight"/>
     <xs:attribute ref="htmlWidgetConfig"/>
     <xs:attribute ref="collapseColumns"/>
+    <xs:attribute ref="hasContent"/>
     <xs:attribute ref="client-visibility-rule" use="optional"/>
     <xs:attribute ref="client-visibility-rule-value" use="optional"/>
     <xs:attribute ref="client-visibility-rule-target" use="optional"/>
@@ -375,6 +376,7 @@
     <xs:attribute ref="cellmateStyle"/>
     <xs:attribute ref="promptClass"/>
     <xs:attribute ref="promptStyle"/>
+    <xs:attribute ref="hasContent"/>
   </xs:attributeGroup>
   <!--ITEM GROUP SELECTION LEVELS-->
   <xs:attribute name="view"/>
@@ -928,7 +930,16 @@
       </xs:restriction>
     </xs:simpleType>
   </xs:attribute>
-  <xs:attribute name="collapseColumns" type="fox-xpath-type"/>
+  <xs:attribute name="collapseColumns" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>XPath boolean to determine a list set-out should hide empty columns, where empty means there's no value in the dom for any row or hasContent is set to false.</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="hasContent" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>XPath boolean to determine if this column should be shown when collapseColumns is enabled.</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
   <xs:attribute name="client-visibility-rule" type="xs:string"/>
   <xs:attribute name="client-visibility-rule-value" type="xs:string"/>
   <xs:attribute name="client-visibility-rule-target" type="xs:string"/>
