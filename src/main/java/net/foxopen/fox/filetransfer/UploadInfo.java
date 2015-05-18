@@ -37,12 +37,19 @@ import com.google.common.base.Joiner;
 import net.foxopen.fox.App;
 import net.foxopen.fox.FileUploadType;
 import net.foxopen.fox.XFUtil;
+import net.foxopen.fox.cache.BuiltInCacheDefinition;
+import net.foxopen.fox.cache.CacheManager;
+import net.foxopen.fox.cache.FoxCache;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.ex.ExApp;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExServiceUnavailable;
 import net.foxopen.fox.ex.ExTooMany;
+import net.foxopen.fox.thread.ActionRequestContext;
+import net.foxopen.fox.thread.storage.FileStorageLocation;
+import net.foxopen.fox.thread.storage.WorkingUploadStorageLocation;
+import net.foxopen.fox.util.RandomString;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -60,12 +67,16 @@ public class UploadInfo {
 
   private static final Iterator<String> gFileIdUniqueIterator = XFUtil.getUniqueIterator();
 
+  private final String mUploadInfoId;
+
   private final String mThreadId;
   private final String mCallId;
   private final String mTargetContextRef;
   private final String mAppMnem;
   private final FileUploadType mFileUploadType;
 
+  private WorkingUploadStorageLocation mWorkingSL;
+  private UploadLogger mUploadLogger;
   private final String mFileId;
   private final Date mUploadDate;
 
@@ -79,7 +90,6 @@ public class UploadInfo {
   private long mHttpContentLength = 0;
   private String mStatusMsg = "";
 
-  private String mCharEncoding = "not specified"; // Looks like it was never used... Retained for consistency
   private ForceFailReason mForceFailReason = null;
 
   private String mSystemMsg = "";
@@ -121,15 +131,59 @@ public class UploadInfo {
     }
   }
 
-  public UploadInfo(String pThreadId, String pCallId, String pTargetContextRef, App pApp, FileUploadType pFileUploadType) {
+  public static FoxCache<String, UploadInfo> getUploadInfoCache() {
+    return  CacheManager.getCache(BuiltInCacheDefinition.UPLOAD_INFOS);
+  }
+
+  public static UploadInfo createUploadInfo(ActionRequestContext pRequestContext, DOM pUploadTargetDOM, FileStorageLocation pFSL,
+                                            FileUploadType pFileUploadType, String pThreadId, String pCallId, UploadLogger pUploadLogger) {
+    String lUploadInfoId = RandomString.getString(100);
+    //We may be able to get the filename from the JS start call
+    String lFilename = pRequestContext.getFoxRequest().getParameter("filename");
+
+    UploadInfo lUploadInfo = new UploadInfo(pRequestContext, lUploadInfoId, lFilename, pUploadTargetDOM, pFSL, pFileUploadType, pThreadId, pCallId, pUploadLogger);
+
+    getUploadInfoCache().put(lUploadInfoId, lUploadInfo);
+
+    return lUploadInfo;
+  }
+
+  protected UploadInfo(ActionRequestContext pRequestContext, String pUploadInfoId, String pOptionalFilename, DOM pUploadTargetDOM, FileStorageLocation pFSL,
+                       FileUploadType pFileUploadType, String pThreadId, String pCallId, UploadLogger pUploadLogger) {
+
+    mUploadInfoId = pUploadInfoId;
+    setFilename(XFUtil.nvl(pOptionalFilename));
+
     mThreadId = pThreadId;
     mCallId = pCallId;
-    mTargetContextRef = pTargetContextRef;
-    mAppMnem = pApp.getMnemonicName();
+    mTargetContextRef = pUploadTargetDOM.getFoxId();
+    mAppMnem = pRequestContext.getRequestApp().getMnemonicName();
     mFileUploadType = pFileUploadType;
 
+    mWorkingSL = pFSL.createWorkingUploadStorageLocation(pRequestContext.getContextUElem(), pUploadTargetDOM, this);
+    mUploadLogger = pUploadLogger;
     mFileId = gFileIdUniqueIterator.next();
     mUploadDate = new Date();
+  }
+
+  public String getUploadInfoId() {
+    return mUploadInfoId;
+  }
+
+  public WorkingUploadStorageLocation getWorkingSL() {
+    return mWorkingSL;
+  }
+
+  public UploadLogger getUploadLogger() {
+    return mUploadLogger;
+  }
+
+  public String getTargetContextRef() {
+    return mTargetContextRef;
+  }
+
+  public String getThreadId() {
+    return mThreadId;
   }
 
   public UploadStatus getStatus() {
@@ -310,7 +364,7 @@ public class UploadInfo {
     if(!pSuppressFileId) {
       pSerialiseToElem.addElem("file-id", getFileId());
     }
-    pSerialiseToElem.addElem("character-encoding", mCharEncoding);
+    pSerialiseToElem.addElem("character-encoding", "not specified"); //"not specified was a legacy value, retained for constistency
 
     serialiseDiagnosticFileMetadataToXML(pSerialiseToElem);
   }
@@ -382,7 +436,7 @@ public class UploadInfo {
   }
 
   public String toString() {
-    return "UploadInfo ThreadId=" + mThreadId + " CallId=" + mCallId + " ContextRef=" + mTargetContextRef;
+    return "UploadInfo ThreadId=" + mThreadId + " UploadInfoId=" + mUploadInfoId;
   }
 
   public boolean isForceFailRequested() {
@@ -399,7 +453,20 @@ public class UploadInfo {
    */
   public void failUpload(Throwable pError) {
     mUploadFailed = true;
-    mReadableErrorMessage = UploadProcessor.getReadableErrorMessage(pError, this);
+    mReadableErrorMessage = UploadServlet.getReadableErrorMessage(pError, this);
+  }
+
+  /**
+   * Nulls out references to potentially large objects to prevent memory leaks. The UploadInfo may be reatained in a cache
+   * for a while but we don't want/need references to these objects.
+   */
+  public void cleanupAfterError() {
+    mWorkingSL = null;
+    mUploadLogger = null;
+  }
+
+  public String getReadableErrorMessage() {
+    return mReadableErrorMessage;
   }
 
   public String getSystemMsg() {

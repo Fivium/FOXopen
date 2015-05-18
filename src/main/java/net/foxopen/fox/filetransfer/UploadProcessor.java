@@ -2,8 +2,6 @@ package net.foxopen.fox.filetransfer;
 
 
 import net.foxopen.fox.App;
-import net.foxopen.fox.ContextUElem;
-import net.foxopen.fox.FileUploadType;
 import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.FoxResponse;
 import net.foxopen.fox.FoxResponseCHAR;
@@ -14,29 +12,21 @@ import net.foxopen.fox.database.storage.WorkDoc;
 import net.foxopen.fox.database.storage.lob.LOBWorkDoc;
 import net.foxopen.fox.database.storage.lob.WriteableLOBWorkDoc;
 import net.foxopen.fox.dom.DOM;
-import net.foxopen.fox.dom.DOMList;
 import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.ex.ExDB;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExServiceUnavailable;
 import net.foxopen.fox.ex.ExUpload;
-import net.foxopen.fox.filetransfer.UploadInfo.ForceFailReason;
-import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.module.UploadedFileInfo;
-import net.foxopen.fox.module.datanode.NodeAttribute;
-import net.foxopen.fox.module.datanode.NodeInfo;
 import net.foxopen.fox.queue.ServiceQueueHandler;
 import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.thread.RampedThreadRunnable;
 import net.foxopen.fox.thread.RequestContext;
-import net.foxopen.fox.thread.StatefulXThread;
 import net.foxopen.fox.thread.ThreadLockManager;
 import net.foxopen.fox.thread.persistence.xstream.XStreamManager;
-import net.foxopen.fox.thread.storage.FileStorageLocation;
 import net.foxopen.fox.thread.storage.WorkingFileStorageLocation;
 import net.foxopen.fox.thread.storage.WorkingUploadStorageLocation;
 import net.foxopen.fox.track.Track;
-import org.json.simple.JSONObject;
 
 import java.sql.Blob;
 import java.sql.Savepoint;
@@ -47,108 +37,26 @@ import java.sql.Savepoint;
  */
 public class UploadProcessor {
 
-  private final String mThreadId;
-  private final String mCallId;
-  /** The node which will "contain" this file upload. This is also the target node for single uploads. */
-  private final String mUploadContainerContextRef;
-  /** The node which the upload metadata is to be written to. Populated just in time when the upload cardinality is known. */
-  private String mUploadTargetNodeRef;
+  private final UploadInfo mUploadInfo;
+  private final MultipartUploadReader mMultipartUploadReader;
 
-  private static final boolean INTERRUPT_EXISTING_UPLOADS = true;
+  public UploadProcessor(RequestContext pRequestContext) {
 
-  public UploadProcessor(String pThreadId, String pCallId, String pUploadContainerContextRef) {
-    mThreadId = pThreadId;
-    mCallId = pCallId;
-    mUploadContainerContextRef = pUploadContainerContextRef;
-  }
-
-  private UploadInfo constructUploadInfo(FileUploadType pFileUploadType, App pApp) {
-
-    UploadInfo lExistingUploadInfo = UploadInfoCache.getUploadInfo(mThreadId, mCallId, mUploadContainerContextRef);
-
-    if(lExistingUploadInfo != null) {
-      if(INTERRUPT_EXISTING_UPLOADS) {
-        //NOTE: we used to wait for an upload to finish if already in progress, but this caused problems when the upload got stuck.
-        lExistingUploadInfo.forceFailUpload(ForceFailReason.NEW_UPLOAD);
-      }
+    //Start reading the request to get form data
+    mMultipartUploadReader = new MultipartUploadReader(pRequestContext.getFoxRequest());
+    Track.pushInfo("InitialFormRead");
+    try {
+      mMultipartUploadReader.readFormData();
+    }
+    finally {
+      Track.pop("InitialFormRead");
     }
 
-    //TODO PN IMAGE UPLOADS - create image upload info if required
-    UploadInfo lNewUploadInfo = new UploadInfo(mThreadId, mCallId, mUploadContainerContextRef, pApp, pFileUploadType);
-    UploadInfoCache.cacheUploadInfo(mThreadId, mCallId, mUploadContainerContextRef, lNewUploadInfo);
-
-    return lNewUploadInfo;
-  }
-
-  private class UploadThreadInitialiser implements RampedThreadRunnable {
-
-    private final MultipartUploadReader mMultipartUploadReader;
-
-    private String mWuaId;
-    private String mStateName;
-    private Mod mModule;
-
-    private WorkingUploadStorageLocation mWorkingSL;
-    private UploadInfo mUploadInfo;
-
-    private UploadThreadInitialiser(MultipartUploadReader pMultipartUploadReader) {
-      mMultipartUploadReader = pMultipartUploadReader;
+    String lUploadInfoId = mMultipartUploadReader.getFormFieldValue(UploadServlet.UPLOAD_INFO_ID_PARAM);
+    mUploadInfo = UploadServlet.getUploadInfo(lUploadInfoId);
+    if(mUploadInfo == null) {
+      throw new ExInternal("UploadInfo " + lUploadInfoId + " was not found in cache");
     }
-
-    @Override
-    public void run(ActionRequestContext pRequestContext) {
-      //Run client actions on the thread to ensure all deletion requests are processed before anything else happens
-      String lClientActionJSON = mMultipartUploadReader.getFormFieldValue("clientActions");
-      if(!XFUtil.isNull(lClientActionJSON)) {
-        pRequestContext.applyClientActions(lClientActionJSON);
-      }
-
-      //Get references to the current state of the thread
-      mStateName = pRequestContext.getCurrentState().getName();
-      mWuaId = pRequestContext.getAuthenticationContext().getAuthenticatedUser().getAccountID();
-
-      ContextUElem lContextUElem = pRequestContext.getContextUElem();
-      mModule = pRequestContext.getCurrentModule();
-
-      DOM lUploadContainerDOM = lContextUElem.getElemByRef(mUploadContainerContextRef);
-
-      NodeInfo lNodeInfo = mModule.getNodeInfo(lUploadContainerDOM);
-      String lFileUploadType = lNodeInfo.getFoxNamespaceAttribute(NodeAttribute.UPLOAD_FILE_TYPE);
-
-      mUploadInfo = constructUploadInfo(pRequestContext.getRequestApp().getFileUploadType(lFileUploadType), pRequestContext.getRequestApp());
-
-      //If the upload target is a multi-upload node, create a new list element to be the target DOM - otherwise the target is the container
-      DOM lUploadTargetDOM;
-      if(lNodeInfo.getListMaxCardinality() > 0) {
-        //Validate that we don't already have enough files
-        if(lUploadContainerDOM.getChildNodes().size() >= lNodeInfo.getListMaxCardinality()) {
-          throw new ExUpload("you cannot upload any more files into this location"); //Bad grammar is OK - this will be a sentence fragment
-        }
-
-        lUploadTargetDOM = createUploadTarget(lUploadContainerDOM, lNodeInfo);
-      }
-      else {
-        lUploadTargetDOM = lUploadContainerDOM;
-      }
-
-      //Set the target node ref now we know the container's cardinality
-      mUploadTargetNodeRef = lUploadTargetDOM.getRef();
-
-      FileStorageLocation lFSL = mModule.getFileStorageLocation(lNodeInfo.getFoxNamespaceAttribute(NodeAttribute.FILE_STORAGE_LOCATION));
-      mWorkingSL = lFSL.createWorkingUploadStorageLocation(lContextUElem, lUploadTargetDOM, mUploadInfo);
-
-      //Reset the target DOM ready for the new upload - don't write the file ID as this is used to indicate that an upload was successful.
-      mUploadInfo.serialiseFileMetadataToXML(lUploadTargetDOM, true);
-    }
-  }
-
-  private static DOM createUploadTarget(DOM pContainerDOM, NodeInfo pNodeInfo) {
-    DOMList lChildNodes = pNodeInfo.getModelDOMElem().getChildNodes();
-    if(lChildNodes.size() != 1) {
-      throw new ExInternal("Multi-upload target in model DOM should have exactly 1 child element");
-    }
-
-    return pContainerDOM.addElem(lChildNodes.get(0).getName());
   }
 
   /**
@@ -157,72 +65,33 @@ public class UploadProcessor {
    * @return JSON response representing upload success or failure.
    */
   public FoxResponse processUpload(RequestContext pRequestContext) {
-
     try {
-
-      //Start reading the request to get form data
-      MultipartUploadReader lMultipartUploadReader = new MultipartUploadReader(pRequestContext.getFoxRequest());
-      Track.pushInfo("InitialFormRead");
-      try {
-        lMultipartUploadReader.readFormData();
-      }
-      finally {
-        Track.pop("InitialFormRead");
-      }
-
-      final UploadThreadInitialiser lInitialiser = new UploadThreadInitialiser(lMultipartUploadReader);
-
-      ThreadLockManager<UploadLogger> lThreadLockManager = new ThreadLockManager<>(mThreadId, UploadServlet.UPLOAD_CONNECTION_NAME, false);
-      UploadLogger lUploadLogger = lThreadLockManager.lockAndPerformAction(pRequestContext, new ThreadLockManager.LockedThreadRunnable<UploadLogger>() {
-        @Override
-        public UploadLogger doWhenLocked(RequestContext pRequestContext, StatefulXThread pXThread) {
-
-          //Validate that an upload is allowed to the target context (decided by FieldSet)
-          if (!pXThread.checkUploadAllowed(mUploadContainerContextRef)) {
-            throw new ExInternal("Upload to context ref " + mUploadContainerContextRef + " not allowed");
-          }
-
-          //Initialise (clean out) the target DOM and get state info from the thread
-          pXThread.rampAndRun(pRequestContext, lInitialiser, "UploadInit");
-
-          //Construct a new logger and insert the log start
-          UploadLogger lUploadLogger = new UploadLogger(pRequestContext.getRequestApp(), lInitialiser.mWuaId, lInitialiser.mModule.getName(), lInitialiser.mStateName);
-          UCon lUCon = pRequestContext.getContextUCon().getUCon("Upload Log Start");
-          try {
-            lUploadLogger.startLog(lUCon, lInitialiser.mUploadInfo, pRequestContext.getFoxRequest().getHttpRequest().getRemoteAddr());
-          }
-          finally {
-            pRequestContext.getContextUCon().returnUCon(lUCon, "Upload Log Start");
-          }
-
-          return lUploadLogger;
-        }
-      });
-
-      return receiveUpload(pRequestContext, lMultipartUploadReader, lInitialiser.mUploadInfo, lInitialiser.mWorkingSL, lUploadLogger);
+      return receiveUpload(pRequestContext);
     }
-    catch(Throwable th) {
+    catch (Throwable th) {
       //Catch all error handler - most expected errors should have already been handled gracefully above
-      return generateErrorResponse(th, null);
+      return UploadServlet.generateErrorResponse(th, mUploadInfo, true);
     }
   }
 
   /**
    * Initialise a WorkDoc LOB locator, streams a file upload into it, and handles storage location completion/finalisation.
-   * @param pRequestContext
-   * @param pUploadInfo
-   * @param pWorkingSL
-   * @param pUploadLogger
    * @return JSON response representing upload success or failure.
    */
-  private FoxResponse receiveUpload(RequestContext pRequestContext, MultipartUploadReader pMultipartUploadReader, final UploadInfo pUploadInfo,
-                                    WorkingUploadStorageLocation pWorkingSL, UploadLogger pUploadLogger) {
+  FoxResponse receiveUpload(RequestContext pRequestContext) {
+
+    if(mUploadInfo.getStatus() != UploadStatus.NOT_STARTED) {
+      throw new ExInternal("Cannot start an upload when UploadInfo status is " + mUploadInfo.getStatus());
+    }
 
     FoxRequest lFoxRequest = pRequestContext.getFoxRequest();
     App lApp = pRequestContext.getRequestApp();
 
+    WorkingUploadStorageLocation lWorkingSL = mUploadInfo.getWorkingSL();
+    UploadLogger lUploadLogger = mUploadInfo.getUploadLogger();
+
     //Note: Currently only BLOB uploads are supported
-    LOBWorkDoc<Blob> lWorkDoc = new WriteableLOBWorkDoc<>(Blob.class, pWorkingSL);
+    LOBWorkDoc<Blob> lWorkDoc = new WriteableLOBWorkDoc<>(Blob.class, lWorkingSL);
     UploadWorkItem lUploadWorkItem;
     Blob lWFSLUploadBLOB;
 
@@ -237,26 +106,26 @@ public class UploadProcessor {
     Track.pushInfo("ReceiveUpload");
     try {
       //Re-evaluate binds for upload events etc
-      pWorkingSL.reEvaluateFileMetadataBinds();
+      lWorkingSL.reEvaluateFileMetadataBinds();
 
       //Serialise to upload info log xml
-      pUploadLogger.addLogXML("working-file-storage-location", XStreamManager.serialiseObjectToDOM(pWorkingSL));
+      lUploadLogger.addLogXML("working-file-storage-location", XStreamManager.serialiseObjectToDOM(lWorkingSL));
 
       // fire upload event for not-started status
-      setUploadStatusAndFireEvent(UploadStatus.NOT_STARTED, pUploadInfo, lUCon, pWorkingSL, lWorkDoc);
+      setUploadStatusAndFireEvent(UploadStatus.NOT_STARTED, lUCon, lWorkingSL, lWorkDoc);
 
       // Build the Upload Work Item
-      lUploadWorkItem = new UploadWorkItem(lFoxRequest, pUploadInfo);
+      lUploadWorkItem = new UploadWorkItem(lFoxRequest, mUploadInfo);
 
       lUploadWorkItem.setAttribute("OriginatingApp", pRequestContext.getRequestApp()); // set a reference to the app on upload work item
       lUploadWorkItem.setAttribute("UCon", lUCon);
 
-      setUploadStatusAndFireEvent(UploadStatus.STARTED, pUploadInfo, lUCon, pWorkingSL, lWorkDoc);
+      setUploadStatusAndFireEvent(UploadStatus.STARTED, lUCon, lWorkingSL, lWorkDoc);
 
       // Prepares the work item to start reading the file
       Track.pushInfo("UploadWorkItemInit");
       try {
-        lUploadWorkItem.init(pMultipartUploadReader);
+        lUploadWorkItem.init(mMultipartUploadReader);
       }
       finally {
         Track.pop("UploadWorkItemInit");
@@ -264,7 +133,7 @@ public class UploadProcessor {
 
       // Set status to receiving and fire event
       // moved to here for proper status update
-      setUploadStatusAndFireEvent(UploadStatus.RECEIVING, pUploadInfo, lUCon, pWorkingSL, lWorkDoc);
+      setUploadStatusAndFireEvent(UploadStatus.RECEIVING, lUCon, lWorkingSL, lWorkDoc);
 
       //Savepoint here after not-started -> started -> receiving
       Savepoint lUploadStartSavepoint = lUCon.savepoint("UPLOAD_START");
@@ -327,15 +196,15 @@ public class UploadProcessor {
         }
 
         // Status updates retained from old implementation
-        setUploadStatusAndFireEvent(UploadStatus.CONTENT_CHECK, pUploadInfo, lUCon, pWorkingSL, lWorkDoc);
-        setUploadStatusAndFireEvent(UploadStatus.VIRUS_CHECK, pUploadInfo, lUCon, pWorkingSL, lWorkDoc);
-        setUploadStatusAndFireEvent(UploadStatus.SIGNATURE_VERIFY, pUploadInfo, lUCon, pWorkingSL, lWorkDoc);
-        setUploadStatusAndFireEvent(UploadStatus.STORING, pUploadInfo, lUCon, pWorkingSL, lWorkDoc);
+        setUploadStatusAndFireEvent(UploadStatus.CONTENT_CHECK, lUCon, lWorkingSL, lWorkDoc);
+        setUploadStatusAndFireEvent(UploadStatus.VIRUS_CHECK, lUCon, lWorkingSL, lWorkDoc);
+        setUploadStatusAndFireEvent(UploadStatus.SIGNATURE_VERIFY, lUCon, lWorkingSL, lWorkDoc);
+        setUploadStatusAndFireEvent(UploadStatus.STORING, lUCon, lWorkingSL, lWorkDoc);
 
         Track.pushInfo("WorkDocClose");
         try {
           // Reload evaluated bind variables in the FileWSL to populate the correct metadata (for update statement in close)
-          pWorkingSL.reEvaluateFileMetadataBinds();
+          lWorkingSL.reEvaluateFileMetadataBinds();
 
           //Run update statement on WSL
           lWorkDoc.close(lUCon);
@@ -345,17 +214,17 @@ public class UploadProcessor {
         }
 
         //Fire completion event
-        setUploadStatusAndFireEvent(UploadStatus.COMPLETE, pUploadInfo, lUCon, pWorkingSL, lWorkDoc);
+        setUploadStatusAndFireEvent(UploadStatus.COMPLETE, lUCon, lWorkingSL, lWorkDoc);
 
         //Write the completed metadata to the DOM and commit
-        lUploadedFileInfo = retrieveDOMWriteMetadataAndCommit(pRequestContext, pUploadInfo, false, pWorkingSL);
+        lUploadedFileInfo = retrieveDOMWriteMetadataAndCommit(pRequestContext, false, lWorkingSL);
       }
       catch (ExUpload e){
         //Catch for any anticipated errors - we can deal with these in a controlled way
         //Rollback to the point before upload started (don't want to roll back all API firing etc)
         lUCon.rollbackTo(lUploadStartSavepoint);
         lAllowLogFailure = false;
-        return handleUploadException(pRequestContext, e, pUploadInfo, pWorkingSL, lUCon, lWorkDoc);
+        return handleUploadException(pRequestContext, e, lWorkingSL, lUCon, lWorkDoc);
       }
       finally {
         Track.pop("DoFileUpload");
@@ -370,13 +239,16 @@ public class UploadProcessor {
         Track.recordSuppressedException("Upload failure rollback", e);
       }
       lAllowLogFailure = false;
-      return handleUploadException(pRequestContext, th, pUploadInfo, pWorkingSL, lUCon, lWorkDoc);
+      return handleUploadException(pRequestContext, th, lWorkingSL, lUCon, lWorkDoc);
     }
     finally {
       Track.pop("ReceiveUpload");
       pRequestContext.getContextUCon().returnUCon(lUCon, "Upload");
-      logCompletion(pRequestContext, pUploadLogger, pUploadInfo, lAllowLogFailure);
+      logCompletion(pRequestContext, lUploadLogger, lAllowLogFailure);
     }
+
+    //Remove the UploadInfo from the cache so we're not retaining it unnecessarily (note: it needs to hang around if the upload failed)
+    UploadInfo.getUploadInfoCache().remove(mUploadInfo.getUploadInfoId());
 
     return generateSuccessResponse(lUploadedFileInfo);
   }
@@ -391,99 +263,40 @@ public class UploadProcessor {
   }
 
   /**
-   * Generates a JSON response based on an error for display using client side JavaScript.
-   * @param pError
-   * @param pUploadInfo
-   * @return
-   */
-  private FoxResponse generateErrorResponse(Throwable pError, UploadInfo pUploadInfo) {
-
-    JSONObject lErrorJSONResult = new JSONObject();
-    //Error object still needs to know the DOM ref so client side deletes can happen
-    lErrorJSONResult.put(UploadedFileInfo.DOM_REF_KEY_NAME, mUploadTargetNodeRef);
-    lErrorJSONResult.put(UploadedFileInfo.ERROR_MESSAGE_KEY_NAME, getReadableErrorMessage(pError, pUploadInfo));
-
-    if(FoxGlobals.getInstance().canShowStackTracesOnError()) {
-      lErrorJSONResult.put("errorStack", XFUtil.getJavaStackTraceInfo(pError));
-    }
-
-    if(pUploadInfo != null && pUploadInfo.isForceFailRequested()) {
-      lErrorJSONResult.put("errorReason", "cancelled");
-    }
-
-    FoxResponseCHAR lErrorResponse = new FoxResponseCHAR("text/plain", new StringBuffer(lErrorJSONResult.toJSONString()), 0L);
-    //IMPORTANT: Don't set an error response code (i.e. 500) as this will cause the upload JS library to abort all uploads
-    return lErrorResponse;
-  }
-
-  /**
-   * Generates a user-appropriate error message for display on the client side.
-   * @param pError Original error.
-   * @param pUploadInfo
-   * @return Readable error message.
-   */
-  static String getReadableErrorMessage(Throwable pError, UploadInfo pUploadInfo) {
-    String lFilename;
-    if(pUploadInfo != null && !XFUtil.isNull(pUploadInfo.getFilename())) {
-      lFilename = pUploadInfo.getFilename();
-    }
-    else {
-      lFilename = "your file";
-    }
-
-    //Default error message if we don't have an ExUpload with a better one
-    String lReadableMessage = "an unexpected problem occured";
-
-    //Look through the error stack for an ExUpload with a readable message to report to the user
-    Throwable lError = pError;
-    do {
-      if(lError instanceof ExUpload) {
-        lReadableMessage = ((ExUpload) lError).getReadableMessage();
-        break;
-      }
-      lError = lError.getCause();
-    }
-    while(lError != null);
-
-    return "Could not upload " + lFilename + ": " + lReadableMessage + ".";
-  }
-
-  /**
    * Updates the UploadInfo to reflect the given exception, writes failure metadata to the target DOM and attempts to
    * close the target LOB.
    * @param pRequestContext
    * @param pException
-   * @param pUploadInfo
    * @param pWorkingSL
    * @param pUploadUCon
    * @param pWorkDoc
    * @return An appropriate JSON response containing the error message for display by client JavasSript.
    */
-  private final FoxResponse handleUploadException(RequestContext pRequestContext, Throwable pException, UploadInfo pUploadInfo, WorkingUploadStorageLocation pWorkingSL, UCon pUploadUCon, LOBWorkDoc pWorkDoc) {
+  private FoxResponse handleUploadException(RequestContext pRequestContext, Throwable pException, WorkingUploadStorageLocation pWorkingSL, UCon pUploadUCon, LOBWorkDoc pWorkDoc) {
 
     Track.pushInfo("HandleUploadError");
     try {
       Track.logAlertText("ErrorStack", XFUtil.getJavaStackTraceInfo(pException));
 
-      UploadStatus lStatusAtCatch = pUploadInfo.getStatus();
-      pUploadInfo.failUpload(pException);
+      UploadStatus lStatusAtCatch = mUploadInfo.getStatus();
+      mUploadInfo.failUpload(pException);
 
       //Re-Run events which will have been rolled back due to the failure
       if(lStatusAtCatch == UploadStatus.CONTENT_CHECK_FAILED || lStatusAtCatch == UploadStatus.VIRUS_CHECK_FAILED){
-        setUploadStatusAndFireEvent(UploadStatus.CONTENT_CHECK, pUploadInfo, pUploadUCon, pWorkingSL, pWorkDoc);
+        setUploadStatusAndFireEvent(UploadStatus.CONTENT_CHECK, pUploadUCon, pWorkingSL, pWorkDoc);
       }
 
       if(lStatusAtCatch == UploadStatus.VIRUS_CHECK_FAILED){
-        setUploadStatusAndFireEvent(UploadStatus.VIRUS_CHECK, pUploadInfo, pUploadUCon, pWorkingSL, pWorkDoc);
+        setUploadStatusAndFireEvent(UploadStatus.VIRUS_CHECK, pUploadUCon, pWorkingSL, pWorkDoc);
       }
 
       //Failure event is last to run
-      pUploadInfo.setStatusMsg("A problem occurred uploading the file: " + pException.getMessage() + " If problems persist, contact Technical Support.");
-      pUploadInfo.setSystemMsg("Upload ERROR\n" + pException.getMessage() + XFUtil.getJavaStackTraceInfo(pException));
-      setUploadStatusAndFireEvent(UploadStatus.FAILED, pUploadInfo, pUploadUCon, pWorkingSL, pWorkDoc);
+      mUploadInfo.setStatusMsg("A problem occurred uploading the file: " + pException.getMessage() + " If problems persist, contact Technical Support.");
+      mUploadInfo.setSystemMsg("Upload ERROR\n" + pException.getMessage() + XFUtil.getJavaStackTraceInfo(pException));
+      setUploadStatusAndFireEvent(UploadStatus.FAILED, pUploadUCon, pWorkingSL, pWorkDoc);
 
       //Write diagnostic leg of metadata
-      retrieveDOMWriteMetadataAndCommit(pRequestContext, pUploadInfo, true, pWorkingSL);
+      retrieveDOMWriteMetadataAndCommit(pRequestContext, true, pWorkingSL);
 
       //Attempt to clean up the WorkDoc LOB, ignoring any problems
       try {
@@ -493,7 +306,7 @@ public class UploadProcessor {
         Track.recordSuppressedException("Upload WorkDoc close on error", th);
       }
 
-      return generateErrorResponse(pException, pUploadInfo);
+      return UploadServlet.generateErrorResponse(pException, mUploadInfo, true);
     }
     finally {
       Track.pop("HandleUploadError");
@@ -503,24 +316,23 @@ public class UploadProcessor {
   /**
    * Writes completion information to the UploadLogger. This must be performed at the end of every upload regardless
    * of whether it was successful.
+   * @param pUploadInfo
    * @param pRequestContext
    * @param pUploadLogger
-   * @param pUploadInfo
    * @param pAllowFailure If true, any failures caused by writing the upload log will be propogated out of this method.
-   * Otherwise, all errors will be suppressed.
    */
-  private void logCompletion(RequestContext pRequestContext, UploadLogger pUploadLogger, UploadInfo pUploadInfo, boolean pAllowFailure) {
+  private void logCompletion(RequestContext pRequestContext, UploadLogger pUploadLogger, boolean pAllowFailure) {
 
     Track.pushInfo("LogUploadCompletion");
     try {
       pRequestContext.getContextUCon().pushConnection("LOG_UPLOAD_COMPLETE");
       try {
         //Log upload metadata to the log table
-        pUploadLogger.addLogXML("file-upload-metadata", pUploadInfo.getMetadataDOM());
+        pUploadLogger.addLogXML("file-upload-metadata", mUploadInfo.getMetadataDOM());
 
         UCon lLogUCon = pRequestContext.getContextUCon().getUCon("Log Upload Complete");
         try {
-          pUploadLogger.updateLog(lLogUCon, pUploadInfo);
+          pUploadLogger.updateLog(lLogUCon, mUploadInfo);
           lLogUCon.commit();
         }
         catch (ExServiceUnavailable e) {
@@ -551,47 +363,46 @@ public class UploadProcessor {
    * Locks the upload thread, writes the upload metadata to the relevant DOM location and commits. Also registers a new download
    * on the thread's download manager so the uploaded file can be downloaded immediately.
    * @param pRequestContext
-   * @param pUploadInfo
    * @param pWasError
    * @param pWFSL
    * @return UploadedFileInfo if the upload was successful, or null if not. This can be passed back to the client side
    * JS as a JSON object.
    */
-  private UploadedFileInfo retrieveDOMWriteMetadataAndCommit(RequestContext pRequestContext, final UploadInfo pUploadInfo, final boolean pWasError, final WorkingFileStorageLocation pWFSL) {
+  private UploadedFileInfo retrieveDOMWriteMetadataAndCommit(RequestContext pRequestContext, final boolean pWasError, final WorkingFileStorageLocation pWFSL) {
 
-    final String lUploadTargetNodeRef = mUploadTargetNodeRef;
+    final String lUploadTargetNodeRef = mUploadInfo.getTargetContextRef();
 
     class ThreadUpdater implements RampedThreadRunnable {
       UploadedFileInfo mUploadedFileInfo;
       public void run(ActionRequestContext pRequestContext) {
         //Note: this will cause a failure if the upload target cannot be found
-        DOM lTargetDOM = pRequestContext.getContextUElem().getElemByRef(mUploadTargetNodeRef);
+        DOM lTargetDOM = pRequestContext.getContextUElem().getElemByRef(lUploadTargetNodeRef);
 
         if(!pWasError) {
-          pUploadInfo.serialiseFileMetadataToXML(lTargetDOM, false);
+          mUploadInfo.serialiseFileMetadataToXML(lTargetDOM, false);
 
           //Regenerate a WFSL for downloading (this will also contain the latest binds for the cache key)
           WorkingFileStorageLocation lDownloadWSL = pWFSL.getStorageLocation().createWorkingStorageLocationForUploadDownload(pRequestContext.getContextUElem(), lTargetDOM);
 
-          mUploadedFileInfo = pRequestContext.getDownloadManager().addFileDownload(pRequestContext, lDownloadWSL, lUploadTargetNodeRef, pUploadInfo);
+          mUploadedFileInfo = pRequestContext.getDownloadManager().addFileDownload(pRequestContext, lDownloadWSL, lUploadTargetNodeRef, mUploadInfo);
         }
         else {
-          pUploadInfo.serialiseDiagnosticFileMetadataToXML(lTargetDOM);
+          mUploadInfo.serialiseDiagnosticFileMetadataToXML(lTargetDOM);
         }
       }
     }
 
     ThreadUpdater lThreadUpdater = new ThreadUpdater();
     //Create a new ThreadLockManager which uses a separate connection to lock the thread - don't want to commit the main connection (with the upload on)
-    ThreadLockManager<Object> lThreadLockManager = new ThreadLockManager<>(mThreadId, UploadServlet.UPLOAD_CONNECTION_NAME, true);
+    ThreadLockManager<Object> lThreadLockManager = new ThreadLockManager<>(mUploadInfo.getThreadId(), UploadServlet.UPLOAD_CONNECTION_NAME, true);
     //Lock thread, update the DOM and get the resultant UploadedFileInfo - this also commits the upload
     lThreadLockManager.lockRampAndRun(pRequestContext, "UploadComplete", lThreadUpdater);
 
     return lThreadUpdater.mUploadedFileInfo;
   }
 
-  private void setUploadStatusAndFireEvent(UploadStatus pNewStatus, UploadInfo pUploadInfo, UCon pUCon, WorkingUploadStorageLocation pWorkingSL, WorkDoc pWorkDoc) {
-    pUploadInfo.setStatus(pNewStatus);
+  private void setUploadStatusAndFireEvent(UploadStatus pNewStatus, UCon pUCon, WorkingUploadStorageLocation pWorkingSL, WorkDoc pWorkDoc) {
+    mUploadInfo.setStatus(pNewStatus);
 
     ExecutableAPI lAPIStatement = pWorkingSL.getExecutableAPIStatementOrNull(pWorkDoc);
     if(lAPIStatement != null) {

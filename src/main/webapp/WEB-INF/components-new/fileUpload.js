@@ -1,10 +1,12 @@
 var DELETE_UPLOAD_CLIENT_ACTION_TYPE  = 'DeleteUploadFile';
+var SERVER_ERROR_START = 'start';
+var SERVER_ERROR_RECEIVE = 'receive';
 var POLL_STATUS_INTERVAL = 200;
 
 function FileUpload (container, urlBase, urlParams, fileList, widgetOptions) {
   this.container = container;
   this.urlBase = urlBase;
-  this.urlParams = urlParams;
+  this.startUrlParams = urlParams;
   this.fileList = new Array();
   this.widgetOptions = widgetOptions;
   this.fileListContainer = container.children("ul");
@@ -13,11 +15,12 @@ function FileUpload (container, urlBase, urlParams, fileList, widgetOptions) {
 
   //Initialise the fileupload plugin on the file input
   var fileUpload = container.find('.fileUploadInput').fileupload({
-    url: _this.generateURL('start', null),
+    url: _this.generateURL('receive'),
     dataType: 'json',
     dropZone: $('div[data-dropzone-id="' + _this.container.attr('id') + '"]'),
     sequentialUploads: true,
-    formData: function() { return [{name: 'clientActions', value: JSON.stringify(FOXjs.dequeueClientActions(DELETE_UPLOAD_CLIENT_ACTION_TYPE))}] }
+    add: function(e, data) { _this.handleUploadAdd(e, data) },
+    submit: function(e, data) { return _this.handleUploadSubmit(e, data) }
   });
 
   if(widgetOptions.readOnly) {
@@ -32,15 +35,20 @@ function FileUpload (container, urlBase, urlParams, fileList, widgetOptions) {
     };
 
     //TODO PN proper JS OO
-    this.finishUploadGUIActions = function(wasSuccess){
-      FOXjs._setPageDisabled(false);
-      $('.modalUploadBlocker').remove();
+    this.finishUploadGUIActions = function(wasSuccess) {
+      //Completion handled flag prevents this running multiple times if completion handlers run simultaneously
+      if (!this.completionHandled) {
+        FOXjs._setPageDisabled(false);
+        $('.modalUploadBlocker').remove();
 
-      if(wasSuccess && this.widgetOptions.successAction != null) {
-        FOXjs.action(this.widgetOptions.successAction);
-      }
-      else if(!wasSuccess && this.widgetOptions.failAction != null) {
-        FOXjs.action(this.widgetOptions.failAction);
+        if (wasSuccess && this.widgetOptions.successAction != null) {
+          FOXjs.action(this.widgetOptions.successAction);
+        }
+        else if (!wasSuccess && this.widgetOptions.failAction != null) {
+          FOXjs.action(this.widgetOptions.failAction);
+        }
+
+        this.completionHandled = true;
       }
     };
   }
@@ -65,62 +73,119 @@ function FileUpload (container, urlBase, urlParams, fileList, widgetOptions) {
 
   //Attach event listeners to file upload
 
-  fileUpload.bind('fileuploadadd', function (e, data) {
-    //Called once for each file added by default. If singleFileUploads is set to false in the plugin options
-    //this will fire once for each selection
-    if (_this.checkMaxFilesOnAdd(e, data) == true) {
-      $.each(data.files, function (index, file) {
-        var fileInfo = _this.addFileInfo({filename: file.name});
-        //Store a reference to our FileInfo in the library's object for retrieval later
-        file._foxFileInfo = fileInfo;
-      });
-    }
-  });
-
   fileUpload.bind('fileuploadstart', function (e) {
     //Called before any files are uploaded
     _this.startUploads(e);
   });
 
-
   fileUpload.bind('fileuploadsend', function (e, data) {
     //Called when an individual upload starts
+    //Update GUI to reflect start
     data.files[0]._foxFileInfo.uploadStarted(e);
+
+    //Re-disable uploads now the send has happened (they have to be temporarily enabled to allow the send)
+    _this.getUploadInput().fileupload('disable');
   });
 
   fileUpload.bind('fileuploaddone', function (e, data) {
-    //Individual upload completes
-    data.files[0]._foxFileInfo.uploadFinished(e, data);
+    //Individual upload has completed - update the GUI item
+    if(data.result == null) {
+      //Interpret a null result as a failure (iframe aborted requests return null and do not call fail event)
+      _this.handleFail(null, data.files[0]._foxFileInfo, SERVER_ERROR_RECEIVE);
+    }
+    else {
+      data.files[0]._foxFileInfo.uploadFinished(data.result);
+    }
 
-  });
-
-  fileUpload.bind('fileuploadstop', function (e, data) {
-    //Called when all uploads complete
-    _this.finishUploads();
+    //Unlock GUI if this was the last upload, or start the next upload
+    _this.handleUploadCompletion();
   });
 
   fileUpload.bind('fileuploadfail', function (e, data) {
-    //Called in the event of a serious error (i.e. 500 response)
-    _this.uploadHadError();
-    _this.finishUploads();
-    //Stopgap error message as an interim for proper solution to FOXRD-604
-    var failData = {result : {errorMessage : "Upload error - please check your file is valid. Refresh the page to continue."} };
-    data.files[0]._foxFileInfo.uploadFinished(e, failData);
+    ////Called in the event of a serious error (i.e. 500 response/request abort)
+    _this.handleFail(null, data.files[0]._foxFileInfo, SERVER_ERROR_RECEIVE);
   });
 }
 
 // Prototype definition
 FileUpload.prototype = {
+  fileUploadInput: null,
   container: null,
   urlBase: null,
-  urlParams: null,
+  startUrlParams: null, //Object containing params required for an upload start request (thread id, context ref, etc)
   fileList: null, //Array of file objects
   fileListContainer: null, //DOM UL containing the file list display
   widgetOptions: null,
   lastUploadHadError: false, //Tracker for if any file caused an error during the last upload
+  pendingQueue: [],
 
-  generateURL: function(action, extraParams) {
-    return this.urlBase + "/" + action  + "?" + this.urlParams + (extraParams != null ? extraParams : '');
+  generateURL: function(action, params) {
+    return this.urlBase + "/" + action  + (params != null ? "?" + $.param(params) : "");
+  },
+
+  generateStartURL: function() {
+    return this.generateURL('start', this.startUrlParams);
+  },
+
+  generateStartParams: function(filename) {
+    return [
+      {name: 'clientActions', value: JSON.stringify(FOXjs.dequeueClientActions(DELETE_UPLOAD_CLIENT_ACTION_TYPE))},
+      {name: 'filename', value: filename}
+    ];
+  },
+
+  submitNextPending: function() {
+    //Submit (i.e. start) the next pending upload if there is one
+    if(this.pendingQueue.length > 0) {
+      this.pendingQueue.splice(0, 1)[0].submit();
+    }
+  },
+
+  handleUploadAdd: function(e, data) {
+    //Called once for each file added - data.originalFiles is a list of all files added in the change/drop event
+
+    //Don't add if the widget is at capacity
+    if (this.checkMaxFilesOnAdd(e, data)) {
+
+      //Display the file info box in the page immediately
+      var fileInfo = this.addFileInfo({filename: data.files[0].name});
+
+      //Store a reference to our FileInfo in the library's object for retrieval later
+      data.files[0]._foxFileInfo = fileInfo;
+
+      //Enqueue this upload for later submission
+      this.pendingQueue.push(data);
+
+      //If this is the last file of this "batch", start queue processing
+      if (data.files[0] == data.originalFiles[data.originalFiles.length - 1]) {
+        this.submitNextPending();
+      }
+    }
+  },
+
+  handleUploadSubmit: function(e, data) {
+    var _this = this;
+
+    //Call start to get an upload ID - send client actions to apply any pending deletes
+    $.post(_this.generateStartURL(), _this.generateStartParams(data.files[0].name), function(startResult) {
+      //Merge uploadInfoId for this upload into the fileInfo
+      $.extend(data.files[0]._foxFileInfo, startResult);
+
+      //Send the uploadInfoId and DOM ref back to the servlet as part of the /receive request
+      data.formData = startResult;
+
+      //Just in time enable the fileupload, otherwise the plugin blocks the send (it's re-disabled in start handler)
+      _this.getUploadInput().fileupload('enable');
+
+      //Manually call the send event to start the upload
+      data.jqXHR = _this.getUploadInput().fileupload('send', data);
+      data.files[0]._foxFileInfo.jqXHR = data.jqXHR;
+    }, 'json')
+      .fail(function(jqXHR, textStatus, errorThrown) {
+        _this.handleFail(jqXHR.responseJSON, data.files[0]._foxFileInfo, SERVER_ERROR_START);
+      });
+
+    return false;
   },
 
   startUploadGUIActions: function() {
@@ -135,12 +200,12 @@ FileUpload.prototype = {
   },
 
   addFileInfo: function(fileProps) {
-    var lFileInfo = $.extend(new FileInfo(this), fileProps);
-    this.fileList.push($.extend(lFileInfo, fileProps));
+    var fileInfo = $.extend(new FileInfo(this), fileProps);
+    this.fileList.push(fileInfo);
 
-    lFileInfo.displayInPage();
+    fileInfo.displayInPage();
 
-    return lFileInfo;
+    return fileInfo;
   },
 
   startUploads: function(e) {
@@ -152,9 +217,14 @@ FileUpload.prototype = {
     return this.container.find('.fileUploadInput');
   },
 
+  getUploadLink: function() {
+    return this.container.find('.fileUploadLink');
+  },
+
   enableUpload: function() {
     if(this.fileList.length < this.widgetOptions.maxFiles) {
       this.getUploadInput().toggle(true);
+      this.getUploadLink().toggle(true);
       this.getUploadInput().fileupload('enable');
       this.container.removeClass('disableUpload');
       this.container.find('.dropzone').removeClass('disableUpload');
@@ -165,15 +235,37 @@ FileUpload.prototype = {
   disableUpload: function() {
     this.getUploadInput().fileupload('disable');
     this.getUploadInput().toggle(false);
+    this.getUploadLink().toggle(false);
     this.container.addClass('disableUpload');
     this.container.find('.dropzone').addClass('disableUpload');
     $('body>.dropzone').addClass('disableUpload');
   },
 
   //Common behaviour for success or failure
-  finishUploads: function() {
-    this.finishUploadGUIActions(!this.lastUploadHadError);
-    this.enableUpload();
+  handleUploadCompletion: function() {
+    //If all uploads are complete, unlock page etc
+    if(this.pendingQueue.length == 0) {
+      this.finishUploadGUIActions(!this.lastUploadHadError);
+      this.enableUpload();
+    }
+
+    //Submit the next upload
+    this.submitNextPending();
+  },
+
+  handleFail: function(responseJSON, fileInfo, serverErrorType) {
+    //If abortRequested is set we've already handled the fail
+    if(!fileInfo.abortRequested) {
+      //Called in the event of a serious error (i.e. 500 response, request abort)
+      //Tell container an error occurred
+      this.uploadHadError();
+
+      //Process the next upload/unlock the page
+      this.handleUploadCompletion();
+
+      //Display failure information in UI element
+      fileInfo.uploadFinished($.extend({serverError: serverErrorType}, responseJSON));
+    }
   },
 
   uploadHadError: function() {
@@ -253,23 +345,13 @@ FileUpload.prototype = {
     var filesAllowed = _this.widgetOptions.maxFiles - $.grep(_this.fileList,function(file, index) { return file.fileId != undefined; }).length;
 
     if(data.originalFiles.length > filesAllowed) {
-      this.container.find('.fileUploadInput').unbind('fileuploadsubmit');
-
-      _this.container.find('.fileUploadInput').bind('fileuploadsubmit', function(e, data) {
-        //This will fire once for each file. We only want to alert once, so do it for the first file
-        if(data.files[0] == data.originalFiles[0]) {
-          alert('You tried to upload ' + data.originalFiles.length + ' files, but there\'s only room for ' + filesAllowed + '. Please try again with fewer files.');
-        }
-
-        //Returning false blocks the upload in the plugin
-        return false;
-      });
-
+      //This will fire once for each file. We only want to alert once, so do it for the first file
+      if (data.files[0] == data.originalFiles[0]) {
+        alert('You tried to upload ' + data.originalFiles.length + ' files, but there\'s only room for ' + filesAllowed + '. Please try again with fewer files.');
+      }
       return false;
     }
     else {
-      this.container.find('.fileUploadInput').unbind('fileuploadsubmit');
-
       return true;
     }
   }
@@ -331,14 +413,25 @@ FileInfo.prototype = {
   filename: null,
   fileId: null,
   errorMessage: null,
+  errorStack: null,
+  serverError: null, //type of server error (start/receive) if one occurred
   fileSize: null,
   container: null, //li element containing this file's details
   downloadUrl: null,
   uploadDomRef: null, //foxid of the element where this upload was delivered
+  uploadInfoId: null,
 
   percentComplete: 0,
   statusInterval: null,
   allowStatusUpdates: true,
+  statusUpdateFailures: 0,
+  abortRequested: false, //if an abort has been requested due to an errorMessage in the status
+  completionHandled: false, //if the completion handler has been called (modal only)
+  jqXHR: null, //the JQXHR object performing this upload
+
+  generateUploadInfoURL: function(action, extraParams) {
+    return this.owner.generateURL(action, $.extend({uploadInfoId: this.uploadInfoId}, extraParams));
+  },
 
   displayInPage: function() {
 
@@ -387,23 +480,36 @@ FileInfo.prototype = {
   pollStatus: function() {
     var _this = this;
     $.ajax({
-      url: _this.owner.generateURL('status', null),
-      dataType: 'json',
-      success: function(data, textStatus, jqXHR) {
+      url: _this.generateUploadInfoURL('status'),
+      dataType: 'json'
+    })
+      .done(function(data) {
+        _this.statusUpdateFailures = 0;
         _this.updateStatus(data);
-      },
-      error : function( jqXHR, textStatus, errorThrown) {
-        //alert('Error getting upload status ' + errorThrown);
-      }
-    });
+      })
+      .fail(function() {
+        if(++_this.statusUpdateFailures > 10) {
+          //Stop status polling if FOX is consistently reporting an error
+          clearInterval(_this.statusInterval);
+        }
+      });
   },
 
   updateStatus: function(statusObject) {
-    if(this.allowStatusUpdates && statusObject.statusText != "unknown") {
-      this.setStatusString(statusObject.statusText);
-      this.setUploadSpeedString(statusObject.uploadSpeed);
-      this.setTimeRemainingString(statusObject.timeRemaining);
-      this.setPercentComplete(statusObject.percentComplete, function(){});
+
+    if(this.allowStatusUpdates) {
+      //Status poll may report a failure for iframe transport (the iframe doesn't report aborted requests)
+      if("errorMessage" in statusObject) {
+        this.jqXHR.abort();
+        this.abortRequested = true;
+        this.owner.handleFail(statusObject, this, SERVER_ERROR_RECEIVE)
+      }
+      else if (statusObject.statusText != "unknown") {
+        this.setStatusString(statusObject.statusText);
+        this.setUploadSpeedString(statusObject.uploadSpeed);
+        this.setTimeRemainingString(statusObject.timeRemaining);
+        this.setPercentComplete(statusObject.percentComplete, function(){});
+      }
     }
   },
 
@@ -431,10 +537,10 @@ FileInfo.prototype = {
     this.container.find('.uploadProgress .timeRemaining').text(timeRemaining);
   },
 
-  uploadFinished: function(e, data) {
+  uploadFinished: function(result) {
 
     //Merge the result JSON into this object
-    $.extend(this, data.result);
+    $.extend(this, result);
 
     //Stop receiving status updates
     this.allowStatusUpdates = false;
@@ -442,8 +548,17 @@ FileInfo.prototype = {
     //Stop polling for status
     clearInterval(this.statusInterval);
 
-    if(data.result.errorMessage != null) {
+    //Error logic: errorMessage may have been set by either the response from the upload, or from a status poll.
+    //In the event of a 500 error or upload abort, we may not have an error message, but serverError will be set - in this
+    //case we need to go to the server again to ask for the error message.
+    if(this.errorMessage != null) {
       this.handleError();
+      //Tell the container that there was an error
+      this.owner.uploadHadError();
+    }
+    else if(result != null && "serverError" in result) {
+      //Ask server for error message if an error occurred but we don't know what it was
+      this.handleServerError();
       //Tell the container that there was an error
       this.owner.uploadHadError();
     }
@@ -457,11 +572,46 @@ FileInfo.prototype = {
     this.displayErrorMessage();
   },
 
+  handleServerError: function() {
+    //Called in the event of a serious error (e.g. abort) where we couldn't get the error message from a response.
+    //Poll the status endpoint to get the error message.
+    var defaultMsg = 'An unexpected error occurred while uploading ' + this.filename;
+    var _this = this;
+    if(this.serverError === SERVER_ERROR_RECEIVE) {
+      $.ajax({
+        url: _this.generateUploadInfoURL('status'),
+        dataType: 'json'
+      })
+        .done(function(data) {
+          //If we got an error message from the status poll, show it to the user
+          _this.errorMessage = data.errorMessage || defaultMsg;
+        })
+        .fail(function(){
+          //Catch-all if the final error status poll failed
+          _this.errorMessage = defaultMsg;
+        })
+        .always(function() {
+          _this.handleError();
+        });
+    }
+    else {
+      var message;
+      if(this.serverError === SERVER_ERROR_START) {
+        message = 'An unexpected error occurred while starting your file upload. Please reload the page.';
+      }
+      else {
+        message = defaultMsg;
+      }
+
+      _this.errorMessage = message;
+      _this.handleError();
+    }
+  },
+
   handleSuccess: function() {
     var _this = this;
     //Tween progress bar to 100% then display the download URL etc
     this.setPercentComplete(100, function() {
-      //_this.uploadFinished(true);
       _this.clearContainer();
       _this.displayDownloadUrl();
       _this.container.removeClass('currentUpload');
@@ -507,15 +657,15 @@ FileInfo.prototype = {
 
   createProgressBar: function() {
     this.container.append(
-        '<div class="uploadProgress">' +
-        '<div class="filename">' + this.filename +
-        '<span class="cancelUpload deleteUpload"><a href="#" class="icon-cross" title="Cancel" aria-label="Cancel upload of ' + this.filename +'"></a></span>' +
-        '</div>' +
-        '<div class="statusContainer"><span class="status">&nbsp;</span></div>' +
-        '<div class="uploadSpeedContainer">Speed: <span class="uploadSpeed">&nbsp;</span></div>' +
-        '<div class="timeRemainingContainer">Time Remaining: <span class="timeRemaining">&nbsp;</span></div>' +
-        '<div class="progressBar"><div class="progressBarPct">0%</div></div>' +
-        '</div>'
+      '<div class="uploadProgress">' +
+      '<div class="filename">' + this.filename +
+      '<span class="cancelUpload deleteUpload"><a href="#" class="icon-cross" title="Cancel" aria-label="Cancel upload of ' + this.filename +'"></a></span>' +
+      '</div>' +
+      '<div class="statusContainer"><span class="status">&nbsp;</span></div>' +
+      '<div class="uploadSpeedContainer">Speed: <span class="uploadSpeed">&nbsp;</span></div>' +
+      '<div class="timeRemainingContainer">Time Remaining: <span class="timeRemaining">&nbsp;</span></div>' +
+      '<div class="progressBar"><div class="progressBarPct">0%</div></div>' +
+      '</div>'
     );
 
     if(this.owner.widgetOptions.widgetMode == "modal" && $('.modalUploadBlocker').length == 0) {
@@ -525,7 +675,7 @@ FileInfo.prototype = {
     var _this = this;
 
     //Attach event listener for replace button
-    this.container.find('.uploadProgress > .cancelUpload').click(function() {
+    this.container.find('.uploadProgress .cancelUpload').click(function() {
       _this.cancelUpload();
     });
   },
@@ -533,11 +683,8 @@ FileInfo.prototype = {
   cancelUpload: function() {
     var _this = this;
     $.ajax({
-      url: _this.owner.generateURL('cancel', '&reason=requested'),
-      error: function(jqXHR, textStatus, errorThrown) {
-        alert('Error cancelling upload ' + errorThrown);
-        //_this.handleFailure("The upload was cancelled.");
-      }
+      url: _this.generateUploadInfoURL('cancel', {reason: 'requested'}),
+      dataType: 'json'
     });
   },
 

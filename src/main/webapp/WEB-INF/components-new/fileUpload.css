@@ -97,7 +97,7 @@ ul.small-menu-out label.fileUploadLink {
 
 
 .fileUpload.modal .fileInfo.currentUpload {
-  z-index: 400;
+  z-index: 11000;
   position: relative;
 }
 

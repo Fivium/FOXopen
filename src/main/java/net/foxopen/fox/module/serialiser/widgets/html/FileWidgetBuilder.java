@@ -72,9 +72,10 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
     pSerialiser.append("<div class=\"fileUploadInputContainer\">");
 
     //TODO PN need to handle all attributes (like generic template vars for other widgets) e.g. tightField, fieldClass, etc
-    pSerialiser.append("<label class=\"fileUploadLink\" for=\"file" + lFieldId + "\">" + pEvalNode.getUploadChoosePrompt() + "</label>");
 
     if(lFieldMgr.getVisibility() == NodeVisibility.EDIT) {
+      pSerialiser.append("<label class=\"fileUploadLink\" for=\"file" + lFieldId + "\">" + pEvalNode.getUploadChoosePrompt() + "</label>");
+
       pSerialiser.append("<input type=\"file\" " + (pEvalNode.getMaxFilesAllowed() > 1 ? "multiple" : "") + " name=\"file" + lFieldId + "\" " +
         "class=\"uploadControl fileUploadInput\" aria-label=\"" + pEvalNode.getPrompt().getString() + ": " + pEvalNode.getUploadChoosePrompt() +"\">");
     }
@@ -99,13 +100,18 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
     String lCallId = pSerialisationContext.getThreadInfoProvider().getCurrentCallId();
     String lThreadAppMnem = pSerialisationContext.getThreadInfoProvider().getThreadAppMnem();
     String lItemRef = pEvalNode.getDataItem().getRef();
-    String lURLParams = "thread_id=" + lThreadId + "&call_id="  + lCallId + "&app_mnem=" + lThreadAppMnem +  "&context_ref=" + lItemRef;
+
+    JSONObject lStartURLParams = new JSONObject();
+    lStartURLParams.put("thread_id", lThreadId);
+    lStartURLParams.put("call_id", lCallId);
+    lStartURLParams.put("app_mnem", lThreadAppMnem);
+    lStartURLParams.put("context_ref", lItemRef);
 
 
     String lOptionJSON = getWidgetOptionJSONString(pEvalNode, lItemRef, lFieldMgr.getVisibility().asInt() <  NodeVisibility.EDIT.asInt());
     String lJS = "<script>\n" +
     "$(document).ready(function() {" +
-    "  new FileUpload($('#" + lFieldId + "'), '" + lURLBase +  "', '" + lURLParams + "', " + lFileInfoJSON  + ", " + lOptionJSON + ")\n" +
+    "  new FileUpload($('#" + lFieldId + "'), '" + lURLBase +  "', " + lStartURLParams.toJSONString() + ", " + lFileInfoJSON  + ", " + lOptionJSON + ")\n" +
     "});\n" +
     "</script>";
 
