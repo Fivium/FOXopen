@@ -56,6 +56,7 @@ public class EvaluatedNodeInfoCollection extends EvaluatedNodeInfoGeneric {
         if (lChildNodeInfo.getNamespaceExists(lNameSpace)) {
 
           // Determine current nodes evaluate context - for COMPLEX elements this is self, for SIMPLE (or complex for multi-selectors) its immediate parent
+          // TODO - NP - should use NodeEvaluationContext#establishEvaluateContextRuleNode
           DOM lEvaluateContextRuleDOM = lSubDataDOM;
           if (lChildNodeInfo.getNodeType() == NodeType.ITEM || lChildNodeInfo.isMultiOptionItem()) {
             lEvaluateContextRuleDOM = getDataItem();

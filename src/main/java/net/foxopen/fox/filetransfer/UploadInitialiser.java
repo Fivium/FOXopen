@@ -7,10 +7,12 @@ import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.DOMList;
+import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExUpload;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.module.datanode.NodeAttribute;
+import net.foxopen.fox.module.datanode.NodeEvaluationContext;
 import net.foxopen.fox.module.datanode.NodeInfo;
 import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.thread.RampedThreadRunnable;
@@ -96,7 +98,6 @@ public class UploadInitialiser {
       DOM lUploadContainerDOM = lContextUElem.getElemByRef(mUploadContainerContextRef);
 
       NodeInfo lNodeInfo = lModule.getNodeInfo(lUploadContainerDOM);
-      String lFileUploadTypeAttr = lNodeInfo.getFoxNamespaceAttribute(NodeAttribute.UPLOAD_FILE_TYPE);
 
       //If the upload target is a multi-upload node, create a new list element to be the target DOM - otherwise the target is the container
       DOM lUploadTargetDOM;
@@ -119,7 +120,7 @@ public class UploadInitialiser {
 
       //Construct new UploadInfo for handling the upload
       FileStorageLocation lFSL = lModule.getFileStorageLocation(lNodeInfo.getFoxNamespaceAttribute(NodeAttribute.FILE_STORAGE_LOCATION));
-      FileUploadType lFileUploadType = pRequestContext.getRequestApp().getFileUploadType(lFileUploadTypeAttr);
+      FileUploadType lFileUploadType = getFileUploadType(pRequestContext, lUploadContainerDOM, lNodeInfo);
 
       mUploadInfo = UploadInfo.createUploadInfo(pRequestContext, lUploadTargetDOM, lFSL, lFileUploadType, mThreadId, mCallId, lUploadLogger);
 
@@ -135,5 +136,23 @@ public class UploadInitialiser {
         pRequestContext.getContextUCon().returnUCon(lUCon, "Upload Log Start");
       }
     }
+  }
+
+  private static FileUploadType getFileUploadType(ActionRequestContext pRequestContext, DOM pUploadContainerDOM, NodeInfo pNodeInfo) {
+
+    String lFileUploadTypeAttr = pNodeInfo.getFoxNamespaceAttribute(NodeAttribute.UPLOAD_FILE_TYPE);
+    String lXPathResult = "";
+    if(lFileUploadTypeAttr != null) {
+      try {
+        DOM lEvalContext = NodeEvaluationContext.establishEvaluateContextRuleNode(pUploadContainerDOM, pNodeInfo);
+        lXPathResult = pRequestContext.getContextUElem().extendedStringOrXPathString(lEvalContext, lFileUploadTypeAttr);
+      }
+      catch (ExActionFailed e) {
+        throw new ExInternal("Failed to evaluate file upload type attribute", e);
+      }
+    }
+
+    //Will use app default if XPath was null or returned empty string
+    return pRequestContext.getRequestApp().getFileUploadType(lXPathResult);
   }
 }
