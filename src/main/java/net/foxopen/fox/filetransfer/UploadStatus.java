@@ -3,8 +3,8 @@ package net.foxopen.fox.filetransfer;
 /**
  * Valid statuses for an UploadInfo to have.
  */
-enum UploadStatus {
-  
+public enum UploadStatus {
+
   NOT_STARTED("not-started", "Not started", false),
   STARTED("started", "Started file upload", true),
   RECEIVING("receiving", "Uploading [[filename]]...", true),
@@ -16,27 +16,37 @@ enum UploadStatus {
   FAILED("failed", "Upload failed", false),
   CONTENT_CHECK_FAILED("failed", "Upload failed", false),
   VIRUS_CHECK_FAILED("failed", "Upload failed", false);
-  
+
   private final String mStringRepresentation;
   private final String mReadableMessage;
   private final boolean mInProgress;
-  
-  private UploadStatus(String pStringRepresentation, String pReadableMessage, boolean pInProgress) {
+
+  public static UploadStatus fromString(String pStringRepresentation) {
+    for(UploadStatus lStatus : values()) {
+      if(lStatus.getStringRepresentation().equals(pStringRepresentation)) {
+        return lStatus;
+      }
+    }
+
+    return null;
+  }
+
+  UploadStatus(String pStringRepresentation, String pReadableMessage, boolean pInProgress) {
     mStringRepresentation = pStringRepresentation;
     mReadableMessage = pReadableMessage;
     mInProgress = pInProgress;
   }
-  
+
   public String getStringRepresentation() {
     return mStringRepresentation;
   }
-  
+
   public String getReadableMessage(String pFilename) {
     return mReadableMessage.replaceAll("\\[\\[filename\\]\\]", pFilename);
   }
-  
+
   public boolean isInProgress() {
     return mInProgress;
   }
-  
+
 }
