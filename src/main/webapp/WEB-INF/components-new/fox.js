@@ -92,7 +92,7 @@ var FOXjs = {
     $('[data-hint-id]').on('focus', function() {$('#'+$(this).data('hint-id')).tooltipster('show')});
     $('[data-hint-id]').on('blur', function() {$('#'+$(this).data('hint-id')).tooltipster('hide')});
 
-    $('.hint').each(
+    $('.hint, .tooltip').each(
       function() {
           if ($(this).attr('title').indexOf('href') >= 0) {
               $(this).tooltipster({interactive: true});
