@@ -55,6 +55,28 @@ public class NodeEvaluationContext {
   private final Table<NamespaceFunctionAttribute, NamespaceListType, NamespaceCheckResult> mPreCachedNamespaceFunctions = HashBasedTable.create();
   private final Map<NodeAttribute, EvaluatedAttributeResult> mPreCachedNamespaceFilteredAttributes = new EnumMap<>(NodeAttribute.class);
 
+  /**
+   * Determines the "evaluate context rule" node for the given DOM (with its corresponding NodeInfo). This is the node's nearest
+   * complex parent, including itself if it is a complex type.
+   * @param pDOM Node to determine evaluate context rule node for.
+   * @param pNodeInfo NodeInfo of the given node.
+   * @return Evaluate context rule node.
+   */
+  public static DOM establishEvaluateContextRuleNode(DOM pDOM, NodeInfo pNodeInfo) {
+    DOM lEvalContext;
+    if (pNodeInfo.getNodeType() == NodeType.ITEM || pNodeInfo.isMultiOptionItem()) {
+      lEvalContext = pDOM.getParentOrNull();
+      if (lEvalContext == null) {
+        throw new ExInternal("Error determining evaluate context for node " + pDOM.absolute());
+      }
+    }
+    else {
+      lEvalContext = pDOM;
+    }
+
+    return  lEvalContext;
+  }
+
   private NodeEvaluationContext(List<String> pModeList, List<String> pViewList, EvaluatedParseTree pEvalParseTree, DOM pDataItem, DOM pEvaluateContextRuleItem, DOM pActionContextItem, Table<String, String, PresentationAttribute> pPresentationNodeAttributes, NamespaceAttributeTable pNodeAttributes, List<String> pParentNamespacePrecedenceList) {
     mModeList = Collections.unmodifiableList(pModeList);
     mViewList = Collections.unmodifiableList(pViewList);
