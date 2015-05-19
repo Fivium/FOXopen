@@ -24,6 +24,8 @@
     <xs:attribute ref="nestedStyle"/>
     <xs:attribute ref="nestedFormClass"/>
     <xs:attribute ref="nestedFormStyle"/>
+    <xs:attribute ref="topLevelFormClass"/>
+    <xs:attribute ref="topLevelFormStyle"/>
     <xs:attribute ref="nestedTableClass"/>
     <xs:attribute ref="nestedTableStyle"/>
     <xs:attribute ref="cellClass"/>
@@ -188,7 +190,9 @@
     <xs:attribute ref="nestedClass"/>
     <xs:attribute ref="nestedStyle"/>
     <xs:attribute ref="nestedFormClass"/>
-    <xs:attribute ref="nestedFormStyle"/>
+    <xs:attribute ref="nestedFormStyle"/>    
+    <xs:attribute ref="topLevelFormClass"/>
+    <xs:attribute ref="topLevelFormStyle"/>
     <xs:attribute ref="nestedTableClass"/>
     <xs:attribute ref="nestedTableStyle"/>
     <xs:attribute ref="cellClass"/>
@@ -707,6 +711,8 @@
   <xs:attribute name="nestedStyle" type="style-type"/>
   <xs:attribute name="nestedFormClass"/>
   <xs:attribute name="nestedFormStyle" type="style-type"/>
+  <xs:attribute name="topLevelFormClass"/>
+  <xs:attribute name="topLevelFormStyle" type="style-type"/>
   <xs:attribute name="nestedTableClass"/>
   <xs:attribute name="nestedTableStyle" type="style-type"/>
   <xs:attribute name="cellClass"/>

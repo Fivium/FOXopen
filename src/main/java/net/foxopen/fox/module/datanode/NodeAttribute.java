@@ -152,6 +152,8 @@ public enum NodeAttribute {
   SUPPRESS_UNSELECTED_OPTIONS("suppressUnselected", ValueType.EVALUATABLE_XPATH, ResultType.BOOLEAN),
   TIGHT_FIELD("tightField", ValueType.EVALUATABLE_XPATH, ResultType.BOOLEAN),
   TIGHT_WIDGETS("tightWidgets", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
+  TOP_LEVEL_FORM_CLASS("topLevelFormClass", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
+  TOP_LEVEL_FORM_STYLE("topLevelFormStyle", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   UPLOAD_CHOOSE_PROMPT("upload-choose-prompt", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   UPLOAD_COMPLETE_ACTION("upload-complete-action", ValueType.CONSTANT, ResultType.STRING),
   UPLOAD_FAIL_ACTION("upload-fail-action", ValueType.CONSTANT, ResultType.STRING),
