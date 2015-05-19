@@ -75,6 +75,10 @@ public class FormWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
           lClasses.addAll(pEvalNode.getStringAttributes(NodeAttribute.NESTED_CLASS, NodeAttribute.NESTED_FORM_CLASS));
           lStyles.addAll(pEvalNode.getStringAttributes(NodeAttribute.NESTED_STYLE, NodeAttribute.NESTED_FORM_STYLE));
         }
+        else {
+          lClasses.addAll(pEvalNode.getStringAttributes(NodeAttribute.TOP_LEVEL_FORM_CLASS));
+          lStyles.addAll(pEvalNode.getStringAttributes(NodeAttribute.TOP_LEVEL_FORM_STYLE));
+        }
 
         if (lClasses.size() > 0) {
           pSerialiser.append(" ");
