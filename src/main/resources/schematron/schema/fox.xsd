@@ -301,6 +301,7 @@
     <xs:attribute ref="upload-prompt-field5"/>
     <xs:attribute ref="upload-widget-style"/>
     <xs:attribute ref="uploadWholePageDropZone"/>
+    <xs:attribute ref="uploadMaxFiles"/>
     <xs:attribute ref="image-only"/>
     <xs:attribute ref="image-enable-preview"/>
     <xs:attribute ref="image-enable-rotate"/>
@@ -901,8 +902,9 @@
   <xs:attribute name="upload-prompt-field3" type="xs:string"/>
   <xs:attribute name="upload-prompt-field4" type="xs:string"/>
   <xs:attribute name="upload-prompt-field5" type="xs:string"/>
-  <xs:attribute name="upload-widget-style" type="xs:string"/>
+  <xs:attribute name="upload-widget-style" type="xs:string"/>  
   <xs:attribute name="uploadWholePageDropZone" type="entered-string"/>
+  <xs:attribute name="uploadMaxFiles" type="entered-string"/>
   <xs:attribute name="image-only" type="fox-xpath-type"/>
   <xs:attribute name="image-enable-preview" type="fox-xpath-type"/>
   <xs:attribute name="image-enable-rotate" type="fox-xpath-type"/>

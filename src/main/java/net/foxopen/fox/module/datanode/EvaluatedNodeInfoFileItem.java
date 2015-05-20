@@ -1,11 +1,13 @@
 package net.foxopen.fox.module.datanode;
 
+import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.FileUploadType;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.download.DownloadManager;
 import net.foxopen.fox.download.DownloadMode;
 import net.foxopen.fox.download.DownloadServlet;
+import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.evaluatedattributeresult.FixedStringAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
@@ -27,13 +29,11 @@ extends EvaluatedNodeInfoItem {
 
   private final String mDefaultHint;
 
+  /** Cached JIT to avoid multiple XPath evaluation */
+  private Integer mMaxFilesAllowed = null;
+
   EvaluatedNodeInfoFileItem(EvaluatedNode pParent, GenericAttributesEvaluatedPresentationNode<? extends GenericAttributesPresentationNode> pEvaluatedPresentationNode, NodeEvaluationContext pNodeEvaluationContext, NodeVisibility pNodeVisibility, NodeInfo pNodeInfo) {
     super(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, pNodeVisibility, pNodeInfo);
-
-    //Validate the schema definition - lists must allow more than 1 item otherwise cardinality logic which relies on this value being > 1 will get confused
-    if(getNodeInfo().isListContainer() && getNodeInfo().getListMaxCardinality() <= 1) {
-      throw new ExInternal("Invalid multi file upload definition: maximum list cardinality must be greater than 1 for node " + getIdentityInformation());
-    }
 
     DOM lDataItem = getDataItem();
     if(lDataItem.getChildElements().size() > 0) {
@@ -44,7 +44,7 @@ extends EvaluatedNodeInfoItem {
 
       //If this is a multi upload widget, loop through the child nodes and create an UploadedFileInfo for each one.
       //Otherwise just create one for the current node.
-      if(getMaxFilesAllowed() > 1) {
+      if(isMultiUploadTarget()) {
         mUploadedFileInfoList = new ArrayList<>(lDataItem.getChildElements().size());
         for(DOM lUploadContainer : lDataItem.getChildElements()) {
           mUploadedFileInfoList.add(lDownloadManager.addFileDownload(getEvaluatedParseTree().getRequestContext(), lFSL, lUploadContainer, getEvaluatedParseTree().getContextUElem()));
@@ -124,9 +124,59 @@ extends EvaluatedNodeInfoItem {
     return XFUtil.nvl(mUploadWidgetOptions.mCompleteAction, mUploadWidgetOptions.mFailAction);
   }
 
+  /**
+   * Tests if this ENI represents a multi file upload target.
+   * @return True if a multi upload target, false if a single upload target.
+   */
+  public boolean isMultiUploadTarget() {
+    return isMultiUploadTarget(getNodeInfo());
+  }
+
+  /**
+   * Tests if the given node info represents a multi file upload target.
+   * @return True if a multi upload target, false if a single upload target.
+   */
+  public static boolean isMultiUploadTarget(NodeInfo pNodeInfo) {
+    return pNodeInfo.isListContainer();
+  }
+
   public int getMaxFilesAllowed() {
-    if(getNodeInfo().isListContainer()) {
-      return getNodeInfo().getListMaxCardinality();
+    if(mMaxFilesAllowed == null) {
+      mMaxFilesAllowed = maxFilesAllowed(getContextUElem(), getNodeInfo(), getDataItem());
+    }
+    return mMaxFilesAllowed;
+  }
+
+  /**
+   * Shared functionality for establishing the maximum number of files allowed in an upload. Both ENI and UploadProcessing
+   * should use the same method to ensure consistency (although this results in some XPath evaluation logic duplication on the ENI side). <br><br>
+   *
+   * For list containers, if the <tt>fox:maxUploadFiles</tt> attribute is specified, this takes precedence. Otherwise the list
+   * cardinality is used. For non-list containers (i.e. single uploads) the maximum files is always 1.
+   *
+   * @param pContextUElem For running max file XPath if specified.
+   * @param pContainerNodeInfo NodeInfo of the upload container (i.e. list container for multi uploads).
+   * @param pContainerDOM DOM corresponding to the given NodeInfo.
+   * @return Maximum number of files allowed to be uploaded to the given node. Note this does not reflect how many files
+   * are currently uploaded.
+   */
+  public static int maxFilesAllowed(ContextUElem pContextUElem, NodeInfo pContainerNodeInfo, DOM pContainerDOM) {
+
+    if(pContainerNodeInfo.isListContainer()) {
+
+      String lMaxFileAttr = pContainerNodeInfo.getFoxNamespaceAttribute(NodeAttribute.UPLOAD_MAX_FILES);
+
+      if(!XFUtil.isNull(lMaxFileAttr)) {
+        try {
+          return Integer.parseInt(pContextUElem.extendedStringOrXPathString(NodeEvaluationContext.establishEvaluateContextRuleNode(pContainerDOM, pContainerNodeInfo), lMaxFileAttr));
+        }
+        catch (ExActionFailed | NumberFormatException e) {
+          throw new ExInternal("Failed to evaluate uploadMaxFiles attribute", e);
+        }
+      }
+      else {
+        return pContainerNodeInfo.getListMaxCardinality();
+      }
     }
     else {
       return 1;

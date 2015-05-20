@@ -11,6 +11,7 @@ import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExUpload;
 import net.foxopen.fox.module.Mod;
+import net.foxopen.fox.module.datanode.EvaluatedNodeInfoFileItem;
 import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.datanode.NodeEvaluationContext;
 import net.foxopen.fox.module.datanode.NodeInfo;
@@ -101,15 +102,19 @@ public class UploadInitialiser {
 
       //If the upload target is a multi-upload node, create a new list element to be the target DOM - otherwise the target is the container
       DOM lUploadTargetDOM;
-      if(lNodeInfo.getListMaxCardinality() > 0) {
-        //Validate that we don't already have enough files
-        if(lUploadContainerDOM.getChildNodes().size() >= lNodeInfo.getListMaxCardinality()) {
+
+      //Branch multi/single upload logic based on whether the target node is a list container
+      if(EvaluatedNodeInfoFileItem.isMultiUploadTarget(lNodeInfo)) {
+        //Multi upload - check that we don't already have enough files
+        int lUploadMaxFiles = EvaluatedNodeInfoFileItem.maxFilesAllowed(lContextUElem, lNodeInfo, lUploadContainerDOM);
+        if(lUploadContainerDOM.getChildNodes().size() >= lUploadMaxFiles) {
           throw new ExUpload("you cannot upload any more files into this location"); //Bad grammar is OK - this will be a sentence fragment
         }
 
         lUploadTargetDOM = createUploadTarget(lUploadContainerDOM, lNodeInfo);
       }
       else {
+        //Single upload - no validation required
         lUploadTargetDOM = lUploadContainerDOM;
       }
 
