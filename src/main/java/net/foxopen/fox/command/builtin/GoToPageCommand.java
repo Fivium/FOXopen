@@ -60,6 +60,8 @@ extends BuiltInCommand {
   private final String mPageNumberExpr;
   private final String mNewPageSizeExpr;
   private final String mPageOutOfBoundsActionName;
+  /* Temporary workaround to allow developers to manually override the pager's row count if they have manipulated the pager cache - to be removed in a future release */
+  private final String mUnsupportedNewRowCountExpression;
 
   private GoToPageCommand(DOM pParseUElem) {
     super(pParseUElem);
@@ -68,9 +70,11 @@ extends BuiltInCommand {
     mPageNumberExpr = pParseUElem.getAttrOrNull("number");
     mNewPageSizeExpr = pParseUElem.getAttrOrNull("new-page-size");
 
+    mUnsupportedNewRowCountExpression = pParseUElem.getAttrOrNull("new-row-count-unsupported");
+
     mPageOutOfBoundsActionName = pParseUElem.getAttrOrNull("out-of-bounds-action");
 
-    if(XFUtil.isNull(mPageNumberExpr) && XFUtil.isNull(mNewPageSizeExpr)) {
+    if(XFUtil.isNull(mPageNumberExpr) && XFUtil.isNull(mNewPageSizeExpr) && XFUtil.isNull(mUnsupportedNewRowCountExpression)) {
       throw new ExInternal("go-to-page must specify at least one of 'number' or 'new-page-size' attributes");
     }
   }
@@ -126,6 +130,11 @@ extends BuiltInCommand {
     }
 
     if (lPager != null) {
+      //Allow developer to set the row count if they've manipulated the paged data in an unsupported way
+      //TODO PN - remove this when no longer required
+      if(!XFUtil.isNull(mUnsupportedNewRowCountExpression)) {
+        lPager.setRowCount(xpathInt(lContextUElem, mUnsupportedNewRowCountExpression));
+      }
 
       boolean lSetNewSize = !XFUtil.isNull(mNewPageSizeExpr);
       int lPageSize = lPager.getPageSize();
