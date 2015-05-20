@@ -22,6 +22,9 @@ public class EvaluatedNodeAction extends EvaluatedNode {
     super(null, pEvaluatedPresentationNode, pNodeEvaluationContext, pNodeVisibility);
     mActionName = pActionDefinition.getActionName();
     mFieldMgr = pNodeEvaluationContext.getEvaluatedParseTree().getFieldSet().createFieldMgr(this);
+
+    //ENAs are always visible, so widget must be implicated
+    super.getEvaluatedParseTree().addImplicatedWidget(getWidgetBuilderType(), this);
   }
 
   /**

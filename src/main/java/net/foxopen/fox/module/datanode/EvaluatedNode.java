@@ -417,8 +417,6 @@ implements DisplayOrderSortable {
       lWidgetType = WidgetType.fromBuilderType(WidgetBuilderType.SUBMIT);
     }
 
-    mNodeEvaluationContext.getEvaluatedParseTree().addImplicatedWidget(lWidgetType.getBuilderType(), this);
-
     return lWidgetType;
   }
 

@@ -19,6 +19,11 @@ public abstract class EvaluatedNodeInfoGeneric extends EvaluatedNodeInfo {
   public EvaluatedNodeInfoGeneric(EvaluatedNode pParent, GenericAttributesEvaluatedPresentationNode<? extends GenericAttributesPresentationNode> pEvaluatedPresentationNode, NodeEvaluationContext pNodeEvaluationContext, NodeVisibility pNodeVisibility, NodeInfo pNodeInfo) {
     super(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, pNodeVisibility, pNodeInfo);
 
+    //Mark widget type as implicated if the node is visible
+    if(getVisibility() != NodeVisibility.DENIED) {
+      super.getEvaluatedParseTree().addImplicatedWidget(getWidgetBuilderType(), this);
+    }
+
     mEvalClientVisibilityRule = getEvaluatedParseTree().evaluateClientVisibilityRuleOrNull(this, pNodeEvaluationContext);
   }
 

@@ -22,8 +22,6 @@ public class EvaluatedNodeInfoStub extends EvaluatedNodeInfo {
       setVisibility(NodeVisibility.DENIED);
     }
 
-    super.getEvaluatedParseTree().addImplicatedWidget(getWidgetBuilderType(), this);
-
     // If this item is in a list, check it for content and mark the column up as containing content on the list
     if (getParent() instanceof EvaluatedNodeInfoCollection && getParent().getParent() instanceof EvaluatedNodeInfoList) {
       EvaluatedNodeInfoList lListContainer = (EvaluatedNodeInfoList)getParent().getParent();
