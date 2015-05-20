@@ -12,7 +12,6 @@ import net.foxopen.fox.enginestatus.StatusProvider;
 import net.foxopen.fox.enginestatus.StatusTable;
 import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.entrypoint.FoxSession;
-import net.foxopen.fox.entrypoint.UnauthenticatedFoxSession;
 import net.foxopen.fox.entrypoint.engine.EngineWebServiceCategory;
 import net.foxopen.fox.entrypoint.servlets.EntryPointServlet;
 import net.foxopen.fox.ex.ExAlreadyHandled;
@@ -46,7 +45,7 @@ extends EntryPointServlet {
   public static final String SERVLET_PATH = "ws";
   public static final String SERVICE_TYPE_REST = "rest";
 
-  private static final String MAIN_CONNECTION_NAME = "WEBSERVICE";
+  public static final String MAIN_CONNECTION_NAME = "WEBSERVICE";
 
   private static final Map<String, WebServiceCategory> gCategoryMap = new TreeMap<>();
 
@@ -72,7 +71,11 @@ extends EntryPointServlet {
 
   @Override
   public FoxSession establishFoxSession(RequestContext pRequestContext) {
-    return UnauthenticatedFoxSession.create();
+    StringBuilder lURI = new StringBuilder(pRequestContext.getFoxRequest().getHttpRequest().getPathInfo());
+    WebService lWebService = resolveWebService(lURI);
+    EndPoint lEndPoint = resolveEndPoint(lWebService, lURI);
+
+    return lEndPoint.establishFoxSession(pRequestContext);
   }
 
   @Override
@@ -253,7 +256,7 @@ extends EntryPointServlet {
     return lParamMap;
   }
 
-  private WebServiceResponse generateErrorResponse(WebServiceResponse.Type pResponseType, Throwable pError) {
+  private WebServiceResponse generateErrorResponse(long pErrorRef, WebServiceResponse.Type pResponseType, Throwable pError) {
 
     //Suppress stack traces on production
     //TODO PN only for external requests, internal/token should be ok to serve out the stack
@@ -268,11 +271,12 @@ extends EntryPointServlet {
     if(pResponseType == WebServiceResponse.Type.JSON) {
       JSONObject lErrorDetails = new JSONObject();
       lErrorDetails.put("message", pError.getMessage());
-      lErrorDetails.put("stack-trace", lStackTrace);
+      lErrorDetails.put("stackTrace", lStackTrace);
+      lErrorDetails.put("reference", pErrorRef);
 
       JSONObject lJSONContainer = new JSONObject();
       lJSONContainer.put("status", "error");
-      lJSONContainer.put("error-details", lErrorDetails);
+      lJSONContainer.put("errorDetails", lErrorDetails);
 
       return new JSONWebServiceResponse(lJSONContainer, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
@@ -281,7 +285,8 @@ extends EntryPointServlet {
       lErrorXML.addElem("status", "error");
       lErrorXML.addElem("error-details")
         .addElem("message", pError.getMessage()).getParentOrNull()
-        .addElem("stack-trace", lStackTrace);
+        .addElem("stack-trace", lStackTrace)
+        .addElem("reference", Long.toString(pErrorRef));
 
       return new XMLWebServiceResponse(lErrorXML, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
@@ -359,15 +364,15 @@ extends EntryPointServlet {
       }
     }
     catch (Throwable th) {
-      lFoxResponse = generateErrorResponse(lResponseType, th).generateResponse(lFoxRequest, lResponseType);
+      //Manually log the error here - ExAlreadyHandled errors are assumed to have already been logged
+      long lErrorRef = ErrorLogger.instance().logError(th, ErrorLogger.ErrorType.FATAL, pRequestContext.getFoxRequest().getRequestLogId());
+
+      lFoxResponse = generateErrorResponse(lErrorRef, lResponseType, th).generateResponse(lFoxRequest, lResponseType);
       //TODO NP/PN - correct error codes etc
       if(!lFoxRequest.getHttpResponse().isCommitted()) {
         lFoxResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       }
       lFoxResponse.respond(lFoxRequest);
-
-      //Manually log the error here - ExAlreadyHandled errors are assumed to have already been logged
-      ErrorLogger.instance().logError(th, ErrorLogger.ErrorType.FATAL, pRequestContext.getFoxRequest().getRequestLogId());
       //Ensure the upstream filters see this error (e.g. so it is set on track, etc)
       throw new ExAlreadyHandled("Error in WebService (reported to client)", th);
     }

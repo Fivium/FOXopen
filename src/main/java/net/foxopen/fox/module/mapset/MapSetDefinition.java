@@ -113,13 +113,13 @@ implements Validatable {
    * @param pUniqueValue The value which would have been used for the UNIQUE cache key bind.
    * @return A new MapSet.
    */
-  private MapSet createMapSet(ActionRequestContext pRequestContext, DOM pItemDOM, String pEvaluatedCacheKey, String pUniqueValue) {
+  protected MapSet createMapSet(ActionRequestContext pRequestContext, DOM pItemDOM, String pEvaluatedCacheKey, String pUniqueValue) {
 
     DOM lMapSetContainerDOM = createMapSetDOM(pRequestContext, pItemDOM, pEvaluatedCacheKey, pUniqueValue);
 
     runXDoCommands(pRequestContext, lMapSetContainerDOM);
 
-    return MapSet.createFromDOM(lMapSetContainerDOM, this, pEvaluatedCacheKey);
+    return DOMMapSet.createFromDOM(lMapSetContainerDOM, this, pEvaluatedCacheKey);
   }
 
   /**
@@ -147,11 +147,14 @@ implements Validatable {
   /**
    * Sets the :{item} and :{itemrec} contexts if an item DOM is available. The :{map-set-attach} context is set to either
    * the path specified or to :{itemrec} if no path is given.
-   * @param pContextUElem
+   *
+   * This should only be called on a ContextUElem where you have called {@link ContextUElem#localise(String)} and should {@link ContextUElem#delocalise(String)} after use.
+   *
+   * @param pContextUElem localised context to apply labels to
    * @param pItemDOM
    * @param pMapSetAttach
    */
-  private void setupContextUElem(ContextUElem pContextUElem, DOM pItemDOM, PathOrDOM pMapSetAttach) {
+  public void setupContextUElem(ContextUElem pContextUElem, DOM pItemDOM, PathOrDOM pMapSetAttach) {
 
     if(pItemDOM != null) {
       pContextUElem.setUElem(ContextLabel.ITEM, pItemDOM);

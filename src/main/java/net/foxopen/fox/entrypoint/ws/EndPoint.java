@@ -1,5 +1,7 @@
 package net.foxopen.fox.entrypoint.ws;
 
+import net.foxopen.fox.entrypoint.FoxSession;
+import net.foxopen.fox.entrypoint.UnauthenticatedFoxSession;
 import net.foxopen.fox.thread.RequestContext;
 
 import java.util.Collection;
@@ -15,6 +17,17 @@ public interface EndPoint {
    * @return EndPoint name.
    */
   public String getName();
+
+  /**
+   * Creates a FoxSession implementation which the EndPoint requires for authentication. By default EndPoints return
+   * an {@link net.foxopen.fox.entrypoint.UnauthenticatedFoxSession} as typically no auth is required.
+   *
+   * @param pRequestContext Current RequestContext.
+   * @return A FoxSession object
+   */
+  default FoxSession establishFoxSession(RequestContext pRequestContext) {
+    return UnauthenticatedFoxSession.create();
+  }
 
   /**
    * Gets the optional PathParamTemplate for this EndPoint, which defines parameters a client must specify in the URI

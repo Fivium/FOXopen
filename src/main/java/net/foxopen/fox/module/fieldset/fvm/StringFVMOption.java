@@ -1,6 +1,7 @@
 package net.foxopen.fox.module.fieldset.fvm;
 
 import net.foxopen.fox.dom.DOM;
+import net.foxopen.fox.thread.ActionRequestContext;
 
 /**
  * FVMOption for applying a simple string value to a DOM. This is used by simple mapsets and other FVM types (booleans,
@@ -16,7 +17,7 @@ implements FVMOption {
   }
 
   @Override
-  public void applyToNode(DOM pTargetNode) {
+  public void applyToNode(ActionRequestContext pRequestContext, DOM pTargetNode) {
     pTargetNode.setText(mString);
   }
 

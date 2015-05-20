@@ -32,42 +32,26 @@ $Id$
 */
 package net.foxopen.fox.module.mapset;
 
-import net.foxopen.fox.cache.CacheManager;
 import net.foxopen.fox.cache.BuiltInCacheDefinition;
+import net.foxopen.fox.cache.CacheManager;
 import net.foxopen.fox.cache.FoxCache;
 import net.foxopen.fox.dom.DOM;
-import net.foxopen.fox.dom.DOMList;
-import net.foxopen.fox.ex.ExCardinality;
-import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.fieldset.fvm.FVMOption;
+import net.foxopen.fox.thread.ActionRequestContext;
 
 import java.util.List;
 
 
-/**
- * A set of key/data pairs as instantiated from a MapSetDefinition. Note: References to MapSet objects should NOT be held
- * in static or member variables as a MapSet may have a very short lifespan depending on its definition. Access to a MapSet
- * should always be via MapSetDefinition to ensure that the most up-to-date copy of the MapSet is always in use. A MapSet's
- * content is fixed after construction - "refreshing" a MapSet should always create a new copy. This ensures thread safety
- * for this class and its subclasses.
- */
-public abstract class MapSet {
-
+public interface MapSet {
   //Constants for mapsets in DOM form
-  static final String MAPSET_LIST_ELEMENT_NAME = "map-set-list";
-  static final String MAPSET_ELEMENT_NAME = "map-set";
-  static final String REC_ELEMENT_NAME = "rec";
-  static final String KEY_ELEMENT_NAME = "key";
-  static final String DATA_ELEMENT_NAME = "data";
+  String MAPSET_LIST_ELEMENT_NAME = "map-set-list";
+  String MAPSET_ELEMENT_NAME = "map-set";
+  String REC_ELEMENT_NAME = "rec";
+  String KEY_ELEMENT_NAME = "key";
+  String DATA_ELEMENT_NAME = "data";
 
   //TODO keep an eye on this, may become bloated over engine lifecycle
-  private static final MapSetInstanceTracker gMapSetInstanceTracker = new MapSetInstanceTracker();
-
-  private final String mEvaluatedCacheKey;
-
-  private final MapSetDefinition mMapSetDefinition; // The map set definition
-
-  private final long mCreatedTimeMS; // The last time a refresh occured
+  MapSetInstanceTracker gMapSetInstanceTracker = new MapSetInstanceTracker();
 
   static MapSet getFromCache(String pCacheKey) {
     FoxCache<String, MapSet> lFoxCache = CacheManager.getCache(BuiltInCacheDefinition.MAPSETS);
@@ -76,7 +60,7 @@ public abstract class MapSet {
 
   static void addToCache(MapSet pMapSet) {
     FoxCache<String, MapSet> lFoxCache = CacheManager.getCache(BuiltInCacheDefinition.MAPSETS);
-    lFoxCache.put(pMapSet.mEvaluatedCacheKey, pMapSet);
+    lFoxCache.put(pMapSet.getEvaluatedCacheKey(), pMapSet);
     //Record the mapset in the global instance tracker
     gMapSetInstanceTracker.addMapSet(pMapSet);
   }
@@ -86,153 +70,65 @@ public abstract class MapSet {
     gMapSetInstanceTracker.refreshMapSets(pDefinition, lFoxCache);
   }
 
-  protected MapSet(MapSetDefinition pMapSetDefinition, String pEvaluatedCacheKey) {
-    mMapSetDefinition = pMapSetDefinition;
-    mEvaluatedCacheKey = pEvaluatedCacheKey;
-    mCreatedTimeMS = System.currentTimeMillis();
-  }
-
-  @Override
-  public String toString() {
-    return getClass().getSimpleName() + " CacheKey: " + mEvaluatedCacheKey + " LifetimeMins: " + ((System.currentTimeMillis() - mCreatedTimeMS) / 1000 / 60) +
-           " TimeoutMins: " +  mMapSetDefinition.getRefreshTimeoutMins() + " IsDynamic: " + isDynamic();
-  }
-
   /**
    * Gets the name of this mapset as defined in module markup. This will be relative to the module the MapSet is defined in.
    * @return This mapset's name.
    */
-  public String getMapSetName() {
-    return mMapSetDefinition.getLocalName();
-  }
+  String getMapSetName();
 
   /**
    * Tests if this mapset is dynamic, i.e. if it may change between page churns.
    * @return True if dynamic.
    */
-  public boolean isDynamic() {
-    return mMapSetDefinition.isDynamic();
-  }
+  boolean isDynamic();
 
   /**
    * Tests if this MapSet requires refreshing, based on its definition (i.e. if a refresh is always/never required)
    * or the time elapsed since it was last refreshed.
    * @return True if a refresh is required.
    */
-  boolean isRefreshRequired() {
-
-    if(!mMapSetDefinition.isDynamic()) {
-      //If this mapset is not dynamic, it will never require a refresh - TODO make sure editable mapsets are dealt with
-      return false;
-    }
-    if (mMapSetDefinition.getRefreshTimeoutMins() == 0 ) {
-      //If refresh timeout is specified as 0, the mapset should always be refreshed
-      return true;
-    }
-    else {
-      //Otherwise, only refresh if the specified number of minutes has elapsed since the mapset was created
-      return System.currentTimeMillis() - mCreatedTimeMS > mMapSetDefinition.getRefreshTimeoutMins() * 60 * 1000;
-    }
-  }
-
-  /**
-   * Constructs a new MapSet from a DOM consisting of repeating "rec" elements with "key" and "data" sub-elements. A
-   * "map-set" element should contain the "rec" list.
-   * @param pMapSetDOM DOM to create MapSet from.
-   * @param pMapSetDefinition The definition of the new MapSet.
-   * @param pEvaluatedCacheKey The cache key this MapSet will be stored against.
-   * @return A new MapSet.
-   */
-  static MapSet createFromDOM(DOM pMapSetDOM, MapSetDefinition pMapSetDefinition, String pEvaluatedCacheKey) {
-
-    DOMList lRecList = pMapSetDOM.getUL("map-set/rec");
-
-    boolean lSimple = true;
-    for(DOM lRec : lRecList) {
-      try {
-        if(!lRec.get1E("data").isSimpleElement()) {
-          lSimple = false;
-          break;
-        }
-      }
-      catch (ExCardinality e) {
-        throw new ExInternal("Invalid mapset DOM - failed to resolve 'data' element", e);
-      }
-    }
-
-    if(lSimple) {
-      return SimpleMapSet.createFromDOMList(lRecList, pMapSetDefinition, pEvaluatedCacheKey);
-    }
-    else {
-      return ComplexMapSet.createFromDOMList(lRecList, pMapSetDefinition, pEvaluatedCacheKey);
-    }
-  }
+  boolean isRefreshRequired();
 
   /**
    * Just-in-time generates a DOM representation of this mapset, in the form: /map-set-list/map-set/rec/{key | data}
    * @return This MapSet as a DOM.
    */
-  public abstract DOM getMapSetAsDOM();
-
-  /**
-   * Gets the 0-based index of the specified item within this MapSet. If the item does not exist within the MapSet,
-   * returns -1. For simple mapsets this is based on a string value comparison, for complex mapsets DOM content is
-   * compared using {@link DOM#contentEqualsOrSuperSetOf(DOM)}.
-   * @param pItemDOM DOM to search for in this MapSet.
-   * @return Index of item or -1.
-   */
-  public abstract int indexOf(DOM pItemDOM);
-
-  /**
-   * Gets the complete list of FVMOptions represented by this MapSet.
-   * @return This MapSet's FVMOptions.
-   */
-  public abstract List<FVMOption> getFVMOptionList();
-
-  /**
-   * Gets the complete list of MapSetEntries represented by this MapSet.
-   * @return This MapSet's MapSetEntries.
-   */
-  public abstract List<MapSetEntry> getEntryList();
+  DOM getMapSetAsDOM();
 
   /**
    * Tests if this MapSet contains the given DOM value.
+   * @param pRequestContext Request context to potentially use when checking for the value
    * @param pDataDOM DOM value to check for.
    * @return True if the value is contained within this MapSet according to the MapSet's rules.
    */
-  public boolean containsData(DOM pDataDOM) {
-    return indexOf(pDataDOM) != -1;
-  }
+  boolean containsData(ActionRequestContext pRequestContext, DOM pDataDOM);
 
   /**
    * Resolves the given data DOM to its corresponding key value. If the data DOM does not exist as a "data" item in this
    * MapSet, empty string is returned.
+   *
+   * @param pRequestContext
    * @param pDataDOM DOM to resolve.
    * @return MapSet key or empty string.
    */
-  public String getKey(DOM pDataDOM) {
-    int lIndex = indexOf(pDataDOM);
-    if(lIndex != -1) {
-      return getEntryList().get(lIndex).getKey();
-    }
-    else {
-      return "";
-    }
-  }
+  String getKey(ActionRequestContext pRequestContext, DOM pDataDOM);
 
   /**
    * Attempts to resolve the given data string value to its corresponding key. This will only be possible for SimpleMapSets -
    * ComplexMapSets will return null. Empty string should be returned by a SimpleMapSet if no key could be found.
-   * @param pDataString Data string to resolve.
-   * @return The corresponding key, empty string if no key exists, or null if a lookup was not possible.
+   *
+   * @param pRequestContext
+   * @param pMapSetItem
+   *@param pDataString Data string to resolve.  @return The corresponding key, empty string if no key exists, or null if a lookup was not possible.
    */
-  public abstract String getKeyForDataString(String pDataString);
+  String getKeyForDataString(ActionRequestContext pRequestContext, DOM pMapSetItem, String pDataString);
 
-  MapSetDefinition getMapSetDefinition() {
-    return mMapSetDefinition;
-  }
+  MapSetDefinition getMapSetDefinition();
 
-  protected String getEvaluatedCacheKey() {
-    return mEvaluatedCacheKey;
-  }
+  String getEvaluatedCacheKey();
+
+  // Not to be implemented in JIT MapSet
+  int indexOf(DOM pItemDOM);
+  List<FVMOption> getFVMOptionList();
+  List<MapSetEntry> getEntryList();
 }

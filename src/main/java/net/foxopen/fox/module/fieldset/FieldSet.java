@@ -52,6 +52,7 @@ public class FieldSet {
 
   private final String mOutwardFieldSetLabel;
 
+  private final Map<String, JITMapSetInfo> mJITMapSetInfoFields = new HashMap<>();
   private final List<PostedValueProcessor> mFields = new ArrayList<>();
   private final Map<String, InternalAction> mInternalRunnableActions = new HashMap<>();
   private final Map<String, ClientAction> mClientActions = new HashMap<>();
@@ -382,5 +383,26 @@ public class FieldSet {
     finally {
       Track.pop("ApplyClientActions");
     }
+  }
+
+  /**
+   * Add JITMapSetInfo to the FieldSet so that the MapSetWebService requests can re-construct the MapSet with the correct
+   * binds to perform the search query
+   *
+   * @param pFieldID External ID of the field the JITMapSetInfo is for
+   * @param pEvaluatedNodeInfoItem EvaluatedNodeInfoItem the JITMapSet is defined on
+   */
+  public void addJITMapSetInfo(String pFieldID, EvaluatedNodeInfoItem pEvaluatedNodeInfoItem) {
+    mJITMapSetInfoFields.put(pFieldID, new JITMapSetInfo(pEvaluatedNodeInfoItem));
+  }
+
+  /**
+   * Get a JITMapSetInfo for a given External FieldID
+   *
+   * @param pFieldID External ID of the field the JITMapSetInfo is from
+   * @return JITMapSetInfo object
+   */
+  public JITMapSetInfo getJITMapSetInfo(String pFieldID) {
+    return mJITMapSetInfoFields.get(pFieldID);
   }
 }

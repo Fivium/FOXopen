@@ -73,6 +73,7 @@
      * @property {array}    ajaxURL             - URL to autocomplete webservice for updating available tags
      * @property {array}    preselectedTags     - Array of tag ID's that are selected in the element (helps performance)
      * @property {integer}  characterThreshold  - How many characters must be typed before searching
+     * @property {integer}  typingTimeThreshold - How many milliseconds to wait after the last keypress before filtering
      * @property {boolean}  caseSensitive       - Case sensitive searching - defaults to false
      * @property {string}   placeholder         - Placeholder text for input area
      * @property {string}   baseURL             - Base URL used for images
@@ -86,6 +87,7 @@
      * @property {string}   noSuggestText       - Text to show when no suggestions can be found
      * @property {string}   emptyListText       - Text to show when no suggestions in the list
      * @property {string}   searchTooltipText   - Text to show as tooltip for the ajax search icon
+     * @property {string}   ajaxErrorFunction   - Function definition to use in the event of an AJAX request error, function(tagger, data)
      * @property {string}   loadingClass        - Class on an sibling to the select used to fill while the js loads the tagger
      * @property {integer}  inputExpandExtra    - How many extra pixels to add on to the end of an input when expanding
      * @property {string}   fieldWidth          - Override width e.g. 20em
@@ -100,6 +102,7 @@
       , ajaxURL             : null
       , preselectedTags     : null
       , characterThreshold  : 1
+      , typingTimeThreshold : 200
       , caseSensitive       : false
       , placeholder         : null
       , baseURL             : '/img/'
@@ -111,8 +114,10 @@
       , indentMultiplier    : 1
       , tabindexOffset      : null
       , noSuggestText       : 'No suggestions found'
-      , emptyListText       : 'No more suggestions'
-      , searchTooltipText   : 'Type a letter to get suggestions'
+      , emptyListText       : 'All items selected already'
+      , limitedText         : 'There are too many results to show, type more characters to filter these results further'
+      , searchTooltipText   : 'Enter text to get suggestions'
+      , ajaxErrorFunction   : function(self, data){self._showMessageSuggestion('AJAX Search failed', 'error');}
       , loadingClass        : '.tagger-loading'
       , inputExpandExtra    : 14
       , fieldWidth          : '30em'
@@ -389,10 +394,16 @@
                   switch (event.which) {
                     case 8: // Backspace
                       if ($(this).val().length === 0 && self.loadedFiltered) {
-                        // Hide it
-                        self.taggerSuggestions.hide();
-                        // Focus the drop arrow
-                        self.taggerSuggestionsButton.focus();
+                        if (this.singleValue && this.taggerFilterInput) {
+                          // Ignore in single select mode with filter in suggestions to stop nav-back
+                        }
+                        else {
+                          // Hide it
+                          self.taggerSuggestions.hide();
+                          // Focus the drop arrow
+                          self.taggerSuggestionsButton.focus();
+                        }
+                        event.preventDefault();
                       }
                       break;
                     case 13: // Enter key
@@ -517,32 +528,67 @@
     /**
      * Load suggestions into suggestion list from ajaxURL
      * @param {string} value the string value to filter by
+     * @protected
      */
-    ajaxLoadSuggestions: function (value) {
+    _ajaxLoadSuggestions: function (value) {
       var searchString = value;
       var self = this;
 
-      $.ajax({
-        url: this.options.ajaxURL,
-        type: "GET",
-        data: {
-          elementId: this.element.attr('id')
-          ,search: searchString
-        },
-        dataType: 'json',
-        success: function (data) {
-          //Copy selected tags to new list
-          $.each(self.tagsByID, function(key, tag){
-            if (self._isAlreadyDisplayingTag(key)) {
-              data[key] = tag;
+      // If we already have a filter pending, cancel it before making our new one
+      if (this.pendingFilterEvent) {
+        clearTimeout(this.pendingFilterEvent);
+      }
+
+      // Set a new pending Filter event to fire in this.options.typingTimeThreshold milliseconds
+      this.pendingFilterEvent = setTimeout(
+        function() {
+          $.ajax({
+            url: self.options.ajaxURL,
+            type: "GET",
+            data: {
+              elementId: self.element.attr('id')
+            , search: searchString
+            },
+            dataType: 'json',
+            success: function (data) {
+              // Make sure any tags already displayed are overlaid on their counterparts in the new list
+              $.each(self.tagsByID, function(key, tag){
+                if (self._isAlreadyDisplayingTag(key)) {
+                  data[key] = tag;
+                }
+              });
+              self.tagsByID = data;
+              self._loadSuggestions(data, false);
+              self.loadedFiltered = true;
+              self._showSuggestions(false);
+            },
+            error: function(data) {
+              self.options.ajaxErrorFunction(self, data);
             }
           });
-          self.tagsByID=data;
-          self._loadSuggestions(data, false);
-          self.loadedFiltered = true;
-          self._showSuggestions(false);
+          delete self.pendingFilterEvent;
         }
-      });
+      , this.options.typingTimeThreshold
+      );
+    },
+
+    /**
+     * Show a message to the user in the suggestions list section instead of results
+     * @param {string} msg Message to show
+     * @protected
+     */
+    _showMessageSuggestion: function(msg, className) {
+      // Set width
+      this._setSuggestionListDimensions(this);
+
+      // Show the container
+      this.taggerSuggestions.show();
+
+      // Clear out suggestion list
+      this.taggerSuggestionsList.children().remove();
+
+      // Add message
+      $('<li class="message '+className+'">' + msg + '</li>').appendTo(this.taggerSuggestionsList);
     },
 
     /**
@@ -726,7 +772,9 @@
         // Load in all suggestable tags
         for (var i = 0; i < suggestableTagArray.length; i++) {
           var tag = suggestableTags[suggestableTagArray[i][0]];
-          if ((!this.options.displayHierarchy && !tag.suggestable) || tag.historical) {
+          // Don't add suggestion if the tag isn't selectable and it's not displaying hierarchy, the tag is historical
+          //  or if the tag has no key and id tuple
+          if ((!tag.suggestable && !this.options.displayHierarchy) || tag.historical || !(tag.key && tag.id)) {
             continue;
           }
           // Create and add the suggestion to the suggestion list
@@ -764,9 +812,13 @@
         $('<li class="missing">' + this.options.noSuggestText + '</li>').appendTo(this.taggerSuggestionsList);
       }
 
-      // Add message if nothing ended up in the list
+      // Add message if nothing ended up in the list (e.g. all selectable items selected)
       if (this.taggerSuggestionsList.children().length === 0) {
         $('<li class="missing">' + this.options.emptyListText + '</li>').appendTo(this.taggerSuggestionsList);
+      }
+
+      if (suggestableTags.limited) {
+        $('<li class="limited">' + this.options.limitedText + '</li>').appendTo(this.taggerSuggestionsList);
       }
     },
 
@@ -818,7 +870,7 @@
      * @protected
      */
     _filterSuggestions: function (value, hideSuggestions) {
-      if (value.length > (this.options.characterThreshold - 1)) {
+      if (value.length >= this.options.characterThreshold) {
         // If text is longer than the threshold start filtering and showing the filtered results
         if (!this.options.ajaxURL) {
           this.filterTags(value);
@@ -826,7 +878,7 @@
         }
         // If ajaxURL is set, load the suggestions from URL instead of filtering the tag list
         else {
-          this.ajaxLoadSuggestions(value);
+          this._ajaxLoadSuggestions(value);
         }
       }
       // If under the threshold and was previously filtered, reset the list
@@ -1146,17 +1198,24 @@
       tagElem.remove();
       this.tagCount--;
       // Deselect from hidden select
-      $('option[value="'+tagID+'"]', this.element).removeAttr("selected");
+      $('option[value="' + tagID + '"]', this.element).removeAttr("selected");
+
       // In single select mode, make sure no options are selected
       if (this.singleValue) {
         $(this.element).val([]);
       }
-      // Add back into the selectable list
-      this.tagsByID[tagID].suggestable = true;
-      // Mark this tag as no longer being displayed
-      this.tagsByID[tagID].displaying = false;
+
+      // Add tag back into the suggestable list and mark is as no longer displayed if it's in the list of current tags
+      if (this.tagsByID[tagID]) {
+        // Add back into the selectable list
+        this.tagsByID[tagID].suggestable = true;
+        // Mark this tag as no longer being displayed
+        this.tagsByID[tagID].displaying = false;
+      }
+
       // Reset input
       this._selectionReset(shouldHideMenu, shouldClearInputs);
+
       // Show the input if it's in single-select mode
       if (this.singleValue) {
         this.taggerInput.show();

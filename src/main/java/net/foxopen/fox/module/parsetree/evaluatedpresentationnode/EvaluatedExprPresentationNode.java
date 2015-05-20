@@ -131,11 +131,11 @@ public class EvaluatedExprPresentationNode extends EvaluatedPresentationNode<Pre
 
     if(lExprOutTargetDOM != null) {
       //If we have a DOM reference we can use the DOM for a mapset key lookup
-      return lMapSet.getKey(lExprOutTargetDOM);
+      return lMapSet.getKey(pEvaluatedParseTree.getRequestContext(), lExprOutTargetDOM);
     }
     else {
       //If we only have a string use the string lookup method (won't work for complex mapsets)
-      return lMapSet.getKeyForDataString(pXPathResult.asString());
+      return lMapSet.getKeyForDataString(pEvaluatedParseTree.getRequestContext(), lMSItemDOM, pXPathResult.asString());
     }
   }
 

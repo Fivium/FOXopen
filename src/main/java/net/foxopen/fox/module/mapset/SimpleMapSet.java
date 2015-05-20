@@ -6,6 +6,7 @@ import net.foxopen.fox.dom.DOMList;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.fieldset.fvm.FVMOption;
 import net.foxopen.fox.module.fieldset.fvm.StringFVMOption;
+import net.foxopen.fox.thread.ActionRequestContext;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,7 +20,7 @@ import java.util.Map;
  * Most MapSets should conform to this pattern.
  */
 public class SimpleMapSet
-extends MapSet {
+extends DOMMapSet {
 
   /** Data string to entry map - in mapset order */
   private final LinkedHashMap<String, MapSetEntry> mEntryMap;
@@ -99,7 +100,7 @@ extends MapSet {
   }
 
   @Override
-  public String getKeyForDataString(String pDataString) {
+  public String getKeyForDataString(ActionRequestContext pRequestContext, DOM pMapSetItem, String pDataString) {
     MapSetEntry lEntry = mEntryMap.get(pDataString);
     if(lEntry != null) {
       return lEntry.getKey();

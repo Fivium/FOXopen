@@ -8,17 +8,19 @@ import java.util.Collection;
 
 public class EngineWebServiceCategory
 implements WebServiceCategory {
+  public static final String CATEGORY_NAME = "engine";
 
   @Override
   public String getName() {
-    return "engine";
+    return CATEGORY_NAME;
   }
 
   @Override
   public Collection<? extends WebService> getAllWebServices() {
     return Arrays.asList(
       new AliveWebService(),
-      new ThreadWebService()
+      new ThreadWebService(),
+      new MapSetWebService()
     );
   }
 }

@@ -105,6 +105,13 @@
     <FILE_FORMAT>BIN</FILE_FORMAT>
     <OVERLOADABLE>TRUE</OVERLOADABLE>
   </COMPONENT>
+  <COMPONENT>
+    <NAME>img/tagger-search.png</NAME>
+    <TYPE>image/png</TYPE>
+    <FILE_PATH>\WEB-INF\images\tagger-search.png</FILE_PATH>
+    <FILE_FORMAT>BIN</FILE_FORMAT>
+    <OVERLOADABLE>TRUE</OVERLOADABLE>
+  </COMPONENT>
 
   <!-- File uploads -->
   <COMPONENT>

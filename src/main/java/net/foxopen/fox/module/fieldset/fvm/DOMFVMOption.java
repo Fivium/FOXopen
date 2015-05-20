@@ -1,6 +1,7 @@
 package net.foxopen.fox.module.fieldset.fvm;
 
 import net.foxopen.fox.dom.DOM;
+import net.foxopen.fox.thread.ActionRequestContext;
 
 /**
  * FVMOption used to apply a complex DOM element to a target node. This is used by complex mapsets.
@@ -15,7 +16,7 @@ implements FVMOption {
   }
 
   @Override
-  public void applyToNode(DOM pTargetNode) {
+  public void applyToNode(ActionRequestContext pRequestContext, DOM pTargetNode) {
     mDOM.copyContentsTo(pTargetNode);
   }
 

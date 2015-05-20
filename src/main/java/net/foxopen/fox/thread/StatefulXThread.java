@@ -642,6 +642,11 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     return rampAndRun(pRequestContext, "ProcessAction", lActionRunner, pResultGenerator);
   }
 
+  /** The FieldSet this thread has most recently sent out. May be null if this thread is yet to perform a generate. */
+  public FieldSet getFieldSetOut() {
+    return mFieldSetOut;
+  }
+
   /**
    * ThreadActionResultGenerator which delegates to the #establishResponse method to generate an appropriate FoxResponse.
    * Used internally by {@link #processAction(RequestContext, String, String, Map)}.

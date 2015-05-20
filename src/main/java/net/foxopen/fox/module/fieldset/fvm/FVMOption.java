@@ -1,6 +1,7 @@
 package net.foxopen.fox.module.fieldset.fvm;
 
 import net.foxopen.fox.dom.DOM;
+import net.foxopen.fox.thread.ActionRequestContext;
 
 /**
  * Representation of an option which can be selected in a FieldValueMapping, providing a serialisable strategy for applying
@@ -15,9 +16,10 @@ public interface FVMOption {
   /**
    * Applies the value represented by this FVMOption to the given node. Only the value is applied; any other logic (i.e.
    * clearing existing content) should be performed externally.
+   * @param pRequestContext
    * @param pTargetNode Node to apply change to.
    */
-  public void applyToNode(DOM pTargetNode);
+  public void applyToNode(ActionRequestContext pRequestContext, DOM pTargetNode);
 
   /**
    * Tests if the value represented by this FVMOption is equal to the value of the given target node.

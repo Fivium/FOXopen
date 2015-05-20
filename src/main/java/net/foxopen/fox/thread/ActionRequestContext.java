@@ -9,6 +9,7 @@ import net.foxopen.fox.command.XDoIsolatedRunner;
 import net.foxopen.fox.command.XDoResult;
 import net.foxopen.fox.command.XDoRunner;
 import net.foxopen.fox.command.flow.XDoControlFlow;
+import net.foxopen.fox.dbinterface.InterfaceQuery;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.download.DownloadManager;
 import net.foxopen.fox.module.entrytheme.EntryTheme;
@@ -96,6 +97,15 @@ extends RequestContext {
    * @return Targeted MapSet.
    */
   public MapSet resolveMapSet(String pMapSetName, DOM pItemDOM, DOM pMapSetAttachDOM);
+
+  /**
+   * Resolves the InterfaceQuery of the given pQueryName from the given pDBInterfaceName
+   *
+   * @param pDBInterfaceName Name of the DBInterface on the current module to get the query from
+   * @param pQueryName Name of the query to get
+   * @return InterfaceQuery named pQueryName in pDBInterfaceName
+   */
+  public InterfaceQuery resolveInterfaceQuery(String pDBInterfaceName, String pQueryName);
 
   /**
    * Refreshes any MapSets which correspond to the MapSetDefinition resolved by the given MapSet name.

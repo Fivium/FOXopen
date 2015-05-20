@@ -6,6 +6,7 @@ import net.foxopen.fox.ex.ExCardinality;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.fieldset.fvm.DOMFVMOption;
 import net.foxopen.fox.module.fieldset.fvm.FVMOption;
+import net.foxopen.fox.thread.ActionRequestContext;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,7 +18,7 @@ import java.util.List;
  * items are strings). Data to key lookup must be performed by iteration through each data item's DOM.
  */
 public class ComplexMapSet
-extends MapSet {
+extends DOMMapSet {
 
   //These lists have corresponding indices - i.e. mDataDOMList[1] is the data item for mEntryList[1]
   private final List<DOM> mDataDOMList;
@@ -101,7 +102,7 @@ extends MapSet {
   }
 
   @Override
-  public String getKeyForDataString(String pDataString) {
+  public String getKeyForDataString(ActionRequestContext pRequestContext, DOM pMapSetItem, String pDataString) {
     return null;
   }
 }

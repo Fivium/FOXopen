@@ -1161,7 +1161,7 @@ implements FxpDOM<DOM> {
    * @param pSimplePath The path to evaluate.
    * @throws ExTooFew If no Elements are returned.
    * @throws ExTooMany If more than one Element is returned.
-   * @return The Element resolved by the path, or null if none matched.
+   * @return The Element resolved by the path, or empty string if none matched.
    */
   public String get1SNoEx(String pSimplePath) {
     try{
