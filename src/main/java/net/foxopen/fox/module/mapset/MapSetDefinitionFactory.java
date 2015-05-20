@@ -33,7 +33,8 @@ public final class MapSetDefinitionFactory {
     CACHE_KEY,
     REFRESH,
     REFRESH_TIMEOUT_MINS,
-    REFRESH_IN_BACKGROUND;
+    REFRESH_IN_BACKGROUND,
+    AJAX_DEFINITION;
 
     @Override
     public String toString() {
@@ -222,6 +223,9 @@ public final class MapSetDefinitionFactory {
           }
           else if (DefinitionTag.TEMPLATE.toString().equals(lDefintionTypeTag)) {
             lDefinitionBuilder = new TemplateDefinition.Builder(pModule, lDefinitionTypeDOM);
+          }
+          else if (DefinitionTag.AJAX_DEFINITION.toString().equals(lDefintionTypeTag)) {
+            lDefinitionBuilder = new AJAXQueryDefinition.Builder(pModule, lDefinitionTypeDOM);
           }
           else {
             throw new ExModule("Invalid mapset definition for " + lMapSetName + " - mapset type not recognised: " + lDefintionTypeTag);

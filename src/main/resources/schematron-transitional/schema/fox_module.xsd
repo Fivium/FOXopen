@@ -570,6 +570,43 @@ The 'data' column may be a string or an XMLType. For XML, the content of the XML
                           </xs:attribute>
                         </xs:complexType>
                       </xs:element>
+                      <xs:element name="ajax-definition" nillable="false">
+                        <xs:annotation>
+                          <xs:documentation>Specify a search query which will return one or more rows. Each row will be treated as a 'rec' element in the mapset with 'key' and 'data' columns. There is no need to specify a target-path on the query.
+                            Also specify a ref query which will return only one row for a given reference. The row will be treated as a 'rec' element in the mapset with 'key' and 'data' columns. There is no need to specify a target-path on the query.
+
+                            The 'data' column may be a string or an XMLType. For XML, the content of the XMLType's root element will be treated as the content of the 'data' element. The 'key' column must always be a string.
+                            If the 'data' column is defined as XMLType you MUST define a ref-path attribute here to resolve a reference from the xml data.
+                          </xs:documentation>
+                        </xs:annotation>
+                        <xs:complexType>
+                          <xs:attribute name="interface" type="fm:entered-string" use="required">
+                            <xs:annotation>
+                              <xs:documentation>Name of database interface containing mapset querys.</xs:documentation>
+                            </xs:annotation>
+                          </xs:attribute>
+                          <xs:attribute name="search-query" type="fm:entered-string" use="required">
+                            <xs:annotation>
+                              <xs:documentation>Name of mapset query within the db-interface that uses :search_term to get mapset records.</xs:documentation>
+                            </xs:annotation>
+                          </xs:attribute>
+                          <xs:attribute name="search-query-result-limit" type="xs:integer" use="optional">
+                            <xs:annotation>
+                              <xs:documentation>Number of search result records to return to users. Default = 100</xs:documentation>
+                            </xs:annotation>
+                          </xs:attribute>
+                          <xs:attribute name="ref-query" type="fm:entered-string" use="required">
+                            <xs:annotation>
+                              <xs:documentation>Name of mapset query within the db-interface that uses :ref to get the corresponding mapset record.</xs:documentation>
+                            </xs:annotation>
+                          </xs:attribute>
+                          <xs:attribute name="ref-path" type="fm:fox-xpath-type" use="optional">
+                            <xs:annotation>
+                              <xs:documentation>Simple XPATH to get a unique reference from inside an XML data item.</xs:documentation>
+                            </xs:annotation>
+                          </xs:attribute>
+                        </xs:complexType>
+                      </xs:element>
                       <xs:element name="record-list" type="mapset-rec-list">
                         <xs:annotation>
                           <xs:documentation>Specify the mapset 'rec' list.</xs:documentation>

@@ -1230,7 +1230,7 @@ public class ValidateCommand
 
                     MapSet lMapSet = pRequestContext.resolveMapSet(getAttr("map-set", dataDfn), pDataToCheck, getAttr("map-set-attach", dataDfn));
 
-                     if(lMapSet.containsData(pDataToCheck)) {
+                     if(lMapSet.containsData(pRequestContext, pDataToCheck)) {
                         // its found in the list so its no longer mandatory
                         mandatory = false;
                      }

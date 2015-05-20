@@ -4,17 +4,19 @@ package net.foxopen.fox.module.fieldset.fieldmgr;
 import com.google.common.base.Joiner;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.module.datanode.EvaluatedNodeInfo;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfoItem;
+import net.foxopen.fox.module.datanode.NodeAttribute;
+import net.foxopen.fox.module.datanode.NodeInfo;
+import net.foxopen.fox.module.datanode.NodeVisibility;
 import net.foxopen.fox.module.fieldset.FieldSelectConfig;
 import net.foxopen.fox.module.fieldset.FieldSet;
 import net.foxopen.fox.module.fieldset.fvm.BooleanFVM;
 import net.foxopen.fox.module.fieldset.fvm.FieldSelectOption;
 import net.foxopen.fox.module.fieldset.fvm.FieldValueMapping;
+import net.foxopen.fox.module.fieldset.fvm.JITMapSetFVM;
 import net.foxopen.fox.module.fieldset.fvm.MapSetFVM;
 import net.foxopen.fox.module.fieldset.fvm.SchemaEnumFVM;
-import net.foxopen.fox.module.datanode.EvaluatedNodeInfo;
-import net.foxopen.fox.module.datanode.NodeAttribute;
-import net.foxopen.fox.module.datanode.NodeInfo;
 import net.foxopen.fox.track.Track;
 
 import java.util.ArrayList;
@@ -44,6 +46,23 @@ extends DataFieldMgr {
     }
     else if(pEvalNode.getSchemaEnumeration() != null) {
       lFVM = SchemaEnumFVM.createSchemaEnumFVM(pEvalNode);
+    }
+    else if(JITMapSetFVM.validateENI(pEvalNode)) {
+      // TODO - AJMS - Commented out the pre-cache code for now
+//      pEvalNode.getNodeEvaluationContext().getContextUElem().localise("OptionFieldMgr::createOptionFieldMgr");
+//      try {
+//        AJAXQueryDefinition lAJAXQueryDefinition = (AJAXQueryDefinition) pEvalNode.getMapSet().getMapSetDefinition();
+//        // TODO - AJMS - context localise things with no mapset attach (search comment for other similar hacks)
+//        lAJAXQueryDefinition.setupContextUElem(pEvalNode.getNodeEvaluationContext().getContextUElem(), pEvalNode.getDataItem(), new PathOrDOM(""));
+//        BindObjectProvider lBinds = lAJAXQueryDefinition.getSearchQueryStatement().createBindObjectProvider(pEvalNode.getDataItem(), pEvalNode.getNodeEvaluationContext().getContextUElem());
+//        // TODO - AJMS - !!! - This needs to evaluate the binds here and cache the results. Otherwise the localise is pointless
+//        MapSetWebService.gMapSetCache.put(pFieldId, new Object[] {pEvalNode.getMapSet(), lBinds});
+//      }
+//      finally {
+//        pEvalNode.getNodeEvaluationContext().getContextUElem().delocalise("OptionFieldMgr::createOptionFieldMgr");
+//      }
+
+      lFVM = JITMapSetFVM.createMapSetFVM(pEvalNode);
     }
     else if(MapSetFVM.validateENI(pEvalNode)) {
       //Note mapset may be defined on repeating child element for legacy modules
@@ -226,4 +245,13 @@ extends DataFieldMgr {
    * @return True if selected.
    */
   protected abstract boolean isFVMOptionRefSelected(String pRef);
+
+  @Override
+  public void prepareForSetOut() {
+    super.prepareForSetOut();
+
+    if(JITMapSetFVM.validateENI(getEvaluatedNodeInfoItem()) && getVisibility() == NodeVisibility.EDIT) {
+      getOwningFieldSet().addJITMapSetInfo(getExternalFieldName(), getEvaluatedNodeInfoItem());
+    }
+  }
 }

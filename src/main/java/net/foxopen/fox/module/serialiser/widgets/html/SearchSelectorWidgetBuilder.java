@@ -3,14 +3,17 @@ package net.foxopen.fox.module.serialiser.widgets.html;
 
 import com.google.common.base.Joiner;
 import net.foxopen.fox.XFUtil;
+import net.foxopen.fox.entrypoint.engine.MapSetWebService;
 import net.foxopen.fox.entrypoint.servlets.StaticServlet;
 import net.foxopen.fox.entrypoint.uri.RequestURIBuilder;
 import net.foxopen.fox.ex.ExInternal;
-import net.foxopen.fox.module.datanode.EvaluatedNode;
+import net.foxopen.fox.module.datanode.EvaluatedNodeInfo;
 import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.datanode.NodeVisibility;
 import net.foxopen.fox.module.fieldset.fieldmgr.FieldMgr;
+import net.foxopen.fox.module.fieldset.fieldmgr.OptionFieldMgr;
 import net.foxopen.fox.module.fieldset.fvm.FieldSelectOption;
+import net.foxopen.fox.module.mapset.JITMapSet;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
@@ -23,15 +26,25 @@ import java.util.List;
 import java.util.Set;
 
 
-public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode> {
+public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfo> {
 
-  private static final String HIDDEN_SEARCHABLE_MS_PROPERTY = "hidden-searchable";
-  private static final String SUGGESTION_DISPLAY_MS_PROPERTY = "suggestion-display";
-  private static final String LEVEL_MS_PROPERTY = "level";
+  public static final String HIDDEN_SEARCHABLE_MS_PROPERTY = "hidden-searchable";
+  public static final String SUGGESTION_DISPLAY_MS_PROPERTY = "suggestion-display";
+  public static final String LEVEL_MS_PROPERTY = "level";
 
-  private static final WidgetBuilder<HTMLSerialiser, EvaluatedNode> INSTANCE = new SearchSelectorWidgetBuilder();
+  public static final String KEY_JSON_PROPERTY = "key";
+  public static final String SORT_JSON_PROPERTY = "sort";
+  public static final String SUGGESTION_DISPLAY_JSON_PROPERTY = "suggestion";
+  public static final String HIDDEN_SEARCHABLE_JSON_PROPERTY = "hidden";
+  public static final String LEVEL_JSON_PROPERTY = "level";
+  public static final String SELECTED_JSON_PROPERTY = "selected";
+  public static final String HISTORICAL_JSON_PROPERTY = "historical";
+  public static final String SUGGESTABLE_JSON_PROPERTY = "suggestable";
+  public static final String LIMITED_JSON_PROPERTY = "limited";
 
-  public static final WidgetBuilder<HTMLSerialiser, EvaluatedNode> getInstance() {
+  private static final WidgetBuilder<HTMLSerialiser, EvaluatedNodeInfo> INSTANCE = new SearchSelectorWidgetBuilder();
+
+  public static final WidgetBuilder<HTMLSerialiser, EvaluatedNodeInfo> getInstance() {
     return INSTANCE;
   }
 
@@ -39,11 +52,13 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
   }
 
   @Override
-  public void buildWidgetInternal(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNode pEvalNode) {
+  public void buildWidgetInternal(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNodeInfo pEvalNode) {
     boolean lSearchMandatorySelection = pEvalNode.getBooleanAttribute(NodeAttribute.SEARCH_MANDATORY_SELECTION, false);
 
     FieldMgr lFieldMgr = pEvalNode.getFieldMgr();
     List<FieldSelectOption> lSelectOptions = lFieldMgr.getSelectOptions();
+
+    boolean lAJAXMapSet = ((OptionFieldMgr)lFieldMgr).getEvaluatedNodeInfoItem().getMapSet() instanceof JITMapSet;
 
     if (!pEvalNode.isPlusWidget() && lFieldMgr.getVisibility() == NodeVisibility.VIEW) {
       SelectorWidgetBuilder.outputReadOnlyOptions(pSerialiser, lFieldMgr);
@@ -114,6 +129,10 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
         if (lIndentMultiplier != null) {
           lExtraParams += "    indentMultiplier: " + Float.parseFloat(lIndentMultiplier) + ",\n";
         }
+        String lSearchTypingTimeout = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_TYPING_TIMEOUT);
+        if (lSearchTypingTimeout != null) {
+          lExtraParams += "    typingTimeThreshold: " + Float.parseFloat(lSearchTypingTimeout) + ",\n";
+        }
         if (pEvalNode.getBooleanAttribute(NodeAttribute.SEARCH_DISPLAY_HIERARCHY, false)) {
           lExtraParams += "    displayHierarchy: true,\n";
         }
@@ -128,6 +147,23 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
         }
         if (lSearchMandatorySelection) {
           lExtraParams += "    mandatorySelection: true,\n";
+        }
+        String lNoSuggestionsText = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_NO_SUGGESTIONS_TEXT);
+        if (lNoSuggestionsText != null) {
+          lExtraParams += "    noSuggestText: '" + StringEscapeUtils.escapeHtml4(lNoSuggestionsText) + "',\n";
+        }
+        String lEmptyListText = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_EMPTY_SUGGESTIONS_TEXT);
+        if (lEmptyListText != null) {
+          lExtraParams += "    emptyListText: '" + StringEscapeUtils.escapeHtml4(lNoSuggestionsText) + "',\n";
+        }
+        String lLimitedText = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_LIMITED_SUGGESTIONS_TEXT);
+        if (lLimitedText != null) {
+          lExtraParams += "    limitedText: '" + StringEscapeUtils.escapeHtml4(lLimitedText) + "',\n";
+        }
+
+        if (lAJAXMapSet) {
+          lExtraParams += "    ajaxURL: '" + MapSetWebService.AjaxSearchEndPoint.buildEndPointURI(pSerialisationContext.createURIBuilder(), pSerialisationContext.getThreadInfoProvider().getThreadId()) + "',\n"
+          + "    ajaxErrorFunction: function(self, data){self._showMessageSuggestion('The application has experienced an unexpected error, please try again or contact support. Error reference: <strong>' + data.responseJSON.errorDetails.reference + '</strong>', 'error');},\n";
         }
       }
       catch (NumberFormatException ex) {
@@ -164,6 +200,7 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
       "    baseURL: '" + lBaseURL + "',\n" +
       "    imgDownArrow: '/img/tagger-dropdown.png',\n" +
       "    imgRemove: '/img/tagger-remove.png',\n" +
+      "    imgSearch: '/img/tagger-search.png',\n" +
       "    fieldWidth: " + lFieldWidth + "\n" +
       "  });\n" +
       "});");
@@ -197,32 +234,37 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
       }
 
       lJSONEntry = new JSONObject();
-      String lID = lSearchableItem.getExternalFieldValue();
-      lJSONEntry.put("id", lID);
-      lJSONEntry.put("sort", i++);
 
-      lJSONEntry.put("key", lSearchableItem.getDisplayKey());
-      lJSONEntry.put("hidden", XFUtil.nvl(lHiddenSearchable, ""));
+      lJSONEntry.put("id", lSearchableItem.getExternalFieldValue());
+      lJSONEntry.put(KEY_JSON_PROPERTY, lSearchableItem.getDisplayKey());
+      lJSONEntry.put(SORT_JSON_PROPERTY, i++);
+
+      // Add suggestion text (if none in mapset the JS will use the key safely escaped)
+      if (!XFUtil.isNull(lSuggestion)) {
+        lJSONEntry.put(SUGGESTION_DISPLAY_JSON_PROPERTY, StringEscapeUtils.escapeHtml4(lSuggestion.replaceAll("%IMAGE_BASE%", pBaseURL)));
+      }
+
+      lJSONEntry.put(HIDDEN_SEARCHABLE_JSON_PROPERTY, XFUtil.nvl(lHiddenSearchable, ""));
+
       // Add entry for hierarchical data
       if (lLevel != null) {
-        lJSONEntry.put("level", lLevel);
+        lJSONEntry.put(LEVEL_JSON_PROPERTY, lLevel);
       }
-      // Add suggestion text or default to the key
-      if (!XFUtil.isNull(lSuggestion)) {
-        lJSONEntry.put("suggestion", StringEscapeUtils.escapeHtml4(lSuggestion.replaceAll("%IMAGE_BASE%", pBaseURL)));
-      }
+
       // If it was selected add that entry
       if (lSearchableItem.isSelected()) {
-        lJSONEntry.put("selected", "true");
+        lJSONEntry.put(SELECTED_JSON_PROPERTY, "true");
       }
+
       // If it's a historical entry add that entry
       if (lSearchableItem.isHistorical()) {
-        lJSONEntry.put("historical", "true");
-        lJSONEntry.put("suggestable", "false");
+        lJSONEntry.put(HISTORICAL_JSON_PROPERTY, "true");
+        lJSONEntry.put(SUGGESTABLE_JSON_PROPERTY, "false");
       }
       else {
-        lJSONEntry.put("suggestable", "true");
+        lJSONEntry.put(SUGGESTABLE_JSON_PROPERTY, "true");
       }
+
       lMapsetJSON.add(lJSONEntry);
       lMapsetObject.put(lSearchableItem.getExternalFieldValue(), lJSONEntry);
     }

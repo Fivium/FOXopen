@@ -103,11 +103,11 @@ extends ExtensionFunctionDefinition {
         String lKey;
         if(lItemDOM != null) {
           //If we have a data DOM reference use that for the mapset lookup (required for complex mapsets)
-          lKey = lMapSet.getKey(lItemDOM);
+          lKey = lMapSet.getKey(lRequestContext, lItemDOM);
         }
         else {
           //If we just have a string use that
-          lKey = lMapSet.getKeyForDataString(lDataString);
+          lKey = lMapSet.getKeyForDataString(lRequestContext, lMapSetAttachDOM, lDataString);
         }
 
         //Wrap result and return

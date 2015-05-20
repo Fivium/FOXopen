@@ -150,7 +150,7 @@ extends FieldInfo {
           //Not found in loop, create a new DOM child and set its content to the value of the FVM option
           lChanged = true;
           try {
-            lFVMOption.applyToNode(pTargetDOM.create1E(mSelectorPath));
+            lFVMOption.applyToNode(pRequestContext, pTargetDOM.create1E(mSelectorPath));
           }
           catch (ExTooMany e) {}
         }

@@ -59,6 +59,16 @@ public class MapSetEntry {
     return new MapSetEntry(lKeyString, lHistorical, lDisabled, lAdditionalProperties.size() > 0 ? lAdditionalProperties : Collections.<DOM>emptySet());
   }
 
+  /**
+   * Create a MapSetEntry from just the key value, defaulting historical and disabled to false and no additional properties
+   *
+   * @param pMapSetKey
+   * @return
+   */
+  public static MapSetEntry createFromMapSetKey(String pMapSetKey) {
+    return new MapSetEntry(pMapSetKey, false, false, Collections.<DOM>emptySet());
+  }
+
   private MapSetEntry(String pKey, boolean pHistorical, boolean pDisabled, Set<DOM> pAdditionalProperties) {
     mKey = pKey;
     mHistorical = pHistorical;

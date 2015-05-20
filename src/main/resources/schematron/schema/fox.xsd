@@ -58,14 +58,18 @@
     <xs:attribute ref="prompt"/>
     <xs:attribute ref="widget"/>
     <xs:attribute ref="placeholder"/>
-    <xs:attribute ref="searchCharacterThreshold"/>
-    <xs:attribute ref="searchCaseSensitive"/>
     <xs:attribute ref="searchDisplayHierarchy"/>
     <xs:attribute ref="searchIndentMultiplier"/>
     <xs:attribute ref="searchSuggestionWidth"/>
     <xs:attribute ref="searchSuggestionMaxWidth"/>
     <xs:attribute ref="searchSuggestionMaxHeight"/>
+    <xs:attribute ref="searchCaseSensitive"/>
+    <xs:attribute ref="searchCharacterThreshold"/>
+    <xs:attribute ref="searchTypingTimeout"/>
     <xs:attribute ref="searchSortedOutput"/>
+    <xs:attribute ref="searchNoSuggestionsText"/>
+    <xs:attribute ref="searchEmptySuggestionsText"/>
+    <xs:attribute ref="searchLimitedSuggestionsText"/>
     <xs:attribute ref="autoResize"/>
     <xs:attribute ref="autoResizeMaxHeight"/>
     <xs:attribute ref="htmlWidgetConfig"/>
@@ -328,15 +332,18 @@
     <xs:attribute ref="emptyListBuffer"/>
     <xs:attribute ref="emptyListBufferAttach"/>
     <xs:attribute ref="placeholder"/>
-    <xs:attribute ref="searchCharacterThreshold"/>
-    <xs:attribute ref="searchCaseSensitive"/>
     <xs:attribute ref="searchDisplayHierarchy"/>
     <xs:attribute ref="searchIndentMultiplier"/>
     <xs:attribute ref="searchSuggestionWidth"/>
     <xs:attribute ref="searchSuggestionMaxWidth"/>
     <xs:attribute ref="searchSuggestionMaxHeight"/>
+    <xs:attribute ref="searchCaseSensitive"/>
+    <xs:attribute ref="searchCharacterThreshold"/>
+    <xs:attribute ref="searchTypingTimeout"/>
     <xs:attribute ref="searchSortedOutput"/>
-    <xs:attribute ref="searchMandatorySelection"/>
+    <xs:attribute ref="searchNoSuggestionsText"/>
+    <xs:attribute ref="searchEmptySuggestionsText"/>
+    <xs:attribute ref="searchLimitedSuggestionsText"/>
     <xs:attribute ref="autoResize"/>
     <xs:attribute ref="autoResizeMaxHeight"/>
     <xs:attribute ref="htmlWidgetConfig"/>
@@ -434,18 +441,74 @@
     </xs:simpleType>
   </xs:attribute>
   <!-- SCHEMA ELEMENT DISPLAY ATTRIBUTES-->
-  <xs:attribute name="placeholder"/>
-  <xs:attribute name="searchCharacterThreshold"/>
-  <xs:attribute name="searchCaseSensitive"/>
-  <xs:attribute name="searchDisplayHierarchy"/>
-  <xs:attribute name="searchIndentMultiplier"/>
-  <xs:attribute name="searchSuggestionWidth"/>
-  <xs:attribute name="searchSuggestionMaxWidth"/>
-  <xs:attribute name="searchSuggestionMaxHeight"/>
-  <xs:attribute name="searchSortedOutput"/>
-  <xs:attribute name="searchMandatorySelection" type="xs:boolean">
+  <xs:attribute name="placeholder" type="fox-xpath-type">
     <xs:annotation>
-      <xs:documentation>Disables the search (type/show prediction) functionality of the search-selector and disables the "x" (remove) button when in single selection mode. This allows us to reuse the nicer (HTML) output functionality of the widget while preserving legacy drop-down behaviour (such as having fox:key-null). This will become unnecessary when all browsers we aim to support can cope with native placeholder text.</xs:documentation>
+      <xs:documentation>Text to put as placeholder in the input</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="searchDisplayHierarchy" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>XPath bool whether to show indented suggestion lists</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="searchIndentMultiplier" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>How much to indent each item by in the hierarchical suggestion list</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="searchSuggestionWidth" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Hard width for the suggestions list specified just as number, engine turns to em</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="searchSuggestionMaxWidth" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Max width for the suggestions list specified just as number, engine turns to em</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="searchSuggestionMaxHeight" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Max height for the suggestions list specified just as number, engine turns to em</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="searchCaseSensitive" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>XPath bool for case sensitive searching</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="searchCharacterThreshold" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Number of character to enter before searching</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="searchTypingTimeout" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Time in milliseconds to wait after a key press before filtering results</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="searchSortedOutput" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>XPath bool for sorting the suggestion list in mapset order. You might want to set this to false to improve performance on large mapsets</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="searchNoSuggestionsText" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Text to display when filter text returns 0 results</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="searchEmptySuggestionsText" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Text to display when all suggestable items are already selected</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="searchLimitedSuggestionsText" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Text to display when all AJAX results were limited server side</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="searchMandatorySelection" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>XPath bool for disabling the search (type/show prediction) functionality of the search-selector and disables the "x" (remove) button when in single selection mode. This allows us to reuse the nicer (HTML) output functionality of the widget while preserving legacy drop-down behaviour (such as having fox:key-null). This will become unnecessary when all browsers we aim to support can cope with native placeholder text.</xs:documentation>
     </xs:annotation>
   </xs:attribute>
   <xs:attribute name="hint"/>

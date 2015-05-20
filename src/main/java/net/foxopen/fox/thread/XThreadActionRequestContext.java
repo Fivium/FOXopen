@@ -9,6 +9,7 @@ import net.foxopen.fox.command.XDoIsolatedRunner;
 import net.foxopen.fox.command.XDoResult;
 import net.foxopen.fox.command.XDoRunner;
 import net.foxopen.fox.command.flow.XDoControlFlow;
+import net.foxopen.fox.dbinterface.InterfaceQuery;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.PathOrDOM;
 import net.foxopen.fox.dom.xpath.ContextualityLevel;
@@ -20,10 +21,10 @@ import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExServiceUnavailable;
 import net.foxopen.fox.ex.ExTooFew;
 import net.foxopen.fox.ex.ExTooMany;
-import net.foxopen.fox.module.entrytheme.EntryTheme;
 import net.foxopen.fox.module.Mod;
-import net.foxopen.fox.module.facet.ModuleFacetProvider;
 import net.foxopen.fox.module.State;
+import net.foxopen.fox.module.entrytheme.EntryTheme;
+import net.foxopen.fox.module.facet.ModuleFacetProvider;
 import net.foxopen.fox.module.mapset.MapSet;
 import net.foxopen.fox.thread.devtoolbar.DevToolbarContext;
 import net.foxopen.fox.thread.persistence.PersistenceContext;
@@ -193,6 +194,11 @@ implements ActionRequestContext {
   @Override
   public MapSet resolveMapSet(String pMapSetName, DOM pItemDOM, DOM pMapSetAttachDOM) {
     return mXThread.getTopModuleCall().getMapSetManager().getMapSet(this, pMapSetName, pItemDOM, new PathOrDOM(pMapSetAttachDOM), mXThread.getCurrentCallId());
+  }
+
+  @Override
+  public InterfaceQuery resolveInterfaceQuery(String pDBInterfaceName, String pQueryName) {
+    return mXThread.getTopModuleCall().getModule().getDatabaseInterface(pDBInterfaceName).getInterfaceQuery(pQueryName);
   }
 
   @Override

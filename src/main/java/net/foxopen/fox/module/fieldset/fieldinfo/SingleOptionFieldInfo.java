@@ -53,7 +53,7 @@ extends SingleValueFieldInfo {
 
       if(!FieldValueMapping.NULL_VALUE.equals(lPostedValue)) {
         FVMOption lSelectedOption = mFVM.getFVMOptionForRef(pRequestContext, lTargetDOM, lPostedValue);
-        lSelectedOption.applyToNode(lTargetDOM);
+        lSelectedOption.applyToNode(pRequestContext, lTargetDOM);
       }
 
       return createChangeActionContext(lTargetDOM);

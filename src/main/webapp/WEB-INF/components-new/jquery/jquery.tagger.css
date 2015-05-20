@@ -18,12 +18,12 @@
 
 .tagger .clearer {
   clear: both;
-  height: 0px;
-  width: 0px;
-  line-height: 0px;
-  margin: 0px;
-  padding: 0px;
-  font-size: 0pt;
+  height: 0;
+  width: 0;
+  line-height: 0;
+  margin: 0;
+  padding: 0;
+  font-size: 0;
 }
 
 .tagger .tagger-buttons {
@@ -149,7 +149,9 @@
   color: #555;
   font-style: italic;
 }
-.tagger .suggestions ul li.missing {
+.tagger .suggestions ul li.missing,
+.tagger .suggestions ul li.message,
+.tagger .suggestions ul li.limited {
   color: #555;
   font-style: italic;
   cursor: default;
@@ -158,5 +160,11 @@
 .tagger .suggestions ul li.disabled {
   color: #555;
   font-style: italic;
+  cursor: default;
+}
+.tagger .suggestions ul li.message.error {
+  color: #F00;
+  font-style: italic;
+  text-align: center;
   cursor: default;
 }
