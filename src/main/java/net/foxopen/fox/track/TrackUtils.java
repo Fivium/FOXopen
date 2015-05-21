@@ -166,6 +166,11 @@ public final class TrackUtils {
             lMessageMap.put("type", XFUtil.initCap(lFlag.toString()));
             lMessageMap.put("subject", lTrack.getSubject());
             lMessageMap.put("message", (!XFUtil.isNull(lTrack.getInfo()) ? lTrack.getInfo() : ""));
+
+            if( lTrack.hasFlag(TrackFlag.CRITICAL)) {
+              lMessageMap.put("criticalFlag", true);
+            }
+
             lMessageArray.add(lMessageMap);
             lTracksDone.add(lTrack);
           }

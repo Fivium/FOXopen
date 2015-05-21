@@ -26,4 +26,6 @@ public interface TrackEntry {
   List<TrackEntry> getChildEntryList();
 
   boolean isVisible();
+
+  boolean hasFlag(TrackFlag pFlag);
 }
