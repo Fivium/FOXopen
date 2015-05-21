@@ -32,9 +32,6 @@ $Id$
 */
 package net.foxopen.fox.command.builtin;
 
-import java.util.Collection;
-import java.util.Collections;
-
 import net.foxopen.fox.ContextLabel;
 import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.StringUtil;
@@ -51,39 +48,49 @@ import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.thread.ActionRequestContext;
 
+import java.util.Collection;
+import java.util.Collections;
+
 
 public class SecurityScopeCommand
-extends BuiltInCommand {
-
-  /** The default system-level privileges to apply for the current user; defaults to all. */
-  private String csvSystemPrivileges = "*";
-
-  /** An XPath that identifies one or more Universal References to objects whose privileges are to be deteremined. */
-  private String URefXPath           = null;
-
-  /** The restriction subset, if any, of object-level priveleges to determine for the specified object URefs for the current user. */
-  private String csvObjectPrivileges = "";
-
-  /** The restriction subset, if any, of object Universal Reference types to determine for the specified object URefs for the current user. */
-  private String csvURefTypes        = "";
+  extends BuiltInCommand {
 
   /**
-  * Contructs an if command from the XML element specified.
-  *
-  * @param commandElement the element from which the command will
-  *        be constructed.
-  */
+   * The default system-level privileges to apply for the current user; defaults to all.
+   */
+  private final String mCSVSystemPrivileges;
+
+  /**
+   * An XPath that identifies one or more Universal References to objects whose privileges are to be deteremined.
+   */
+  private final String mURefXPath;
+
+  /**
+   * The restriction subset, if any, of object-level priveleges to determine for the specified object URefs for the current user. Can be an XPATH
+   */
+  private final String mCSVObjectPrivileges;
+
+  /**
+   * The restriction subset, if any, of object Universal Reference types to determine for the specified object URefs for the current user.
+   */
+  private final String mCSVURefTypes;
+
+  /**
+   * Contructs an if command from the XML element specified.
+   *
+   * @param commandElement the element from which the command will be constructed.
+   */
   private SecurityScopeCommand(DOM commandElement) throws ExInternal {
     super(commandElement);
 
-    if ( commandElement.getAttrOrNull("csv-system-privs") != null )
-      csvSystemPrivileges = commandElement.getAttrOrNull("csv-system-privs");
-    if ( commandElement.getAttrOrNull("uref-xpath") != null )
-      URefXPath = commandElement.getAttrOrNull("uref-xpath");
-    if ( commandElement.getAttrOrNull("csv-object-privs") != null )
-      csvObjectPrivileges = commandElement.getAttrOrNull("csv-object-privs");
-    if ( commandElement.getAttrOrNull("csv-uref-types") != null )
-      csvURefTypes = commandElement.getAttrOrNull("csv-uref-types");
+    mCSVSystemPrivileges = commandElement.getAttrOrNull("csv-system-privs");
+
+    mURefXPath = commandElement.getAttrOrNull("uref-xpath");
+
+    mCSVObjectPrivileges = commandElement.getAttrOrNull("csv-object-privs");
+
+    mCSVURefTypes = commandElement.getAttrOrNull("csv-uref-types");
+
   }
 
   public boolean isCallTransition() {
@@ -93,26 +100,58 @@ extends BuiltInCommand {
   public XDoControlFlow run(ActionRequestContext pRequestContext) {
 
     ContextUElem contextUElem = pRequestContext.getContextUElem();
-    String csvURefList = "";
-    if ( URefXPath != null ) {
+    String lCSVURefList = "";
+    String lCSVObjectPrivileges = "";
+    String lCSVSystemPrivileges = "*";
+    String lCSVURefTypes = "";
+
+    if (mURefXPath != null) {
       XPathResult xpResult;
       try {
-        xpResult = contextUElem.extendedXPathResult(contextUElem.getUElem(ContextLabel.ATTACH), URefXPath);
-        csvURefList = StringUtil.collectionToDelimitedString(xpResult.asStringList(), ",");
+        xpResult = contextUElem.extendedXPathResult(contextUElem.getUElem(ContextLabel.ATTACH), mURefXPath);
+        lCSVURefList = StringUtil.collectionToDelimitedString(xpResult.asStringList(), ",");
       }
       catch (ExActionFailed e) {
-        throw new ExInternal("Failed to evaluated UREF XPath for security-scope command", e);
+        throw new ExInternal("Failed to evaluate UREF XPath for security-scope command", e);
       }
     }
 
-    SecurityScope lSecurityScope = new SecurityScope(csvSystemPrivileges, URefXPath, csvURefList, csvObjectPrivileges, csvURefTypes);
+    if (mCSVObjectPrivileges!= null) {
+      try {
+        lCSVObjectPrivileges = contextUElem.extendedStringOrXPathString(contextUElem.attachDOM(), mCSVObjectPrivileges);
+      }
+      catch (ExActionFailed e) {
+        throw new ExInternal("Failed to evaluate Object Privileges XPath for security-scope command", e);
+      }
+    }
+
+
+    if (mCSVSystemPrivileges!=null) {
+      try {
+        lCSVSystemPrivileges = contextUElem.extendedStringOrXPathString(contextUElem.attachDOM(), mCSVSystemPrivileges);
+      }
+      catch (ExActionFailed e) {
+        throw new ExInternal("Failed to evaluate System Privileges XPath for security-scope command", e);
+      }
+    }
+
+    if(mCSVURefTypes!=null) {
+      try {
+        lCSVURefTypes = contextUElem.extendedStringOrXPathString(contextUElem.attachDOM(), mCSVURefTypes);
+      }
+      catch (ExActionFailed e) {
+        throw new ExInternal("Failed to evaluate URef Types XPath for security-scope command", e);
+      }
+    }
+
+    SecurityScope lSecurityScope = new SecurityScope(lCSVSystemPrivileges, mURefXPath, lCSVURefList, lCSVObjectPrivileges, lCSVURefTypes);
     pRequestContext.changeSecurityScope(lSecurityScope);
 
     return XDoControlFlowContinue.instance();
   }
 
   public static class Factory
-  implements CommandFactory {
+    implements CommandFactory {
 
     @Override
     public Command create(Mod pModule, DOM pMarkupDOM) throws ExDoSyntax {
