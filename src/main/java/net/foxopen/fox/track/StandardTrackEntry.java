@@ -1,7 +1,11 @@
 package net.foxopen.fox.track;
 
+import com.google.common.collect.Sets;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 class StandardTrackEntry implements TrackEntry {
 
@@ -10,7 +14,7 @@ class StandardTrackEntry implements TrackEntry {
   private final Track.SeverityLevel mSeverity;
   private final long mInTime;
   private final TrackEntry mParent;
-  private final TrackFlag[] mFlags;
+  private final Set<TrackFlag> mFlags;
   private long mOutTime;
   private final List<TrackEntry> mChildren = new ArrayList<>();
   private TrackEntryType mType = TrackEntryType.DEFAULT;
@@ -22,7 +26,7 @@ class StandardTrackEntry implements TrackEntry {
     mInTime = System.currentTimeMillis();
     mParent = pParent;
     mOutTime = mInTime;
-    mFlags = pFlags;
+    mFlags = pFlags != null ? Sets.newHashSet(pFlags) : Collections.emptySet();
   }
 
   public String getSubject() {
@@ -74,5 +78,10 @@ class StandardTrackEntry implements TrackEntry {
   @Override
   public boolean isVisible() {
     return true;
+  }
+
+  @Override
+  public boolean hasFlag(TrackFlag pFlag) {
+    return mFlags.contains(pFlag);
   }
 }

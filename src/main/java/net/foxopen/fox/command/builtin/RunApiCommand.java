@@ -32,9 +32,7 @@ $Id$
 */
 package net.foxopen.fox.command.builtin;
 
-import java.util.Collection;
-import java.util.Collections;
-
+import net.foxopen.fox.ContextUCon;
 import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.command.Command;
@@ -48,11 +46,17 @@ import net.foxopen.fox.dbinterface.QueryMode;
 import net.foxopen.fox.dbinterface.deliverer.InterfaceAPIResultDeliverer;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.DOMList;
+import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.ex.ExDoSyntax;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.thread.ActionRequestContext;
+import net.foxopen.fox.track.Track;
+import net.foxopen.fox.track.TrackFlag;
+
+import java.util.Collection;
+import java.util.Collections;
 
 
 public class RunApiCommand
@@ -103,12 +107,13 @@ extends BuiltInCommand {
     try {
 
       ContextUElem lContextUElem = pRequestContext.getContextUElem();
+      ContextUCon lContextUCon = pRequestContext.getContextUCon();
 
       DOMList lMatchedNodes = lContextUElem.extendedXPathUL(lContextUElem.attachDOM(), mMatchPath);
 
-      UCon lUCon = pRequestContext.getContextUCon().getUCon("Run API " + mApiName);
+      UCon lUCon = lContextUCon.getUCon("Run API " + mApiName);
       try {
-      //Execute the API once for every matched node
+        //Execute the API once for every matched node
         for(DOM lMatchedNode : lMatchedNodes) {
 
           //Legacy behaviour: purge-all mode removed child elements of the matched DOM
@@ -117,11 +122,33 @@ extends BuiltInCommand {
             lMatchedNode.removeAllChildren();
           }
 
+          //In we're in dev mode and in a transaction we're not allowed to commit, take the transaction ID now so we can check this API doesn't commit internally
+          boolean lDoTransactionCheck = FoxGlobals.getInstance().isDevelopment() && !lContextUCon.isTransactionControlAllowed();
+          String lTransactionIdBefore = "";
+          if(lDoTransactionCheck) {
+            lTransactionIdBefore  = lUCon.getTransactionId();
+          }
+
+          //Run the API and deliver the results to the target DOM
           lInterfaceAPI.executeStatement(pRequestContext, lMatchedNode, lUCon, new InterfaceAPIResultDeliverer(pRequestContext, lInterfaceAPI, lMatchedNode));
+
+          try {
+            //We're only concerned about the API changing (i.e. committing/rolling back) an existing transaction - starting a new transaction is OK
+            if(lDoTransactionCheck && !"".equals(lTransactionIdBefore)) {
+              String lTransactionIdAfter = lUCon.getTransactionId();
+              if(!lTransactionIdBefore.equals(lTransactionIdAfter)) {
+                Track.alert("APITransactionCheck", "API " + mApiName + " in interface " + mInterfaceName + " (match node " + lMatchedNode.getFoxId() + ") modified the FOX transaction! " +
+                  "Transaction ID before: " + lTransactionIdBefore + ", Transaction ID after: " + XFUtil.nvl(lTransactionIdAfter, "[none]"), TrackFlag.CRITICAL);
+              }
+            }
+          }
+          catch (Throwable th) {
+            Track.recordSuppressedException("Suppressed exception caused by transaction ID check", th);
+          }
         }
       }
       finally {
-        pRequestContext.getContextUCon().returnUCon(lUCon, "Run API "  + mApiName);
+        lContextUCon.returnUCon(lUCon, "Run API " + mApiName);
       }
     }
     catch (Exception ex) {

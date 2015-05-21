@@ -916,17 +916,26 @@ public class UCon implements FxpUCon<ParsedStatement, UConBindMap>, Closeable {
   }
 
   /**
-   * Tests if a transaction is currently active on this connection.
-   * @return True if a transaction is active, false otherwise.
+   * Gets the ID of the database transaction which is currently active on this UCon, or empty string if the UCon is not
+   * in a transaction.
+   * @return Transaction ID or empty string.
    */
-  public boolean isTransactionActive() {
+  public String getTransactionId() {
     try {
       UConStatementResult lAPIResult = executeAPI(GET_TRANSACTION_ID_PARSED_STATEMENT, bindOutString());
-      return !XFUtil.isNull(lAPIResult.getString(":tran_id"));
+      return XFUtil.nvl(lAPIResult.getString(":tran_id"));
     }
     catch (ExDB e) {
       throw new ExInternal("Error getting transaction ID", e);
     }
+  }
+
+  /**
+   * Tests if a transaction is currently active on this connection.
+   * @return True if a transaction is active, false otherwise.
+   */
+  public boolean isTransactionActive() {
+    return !XFUtil.isNull(getTransactionId());
   }
 
   /**

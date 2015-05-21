@@ -1,9 +1,9 @@
 package net.foxopen.fox.track;
 
+import net.foxopen.fox.ex.ExInternal;
+
 import java.util.Collections;
 import java.util.List;
-
-import net.foxopen.fox.ex.ExInternal;
 
 class TrackAttribute implements TrackEntry {
 
@@ -62,6 +62,11 @@ class TrackAttribute implements TrackEntry {
   @Override
   public boolean isVisible() {
     return true;
+  }
+
+  @Override
+  public boolean hasFlag(TrackFlag pFlag) {
+    return false;
   }
 
   @Override

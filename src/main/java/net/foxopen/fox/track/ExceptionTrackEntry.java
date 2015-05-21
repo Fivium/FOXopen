@@ -1,10 +1,10 @@
 package net.foxopen.fox.track;
 
-import java.util.Collections;
-import java.util.List;
-
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.ex.ExInternal;
+
+import java.util.Collections;
+import java.util.List;
 
 public class ExceptionTrackEntry
 implements TrackEntry {
@@ -79,6 +79,11 @@ implements TrackEntry {
   @Override
   public boolean isVisible() {
     return mSerialiseException != null;
+  }
+
+  @Override
+  public boolean hasFlag(TrackFlag pFlag) {
+    return false;
   }
 
   public void setSerialiseException(Throwable pSerialiseException) {

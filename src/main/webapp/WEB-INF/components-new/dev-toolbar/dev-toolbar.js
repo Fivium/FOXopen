@@ -325,6 +325,7 @@ var DevToolbar = {
   parseMessages: function(messages) {
     var errorCount = 0;
     var warningCount = 0;
+    var criticalAlert = false;
 
     for(var i=0; i<messages.length; i++) {
       var msg = messages[i];
@@ -338,7 +339,13 @@ var DevToolbar = {
           break;
       }
 
-      var div = '<div class="dev-toolbar-message dev-toolbar-message-'+msg.level+'"><h4><span class="dev-toolbar-message-type">'+msg.type+'</span> '+msg.subject+'</h4><p>'+msg.message+'</p></div>';
+      var messageDivClass = 'dev-toolbar-message dev-toolbar-message-'+msg.level;
+      if(msg.criticalFlag) {
+        criticalAlert = true;
+        messageDivClass += ' critical';
+      }
+
+      var div = '<div class="' + messageDivClass +'"><h4><span class="dev-toolbar-message-type">'+msg.type+'</span> '+msg.subject+'</h4><p>'+msg.message+'</p></div>';
       $('#dev-toolbar-messages-tooltip').append(div);
     }
 
@@ -359,6 +366,10 @@ var DevToolbar = {
     }
 
     $('#dev-toolbar-messages').append(countStrings.join(', '));
+
+    if(criticalAlert) {
+      $('#dev-toolbar').addClass('criticalAlert');
+    }
 
   },
 
