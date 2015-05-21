@@ -139,11 +139,10 @@ public class EvaluatedNodeInfoItem extends EvaluatedNodeInfoGeneric {
         Track.alert("SingleSelectTickbox", "Tickboxes not supported in single select mode, switching to radio for node " + getIdentityInformation(), TrackFlag.BAD_MARKUP);
       }
       else if(lWidgetType.getBuilderType().getFieldSelectConfig() != null && !"xs:boolean".equals(getNodeInfo().getDataType()) &&
-              getMapSet() == null && getSchemaEnumeration() == null) {
-        //TODO PN this is a hack; FVM should deal with this more gracefully
+        getStringAttribute(NodeAttribute.MAPSET) == null && getSchemaEnumeration() == null) {
+        // TODO PN this is a hack; FVM should deal with this more gracefully
         Track.alert("FieldSelectWidgetWithoutFVM", lWidgetType.getBuilderType() + " found without a map-set or schema enumeration on node " + getIdentityInformation(), TrackFlag.BAD_MARKUP);
-        //PN commented out 22/1/2015 - don't think this should be tolerated at all. OptionFieldMgr should blow up if no option source can be found
-        //lWidgetType = WidgetType.fromBuilderType(WidgetBuilderType.INPUT);
+        // OptionFieldMgr will blow up as no option source can be found
       }
     }
     return lWidgetType;
