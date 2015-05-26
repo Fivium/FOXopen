@@ -45,7 +45,6 @@ public interface DevToolbarContext {
 
   /**
    * Retrieves the debug page for the given type.
-   * TODO PN seperate between DOMs and other pages, make pagetype an enum for other pages.
    * @param pPageType Type of debug page.
    * @return
    */
