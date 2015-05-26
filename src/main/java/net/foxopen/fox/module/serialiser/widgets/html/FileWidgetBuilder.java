@@ -31,7 +31,7 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
   }
 
   private static void insertDropzoneDiv(HTMLSerialiser pSerialiser, String pFieldId) {
-    pSerialiser.append("<div class=\"dropzone\" data-dropzone-id=\"" + pFieldId + "\" style=\"display:none;\"><div class=\"dropzone-text-container\"><div class=\"dropzone-text\">Drop files here<div class=\"dropzone-max-files-text\"></div></div></div></div>");
+    pSerialiser.append("<div class=\"dropzone\" data-dropzone-id=\"" + pFieldId + "\" style=\"display:none;\"><div class=\"dropzone-text-container\"><div class=\"dropzone-text icon-download\">Drop files here<div class=\"dropzone-max-files-text\"></div></div></div></div>");
   }
 
   private static String getFieldId(FieldMgr pFieldMgr) {
