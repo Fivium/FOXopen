@@ -1,11 +1,12 @@
 package net.foxopen.fox.module.datanode;
 
 
+import net.foxopen.fox.dom.NamespaceAttributeTable;
 import net.foxopen.fox.module.MandatoryDisplayOption;
 import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
 import net.foxopen.fox.module.fieldset.fieldmgr.FieldMgr;
-import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.GenericAttributesEvaluatedPresentationNode;
-import net.foxopen.fox.module.parsetree.presentationnode.GenericAttributesPresentationNode;
+import net.foxopen.fox.module.serialiser.OutputSerialiser;
+import net.foxopen.fox.module.serialiser.layout.CellItem;
 import net.foxopen.fox.module.serialiser.layout.CellMates;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 import net.foxopen.fox.module.serialiser.widgets.WidgetType;
@@ -19,15 +20,30 @@ public class EvaluatedNodeInfoCellMateCollection extends EvaluatedNodeInfoGeneri
    * Child list of the cellmates in this group
    */
   private final List<EvaluatedNodeInfo> mChildren = new LinkedList<>();
+  private final EvaluatedNodeInfo mRootNode;
   private final CellMates mCellMates;
   private final String mExternalFoxId;
 
-  public EvaluatedNodeInfoCellMateCollection(CellMates pCellMates, EvaluatedNode pParent, GenericAttributesEvaluatedPresentationNode<? extends GenericAttributesPresentationNode> pEvaluatedPresentationNode, NodeEvaluationContext pNodeEvaluationContext, NodeVisibility pNodeVisibility, NodeInfo pNodeInfo) {
-    super(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, pNodeVisibility, pNodeInfo);
+  public static EvaluatedNodeInfoCellMateCollection createEvaluatedNodeInfoCellMateCollection(EvaluatedNodeInfo pRootCellMate) {
+    NamespaceAttributeTable lCellmatesAttributes = ((EvaluatedNodeInfo)pRootCellMate.getParent()).getNodeInfo().getCellmateAttributes(pRootCellMate.getStringAttribute(NodeAttribute.CELLMATE_KEY));
+
+    // Create a enw NodeEvaluationContext from the root cell mate's but with the cellmate attributes passed in
+    NodeEvaluationContext lStubNEC = pRootCellMate.getNodeEvaluationContext();
+    NodeEvaluationContext lCellMatesNodeEvaluationContext = NodeEvaluationContext.createNodeInfoEvaluationContext(lStubNEC.getEvaluatedParseTree(), pRootCellMate.getEvaluatedPresentationNode(),
+      lStubNEC.getDataItem(), lStubNEC.getEvaluateContextRuleItem(),
+      null, lCellmatesAttributes, null, lStubNEC);
+
+    return new EvaluatedNodeInfoCellMateCollection(pRootCellMate, lCellMatesNodeEvaluationContext);
+  }
+
+  public EvaluatedNodeInfoCellMateCollection(EvaluatedNodeInfo pRootCellMate, NodeEvaluationContext pNodeEvaluationContext) {
+    super(pRootCellMate.getParent(), pRootCellMate.getEvaluatedPresentationNode(), pNodeEvaluationContext, pRootCellMate.getVisibility(), pRootCellMate.getNodeInfo());
 
     mExternalFoxId = getEvaluatedParseTree().getFieldSet().getExternalFoxId(pNodeEvaluationContext.getDataItem());
 
-    mCellMates = pCellMates;
+    mCellMates = new CellMates(this);
+
+    mRootNode = pRootCellMate;
   }
 
   /**
@@ -99,8 +115,7 @@ public class EvaluatedNodeInfoCellMateCollection extends EvaluatedNodeInfoGeneri
    */
   @Override
   public FieldMgr getFieldMgr() {
-    // TODO - NP - Robustify this
-    return getChildren().get(0).getFieldMgr();
+    return mRootNode.getFieldMgr();
   }
 
   @Override
@@ -139,7 +154,7 @@ public class EvaluatedNodeInfoCellMateCollection extends EvaluatedNodeInfoGeneri
       }
     }
     else {
-      lReturnValue.append("Cellmate key not known");
+      lReturnValue.append("Cellmate key not known yet");
     }
 
     if (getEvaluatedPresentationNode() != null) {
@@ -159,5 +174,17 @@ public class EvaluatedNodeInfoCellMateCollection extends EvaluatedNodeInfoGeneri
 
   public void addChild(EvaluatedNodeInfo pEvaluatedNode) {
     mChildren.add(pEvaluatedNode);
+  }
+
+  /**
+   * Generate an CellMates Cell Item that can represent this EvaluatedNodeInfo in a layout
+   *
+   * @param pColumnLimit Max amount of columns possible for this item
+   * @param pSerialiser Serialiser to use when generating this item
+   * @return CellMates CellItem for this item
+   */
+  @Override
+  public CellItem getCellItem(int pColumnLimit, OutputSerialiser pSerialiser) {
+    return mCellMates;
   }
 }
