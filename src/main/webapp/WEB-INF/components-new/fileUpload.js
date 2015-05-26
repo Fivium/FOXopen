@@ -367,15 +367,20 @@ $(document).ready(function() {
   }
 
   $(document).on('dragenter', function (e) {
-    $('.dropzone').not('.disableUpload').show();
-    $('.fileUploadLink').css('visibility','hidden');
+    var dt = e.originalEvent.dataTransfer;
+    // Check drag contains files
+    // 'types' is an array in Chrome and a DOMStringList in IE and Firefox so need to use .indexOf for Chrome and .contains for IE and Fx
+    if(dt.types != null && (dt.types.indexOf ? dt.types.indexOf('Files') != -1 : dt.types.contains('application/x-moz-file') || dt.types.contains('Files'))) {
+      $('.dropzone').not('.disableUpload').show();
+      $('.fileUploadLink').hide();
+    }
   });
 
   $(document).on('dragleave', function (e) {
     //Avoid IE/Chrome flickering bugs by checking if the drag was outside the window bounds
-    if (e.originalEvent.pageX <= 0 || e.originalEvent.pageY <= 0 || e.originalEvent.pageX >= window.innerWidth || e.originalEvent.pageY >= window.innerHeight) {
+    if (e.originalEvent.clientX <= 0 || e.originalEvent.clientY <= 0 || e.originalEvent.clientX >= window.innerWidth || e.originalEvent.clientY >= window.innerHeight) {
       $('.dropzone').hide();
-      $('.fileUploadLink').css('visibility','visible');
+      $('.fileUploadLink').show();
     }
     else {
       return false;
@@ -384,7 +389,7 @@ $(document).ready(function() {
 
   $(document).on('drop', function (e) {
     $('.dropzone').hide();
-    $('.fileUploadLink').css('visibility','visible');
+    $('.fileUploadLink').show();
   });
 
   $('.dropzone').on('dragover', function (e) {

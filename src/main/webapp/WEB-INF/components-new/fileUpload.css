@@ -138,22 +138,19 @@ ul.small-menu-out label.fileUploadLink {
 }
 
 .fileUpload .dropzone {
-  position: absolute;
-  top: 0;
-  width: 100%;
-  height: 100%;
+  border: 2px dashed #999;
   text-align: center;
-  box-sizing: border-box;
-  background: #f9f9f9;
-  padding: 0.5em;
-  margin-bottom: 0.2em;
-  border: 1px solid #eee;
-  border-radius: 5px;
   color: #666;
+  z-index: 100;
+  padding: 0.2em;
+  border-radius: 1px;
+  margin-bottom: 0.4em;
+  font-size: 0.9em;
 }
 
 .fileUpload .dropzone.mouseOver {
-  border-color: #bbb;
+  border-color: #666;
+  background: #eee;
 }
 
 body>.dropzone {
