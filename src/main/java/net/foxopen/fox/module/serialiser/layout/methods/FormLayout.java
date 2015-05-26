@@ -3,13 +3,9 @@ package net.foxopen.fox.module.serialiser.layout.methods;
 import net.foxopen.fox.module.DisplayOrderComparator;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfo;
-import net.foxopen.fox.module.datanode.EvaluatedNodeInfoCellMateCollection;
-import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.datanode.NodeVisibility;
 import net.foxopen.fox.module.serialiser.OutputSerialiser;
 import net.foxopen.fox.module.serialiser.layout.CellItem;
-import net.foxopen.fox.module.serialiser.layout.CellMates;
-import net.foxopen.fox.module.serialiser.layout.IndividualCellItem;
 import net.foxopen.fox.module.serialiser.layout.LayoutResult;
 import net.foxopen.fox.module.serialiser.layout.items.LayoutItem;
 import net.foxopen.fox.module.serialiser.layout.items.LayoutItemColumn;
@@ -22,9 +18,7 @@ import net.foxopen.fox.track.Track;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 public class FormLayout implements LayoutMethod {
@@ -58,28 +52,12 @@ public class FormLayout implements LayoutMethod {
 
     // Construct list of items to process, and group up cellmates
     List<CellItem> lCellItems = new ArrayList<>();
-    Map<String, CellMates> lCellMateMap = new HashMap<>();
     for (EvaluatedNodeInfo lItemNodeInfo : pEvalNodeInfo.getChildren()){
       if (lItemNodeInfo.getVisibility() == NodeVisibility.DENIED) {
         continue;
       }
 
-      WidgetBuilder lItemWidgetBuilder = pSerialiser.getWidgetBuilder(lItemNodeInfo.getWidgetBuilderType());
-
-      String lCellmateKey = lItemNodeInfo.getStringAttribute(NodeAttribute.CELLMATE_KEY);
-      if (lCellmateKey != null && !(pEvalNodeInfo instanceof EvaluatedNodeInfoCellMateCollection)) {
-        CellMates lCellMates = lCellMateMap.get(lCellmateKey);
-        if (lCellMates == null) {
-          lCellMates = new CellMates(pColumnLimit, lItemWidgetBuilder, lCellmateKey, lItemNodeInfo);
-          lCellMateMap.put(lCellmateKey, lCellMates);
-          lCellItems.add(lCellMates);
-        }
-
-        lCellMates.addCellMate(lItemNodeInfo);
-      }
-      else {
-        lCellItems.add(new IndividualCellItem(pColumnLimit, lItemWidgetBuilder, lItemNodeInfo));
-      }
+      lCellItems.add(lItemNodeInfo.getCellItem(pColumnLimit, pSerialiser));
     }
 
     // Sort form items based on displayOrder

@@ -10,6 +10,9 @@ import net.foxopen.fox.module.evaluatedattributeresult.FixedStringAttributeResul
 import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.GenericAttributesEvaluatedPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.GenericAttributesPresentationNode;
+import net.foxopen.fox.module.serialiser.OutputSerialiser;
+import net.foxopen.fox.module.serialiser.layout.CellItem;
+import net.foxopen.fox.module.serialiser.layout.IndividualCellItem;
 
 import java.util.Collections;
 import java.util.List;
@@ -278,5 +281,16 @@ public abstract class EvaluatedNodeInfo extends EvaluatedNode {
   @Override
   public Integer getMaxDataLength() {
     return getNodeInfo().getMaxDataLength();
+  }
+
+  /**
+   * Generate an IndividualCellItem that can represent this EvaluatedNodeInfo in a layout
+   *
+   * @param pColumnLimit Max amount of columns possible for this item
+   * @param pSerialiser Serialiser to use when generating this item
+   * @return IndividualCellItem for this item
+   */
+  public CellItem getCellItem(int pColumnLimit, OutputSerialiser pSerialiser) {
+    return new IndividualCellItem(pColumnLimit, pSerialiser.getWidgetBuilder(getWidgetBuilderType()), this);
   }
 }

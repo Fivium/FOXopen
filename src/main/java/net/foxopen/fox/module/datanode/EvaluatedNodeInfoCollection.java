@@ -13,6 +13,7 @@ import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 import net.foxopen.fox.module.serialiser.widgets.WidgetType;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,6 +33,8 @@ public class EvaluatedNodeInfoCollection extends EvaluatedNodeInfoGeneric {
   }
 
   void addChildren() {
+    Map<String, EvaluatedNodeInfoCellMateCollection> lCellMateMap = new HashMap<>();
+
     // loop through nodeinfo item list constructing evaluated model dom nodes
     DOMList lChildren = getNodeInfo().getModelDOMElem().getChildElements();
 
@@ -68,7 +71,23 @@ public class EvaluatedNodeInfoCollection extends EvaluatedNodeInfoGeneric {
           NodeEvaluationContext lNodeInfoEvaluationContext = NodeEvaluationContext.createNodeInfoEvaluationContext(getEvaluatedParseTree(), getEvaluatedPresentationNode(), lSubDataDOM, lEvaluateContextRuleDOM, null, lChildNodeInfo.getNamespaceAttributeTable(), this.getNamespacePrecedenceList(), getNodeEvaluationContext());
           EvaluatedNodeInfo lEvaluatedNodeInfo = EvaluatedNodeFactory.createEvaluatedNodeInfo(this, getEvaluatedPresentationNode(), lNodeInfoEvaluationContext, lChildNodeInfo);
           if (lEvaluatedNodeInfo != null && lEvaluatedNodeInfo.getVisibility() != NodeVisibility.DENIED) {
-            addChild(lEvaluatedNodeInfo);
+            String lCellmateKey = lEvaluatedNodeInfo.getStringAttribute(NodeAttribute.CELLMATE_KEY);
+            // If the new child is part of a cell mates group, add it to a cell mates collection object
+            if (lCellmateKey != null && !(lEvaluatedNodeInfo instanceof EvaluatedNodeInfoCellMateCollection)) {
+              EvaluatedNodeInfoCellMateCollection lCellMateCollection = lCellMateMap.get(lCellmateKey);
+              // If there's no existing cell mates collection for this cell mates key, create one
+              if (lCellMateCollection == null) {
+                lCellMateCollection = EvaluatedNodeInfoCellMateCollection.createEvaluatedNodeInfoCellMateCollection(lEvaluatedNodeInfo);
+                lCellMateMap.put(lCellmateKey, lCellMateCollection);
+                addChild(lCellMateCollection);
+              }
+
+              // Add the new child to the cellmate collection
+              lCellMateCollection.addChild(lEvaluatedNodeInfo);
+            }
+            else {
+              addChild(lEvaluatedNodeInfo);
+            }
             break NAMESPACE_CHECK_LOOP;
           }
         }
