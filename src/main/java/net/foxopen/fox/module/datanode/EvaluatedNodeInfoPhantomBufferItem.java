@@ -2,6 +2,7 @@ package net.foxopen.fox.module.datanode;
 
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
+import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.module.evaluatedattributeresult.DOMAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
@@ -55,6 +56,10 @@ extends EvaluatedNodeInfoItem {
     try {
       // Find the buffer from the parse tree
       String lBufferName = getStringAttribute(pBufferNameAttribute);
+      if(XFUtil.isNull(lBufferName)) {
+        throw new ExInternal("Failed to resolve a non-null phantom buffer name on node " + getIdentityInformation());
+      }
+
       BufferPresentationNode lBuffer = getEvaluatedParseTree().getBuffer(lBufferName);
 
       // Get an attach point via attribute or regular :{attach}

@@ -1,16 +1,15 @@
 package net.foxopen.fox.module.serialiser.widgets.html;
 
-import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfoPhantomBufferItem;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
 
 
-public class PhantomBufferWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode> {
-  private static final WidgetBuilder<HTMLSerialiser, EvaluatedNode> INSTANCE = new PhantomBufferWidgetBuilder();
+public class PhantomBufferWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoPhantomBufferItem> {
+  private static final WidgetBuilder<HTMLSerialiser, EvaluatedNodeInfoPhantomBufferItem> INSTANCE = new PhantomBufferWidgetBuilder();
 
-  public static final WidgetBuilder<HTMLSerialiser, EvaluatedNode> getInstance() {
+  public static WidgetBuilder<HTMLSerialiser, EvaluatedNodeInfoPhantomBufferItem> getInstance() {
     return INSTANCE;
   }
 
@@ -18,9 +17,8 @@ public class PhantomBufferWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eval
   }
 
   @Override
-  public void buildWidgetInternal(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNode pEvalNode) {
-    EvaluatedNodeInfoPhantomBufferItem lEvaluatedNodeInfoPhantomBufferItem = (EvaluatedNodeInfoPhantomBufferItem)pEvalNode;
+  public void buildWidgetInternal(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNodeInfoPhantomBufferItem pEvalNode) {
     // Serialise the buffer
-    lEvaluatedNodeInfoPhantomBufferItem.getPhantomBuffer().render(pSerialisationContext, pSerialiser);
+    pEvalNode.getPhantomBuffer().render(pSerialisationContext, pSerialiser);
   }
 }
