@@ -32,9 +32,6 @@ $Id$
 */
 package net.foxopen.fox.dom.xpath;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.XPathWrapper;
@@ -42,10 +39,11 @@ import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.DOMList;
 import net.foxopen.fox.ex.ExDOM;
 import net.foxopen.fox.ex.ExInternal;
-
 import net.sf.saxon.value.AtomicValue;
-
 import nu.xom.Node;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -125,6 +123,12 @@ public class XPathResult {
         //This indicates an expression such as ":{theme}/X" which has been evaluated from an attach point that
         //was on a different document. The context node is considered to be the node of the first label referenced
         //by the expression. TODO assert this logic always holds.
+
+        //Belt and braces
+        if(pContextUElem == null) {
+          throw new ExInternal("ContextUElem was null but XPath did not use context item or document (assertion error)");
+        }
+
         mRelativeDOM = pContextUElem.getUElem(pXPath.getLabelSet().iterator().next());
       }
     }

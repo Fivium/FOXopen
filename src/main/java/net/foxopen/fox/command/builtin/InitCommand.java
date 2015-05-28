@@ -32,11 +32,7 @@ $Id$
 */
 package net.foxopen.fox.command.builtin;
 
-import java.util.Collection;
-import java.util.Collections;
-
 import net.foxopen.fox.ContextUElem;
-import net.foxopen.fox.module.Template;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.command.Command;
 import net.foxopen.fox.command.CommandFactory;
@@ -50,8 +46,12 @@ import net.foxopen.fox.ex.ExBadPath;
 import net.foxopen.fox.ex.ExDoSyntax;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.Mod;
+import net.foxopen.fox.module.Template;
 import net.foxopen.fox.module.datanode.NodeInfo;
 import net.foxopen.fox.thread.ActionRequestContext;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Simple command that logs some message.
@@ -218,7 +218,7 @@ extends BuiltInCommand {
 
           DOMList modelDOMTargets;
           try {
-            modelDOMTargets = lTargetModelNodeInfo.getModelDOMElem().xpathUL(mForSchemaXPath, null);
+            modelDOMTargets = lTargetModelNodeInfo.getModelDOMElem().xpathUL(mForSchemaXPath, contextUElem);
           }
           catch(ExBadPath x) {
             throw new ExActionFailed("XPATH",
