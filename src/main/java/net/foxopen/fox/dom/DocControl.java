@@ -326,10 +326,17 @@ public class DocControl {
       lDocumentWrapper = mDocumentWrapperRef.get();
     }
     if(lDocumentWrapper == null){
-      if(mDocumentRef.get() == null){
+
+      if(mDocumentRef == null) {
         throw new ExInternal("mDocumentRef is null");
       }
-      lDocumentWrapper = new XOMDocumentWrapper(mDocumentRef.get(), SaxonEnvironment.getSaxonConfiguration());
+
+      Document lDocument = mDocumentRef.get();
+      if(lDocument == null){
+        throw new ExInternal("mDocumentRef returned null document value");
+      }
+
+      lDocumentWrapper = new XOMDocumentWrapper(lDocument, SaxonEnvironment.getSaxonConfiguration());
       mDocumentWrapperRef = new WeakReference<>(lDocumentWrapper);
    }
 
