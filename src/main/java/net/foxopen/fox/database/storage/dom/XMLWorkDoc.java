@@ -123,7 +123,7 @@ implements WorkDoc {
   /**
    * Gets the XML document held by this WorkDoc. This may be null if the WorkDoc has not yet been open, and may be out
    * of date if the WorkDoc is not currently open.
-   * @return Latest document retrived by this WorkDoc.
+   * @return Latest document retrieved by this WorkDoc.
    */
   public DOM getDOM() {
     return mDOM;
@@ -151,7 +151,7 @@ implements WorkDoc {
    * Gets the cache key associated with this WorkDoc, which it should be cached against in the WorkDoc cache.
    * @return
    */
-  protected String getCacheKey() {
+  public String getCacheKey() {
     return mWorkingStoreLocation.getDefinitionDependentCacheKey();
   }
 

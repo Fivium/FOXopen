@@ -40,6 +40,7 @@ implements DOMHandlerProvider, ThreadEventListener {
   private final TempDOMHandler mTempDOMHandler;
   private final SessionDOMHandler mSessionDOMHandler;
   private final DOMHandler mUserDOMHandler;
+  private final XThreadWorkDocManager mWorkDocManager;
 
   private String mLastTempDOMString;
 
@@ -62,6 +63,7 @@ implements DOMHandlerProvider, ThreadEventListener {
     mTempDOMHandler = pTempDOMHandler;
     mSessionDOMHandler = pSessionDOMHandler;
     mUserDOMHandler = pUserDOMHandler;
+    mWorkDocManager = new XThreadWorkDocManager();
   }
 
 
@@ -165,7 +167,7 @@ implements DOMHandlerProvider, ThreadEventListener {
     }
     else {
       //This will handle RO and editable WorkDocs
-      return new WorkDocDOMHandler(pWorkingStoreLocation, lContextLabel);
+      return new WorkDocDOMHandler(pWorkingStoreLocation, lContextLabel, mWorkDocManager);
     }
   }
 
