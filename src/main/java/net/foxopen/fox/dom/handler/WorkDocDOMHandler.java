@@ -3,6 +3,7 @@ package net.foxopen.fox.dom.handler;
 import net.foxopen.fox.database.storage.dom.XMLWorkDoc;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.thread.ActionRequestContext;
+import net.foxopen.fox.thread.XThreadWorkDocManager;
 import net.foxopen.fox.thread.storage.WorkingDataDOMStorageLocation;
 
 public class WorkDocDOMHandler
@@ -10,12 +11,14 @@ implements PostableDOMHandler, AbortableDOMHandler {
 
   private final WorkingDataDOMStorageLocation mWorkingStoreLocation;
   private final String mContextLabel;
+  private final XThreadWorkDocManager mWorkDocManager;
 
   private XMLWorkDoc mWorkDoc = null;
 
-  public WorkDocDOMHandler(WorkingDataDOMStorageLocation pWorkingStoreLocation, String pContextLabel) {
+  public WorkDocDOMHandler(WorkingDataDOMStorageLocation pWorkingStoreLocation, String pContextLabel, XThreadWorkDocManager pWorkDocManager) {
     mWorkingStoreLocation = pWorkingStoreLocation;
     mContextLabel = pContextLabel;
+    mWorkDocManager = pWorkDocManager;
   }
 
   @Override
@@ -26,7 +29,8 @@ implements PostableDOMHandler, AbortableDOMHandler {
       mWorkDoc = XMLWorkDoc.getOrCreateXMLWorkDoc(mWorkingStoreLocation, true);
     }
 
-    mWorkDoc.open(pRequestContext.getContextUCon());
+    //Open the WorkDoc if it's not already open (accounts for multiple access attempt swithin a call stack transformation)
+    mWorkDocManager.openIfRequired(pRequestContext.getContextUCon(), mWorkDoc);
   }
 
   @Override
@@ -36,7 +40,7 @@ implements PostableDOMHandler, AbortableDOMHandler {
 
   @Override
   public void close(ActionRequestContext pRequestContext) {
-    mWorkDoc.close(pRequestContext.getContextUCon());
+    mWorkDocManager.closeIfRequired(pRequestContext.getContextUCon(), mWorkDoc);
   }
 
   @Override
@@ -69,6 +73,7 @@ implements PostableDOMHandler, AbortableDOMHandler {
 
   @Override
   public void abort() {
-    mWorkDoc.abort();
+    //The manager needs to know about the abort
+    mWorkDocManager.abort(mWorkDoc);
   }
 }
