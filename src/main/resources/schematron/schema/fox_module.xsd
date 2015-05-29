@@ -642,6 +642,11 @@ The 'data' column may be a string or an XMLType. For XML, the content of the XML
                         <xs:sequence>
                           <xs:group ref="fm:using-clause-grp"/>
                         </xs:sequence>
+                        <xs:attribute fixed="unique" name="type">
+                          <xs:annotation>
+                            <xs:documentation>Shortcut markup for defining a unique cache key. The FOX engine will generate a unique cache key definition for you if you specify this attribute - there is no need to define any using clauses.</xs:documentation>
+                          </xs:annotation>
+                        </xs:attribute>
                         <xs:attribute name="string" type="xs:string" use="optional"/>
                       </xs:complexType>
                     </xs:element>
