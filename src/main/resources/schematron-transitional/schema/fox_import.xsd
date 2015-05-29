@@ -187,6 +187,7 @@
           <xs:sequence>
             <xs:element name="key" type="fm:entered-string"/>
             <xs:element name="data" type="xs:anyType"/>
+            <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
           </xs:sequence>
         </xs:complexType>
       </xs:element>
