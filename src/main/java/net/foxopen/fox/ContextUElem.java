@@ -20,6 +20,7 @@ import net.foxopen.fox.ex.ExTooMany;
 import net.foxopen.fox.plugin.api.dom.FxpContextUElem;
 import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.track.Track;
+import net.foxopen.fox.track.TrackFlag;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -415,16 +416,19 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
         if (!pLabel.equals(lDOMHandler.getContextLabel())) {
           throw new ExInternal("Label mismatch: label requested was :{" + pLabel + "} but DOMHandler's label is :{" + lDOMHandler.getContextLabel() + "}");
         }
-        else {
-          // TODO - PN - Remove this?
-          Track.debug("CheckLabelMatch", "Labels match for label :{" + pLabel + "} - remove this test after beta");
-        }
 
         //Make a note of this document's root foxid for reverse lookup map
         mRefToDocumentLabelMap.put(lDOM.getRef(), pLabel);
         //Shouldn't need to be global as this operation should only be happening to a non-localised ContextUElem
         putLabelEntry(pLabel, lDOM, ContextualityLevel.DOCUMENT, false);
       }
+    }
+
+    //Check the labelled DOM has not been removed from its DOM tree
+    if(lDOM != null && !lDOM.isAttached()) {
+      //This should probably throw/invalidate label mapping - warn for now so we can assess impact - FOXRD-661
+      Track.alert("UnattachedContextLabel", "Context label " + pLabel + " points to an unattached node - you must remap the label to an attached DOM node " +
+        "(this message will become an error in a future release)", TrackFlag.CRITICAL);
     }
 
     return lDOM;

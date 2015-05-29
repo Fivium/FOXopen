@@ -56,6 +56,11 @@ implements ExtensionFunction {
   private NodeInfo evaluateInternal(String pLabel){
     ContextUElem lContextUElem = SaxonEnvironment.getThreadLocalContextUElem();
     DOM lDOM = lContextUElem.getUElem(pLabel);
+
+    if(!lDOM.isAttached()) {
+      throw new ExInternal("Node with context label " + pLabel + " is unattached and cannot be used for XPath evaluation");
+    }
+
     return lDOM.wrap();
   }
 
