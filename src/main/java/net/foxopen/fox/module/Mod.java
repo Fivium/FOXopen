@@ -1350,8 +1350,14 @@ extends FoxComponent implements Validatable {
         String lPrefix = lElem.getNamespacePrefix(i);
         String lURI = lElem.getNamespaceURI(lPrefix);
         if(lURI.endsWith(INIT_MODULE_LOCAL_SUFFIX)){
+
+          int lDeclarationCountBefore = lElem.getNamespaceDeclarationCount();
           lElem.removeNamespaceDeclaration(lPrefix);
-        } else {
+          if(lElem.getNamespaceDeclarationCount() == lDeclarationCountBefore) {
+            throw new ExModule("Unable to remove namespace declaration for NS prefix " + lPrefix + " URI " + lURI + " - this indicates the namespace has an invalid URI");
+          }
+        }
+        else {
           i++;
         }
       }
