@@ -64,10 +64,9 @@ implements PostableDOMHandler, AbortableDOMHandler {
 
   @Override
   public void postDOM(ActionRequestContext pRequestContext) {
-    //Only allow close/open if already open (was being called by a transaction join in a mapset do block after the handler had been closed)
+    //Only allow posting if open (was being called by a transaction join in a mapset do block after the handler had been closed)
     if(isOpen()) {
-      close(pRequestContext);
-      open(pRequestContext);
+      mWorkDoc.post(pRequestContext.getContextUCon());
     }
   }
 
