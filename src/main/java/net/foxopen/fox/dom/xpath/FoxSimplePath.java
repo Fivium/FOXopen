@@ -33,16 +33,18 @@ $Id$
 
 package net.foxopen.fox.dom.xpath;
 
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.XPathWrapper;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.DOMList;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExPathInternal;
+import net.foxopen.fox.track.Track;
+import net.foxopen.fox.track.TrackFlag;
+
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -303,6 +305,12 @@ implements FoxPath {
       }
       else {
         lContextNode = pContextUElem.getUElem(mContextItemLabel);
+        //Check the labelled DOM has not been removed from its DOM tree
+        if(!lContextNode.isAttached()) {
+          //This should probably throw/invalidate label mapping - warn for now so we can assess impact - FOXRD-661
+          Track.alert("SimplePathUnattachedContextLabel", "Context label " + mContextItemLabel + " points to an unattached node - XPath may produce unexpected results " +
+            "(this message will become an error in a future release)", TrackFlag.CRITICAL);
+        }
       }
     }
 

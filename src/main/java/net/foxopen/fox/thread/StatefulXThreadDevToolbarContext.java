@@ -268,7 +268,7 @@ implements DevToolbarContext {
 
     for(String lLabel : lContextUElem.getContextualLabels()) {
       DOM lDOM = lContextUElem.getUElem(lLabel);
-      lResult.put(lLabel, lDOM.absolute() + " (" + lDOM.getFoxId() + ")");
+      lResult.put(lLabel, lDOM.absolute() + " (" + (lDOM.isAttached() ? lDOM.getFoxId() : "*UNATTACHED*") + ")");
     }
 
     return lResult;
