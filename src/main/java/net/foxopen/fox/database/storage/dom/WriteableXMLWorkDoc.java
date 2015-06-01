@@ -101,35 +101,68 @@ extends XMLWorkDoc {
     try {
       UCon lUCon = pContextUCon.getUCon("WorkDoc Close");
       try {
-        DOM lDOM = getDOM();
-        //If the DOM was modified it needs to be written back
-        if(mDOMModifyCountAtOpen != lDOM.getDocumentModifiedCount()) {
+        try {
+          //Update the DOM on the database
+          writeDOMIfModified(lUCon);
 
-          // Update document's change number
-          String lChangeNumber = updateChangeNumberOnDOM();
-          Track.info("ChangeNumberAtClose", lChangeNumber);
-
-          // Update record information
-          updateRow(lUCon);
-
-          //Do this after update as updateRow() may change the DOM (currently for binary XML)
-          mDOMModifyCountAtOpen = lDOM.getDocumentModifiedCount();
+          //Set DOM to RO to prevent application code modifying it after it is written to the DB
+          Track.debug("DOM to RO for " + getDOM().getRootElement().getName());
+          getDOM().getDocControl().setDocumentReadOnly();
         }
-        else {
-          Track.info("UpdateSkipped", "DOM not modified; update not required");
+        finally {
+          mIsOpen = false;
+          getDOMAccessor().closeLocator(lUCon);
         }
-
-        Track.debug("DOM to RO for " + lDOM.getRootElement().getName());
-        lDOM.getDocControl().setDocumentReadOnly();
       }
       finally {
-        mIsOpen = false;
-        getDOMAccessor().closeLocator(lUCon);
         pContextUCon.returnUCon(lUCon, "WorkDoc Close");
       }
     }
     finally {
       Track.pop("WorkDocClose");
+    }
+  }
+
+  /**
+   * Updates the DOM on the database if the change number has been modified since it was last updated. The DOM's change
+   * number is moved along and any newly created XML locator will be loaded into the XMLWorkDocDOMAccessor.
+   * @param pUCon For running the update statement.
+   */
+  private void writeDOMIfModified(UCon pUCon) {
+    //If the DOM was modified it needs to be written back
+    if(mDOMModifyCountAtOpen != getDOM().getDocumentModifiedCount()) {
+
+      // Update document's change number
+      String lChangeNumber = updateChangeNumberOnDOM();
+      Track.info("ChangeNumberAtWrite", lChangeNumber);
+
+      // Update record information
+      updateRow(pUCon);
+
+      //Do this after update as updateRow() may cause further modifications to the DOM (currently for binary XML)
+      mDOMModifyCountAtOpen = getDOM().getDocumentModifiedCount();
+    }
+    else {
+      Track.info("UpdateSkipped", "DOM not modified; update not required");
+    }
+  }
+
+  @Override
+  public void post(ContextUCon pContextUCon) {
+
+    Track.pushInfo("WorkDocPost", getDOMAccessor().getClass().getSimpleName());
+    try {
+      UCon lUCon = pContextUCon.getUCon("WorkDoc Post");
+      try {
+        //Write the DOM to the database - this also re-selects the XML column locator in updateRow()
+        writeDOMIfModified(lUCon);
+      }
+      finally {
+        pContextUCon.returnUCon(lUCon, "WorkDoc Post");
+      }
+    }
+    finally {
+      Track.pop("WorkDocPost");
     }
   }
 
@@ -185,10 +218,10 @@ extends XMLWorkDoc {
 
 
   private void updateRow(UCon pUCon) {
-    //Call the abstract method to write the DOM
+    //For CLOB DOMs this will write the DOM using the DOM accessor, for binary it will do nothing
     getDOMAccessor().prepareForDML(pUCon, getDOM());
 
-    //Run the update statement if defined
+    //Run the WSL update statement if defined
     runUpdateStatement(pUCon);
 
     //Check the correct row was updated

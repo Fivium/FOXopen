@@ -62,6 +62,11 @@ extends XMLWorkDoc {
   public void close(ContextUCon pContextUCon) {
   }
 
+  @Override
+  public void post(ContextUCon pContextUCon) {
+    Track.info("SkipRODOMPost", "Skipping post of RO DOM");
+  }
+
   private void readExistingRow(UCon pUCon) {
     if(getDOMAccessor().isLocatorEmpty(pUCon) || getDOMAccessor().isLocatorNull(pUCon)) {
       //Experimental - it may be nicer to return a root-only XML document

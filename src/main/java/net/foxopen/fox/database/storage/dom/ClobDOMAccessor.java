@@ -1,7 +1,5 @@
 package net.foxopen.fox.database.storage.dom;
 
-import java.sql.SQLException;
-
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.sql.bind.BindSQLType;
@@ -9,10 +7,10 @@ import net.foxopen.fox.database.sql.out.SQLTypeConverter;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.track.Track;
-
 import oracle.sql.CLOB;
-
 import oracle.xdb.XMLType;
+
+import java.sql.SQLException;
 
 
 public class ClobDOMAccessor
@@ -85,6 +83,9 @@ implements XMLWorkDocDOMAccessor {
 
   @Override
   public void openLocator(UCon pUCon, Object pLOB) {
+
+    //Close any existing locator
+    closeLocator(pUCon);
 
     if(pLOB == null) {
       mFetchedCLOB = null;

@@ -134,9 +134,16 @@ implements WorkDoc {
   /**
    * Closes this WorkDoc, writing the DOM to the database and running the update statement if the DOM was modified since
    * {@link #open} was called. The cached DOM will be made read only after this operation.
-   * @param pContextUCon
+   * @param pContextUCon For writing DOM/running update statement.
    */
   public abstract void close(ContextUCon pContextUCon);
+
+  /**
+   * Posts this DOM to the database, keeping it open for subsequent modification. Also runs the WSL update statement if
+   * defined. Note: this method does NOT re-read the DOM from the database.
+   * @param pContextUCon For writing DOM/running update statement.
+   */
+  public abstract void post(ContextUCon pContextUCon);
 
 
   public Object getLOBForBinding(UCon pUCon, BindSQLType pBindTypeRequired) {

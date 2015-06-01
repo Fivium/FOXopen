@@ -75,6 +75,9 @@ implements XMLWorkDocDOMAccessor {
   @Override
   public void openLocator(UCon pUCon, Object pLOB) {
 
+    //Close any existing locator
+    closeLocator(pUCon);
+
     if(pLOB == null) {
       mXMLType = null;
     }
