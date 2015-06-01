@@ -50,6 +50,10 @@ public class DevToolbarComponentBuilder extends ComponentBuilder<HTMLSerialiser,
 
     String lThreadId = pSerialisationContext.getThreadInfoProvider().getThreadId();
 
+    pSerialiser.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"");
+    pSerialiser.append(pSerialisationContext.getStaticResourceURI("css/dev-toolbar.css"));
+    pSerialiser.append("\">");
+
     pSerialiser.append("<div id=\"dev-toolbar\" class=\"short-dev-toolbar\">\n" +
     "<form id=\"devToolbarForm\">\n" +
     "<span id=\"dev-toolbar-icon\"></span>\n" +
@@ -224,10 +228,6 @@ public class DevToolbarComponentBuilder extends ComponentBuilder<HTMLSerialiser,
     pSerialiser.append("<script type=\"text/javascript\" src=\"");
     pSerialiser.append(pSerialisationContext.getStaticResourceURI("js/dev-toolbar.js"));
     pSerialiser.append("\"></script>");
-
-    pSerialiser.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"");
-    pSerialiser.append(pSerialisationContext.getStaticResourceURI("css/dev-toolbar.css"));
-    pSerialiser.append("\">");
 
     pSerialisationContext.addConditionalLoadJavascript("DevToolbar.gTrackId = '" +  Track.currentTrackId() + "';\n" +
       "DevToolbar.gBangUrlPrefix = '" + pSerialisationContext.createURIBuilder().buildServletURI(BangHandlerServlet.getServletPath()) + "/';\n" +
