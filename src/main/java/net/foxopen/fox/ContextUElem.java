@@ -20,7 +20,6 @@ import net.foxopen.fox.ex.ExTooMany;
 import net.foxopen.fox.plugin.api.dom.FxpContextUElem;
 import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.track.Track;
-import net.foxopen.fox.track.TrackFlag;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -424,11 +423,11 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
       }
     }
 
-    //Check the labelled DOM has not been removed from its DOM tree
-    if(lDOM != null && !lDOM.isAttached()) {
+    //Check the labelled DOM has not been removed from its DOM tree (don't warn for ACTION as this is reset every churn)
+    if(lDOM != null && !ContextLabel.ACTION.asString().equals(pLabel) && !lDOM.isAttached()) {
       //This should probably throw/invalidate label mapping - warn for now so we can assess impact - FOXRD-661
       Track.alert("UnattachedContextLabel", "Context label " + pLabel + " points to an unattached node - you must remap the label to an attached DOM node " +
-        "(this message will become an error in a future release)", TrackFlag.CRITICAL);
+        "(this message will become an error in a future release)");
     }
 
     return lDOM;
