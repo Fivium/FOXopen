@@ -167,7 +167,7 @@ extends EntryPointServlet {
 
     Track.setProperty(TrackProperty.THREAD_ID, pThreadId);
 
-    ThreadLockManager<FoxResponse> lThreadLockManager = new ThreadLockManager<>(pThreadId, MAIN_CONNECTION_NAME, false);
+    ThreadLockManager<FoxResponse> lThreadLockManager = new ThreadLockManager<>(pThreadId, false);
     try {
       return lThreadLockManager.lockAndPerformAction(pRequestContext, new ThreadLockManager.LockedThreadRunnable<FoxResponse>() {
         @Override

@@ -394,7 +394,7 @@ public class UploadProcessor {
 
     ThreadUpdater lThreadUpdater = new ThreadUpdater();
     //Create a new ThreadLockManager which uses a separate connection to lock the thread - don't want to commit the main connection (with the upload on)
-    ThreadLockManager<Object> lThreadLockManager = new ThreadLockManager<>(mUploadInfo.getThreadId(), UploadServlet.UPLOAD_CONNECTION_NAME, true);
+    ThreadLockManager<Object> lThreadLockManager = new ThreadLockManager<>(mUploadInfo.getThreadId(), true);
     //Lock thread, update the DOM and get the resultant UploadedFileInfo - this also commits the upload
     lThreadLockManager.lockRampAndRun(pRequestContext, "UploadComplete", lThreadUpdater);
 
