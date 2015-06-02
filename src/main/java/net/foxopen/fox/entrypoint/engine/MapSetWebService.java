@@ -19,7 +19,6 @@ import net.foxopen.fox.entrypoint.ws.PathParamTemplate;
 import net.foxopen.fox.entrypoint.ws.WebService;
 import net.foxopen.fox.entrypoint.ws.WebServiceAuthDescriptor;
 import net.foxopen.fox.entrypoint.ws.WebServiceResponse;
-import net.foxopen.fox.entrypoint.ws.WebServiceServlet;
 import net.foxopen.fox.ex.ExDB;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExUserRequest;
@@ -163,7 +162,7 @@ implements WebService {
         else {
           // If mapset information wasn't found in the cache we need to ramp the thread and get the information from the fieldset
 
-          ThreadLockManager<JSONObject> lLockManager = new ThreadLockManager<>(lThreadId, WebServiceServlet.MAIN_CONNECTION_NAME, false);
+          ThreadLockManager<JSONObject> lLockManager = new ThreadLockManager<>(lThreadId, false);
           JSONObject lSearchResult = lLockManager.lockAndPerformAction(pRequestContext, new ThreadLockManager.LockedThreadRunnable<JSONObject>() {
             @Override
             public JSONObject doWhenLocked(RequestContext pRequestContext, StatefulXThread pXThread) {

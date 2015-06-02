@@ -16,9 +16,9 @@ import net.foxopen.fox.track.Track;
  * does not ramp the thread but only allows operations against the thread in its unramped state - i.e. no access to DOMs.<br><br>
  *
  * The ThreadLockManager uses 1 or 2 connections depending on the pLockWithDedicatedConnection constructor parameter. Most
- * use cases only require a single "main" connection, which is more efficient. This can be used to lock the thread, run the action,
- * and unlock the thread, which involves committing the connection after each step. If you do not want the main connection to be
- * committed when the thread is locked/unlocked, you need to use the dedicated connection behaviour. The main connection is always
+ * use cases only require the top connection, which is more efficient. This can be used to lock the thread, run the action,
+ * and unlock the thread, which involves committing the connection after each step. If you do not want the top connection to be
+ * committed when the thread is locked/unlocked, you need to use the dedicated connection behaviour. The top connection is always
  * committed after running the action.<br><br>
  *
  * The "action" may return an arbitrary object if the consumer requires this. Generics should be used to ensure type safety.<br><br>
@@ -31,23 +31,27 @@ import net.foxopen.fox.track.Track;
 public class ThreadLockManager<T> {
 
   private final String mThreadId;
-  private final String mConnectionName;
   private final LockingBehaviour mLockingBehaviour;
 
   /**
    * Constructs a new ThreadLockManager for managing a single lock/action/unlock cycle.
    * @param pThreadId ID of XThread to lock.
-   * @param pConnectionName Name of main connection, i.e. to top connection on the ContextUCon. This is committed after the
-   *                        action is run.
    * @param pLockWithDedicatedConnection If true, a separate connection is used for locking and unlocking. Set this to true
-   *                                     if you do not want the main connection to be committed immediately after the thread is locked.
+   *                                     if you do not want the top connection to be committed immediately after the thread is locked.
    */
-  public ThreadLockManager(String pThreadId, String pConnectionName, boolean pLockWithDedicatedConnection) {
+  public ThreadLockManager(String pThreadId, boolean pLockWithDedicatedConnection) {
     mThreadId = pThreadId;
-    mConnectionName = pConnectionName;
     mLockingBehaviour = pLockWithDedicatedConnection ? new DedicatedConnectionLockingBehaviour() : new SharedConnectionLockingBehaviour();
   }
 
+  /**
+   * Locks the thread, ramps it up, then runs the given {@link RampedThreadRunnable} against it. Use this signature if you do
+   * not require a result to be returned by the RampedThreadRunnable.
+   * @param pRequestContext Current RequestContext.
+   * @param pTrackActionType Action type for logging/tracking purposes.
+   * @param pRampedThreadRunnable Action to run.
+   * @throws ExInvalidThreadId If the thread ID given to this ThreadLockManager is not a valid ID.
+   */
   public void lockRampAndRun(RequestContext pRequestContext, final String pTrackActionType, final RampedThreadRunnable pRampedThreadRunnable)
   throws ExInvalidThreadId {
     lockAndPerformAction(pRequestContext, new LockedThreadRunnable<T>() {
@@ -59,6 +63,18 @@ public class ThreadLockManager<T> {
     });
   }
 
+  /**
+   * Locks the thread, ramps it up, then runs the given {@link RampedThreadRunnable} against it. After the action is run,
+   * and the thread is ramped down, the {@link ThreadActionResultGenerator} is used to establish and return a result object
+   * of an arbitrary type.
+   * @param pRequestContext Current RequestContext.
+   * @param pTrackActionType Action type for logging/tracking purposes.
+   * @param pRampedThreadRunnable Action to run.
+   * @param pActionResultGenerator Used to establish the result object which is ultimately returned from this method. This
+   *                               may be null although you should use the other method signature for this use case.
+   * @return An arbitrary object of the desired return type, as returned from the ThreadActionResultGenerator. This may be null.
+   * @throws ExInvalidThreadId If the thread ID given to this ThreadLockManager is not a valid ID.
+   */
   public T lockRampAndRun(RequestContext pRequestContext, final String pTrackActionType, final RampedThreadRunnable pRampedThreadRunnable, final ThreadActionResultGenerator<? extends T> pActionResultGenerator)
   throws ExInvalidThreadId {
     return lockAndPerformAction(pRequestContext, new LockedThreadRunnable<T>() {
@@ -70,11 +86,11 @@ public class ThreadLockManager<T> {
   }
 
   /**
-   * Locks the required thread, runs the given action against it, then releases the lock. The main connection is committed
+   * Locks the required thread, runs the given action against it, then releases the lock. The top connection is committed
    * immediately after the action is run. The locking connection is also committed before and after action processing. Note
    * that these may be the same connection depending on how the ThreadLockManager was set up.<br><br>
    *
-   * In the event of an exception the main connection is rolled back, the thread is purged from cache and an attempt is made
+   * In the event of an exception the top connection is rolled back, the thread is purged from cache and an attempt is made
    * to unlock the thread using a new connection.
    *
    * @param pRequestContext Current RequestContext.
@@ -87,10 +103,12 @@ public class ThreadLockManager<T> {
 
     ContextUCon lContextUCon = pRequestContext.getContextUCon();
 
+    String lTopConnectionName = lContextUCon.getCurrentConnectionName();
+
     StatefulXThread lXThread = null;
     T lResult;
     try {
-      //Lock the thread - this will COMMIT for SharedConnection locking behaviour
+      //Lock the thread - this will COMMIT top connection for SharedConnection locking behaviour
       lXThread = mLockingBehaviour.lockXThread(pRequestContext);
 
       //Delegate to the consumer to perform whatever action is required with the locked thread
@@ -100,9 +118,9 @@ public class ThreadLockManager<T> {
       lContextUCon.closeAllRetainedConnections();
 
       //Commit the MAIN connection - commits all work done by thread
-      lContextUCon.commit(mConnectionName);
+      lContextUCon.commit(lTopConnectionName);
 
-      //Now release the thread - this will COMMIT for SharedConnection locking behaviour
+      //Now release the thread - this will COMMIT top connection for SharedConnection locking behaviour
       mLockingBehaviour.unlockThread(pRequestContext, lXThread);
     }
     catch (ExInvalidThreadId e) {

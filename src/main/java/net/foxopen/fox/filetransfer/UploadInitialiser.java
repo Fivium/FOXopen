@@ -49,7 +49,7 @@ public class UploadInitialiser {
 
     final UploadThreadInitialiser lInitialiser = new UploadThreadInitialiser(pRequestContext.getFoxRequest());
 
-    ThreadLockManager<UploadInfo> lThreadLockManager = new ThreadLockManager<>(mThreadId, UploadServlet.UPLOAD_CONNECTION_NAME, false);
+    ThreadLockManager<UploadInfo> lThreadLockManager = new ThreadLockManager<>(mThreadId, false);
     return lThreadLockManager.lockAndPerformAction(pRequestContext, new ThreadLockManager.LockedThreadRunnable<UploadInfo>() {
       @Override
       public UploadInfo doWhenLocked(RequestContext pRequestContext, StatefulXThread pXThread) {
