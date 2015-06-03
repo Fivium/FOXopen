@@ -1,5 +1,6 @@
 package net.foxopen.fox.entrypoint.engine;
 
+import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.sql.ExecutableQuery;
@@ -63,7 +64,7 @@ implements WebService {
   }
 
   @Override
-  public String getRequiredConnectionPoolName() {
+  public String getRequiredConnectionPoolName(FoxRequest pFoxRequest) {
     return null;
   }
 

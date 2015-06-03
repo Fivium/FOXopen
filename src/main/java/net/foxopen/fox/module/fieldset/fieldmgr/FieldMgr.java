@@ -84,6 +84,7 @@ public abstract class FieldMgr {
           return new ImageFieldMgr(pEvaluatedNodeInfoItem, pFieldSet, pNewFieldId);
         case PHANTOM_BUFFER:
         case PHANTOM_MENU:
+        case CARTOGRAPHIC: // TODO - NP - carto - This should be temporary, subject to change when we add map editing?
           return new PhantomFieldMgr(pEvaluatedNodeInfoItem, pFieldSet, pNewFieldId);
         default:
           throw new ExInternal("Don't know how to create a FieldMgr for a " + lWidgetBuilderType + " widget");

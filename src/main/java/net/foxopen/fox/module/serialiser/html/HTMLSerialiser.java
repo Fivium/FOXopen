@@ -44,6 +44,7 @@ import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 import net.foxopen.fox.module.serialiser.widgets.html.ButtonWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.html.CaptchaWidgetBuilder;
+import net.foxopen.fox.module.serialiser.widgets.html.CartographicWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.html.CellmateWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.html.DateWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.html.ErrorRefWidgetBuilder;
@@ -119,6 +120,7 @@ extends WriterOutputSerialiser {
     HTML_WIDGET_MAP.put(WidgetBuilderType.IMAGE, ImageWidgetBuilder.getInstance());
     HTML_WIDGET_MAP.put(WidgetBuilderType.CELLMATES, CellmateWidgetBuilder.getInstance());
     HTML_WIDGET_MAP.put(WidgetBuilderType.ERROR_REF, ErrorRefWidgetBuilder.getInstance());
+    HTML_WIDGET_MAP.put(WidgetBuilderType.CARTOGRAPHIC, CartographicWidgetBuilder.getInstance());
 
     HTML_PAGE_COMPONENT_MAP.put(ComponentBuilderType.DEV_TOOLBAR, DevToolbarComponentBuilder.getInstance());
     HTML_PAGE_COMPONENT_MAP.put(ComponentBuilderType.SKIP_LINKS, SkipLinksComponentBuilder.getInstance());

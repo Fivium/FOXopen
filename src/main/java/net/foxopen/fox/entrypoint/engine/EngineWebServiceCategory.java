@@ -20,7 +20,8 @@ implements WebServiceCategory {
     return Arrays.asList(
       new AliveWebService(),
       new ThreadWebService(),
-      new MapSetWebService()
+      new MapSetWebService(),
+      new SpatialRendererWebService()
     );
   }
 }

@@ -1,9 +1,9 @@
 package net.foxopen.fox.module.serialiser.widgets;
 
 import net.foxopen.fox.XFUtil;
-import net.foxopen.fox.module.fieldset.FieldSelectConfig;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.NodeAttribute;
+import net.foxopen.fox.module.fieldset.FieldSelectConfig;
 import net.foxopen.fox.track.Track;
 import net.foxopen.fox.track.TrackFlag;
 
@@ -18,6 +18,7 @@ import java.util.Set;
 public enum WidgetBuilderType {
   BUTTON(new WidgetBuilderProperties(WidgetFlag.ACTION, WidgetFlag.RUNNABLE), "button"),
   CAPTCHA(new WidgetBuilderProperties(WidgetFlag.TEXT_VALUE), "captcha", "obscure"),
+  CARTOGRAPHIC(new WidgetBuilderProperties(), "cartographic"),
   CELLMATES(new WidgetBuilderProperties(), "cellmates"),
   DATE(new WidgetBuilderProperties(WidgetFlag.TEXT_VALUE, WidgetFlag.RUNNABLE), "date"),
   DATE_TIME(new WidgetBuilderProperties(WidgetFlag.TEXT_VALUE, WidgetFlag.RUNNABLE), "datetime"),
@@ -192,5 +193,15 @@ public enum WidgetBuilderType {
    */
   public FieldSelectConfig getFieldSelectConfig() {
     return mFieldSelectConfig;
+  }
+
+  /**
+   * Compare a widget type string to the WidgetBuilderType
+   *
+   * @param pWidgetName Name of the widget to compare to this WidgetBuilderType
+   * @return true if WidgetBuilderType can be specified by pWidgetName
+   */
+  public boolean isMatchingWidget(String pWidgetName) {
+    return mAliases.contains(pWidgetName);
   }
 }

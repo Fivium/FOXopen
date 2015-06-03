@@ -1,5 +1,6 @@
 package net.foxopen.fox.enginestatus.ws;
 
+import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.banghandler.InternalAuthLevel;
 import net.foxopen.fox.enginestatus.EngineStatus;
 import net.foxopen.fox.enginestatus.StatusCategory;
@@ -65,7 +66,7 @@ implements WebServiceCategory {
     }
 
     @Override
-    public String getRequiredConnectionPoolName() {
+    public String getRequiredConnectionPoolName(FoxRequest pFoxRequest) {
       return null;
     }
 

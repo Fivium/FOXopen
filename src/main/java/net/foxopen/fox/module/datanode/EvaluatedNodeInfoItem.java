@@ -3,6 +3,7 @@ package net.foxopen.fox.module.datanode;
 
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.module.evaluatedattributeresult.DOMAttributeResult;
+import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
 import net.foxopen.fox.module.fieldset.fieldmgr.FieldMgr;
 import net.foxopen.fox.module.mapset.MapSet;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.GenericAttributesEvaluatedPresentationNode;
@@ -20,6 +21,7 @@ public class EvaluatedNodeInfoItem extends EvaluatedNodeInfoGeneric {
   static EvaluatedNodeInfoItem getEvaluatedNode(EvaluatedNode pParent, GenericAttributesEvaluatedPresentationNode<? extends GenericAttributesPresentationNode> pEvaluatedPresentationNode,
                                                 NodeEvaluationContext pNodeEvaluationContext, NodeVisibility pVisibility, NodeInfo pNodeInfo) {
     EvaluatedNodeInfoItem lEvaluatedNodeInfoItem;
+    StringAttributeResult lWidgetString = pNodeEvaluationContext.getStringAttributeOrNull(NodeAttribute.WIDGET);
     if(pNodeInfo.isUploadItem()) {
       lEvaluatedNodeInfoItem = new EvaluatedNodeInfoFileItem(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, pVisibility, pNodeInfo);
     }
@@ -31,6 +33,9 @@ public class EvaluatedNodeInfoItem extends EvaluatedNodeInfoGeneric {
     }
     else if("phantom".equals(pNodeInfo.getDataType()) && pNodeEvaluationContext.hasNodeAttribute(NodeAttribute.PHANTOM_DATA_XPATH)) {
       lEvaluatedNodeInfoItem = EvaluatedNodeInfoPhantomItem.createPhantomDataXPathENI(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, pVisibility, pNodeInfo);
+    }
+    else if (lWidgetString != null && WidgetBuilderType.CARTOGRAPHIC.isMatchingWidget(lWidgetString.getString())) {
+      lEvaluatedNodeInfoItem = new EvaluatedNodeInfoCartographicItem(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, pVisibility, pNodeInfo);
     }
     else {
       lEvaluatedNodeInfoItem = new EvaluatedNodeInfoItem(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, pVisibility, pNodeInfo);

@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 $Id$
 
 */
-package net.foxopen.fox.renderer;
+package net.foxopen.fox.spatial.renderer;
 
 import net.foxopen.fox.ComponentImage;
 import net.foxopen.fox.XFUtil;
@@ -48,16 +48,19 @@ import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Iterator;
 
 
 public class RendererPNG extends Renderer {
   private Graphics2D mG2D;
   private XBufferedImage mCanvas;
+  private final OutputStream mOutputStream;
 
-  public RendererPNG (int pWidth, int pHeight, int pDPI, Color pBackGroundColour) {
+  public RendererPNG (OutputStream pOutputStream, int pWidth, int pHeight, int pDPI, Color pBackGroundColour) {
+    mOutputStream = pOutputStream;
+
     //Create canvas and graphics object
     if (pDPI == 72) {
       mCanvas = new XBufferedImage(pWidth, pHeight, BufferedImage.TYPE_INT_ARGB);
@@ -84,6 +87,7 @@ public class RendererPNG extends Renderer {
     }
   }
 
+  @Override
   public Graphics2D getGraphics2D() {
     return mG2D;
   }
@@ -93,8 +97,8 @@ public class RendererPNG extends Renderer {
    * @return byte array of the EMF image
    * @throws IOException
    */
-  public byte[] generate()
-    throws IOException {
+  @Override
+  public void generate() {
     //Render objects, starting with root nodes
     Iterator lI = mRootLevelRenderableObjects.iterator();
     while (lI.hasNext()) {
@@ -102,9 +106,12 @@ public class RendererPNG extends Renderer {
     }
 
     //Convert to PNG and return
-    ByteArrayOutputStream lOutputStream = new ByteArrayOutputStream();
-    mCanvas.convertToPNG(lOutputStream);
-    return lOutputStream.toByteArray();
+    try {
+      mCanvas.convertToPNG(mOutputStream);
+    }
+    catch (IOException e) {
+      throw new ExInternal("Failed to convert canvas to PNG", e);
+    }
   } // generate
 
   /**
@@ -309,7 +316,7 @@ public class RendererPNG extends Renderer {
 
     if (!XFUtil.isNull(pMarker.mText)) {
       //Set up and draw text
-      String lColour = pStyle.get1SNoEx("TEXT/COLOUR");
+      String lColour = XFUtil.nvl(pStyle.get1SNoEx("TEXT/COLOUR"), "#000000");
       String lOpacity = pStyle.get1SNoEx("TEXT/OPACITY");
       if (XFUtil.isNull(lOpacity)) {
         mG2D.setColor(Color.decode(lColour));
@@ -323,11 +330,11 @@ public class RendererPNG extends Renderer {
       String lJustification = pStyle.get1SNoEx("TEXT/JUSTIFICATION").toUpperCase();
 
       int lFontStyle = Font.PLAIN;
-      if ("bold".equals(pStyle.get1EOrNull("TEXT/FONT").getAttrOrNull("style"))) {
+      if (pStyle.get1EOrNull("TEXT/FONT") != null && "bold".equals(pStyle.get1EOrNull("TEXT/FONT").getAttrOrNull("style"))) {
         lFontStyle = Font.BOLD;
       }
 
-      mG2D.setFont(new Font(pStyle.get1SNoEx("TEXT/FONT"), lFontStyle, pMarker.mFontSize));
+      mG2D.setFont(new Font(XFUtil.nvl(pStyle.get1SNoEx("TEXT/FONT"), "sans-serif"), lFontStyle, pMarker.mFontSize));
 
       //Set pen starting point based on layout and bounds
       Point2D lTextStart = getMarkerPoint(pMarker.mPoint, pStyle.get1SNoEx("TEXT/LAYOUT"), pMarker.mBounds);

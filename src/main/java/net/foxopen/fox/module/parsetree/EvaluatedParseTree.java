@@ -618,4 +618,8 @@ public class EvaluatedParseTree implements SerialisationContext {
     }
     return lDisplayOut.toString();
   }
+
+  public String getAuthenticationSessionID () {
+    return mRequestContext.getAuthenticationContext().getSessionId();
+  }
 }

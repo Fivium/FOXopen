@@ -116,4 +116,6 @@ public interface SerialisationContext {
   RequestURIBuilder createURIBuilder();
 
   InternalAuthLevel getInternalAuthLevel();
+
+  String getAuthenticationSessionID();
 }
