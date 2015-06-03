@@ -168,7 +168,13 @@ extends XMLWorkDoc {
 
   @Override
   protected void abortInternal() {
-    //Note: this used to free the temp CLOB
+    try {
+      getDOMAccessor().abort();
+    }
+    catch(Throwable th) {
+      Track.recordSuppressedException("WriteableXMLWorkDocAbort", th);
+    }
+
     mIsOpen = false;
   }
 

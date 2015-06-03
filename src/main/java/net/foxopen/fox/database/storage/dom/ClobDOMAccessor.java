@@ -163,4 +163,14 @@ implements XMLWorkDocDOMAccessor {
     pUCon.freeTemporaryClob(mFetchedCLOB);
     mFetchedCLOB = null;
   }
+
+  @Override
+  public void abort() {
+    try {
+      mFetchedCLOB.close();
+    }
+    catch (SQLException ignore) {
+    }
+    mFetchedCLOB = null;
+  }
 }

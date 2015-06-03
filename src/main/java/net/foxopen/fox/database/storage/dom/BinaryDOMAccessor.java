@@ -129,4 +129,10 @@ implements XMLWorkDocDOMAccessor {
       mXMLType = null;
     }
   }
+
+  @Override
+  public void abort() {
+    //Safe to call with a null UCon as we know we don't need it in this class
+    closeLocator(null);
+  }
 }
