@@ -66,7 +66,7 @@ extends EntryPointServlet {
   @Override
   protected String getConnectionPoolName(FoxRequest pFoxRequest) {
     WebService lWebService = resolveWebService(new StringBuilder(pFoxRequest.getHttpRequest().getPathInfo()));
-    return lWebService.getRequiredConnectionPoolName();
+    return lWebService.getRequiredConnectionPoolName(pFoxRequest);
   }
 
   @Override

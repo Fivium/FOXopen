@@ -30,10 +30,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 $Id$
 
 */
-package net.foxopen.fox.renderer;
+package net.foxopen.fox.spatial.renderer;
 
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
+import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.image.ImageUtils;
 import net.foxopen.fox.track.Track;
 import org.freehep.graphicsio.emf.EMFGraphics2D;
@@ -41,18 +42,17 @@ import org.freehep.graphicsio.emf.EMFGraphics2D;
 import java.awt.*;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Iterator;
 
 
 public class RendererEMF extends Renderer {
   private EMFGraphics2D mEMF;
-  private ByteArrayOutputStream mOS = new ByteArrayOutputStream();
 
-  public RendererEMF(int pWidth, int pHeight, int pDPI, Color pBackGroundColour) {
+  public RendererEMF(OutputStream pOutputStream, int pWidth, int pHeight, int pDPI, Color pBackGroundColour) {
     //Set up EMF:
-    mEMF = new EMFGraphics2D(mOS, new Dimension(pWidth, pHeight));
+    mEMF = new EMFGraphics2D(pOutputStream, new Dimension(pWidth, pHeight));
     mEMF.setDeviceIndependent(true);
 
     if (pBackGroundColour != null) {
@@ -63,6 +63,7 @@ public class RendererEMF extends Renderer {
     }
   }
 
+  @Override
   public Graphics2D getGraphics2D() {
     return mEMF;
   }
@@ -72,19 +73,22 @@ public class RendererEMF extends Renderer {
    * @return byte array of the EMF image
    * @throws IOException
    */
-  public byte[] generate()
-    throws IOException {
+  @Override
+  public void generate() {
     mEMF.startExport();
     mEMF.setComposite(AlphaComposite.Clear);
 
-    //Render objects, starting with root nodes
-    Iterator lI = mRootLevelRenderableObjects.iterator();
-    while (lI.hasNext()) {
-      renderObject((RenderableObject)mRenderableObjectsMap.get(lI.next()));
+    try {
+      //Render objects, starting with root nodes
+      for (Object mRootLevelRenderableObject : mRootLevelRenderableObjects) {
+        renderObject((RenderableObject) mRenderableObjectsMap.get(mRootLevelRenderableObject));
+      }
+    }
+    catch (IOException e) {
+      throw new ExInternal("Failed to render objects to EMF", e);
     }
 
     mEMF.endExport();
-    return mOS.toByteArray();
   } // generate
 
   /**

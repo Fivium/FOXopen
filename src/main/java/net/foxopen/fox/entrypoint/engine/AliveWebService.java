@@ -1,5 +1,6 @@
 package net.foxopen.fox.entrypoint.engine;
 
+import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.entrypoint.ws.EndPoint;
 import net.foxopen.fox.entrypoint.ws.GenericWebServiceResponse;
 import net.foxopen.fox.entrypoint.ws.PathParamTemplate;
@@ -26,7 +27,7 @@ implements WebService {
   }
 
   @Override
-  public String getRequiredConnectionPoolName() {
+  public String getRequiredConnectionPoolName(FoxRequest pFoxRequest) {
     return null;
   }
 

@@ -1,5 +1,6 @@
 package net.foxopen.fox.entrypoint.engine;
 
+import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.auth.AuthenticationResult;
 import net.foxopen.fox.auth.StandardAuthenticationContext;
@@ -44,7 +45,7 @@ implements WebService {
   }
 
   @Override
-  public String getRequiredConnectionPoolName() {
+  public String getRequiredConnectionPoolName(FoxRequest pFoxRequest) {
     return null;
   }
 

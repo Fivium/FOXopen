@@ -1,5 +1,6 @@
 package net.foxopen.fox.plugin;
 
+import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.banghandler.InternalAuthLevel;
 import net.foxopen.fox.entrypoint.ws.EndPoint;
@@ -93,7 +94,7 @@ implements WebServiceCategory {
     }
 
     @Override
-    public String getRequiredConnectionPoolName() {
+    public String getRequiredConnectionPoolName(FoxRequest pFoxRequest) {
       return mPlugin.getConnectKey();
     }
 

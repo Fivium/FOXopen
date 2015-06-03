@@ -32,20 +32,25 @@ $Id$
 */
 package net.foxopen.fox.spatial;
 
-import net.foxopen.fox.App;
-import net.foxopen.fox.FoxRequest;
+import com.google.common.base.Joiner;
+import net.foxopen.fox.ContextUCon;
 import net.foxopen.fox.XFUtil;
-import net.foxopen.fox.ajax.AjaxHandler;
-import net.foxopen.fox.ajax.AjaxHandlerSpatial;
-import net.foxopen.fox.database.ConnectionAgent;
+import net.foxopen.fox.configuration.resourcemaster.definition.AppProperty;
 import net.foxopen.fox.database.UCon;
-import net.foxopen.fox.database.sql.out.SQLTypeConverter;
+import net.foxopen.fox.database.UConBindMap;
+import net.foxopen.fox.database.UConStatementResult;
 import net.foxopen.fox.dom.DOM;
+import net.foxopen.fox.ex.ExApp;
 import net.foxopen.fox.ex.ExDB;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExServiceUnavailable;
+import net.foxopen.fox.sql.SQLManager;
+import net.foxopen.fox.thread.RequestContext;
 import net.foxopen.fox.track.Track;
-import oracle.sql.CLOB;
+
+import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -53,269 +58,211 @@ import oracle.sql.CLOB;
  * bootstrap and rendering requests.
  */
 public class SpatialEngine {
-  private SpatialRenderer mSpatialRenderer;
-  private String mConnectKey;
-  private String mOwnerAppMnem;
+  private static final String GENERATE_RENDER_XML_SQL = "GenerateRenderXML.sql";
+  private static final String BOOTSTRAP_SPATIAL_CANVAS_SQL = "BootstrapSpatialCanvas.sql";
+  private static final String REFRESH_SPATIAL_CANVAS_SQL = "RefreshSpatialCanvas.sql";
+  private static final String PERFORM_SPATIAL_OPERATION_SQL = "PerformSpatialOperation.sql";
 
-  // Initialise an Ajax Handler for the spatial engine
-  private final AjaxHandler mAjaxHandler;
+  private final Map<String, SpatialRenderer> mRenderers = new HashMap<>(2);
+  private final String mSpatialConnectionPoolName;
 
-  /**
-   * Constructs a SpatialEngine for a given app.
-   * @param pOwnerApp the owning App instance
-   * @param pWMSUrl the url for an Oracle MapViewer instance
-   * @throws ExServiceUnavailable
-   */
-  public SpatialEngine (App pOwnerApp, String pWMSUrl) throws ExServiceUnavailable {
-    // Take care of the obvious errors
-    if (XFUtil.isNull(pWMSUrl) || !pWMSUrl.matches("http[s]{0,1}://.+")) {
-      throw new ExInternal("Null or invalid Oracle MapViewer URL provided to SpatialEngine constructor");
+  public SpatialEngine(String pAppMnem, DOM  pSpatialRendererConfigList) throws ExApp {
+    mSpatialConnectionPoolName = pSpatialRendererConfigList.getAttrOrNull("connection-pool-name");
+    if (XFUtil.isNull(mSpatialConnectionPoolName)) {
+      throw new ExApp("connection-pool-name attribute missing or not defined for " + pAppMnem + " on " + AppProperty.SPATIAL_RENDERER_LIST.getPath());
     }
 
-    // Bootup a renderer instance
-    mSpatialRenderer = new SpatialRenderer(pOwnerApp, pWMSUrl);
-    mConnectKey = pOwnerApp.getConnectionPoolName();
-    mOwnerAppMnem = pOwnerApp.getAppMnem();
-    mAjaxHandler = new AjaxHandlerSpatial(this);
-  } // SpatialEngine
+    pSpatialRendererConfigList.getChildElements().forEach(this::configureRenderer);
+  }
 
   /**
-   * Get the parent App mnemonic.
-   * @return Mnem of owning App instance
+   * Configure a renderer with a DOM from the resource master
+   *
+   * @param pRendererConfig Configuration details in XML
    */
-  public final String getAppMnem () {
-    return mOwnerAppMnem;
-  } // getApp
+  private void configureRenderer(DOM pRendererConfig) {
+    SpatialRenderer lSpatialRenderer;
+    switch (pRendererConfig.getName().toLowerCase()) {
+      case "oracle-map-viewer-renderer":
+        lSpatialRenderer = new OracleMapViewerRenderer(pRendererConfig);
+        break;
+      case "fox-internal-spatial-renderer":
+        lSpatialRenderer = new FoxInternalSpatialRenderer(pRendererConfig);
+        break;
+      default:
+        throw new ExInternal("Unknown spatial renderer configuration type: " + pRendererConfig.getName());
+    }
+    mRenderers.put(lSpatialRenderer.getRenderXmlKey().toLowerCase(), lSpatialRenderer);
+  }
 
   /**
-   * Get the Ajax handler for this SpatialEngine instance.
-   * @return reference to the current AjaxHandler
+   * Render a given spatial canvas id to an image which gets written to the given output stream
+   *
+   * @param pRequestContext Context to get extra information/connections from when rendering
+   * @param pOutputStream Stream to write the image output to
+   * @param pCanvasID ID of the spatial canvas to render
+   * @param pWidth Width of the image to render, in pixels
+   * @param pHeight Height of the image to render, in pixels
    */
-  public final AjaxHandler getAjaxHandler () {
-    return mAjaxHandler;
-  } // getAjaxHandler
+  public void renderCanvasToOutputStream(RequestContext pRequestContext, OutputStream pOutputStream, String pCanvasID, int pWidth, int pHeight) {
+    DOM lRenderXML = generateRenderXML(pRequestContext, pCanvasID, pWidth, pHeight);
+
+    SpatialRenderer lRenderer = mRenderers.get(lRenderXML.getName().toLowerCase());
+
+    if (lRenderer == null) {
+      throw new ExInternal("Render XML is not a format that any of the configured Spatial Renderers [" + Joiner.on(", ").withKeyValueSeparator(" => ").join(mRenderers) + "] know how to handle\r\n\r\n" + lRenderXML.outputDocumentToString(true));
+    }
+
+    lRenderer.processRenderXML(pRequestContext, lRenderXML, pOutputStream);
+  }
 
   /**
-   * Boots up a spatial canvas (in turn, bootstrapping a project if required).
-   * @param pBootstrapDOM the data DOM fragment to pass through to the spatial db code
-   * @param pCallId the current module call id
-   * @param pWUAID the current user wuaid
-   * @param pUCon the current application connection
-   * @return canvas DOM
+   * Generate a DOM containing render rules, style information and queries that a rendering engine can use to generate
+   * an image
+   *
+   * @param pRequestContext Context to get a connection from
+   * @param pCanvasID ID of the spatial canvas to render
+   * @param pWidth Width of the image to render, in pixels
+   * @param pHeight Height of the image to render, in pixels
+   * @return DOM containing information a rendering engine can use to generate an image
    */
-  public DOM bootstrapSpatialCanvas (DOM pBootstrapDOM, String pCallId, String pWUAID, UCon pUCon) {
-    // Bootstrap a database connection
-    DOM lReturnDOM = null;
-    Track.pushInfo("SpatialEngine");
+  private DOM generateRenderXML(RequestContext pRequestContext, String pCanvasID, int pWidth, int pHeight) {
+    UCon lUCon = pRequestContext.getContextUCon().getUCon("Rendering Canvas");
+    UConStatementResult lAPIResult;
     try {
-      // PL/SQL API
-      String lWidgetBootstrapStatement =
-        "DECLARE\n" +
-        "  l_dummy XMLTYPE;\n" +
-        "BEGIN\n" +
-        "  spatialmgr.spm.operation_start (\n" +
-        "    p_calling_module => 'FOX SpatialEngine'\n" +
-        "  , p_description    => 'bootstrapSpatialCanvas'\n"+
-        "  , p_wua_id         => :1\n" +
-        "  );\n" +
-        "  l_dummy := spatialmgr.spm_fox.get_canvas(\n" +
-        "    p_xml_data    => :2\n" +
-        "  , p_call_id     => :3\n" +
-        "  , p_wua_id      => :4\n" +
-        "  );\n" +
-        "  :5 := l_dummy.getClobVal();\n" +
-        "  spatialmgr.spm.operation_end();\n" +
-        "END;";
+      UConBindMap lRenderBindMap = new UConBindMap()
+        .defineBind(":spatial_canvas_id", pCanvasID)
+        .defineBind(":image_width_px", pWidth)
+        .defineBind(":image_height_px", pHeight)
+        .defineBind(":datasource", mSpatialConnectionPoolName)
+        .defineBind(":render_xml", UCon.bindOutXML());
 
-      // API params
-      Object lParams[] = {
-        pWUAID
-      , pUCon.createXmlType(pBootstrapDOM)
-      , pCallId
-      , pWUAID
-      , CLOB.class
-      };
+      lAPIResult = lUCon.executeAPI(SQLManager.instance().getStatement(GENERATE_RENDER_XML_SQL, getClass()), lRenderBindMap);
 
-      pUCon.executeCall(
-        lWidgetBootstrapStatement
-      , lParams
-      , new char[] { 'I','I','I','I','O' }
-      );
-
-      lReturnDOM = SQLTypeConverter.clobToDOM((CLOB)lParams[4]); //TODO PN UCON - get DOM straight from query result
+      return lAPIResult.getDOMFromSQLXML(":render_xml");
     }
-    catch (ExDB ex) {
-      throw new ExInternal("Error Bootstrapping Spatial Canvas", ex);
-    }
-    finally {
-      Track.pop("SpatialEngine");
-    }
-    return lReturnDOM;
-  } // bootstrapSpatialCanvas
-
-  /**
-   * Refreshes the display of a spatial canvas.
-   * @param pBootstrapDOM the data DOM fragment to pass through to the spatial db code
-   * @param pUCon the connection to use
-   * @return canvas DOM
-   */
-  public DOM refreshSpatialCanvas (DOM pBootstrapDOM, FoxRequest pFoxRequest) {
-    DOM lReturnDOM = null;
-    UCon lUCon = null;
-
-    try {
-      // TODO - NP - Temp made a unique connection, should use contextucon from a request context at some point
-      lUCon = ConnectionAgent.getConnection(mConnectKey, "Refresh Spatial Canvas");
-
-      // PL/SQL API
-      String lWidgetBootstrapStatement =
-        "DECLARE\n" +
-        "  l_dummy XMLTYPE;\n" +
-        "BEGIN\n" +
-        "  l_dummy := spatialmgr.spm_fox.refresh_canvas(\n" +
-        "    p_xml_data    => :1\n" +
-        "  );\n" +
-        "  :2 := l_dummy.getClobVal();\n" +
-        "END;";
-
-      DOM lSpatialOpDOM = DOM.createDocument("SPATIAL_OPERATION");
-      pBootstrapDOM.copyContentsTo(lSpatialOpDOM);
-      lSpatialOpDOM.addElem("TYPE", "CANVAS_REFRESH");
-
-      // API params
-      Object lParams[] = {
-        lUCon.createXmlType(lSpatialOpDOM)
-      , CLOB.class
-      };
-
-      lUCon.executeCall(
-        lWidgetBootstrapStatement
-      , lParams
-      , new char[] { 'I','O' }
-      );
-
-      lReturnDOM = SQLTypeConverter.clobToDOM((CLOB)lParams[1]); //TODO PN UCON - get DOM straight from query result
-      lUCon.commit();
-    }
-    catch (ExDB ex) {
-      throw new ExInternal("Error Refreshing Spatial Canvas", ex);
-    }
-    catch (ExServiceUnavailable ex) {
-      throw new ExInternal("Couldn't commit during SpatialEngine.refreshSpatialCanvas()");
-    }
-    finally {
-      if (lUCon != null) {
-        lUCon.closeForRecycle();
-        lUCon = null;
-      }
-    }
-
-    return lReturnDOM;
-  } // refreshSpatialCanvas
-
-  /**
-   * Raises a spatial event.
-   * @param pEventLabel the event label to raise
-   * @param pCanvasDOM the canvas DOM to use to reanchor to the appropriate canvas
-   * @param pUCon the connection to use
-   * @return canvas DOM
-   */
-  public DOM performSpatialOperation (String pEventLabel, DOM pCanvasDOM, FoxRequest pFoxRequest) {
-    DOM lReturnDOM = null;
-    UCon lUCon = null;
-
-    try {
-      // TODO - NP - Temp made a unique connection, should use contextucon from a request context at some point
-      lUCon = ConnectionAgent.getConnection(mConnectKey, "Perform Spatial Operation");
-
-      String lSpatialOperationStatement =
-        "DECLARE\n" +
-        "  l_dummy XMLTYPE;\n" +
-        "BEGIN\n" +
-        "  l_dummy := spatialmgr.spm_fox.process_canvas_event(\n" +
-        "    p_event_label => :1\n" +
-        "  , p_xml_data    => :2\n" +
-        "  );\n" +
-        "  :3 := l_dummy.getClobVal();\n" +
-        "END;";
-
-      // API params
-      Object lParams[];
-
-      lParams = new Object[] {
-        pEventLabel
-      , lUCon.createXmlType(pCanvasDOM)
-      , CLOB.class
-      };
-
-      lUCon.executeCall(
-        lSpatialOperationStatement
-      , lParams
-      , new char[] { 'I','I','O' }
-      );
-
-      lReturnDOM = SQLTypeConverter.clobToDOM((CLOB)lParams[2]); //TODO PN UCON - get DOM straight from query result
-      lUCon.commit();
-
-    }
-    catch (ExDB ex) {
-      throw new ExInternal("Error bootstrapping spatial canvas instance", ex);
-    }
-    catch (ExServiceUnavailable ex) {
-      throw new ExInternal("Couldn't commit during SpatialEngine.performSpatialOperation()", ex);
-    }
-    finally {
-      if (lUCon != null) {
-        lUCon.closeForRecycle();
-        lUCon = null;
-      }
-    }
-    return lReturnDOM;
-  } // performSpatialOperation
-
-  /**
-   * Get a canvas rendering.
-   * @param pSpatialDOM the canvas DOM
-   * @return the spatial rendering result object wrapper
-   */
-  public SpatialRenderingResult getCanvasRendering (DOM pSpatialDOM, FoxRequest pFoxRequest) {
-    UCon lSpatialCon = null;
-    try {
-      lSpatialCon = ConnectionAgent.getConnection(mConnectKey, "Spatial Canvas Render");
-      return mSpatialRenderer.getRendering(pSpatialDOM, lSpatialCon, pFoxRequest);
-    }
-    catch (ExServiceUnavailable e) {
+    catch (ExDB e) {
       throw e.toUnexpected();
     }
     finally {
-      if (lSpatialCon != null) {
-        lSpatialCon.closeForRecycle();
-        lSpatialCon = null;
-      }
+      pRequestContext.getContextUCon().returnUCon(lUCon, "Rendering Canvas");
     }
   }
 
   /**
-   * Get a canvas rendering (for DocGen)
-   * @param pXmlRequestBody XML request generated by SPM_FOX
-   * @param pApp Application to generate under
-   * @return a relative url of the image
+   * Boots up a spatial canvas (in turn, bootstrapping a project if required)
+   *
+   * @param pRequestContext RequestContext to get a UCon from
+   * @param pBootstrapDOM the data DOM fragment to pass through to the spatial db code
+   * @param pCallId the current module call id
+   * @param pWUAID the current user wuaid
+   * @return canvas DOM
    */
-  public String getCanvasRendering (String pXmlRequestBody, App pApp) {
-    UCon lUCon = null;
+  public DOM bootstrapSpatialCanvas(RequestContext pRequestContext, DOM pBootstrapDOM, String pCallId, String pWUAID) {
+    Track.pushInfo("BootstrapSpatialCanvas");
     try {
-      // Bootstrap database connection
-      lUCon = ConnectionAgent.getConnection(mConnectKey, "Spatial canvas render");
-      return mSpatialRenderer.getRendering(pXmlRequestBody, lUCon, pApp);
-    }
-    catch (ExServiceUnavailable ex) {
-      throw new ExInternal("Failed to establish database connection for canvas render");
-    }
-    finally {
-      if (lUCon != null) {
-        lUCon.closeForRecycle();
+      ContextUCon lContextUCon = pRequestContext.getContextUCon();
+      UCon lUCon = lContextUCon.getUCon("Bootstrap Spatial Canvas");
+      try {
+        UConBindMap lBootstrapBindMap = new UConBindMap()
+          .defineBind(":wua_id", pWUAID)
+          .defineBind(":xml_data", pBootstrapDOM)
+          .defineBind(":call_id", pCallId)
+          .defineBind(":bootstrap_xml", UCon.bindOutXML());
+
+        UConStatementResult lAPIResult = lUCon.executeAPI(SQLManager.instance().getStatement(BOOTSTRAP_SPATIAL_CANVAS_SQL, getClass()), lBootstrapBindMap);
+        lUCon.commit();
+
+        return lAPIResult.getDOMFromSQLXML(":bootstrap_xml");
+      }
+      catch (ExDB | ExServiceUnavailable e) {
+        throw new ExInternal("Error Bootstrapping Spatial Canvas", e);
+      }
+      finally {
+        lContextUCon.returnUCon(lUCon, "Bootstrap Spatial Canvas");
       }
     }
-  } // getCanvasRendering
+    finally {
+      Track.pop("BootstrapSpatialCanvas");
+    }
+  }
 
-} // SpatialEngine
+  /**
+   * Refreshes the display of a spatial canvas
+   *
+   * @param pRequestContext RequestContext to get a UCon from
+   * @param pBootstrapDOM the data DOM fragment to pass through to the spatial db code
+   * @return canvas DOM
+   */
+  public DOM refreshSpatialCanvas(RequestContext pRequestContext, DOM pBootstrapDOM) {
+    Track.pushInfo("RefreshSpatialCanvas");
+    try {
+      DOM lSpatialOpDOM = DOM.createDocument("SPATIAL_OPERATION");
+      pBootstrapDOM.copyContentsTo(lSpatialOpDOM);
+      lSpatialOpDOM.addElem("TYPE", "CANVAS_REFRESH");
+
+
+      ContextUCon lContextUCon = pRequestContext.getContextUCon();
+      UCon lUCon = lContextUCon.getUCon("Refresh Spatial Canvas");
+      try {
+        UConBindMap lBootstrapBindMap = new UConBindMap()
+          .defineBind(":operation_xml", lSpatialOpDOM)
+          .defineBind(":refresh_xml", UCon.bindOutXML());
+
+        UConStatementResult lAPIResult = lUCon.executeAPI(SQLManager.instance().getStatement(REFRESH_SPATIAL_CANVAS_SQL, getClass()), lBootstrapBindMap);
+        lUCon.commit();
+
+        return lAPIResult.getDOMFromSQLXML(":refresh_xml");
+      }
+      catch (ExDB | ExServiceUnavailable e) {
+        throw new ExInternal("Error Refreshing Spatial Canvas", e);
+      }
+      finally {
+        lContextUCon.returnUCon(lUCon, "Refresh Spatial Canvas");
+      }
+    }
+    finally {
+      Track.pop("RefreshSpatialCanvas");
+    }
+  }
+
+  /**
+   * Raises a spatial event
+   *
+   * @param pRequestContext RequestContext to get a UCon from
+   * @param pEventLabel the event label to raise
+   * @param pCanvasDOM the canvas DOM to use to re-anchor to the appropriate canvas
+   * @return canvas DOM
+   */
+  public DOM performSpatialOperation(RequestContext pRequestContext, String pEventLabel, DOM pCanvasDOM) {
+    Track.pushInfo("PerformSpatialOperation");
+    try {
+      ContextUCon lContextUCon = pRequestContext.getContextUCon();
+      UCon lUCon = lContextUCon.getUCon("Perform Spatial Operation");
+      try {
+        UConBindMap lBootstrapBindMap = new UConBindMap()
+          .defineBind(":event_label", pEventLabel)
+          .defineBind(":xml_data", pCanvasDOM)
+          .defineBind(":operation_xml", UCon.bindOutXML());
+
+        UConStatementResult lAPIResult = lUCon.executeAPI(SQLManager.instance().getStatement(PERFORM_SPATIAL_OPERATION_SQL, getClass()), lBootstrapBindMap);
+        lUCon.commit();
+
+        return lAPIResult.getDOMFromSQLXML(":operation_xml");
+      }
+      catch (ExDB | ExServiceUnavailable e) {
+        throw new ExInternal("Error Performing Spatial Operation", e);
+      }
+      finally {
+        lContextUCon.returnUCon(lUCon, "Perform Spatial Operation");
+      }
+    }
+    finally {
+      Track.pop("PerformSpatialOperation");
+    }
+  }
+
+  public String getSpatialConnectionPoolName() {
+    return mSpatialConnectionPoolName;
+  }
+}

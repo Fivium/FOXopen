@@ -1,5 +1,7 @@
 package net.foxopen.fox.entrypoint.ws;
 
+import net.foxopen.fox.FoxRequest;
+
 import java.util.Collection;
 
 /**
@@ -25,7 +27,7 @@ public interface WebService {
    * should rely on the default unless they have a specific requirement to override it.
    * @return Connect key corresponding to an existing ConnnectionPool, or null.
    */
-  public String getRequiredConnectionPoolName();
+  public String getRequiredConnectionPoolName(FoxRequest pFoxRequest);
 
   /**
    * Gets all the EndPoints provided by this WebService.

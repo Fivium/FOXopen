@@ -31,28 +31,22 @@ public enum AppProperty {
   // Application Environment Properties
   LOGOUT_PAGE("/*/logout-page", false, false),
   EXIT_PAGE("/*/exit-page", false, false),
-  SPATIAL_WMS_URL("/*/spatial-wms-url", false, false);
+  SPATIAL_RENDERER_LIST("/*/spatial-renderer-list", true);
 
   private final String mPath;
   private final boolean mIsXML;
   private final boolean mIsMandatory;
   private final Object mDefaultValue;
 
-  private AppProperty(String pName, boolean pIsXML) {
-    mPath = pName;
-    mIsXML = pIsXML;
-    mIsMandatory = true;
-    mDefaultValue = null;
+  AppProperty(String pName, boolean pIsXML) {
+    this(pName, pIsXML, true, null);
   }
 
-  private AppProperty(String pName, boolean pIsXML, boolean pIsMandatory) {
-    mPath = pName;
-    mIsXML = pIsXML;
-    mIsMandatory = pIsMandatory;
-    mDefaultValue = null;
+  AppProperty(String pName, boolean pIsXML, boolean pIsMandatory) {
+    this(pName, pIsXML, pIsMandatory, null);
   }
 
-  private AppProperty(String pName, boolean pIsXML, boolean pIsMandatory, Object pDefaultValue) {
+  AppProperty(String pName, boolean pIsXML, boolean pIsMandatory, Object pDefaultValue) {
     mPath = pName;
     mIsXML = pIsXML;
     mIsMandatory = pIsMandatory;

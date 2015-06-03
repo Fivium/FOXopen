@@ -244,11 +244,11 @@ public class App {
     //Generate list of component names in the database
     mComponentNameSet = null; //This gets populated JIT
 
-    // Process spatial engine
-    String lSpatialEngine = pAppDefinition.getPropertyAsString(AppProperty.SPATIAL_WMS_URL);
-    if (!XFUtil.isNull(lSpatialEngine)) {
-      mSpatialEngine = new SpatialEngine(this, lSpatialEngine);
-    } else {
+    DOM lSpatialRendererList = pAppDefinition.getPropertyAsDOM(AppProperty.SPATIAL_RENDERER_LIST);
+    if (lSpatialRendererList != null) {
+      mSpatialEngine = new SpatialEngine(pAppMnem, lSpatialRendererList);
+    }
+    else {
       mSpatialEngine = null;
     }
   }
@@ -788,7 +788,13 @@ public class App {
     return Collections.unmodifiableCollection(mVirusScannerDefinitionMap.values());
   }
 
-  public SpatialEngine getSpatialEngine() {
+  /**
+   * Get application SpatialEngine instance containing configured renderers for rendering spatial data or null if no
+   * configuration was found.
+   *
+   * @return SpatialEngine instance or null
+   */
+  public SpatialEngine getSpatialEngineOrNull() {
     return mSpatialEngine;
   }
 
