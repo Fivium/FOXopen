@@ -382,8 +382,11 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
       finaliseAfterActionProcessing(pRequestContext);
     }
     catch(Throwable th) {
-      //Abort DOM Handlers and rethrow
+      //Aborts DOM Handlers and cleans up thread locals
       abort();
+      //Clear the new thread from cache to avoid bloating it with invalid threads
+      purgeThreadFromCache(mThreadId);
+      //Rethrow to entry point
       throw new ExInternal("Failed to process entry theme", th);
     }
     finally {
@@ -393,6 +396,9 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     return lFoxResponse;
   }
 
+  /**
+   * Should not throw exceptions.
+   */
   private void abort() {
     //Abort DOM Handlers
     try {
