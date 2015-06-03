@@ -35,6 +35,7 @@ public enum NodeAttribute {
   DEFAULT_ACTION("defaultAction", ValueType.EVALUATABLE_XPATH, ResultType.BOOLEAN),
   DESCRIPTION("description", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   DESCRIPTION_DISPLAY("descriptionDisplay", ValueType.CONSTANT, ResultType.STRING),
+  DESCRIPTION_LAYOUT("descriptionLayout", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   DISPLAY_AFTER("displayAfter", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   DISPLAY_BEFORE("displayBefore", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   DISPLAY_ORDER("displayOrder", ValueType.EVALUATABLE_XPATH, ResultType.STRING),

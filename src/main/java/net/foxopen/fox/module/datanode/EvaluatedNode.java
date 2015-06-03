@@ -5,15 +5,16 @@ import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.DOMList;
 import net.foxopen.fox.ex.ExInternal;
-import net.foxopen.fox.module.evaluatedattributeresult.BooleanAttributeResult;
-import net.foxopen.fox.module.evaluatedattributeresult.DOMAttributeResult;
-import net.foxopen.fox.module.evaluatedattributeresult.DOMListAttributeResult;
 import net.foxopen.fox.module.DisplayOrderSortable;
-import net.foxopen.fox.module.evaluatedattributeresult.FixedStringAttributeResult;
 import net.foxopen.fox.module.HelpDisplayOption;
+import net.foxopen.fox.module.LayoutDirection;
 import net.foxopen.fox.module.MandatoryDisplayOption;
 import net.foxopen.fox.module.OutputError;
 import net.foxopen.fox.module.OutputHint;
+import net.foxopen.fox.module.evaluatedattributeresult.BooleanAttributeResult;
+import net.foxopen.fox.module.evaluatedattributeresult.DOMAttributeResult;
+import net.foxopen.fox.module.evaluatedattributeresult.DOMListAttributeResult;
+import net.foxopen.fox.module.evaluatedattributeresult.FixedStringAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
 import net.foxopen.fox.module.fieldset.fieldmgr.FieldMgr;
 import net.foxopen.fox.module.parsetree.EvaluatedParseTree;
@@ -487,6 +488,15 @@ implements DisplayOrderSortable {
 
   public boolean hasDescription() {
     return (getDescription() != null);
+  }
+
+  /**
+   * Get the layout position of the description relative to the field. Defaults to LayoutDirection.SOUTH
+   *
+   * @return Layout direction of the description relative to the field
+   */
+  public LayoutDirection getDescriptionLayout() {
+    return LayoutDirection.valueOf(getStringAttribute(NodeAttribute.DESCRIPTION_LAYOUT, "south").toUpperCase());
   }
 
   public boolean isEnableFocusHintDisplay() {
