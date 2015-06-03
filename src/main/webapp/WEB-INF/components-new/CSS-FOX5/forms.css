@@ -47,6 +47,11 @@ label {
   clear: left;
 }
 
+.fieldDescription.north {
+  margin-top: 0em;
+  margin-bottom: 0.5em;
+}
+
 .input-error .fieldDescription {
   margin-top: 0.55em;
   margin-left: 0.3em;

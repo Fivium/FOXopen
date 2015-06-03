@@ -97,6 +97,7 @@
     <xs:attribute ref="key-unrecognised"/>
     <xs:attribute ref="suppressUnselected"/>
     <xs:attribute ref="descriptionDisplay"/>
+    <xs:attribute ref="descriptionLayout"/>
     <xs:attribute ref="downloadAsAttachment"/>
   </xs:attributeGroup>
   <xs:attributeGroup name="zzz-set-menu-attr-group">
@@ -371,6 +372,7 @@
     <xs:attribute ref="suppressUnselected"/>
     <xs:attribute ref="description"/>
     <xs:attribute ref="descriptionDisplay"/>
+    <xs:attribute ref="descriptionLayout"/>
     <xs:attribute ref="downloadAsAttachment"/>
     <xs:attribute ref="actionType"/>
     <xs:attribute ref="downloadFileName"/>
@@ -1157,6 +1159,17 @@
         <xs:enumeration value="icon"/>
         <xs:enumeration value="inline"/>
         <xs:enumeration value="none"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:attribute>
+  <xs:attribute name="descriptionLayout" default="south">
+    <xs:annotation>
+      <xs:documentation>Controls where description is displayed, south or north of the field.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="entered-string">
+        <xs:enumeration value="south"/>
+        <xs:enumeration value="north"/>
       </xs:restriction>
     </xs:simpleType>
   </xs:attribute>

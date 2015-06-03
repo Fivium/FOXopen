@@ -5,6 +5,7 @@ import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.entrypoint.servlets.ErrorServlet;
 import net.foxopen.fox.entrypoint.uri.RequestURIBuilder;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.module.LayoutDirection;
 import net.foxopen.fox.module.OutputHint;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.NodeVisibility;
@@ -256,10 +257,16 @@ extends WriterOutputSerialiser {
 
   @Override
   public void addDescription(EvaluatedNode pEvaluatedNode) {
-    if(pEvaluatedNode.getFieldMgr().getVisibility().asInt() >= NodeVisibility.VIEW.asInt() && pEvaluatedNode.hasDescription()) {
+    if(pEvaluatedNode.getWidgetBuilderType() != WidgetBuilderType.FORM && pEvaluatedNode.getWidgetBuilderType() != WidgetBuilderType.LIST
+    && pEvaluatedNode.getFieldMgr().getVisibility().asInt() >= NodeVisibility.VIEW.asInt() && pEvaluatedNode.hasDescription()) {
       String lDescription = getSafeStringAttribute(pEvaluatedNode.getDescription());
       if(!XFUtil.isNull(lDescription)) {
-        append("<div class=\"fieldDescription\">");
+        append("<div class=\"fieldDescription");
+        if (LayoutDirection.NORTH == pEvaluatedNode.getDescriptionLayout()) {
+
+          append(" north");
+        }
+        append("\">");
         append(lDescription);
         append("</div>");
       }
