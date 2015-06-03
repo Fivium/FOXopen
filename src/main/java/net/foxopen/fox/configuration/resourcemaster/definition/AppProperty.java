@@ -31,7 +31,7 @@ public enum AppProperty {
   // Application Environment Properties
   LOGOUT_PAGE("/*/logout-page", false, false),
   EXIT_PAGE("/*/exit-page", false, false),
-  SPATIAL_RENDERER_LIST("/*/spatial-renderer-list", true);
+  SPATIAL_RENDERER_LIST("/*/spatial-renderer-list", true, false);
 
   private final String mPath;
   private final boolean mIsXML;
