@@ -2,8 +2,11 @@ package net.foxopen.fox.module.serialiser.layout;
 
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.DisplayOrderSortable;
+import net.foxopen.fox.module.LayoutDirection;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.NodeAttribute;
+import net.foxopen.fox.track.Track;
+import net.foxopen.fox.track.TrackFlag;
 
 import java.util.Arrays;
 
@@ -43,9 +46,8 @@ public abstract class CellItem implements DisplayOrderSortable {
     }
   }
 
-  public abstract boolean isIndividualCell();
   public abstract Dimensions getDimensions();
-  public abstract String getPromptLayout();
+  public abstract LayoutDirection getPromptLayout();
   public abstract EvaluatedNode getCellItem();
 
   /**
@@ -63,26 +65,44 @@ public abstract class CellItem implements DisplayOrderSortable {
   }
 
   public class Dimensions {
-    public int offsetSpan = 0;
-    public int promptSpan = 0;
-    public int fieldSpan = 0;
+    private final int mOffsetSpan;
+    private final int mPromptSpan;
+    private final int mFieldSpan;
+
+    public Dimensions(EvaluatedNode pEvaluatedNode, int pOffsetSpan, int pPromptSpan, int pFieldSpan) {
+      if (pOffsetSpan < 0) {
+        Track.alert("FieldDimensionIssue", "Offset Span (" + pOffsetSpan + ") must be >=0: " + pEvaluatedNode.getIdentityInformation(), TrackFlag.BAD_MARKUP);
+      }
+      if (pPromptSpan < 0) {
+        Track.alert("FieldDimensionIssue", "Prompt Span (" + pPromptSpan + ") must be >=0: " + pEvaluatedNode.getIdentityInformation(), TrackFlag.BAD_MARKUP);
+      }
+      if (pFieldSpan < 0) {
+        Track.alert("FieldDimensionIssue", "Field Span (" + pFieldSpan + ") must be >=0: " + pEvaluatedNode.getIdentityInformation(), TrackFlag.BAD_MARKUP);
+      }
+
+      mOffsetSpan = pOffsetSpan;
+      mPromptSpan = pPromptSpan;
+      mFieldSpan = pFieldSpan;
+    }
+
+    public int getOffsetSpan() {
+      return mOffsetSpan;
+    }
+
+    public int getPromptSpan() {
+      return mPromptSpan;
+    }
+
+    public int getFieldSpan() {
+      return mFieldSpan;
+    }
 
     public String getDimensionInformation() {
-      StringBuilder lDimensionInfo = new StringBuilder(45);
-      lDimensionInfo.append("[");
-      lDimensionInfo.append(NodeAttribute.OFFSET_SPAN.getExternalString());
-      lDimensionInfo.append(": ");
-      lDimensionInfo.append(offsetSpan);
-      lDimensionInfo.append(", ");
-      lDimensionInfo.append(NodeAttribute.PROMPT_SPAN.getExternalString());
-      lDimensionInfo.append(": ");
-      lDimensionInfo.append(promptSpan);
-      lDimensionInfo.append(", ");
-      lDimensionInfo.append(NodeAttribute.FIELD_SPAN.getExternalString());
-      lDimensionInfo.append(": ");
-      lDimensionInfo.append(fieldSpan);
-      lDimensionInfo.append("]");
-      return lDimensionInfo.toString();
+      return "[" +
+        NodeAttribute.OFFSET_SPAN.getExternalString() + ": " + mOffsetSpan + ", " +
+        NodeAttribute.PROMPT_SPAN.getExternalString() + ": " + mPromptSpan + ", " +
+        NodeAttribute.FIELD_SPAN.getExternalString() + ": " + mFieldSpan +
+        "]";
     }
   }
 }

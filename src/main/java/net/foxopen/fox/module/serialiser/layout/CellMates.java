@@ -2,6 +2,7 @@ package net.foxopen.fox.module.serialiser.layout;
 
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.module.LayoutDirection;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfoCellMateCollection;
 import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.evaluatedattributeresult.FixedStringAttributeResult;
@@ -19,8 +20,9 @@ public class CellMates extends CellItem {
   private final EvaluatedNodeInfoCellMateCollection mCellMatesContainer;
 
   private final StringAttributeResult mJailPrompt;
+  private final LayoutDirection mJailPromptLayout;
 
-  private final CellItem.Dimensions mDimensions = new CellItem.Dimensions();
+  private final CellItem.Dimensions mDimensions;
 
   public CellMates(EvaluatedNodeInfoCellMateCollection pEvaluatedNodeInfoCellMateCollection) {
     super(pEvaluatedNodeInfoCellMateCollection);
@@ -39,38 +41,47 @@ public class CellMates extends CellItem {
       mJailPrompt = new FixedStringAttributeResult("");
     }
 
-    // Get prompt span
-    String lJailPromptSpanAttributeOrNull = mCellMatesContainer.getStringAttribute(NodeAttribute.PROMPT_SPAN);
-    if (!XFUtil.isNull(lJailPromptSpanAttributeOrNull)) {
-      mDimensions.promptSpan = Integer.valueOf(lJailPromptSpanAttributeOrNull);
-    }
-    else {
-      throw new ExInternal("Cellmates require a promptSpan for the prompt of the jail");
-    }
+    mJailPromptLayout = LayoutDirection.valueOf(mCellMatesContainer.getStringAttribute(NodeAttribute.PROMPT_LAYOUT, "west").toUpperCase());
 
+    int lOffsetSpan, lPromptSpan, lFieldSpan;
     // Get field span
     String lJailFieldSpanAttributeOrNull = mCellMatesContainer.getStringAttribute(NodeAttribute.FIELD_SPAN);
     if (!XFUtil.isNull(lJailFieldSpanAttributeOrNull)) {
-      mDimensions.fieldSpan = Integer.valueOf(lJailFieldSpanAttributeOrNull);
+      lFieldSpan = Integer.valueOf(lJailFieldSpanAttributeOrNull);
     }
     else {
-      throw new ExInternal("Cellmates require a fieldSpan for the prompt of the jail");
+      throw new ExInternal("CellMate sequences require a fieldSpan to define how many columns the CellMate sub-grid container spans");
+    }
+
+    // Get prompt span
+    if (LayoutDirection.NORTH == mJailPromptLayout) {
+      // Prompt norths are defaulted to the width of the widget they will sit above
+      lPromptSpan = lFieldSpan;
+    }
+    else {
+      String lJailPromptSpanAttributeOrNull = mCellMatesContainer.getStringAttribute(NodeAttribute.PROMPT_SPAN);
+      if (!XFUtil.isNull(lJailPromptSpanAttributeOrNull)) {
+        lPromptSpan = Integer.valueOf(lJailPromptSpanAttributeOrNull);
+      }
+      else {
+        throw new ExInternal("CellMate sequences require a promptSpan");
+      }
     }
 
     // Calculate offset span
-    String lOffsetSpan = mCellMatesContainer.getStringAttribute(NodeAttribute.OFFSET_SPAN);
-    if (!XFUtil.isNull(lOffsetSpan)) {
-      mDimensions.offsetSpan = Integer.parseInt(lOffsetSpan);
+    String lOffsetSpanAttr = mCellMatesContainer.getStringAttribute(NodeAttribute.OFFSET_SPAN);
+    if (!XFUtil.isNull(lOffsetSpanAttr)) {
+      lOffsetSpan = Integer.parseInt(lOffsetSpanAttr);
     }
+    else {
+      lOffsetSpan = 0;
+    }
+
+    mDimensions = new CellItem.Dimensions(mCellMatesContainer, lOffsetSpan, lPromptSpan, lFieldSpan);
   }
 
   public String getCellmateKey() {
     return mCellmateKey;
-  }
-
-  @Override
-  public boolean isIndividualCell() {
-    return false;
   }
 
   @Override
@@ -79,8 +90,8 @@ public class CellMates extends CellItem {
   }
 
   @Override
-  public String getPromptLayout() {
-    return "west";
+  public LayoutDirection getPromptLayout() {
+    return mJailPromptLayout;
   }
 
   @Override

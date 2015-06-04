@@ -1,6 +1,7 @@
 package net.foxopen.fox.module.serialiser.layout.methods;
 
 import net.foxopen.fox.module.DisplayOrderComparator;
+import net.foxopen.fox.module.LayoutDirection;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfo;
 import net.foxopen.fox.module.datanode.NodeVisibility;
@@ -24,7 +25,7 @@ import java.util.List;
 public class FormLayout implements LayoutMethod {
   private static final LayoutMethod INSTANCE = new FormLayout();
 
-  public static final LayoutMethod getInstance() {
+  public static LayoutMethod getInstance() {
     return INSTANCE;
   }
 
@@ -40,13 +41,12 @@ public class FormLayout implements LayoutMethod {
     int lWidgetColumnCount = 0;
     int lFillerColumnCount = 0;
 
-    LayoutItemRowStart lCurrentRow = null;
     LayoutItemRowStart lCurrentPromptNorthRow = null;
 
     LayoutWidgetItemColumn lFillerCol;
 
     // TODO - NP - Perhaps add in Grid Start/End layout items to help with potential future sub-grid layouts
-    lCurrentRow = new LayoutItemRowStart();
+    LayoutItemRowStart lCurrentRow = new LayoutItemRowStart();
     lItems.add(lCurrentRow);
     lRowCount++;
 
@@ -66,17 +66,19 @@ public class FormLayout implements LayoutMethod {
     // Process the flow layout
     for (int lItemIndex = 0; lItemIndex < lCellItems.size(); lItemIndex++) {
       CellItem lCellItem = lCellItems.get(lItemIndex);
+      EvaluatedNode lItemNodeInfo = lCellItem.getCellItem();
+      WidgetBuilder lItemWidgetBuilder = pSerialiser.getWidgetBuilder(lItemNodeInfo.getWidgetBuilderType());
 
       // Calculate how wide the whole widget will be
-      int lWidgetColumnSpan = 0;
-      if ("north".equals(lCellItem.getPromptLayout())) {
-        lWidgetColumnSpan = lCellItem.getDimensions().fieldSpan;
-      }
-      else {
-        lWidgetColumnSpan = lCellItem.getDimensions().promptSpan + lCellItem.getDimensions().fieldSpan;
-      }
+      int lOffsetSpan = lCellItem.getDimensions().getOffsetSpan();
+      int lPromptSpan = lCellItem.getDimensions().getPromptSpan();
+      int lFieldSpan = lCellItem.getDimensions().getFieldSpan();
 
-      int lOffsetSpan = lCellItem.getDimensions().offsetSpan;
+      int lWidgetColumnSpan = lFieldSpan;
+      if (LayoutDirection.NORTH != lCellItem.getPromptLayout() && lItemWidgetBuilder.hasPrompt(lItemNodeInfo)) {
+        // If the prompt isn't north, and we have one defined, add its span to the widget column span
+        lWidgetColumnSpan += lPromptSpan;
+      }
 
       // If the widget will bust the row or they asked to break the row before even starting to lay out...
       if (lCurrentRow.getColumnsFilled() + lWidgetColumnSpan + lOffsetSpan > pColumnLimit || (lCurrentRow.getColumnsFilled() > 0  && lCellItem.isRowBreakBefore())) {
@@ -99,7 +101,7 @@ public class FormLayout implements LayoutMethod {
         if (lCurrentPromptNorthRow != null) {
           // Fill the rest of the prompt north row with a filler column, if needed
           if (lCurrentPromptNorthRow.getColumnsFilled() < pColumnLimit) {
-            lFillerCol = new LayoutWidgetItemColumn(pColumnLimit - lCurrentRow.getColumnsFilled());
+            lFillerCol = new LayoutWidgetItemColumn(pColumnLimit - lCurrentPromptNorthRow.getColumnsFilled());
             lItems.add(getPromptNorthInsertIndex(lItems, lCurrentPromptNorthRow), lFillerCol);
             lCurrentPromptNorthRow.addColumn(lFillerCol);
             lFillerColumnCount++;
@@ -110,8 +112,6 @@ public class FormLayout implements LayoutMethod {
         }
       }
 
-      EvaluatedNode lItemNodeInfo = lCellItem.getCellItem();
-
       // If the offset and widget span will bust the row...
       if (lOffsetSpan > 0  && lOffsetSpan + lWidgetColumnSpan > pColumnLimit) {
         Track.alert("ColumnBust", "Offset span and widget column span greater than the form column limit: '" + lItemNodeInfo + "' - spans " + (lOffsetSpan + lWidgetColumnSpan) + " out of " + pColumnLimit + " columns " + lCellItem.getDimensions().getDimensionInformation() + ". Removing the offset.");
@@ -121,14 +121,9 @@ public class FormLayout implements LayoutMethod {
       // If the widget alone will bust the row...
       if (lWidgetColumnSpan > pColumnLimit) {
         //throw new ExInternal("Widget column span greater than the form column limit: " + lCellItem.toString());
-        Track.alert("ColumnBust", "Widget column span greater than the form column limit: '" + lItemNodeInfo + "' - spans " + lWidgetColumnSpan + " out of " + pColumnLimit + " columns " + lCellItem.getDimensions().getDimensionInformation() + ". Shrinking it down to fit the remaining space.");
-
-        if ("north".equals(lCellItem.getPromptLayout())) {
-          lCellItem.getDimensions().fieldSpan = Math.min(1, pColumnLimit - lCurrentRow.getColumnsFilled());
-        }
-        else {
-          lCellItem.getDimensions().promptSpan = Math.min(1, pColumnLimit - lCurrentRow.getColumnsFilled());
-        }
+        Track.alert("ColumnBust", "Widget column span greater than the form column limit: '" + lItemNodeInfo + "' - spans " + lWidgetColumnSpan + " out of " + pColumnLimit + " columns " + lCellItem.getDimensions().getDimensionInformation() + ". Setting prompt and field span to 1 in the hopes it fits better.");
+        lFieldSpan = 1;
+        lPromptSpan = 1;
       }
 
       // Add offset (for the current row and the prompt north row too)
@@ -147,13 +142,11 @@ public class FormLayout implements LayoutMethod {
         }
       }
 
-      WidgetBuilder lItemWidgetBuilder = pSerialiser.getWidgetBuilder(lItemNodeInfo.getWidgetBuilderType());
-
       // Add prompt
-      if (lItemWidgetBuilder.hasPrompt(lItemNodeInfo) && lCellItem.getDimensions().promptSpan > 0) {
-        LayoutWidgetItemColumn lPromptColumnItem = new LayoutWidgetItemColumn(lCellItem.getDimensions().promptSpan, lItemNodeInfo, true, lItemWidgetBuilder);
+      if (lItemWidgetBuilder.hasPrompt(lItemNodeInfo) && lPromptSpan > 0) {
+        LayoutWidgetItemColumn lPromptColumnItem = new LayoutWidgetItemColumn(lPromptSpan, lItemNodeInfo, true, lItemWidgetBuilder);
 
-        if ("north".equals(lCellItem.getPromptLayout())) {
+        if (LayoutDirection.NORTH == lCellItem.getPromptLayout()) {
           if (lCurrentPromptNorthRow == null) {
             // Create an empty prompt north row if we don't already have one
             lCurrentPromptNorthRow = new LayoutItemRowStart();
@@ -183,11 +176,13 @@ public class FormLayout implements LayoutMethod {
       }
 
       // Add field
-      LayoutWidgetItemColumn lFieldColumnItem = new LayoutWidgetItemColumn(lCellItem.getDimensions().fieldSpan, lItemNodeInfo, false, lItemWidgetBuilder);
-      lItems.add(lFieldColumnItem);
-      lCurrentRow.addColumn(lFieldColumnItem);
-      lWidgetColumnCount++;
-      lFilledColumnCount++;
+      if (lFieldSpan > 0) {
+        LayoutWidgetItemColumn lFieldColumnItem = new LayoutWidgetItemColumn(lFieldSpan, lItemNodeInfo, false, lItemWidgetBuilder);
+        lItems.add(lFieldColumnItem);
+        lCurrentRow.addColumn(lFieldColumnItem);
+        lWidgetColumnCount++;
+        lFilledColumnCount++;
+      }
 
       // End the row if the cell is row break after and not the last item in this form
       if (lCellItem.isRowBreakAfter() && lItemIndex != (lCellItems.size() - 1)) {

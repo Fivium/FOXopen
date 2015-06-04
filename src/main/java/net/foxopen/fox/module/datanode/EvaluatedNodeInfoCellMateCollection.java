@@ -17,7 +17,7 @@ import java.util.List;
 
 public class EvaluatedNodeInfoCellMateCollection extends EvaluatedNodeInfoGeneric {
   /**
-   * Child list of the cellmates in this group
+   * Child list of the CellMates in this group
    */
   private final List<EvaluatedNodeInfo> mChildren = new LinkedList<>();
   private final EvaluatedNodeInfo mRootNode;
@@ -47,9 +47,9 @@ public class EvaluatedNodeInfoCellMateCollection extends EvaluatedNodeInfoGeneri
   }
 
   /**
-   * Get the prompt from the cellmates container
+   * Get the prompt from the CellMates container
    *
-   * @return
+   * @return The prompt for the CellMates object, AKA the Jail Prompt
    */
   @Override
   public StringAttributeResult getPrompt() {
@@ -154,7 +154,9 @@ public class EvaluatedNodeInfoCellMateCollection extends EvaluatedNodeInfoGeneri
       }
     }
     else {
-      lReturnValue.append("Cellmate key not known yet");
+      lReturnValue.append("Cellmate Key: '");
+      lReturnValue.append(getStringAttribute(NodeAttribute.CELLMATE_KEY));
+      lReturnValue.append("' (not constructed yet, best guess)");
     }
 
     if (getEvaluatedPresentationNode() != null) {

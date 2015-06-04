@@ -659,15 +659,14 @@ public class NodeInfo {
     return mParentModule;
   }
 
-  public void addCellmateAttributes(String pCellmateKey, DOM pSequenceDOM)
+  public void addCellmateAttributes(String pCellmateKey, NamespaceAttributeTable pCellmateAttributes)
   throws ExModule {
     //Check for duplicate cellmate key definitions
     if(mCellmateAttributeGroups.containsKey(pCellmateKey)) {
       throw new ExModule("Duplicate cellmateKey definition: " + pCellmateKey);
     }
 
-    NamespaceAttributeTable lAttributeTable = pSequenceDOM.getNamespaceAttributeTable();
-    mCellmateAttributeGroups.put(pCellmateKey, lAttributeTable);
+    mCellmateAttributeGroups.put(pCellmateKey, pCellmateAttributes);
   }
 
   public NamespaceAttributeTable getCellmateAttributes(String pCellmateKey) {
