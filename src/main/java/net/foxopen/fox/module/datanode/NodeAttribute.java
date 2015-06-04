@@ -21,8 +21,8 @@ public enum NodeAttribute {
   CC("cc", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   CELL_CLASS("cellClass", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   CELL_STYLE("cellStyle", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
-  CELLMATE_CLASS("cellmateClass", ValueType.CONSTANT, ResultType.STRING),
-  CELLMATE_STYLE("cellmateStyle", ValueType.CONSTANT, ResultType.STRING),
+  CELLMATE_CLASS("cellmateClass", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
+  CELLMATE_STYLE("cellmateStyle", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   CELLMATE_KEY("cellmateKey", ValueType.CONSTANT, ResultType.STRING),
   CHANGE_ACTION("change-action", ValueType.CONSTANT, ResultType.STRING),
   CLASS("class", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
@@ -195,7 +195,7 @@ public enum NodeAttribute {
   private final ValueType mValueType;
   private final ResultType mResultType;
 
-  private NodeAttribute(String pExternalString, ValueType pValueType, ResultType pResultType) {
+  NodeAttribute(String pExternalString, ValueType pValueType, ResultType pResultType) {
     mExternalString = pExternalString;
     mValueType = pValueType;
     mResultType = pResultType;
@@ -204,7 +204,7 @@ public enum NodeAttribute {
   /**
    * Get a NodeAttribute for a given name, typically from an attribute key
    *
-   * @param pNodeAttributeName
+   * @param pNodeAttributeName possible string name of a NodeAttribute
    * @return NodeAttribute associated with pNodeAttributeName
    */
   public static NodeAttribute fromString(String pNodeAttributeName) {

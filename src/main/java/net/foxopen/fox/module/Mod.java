@@ -46,6 +46,7 @@ import net.foxopen.fox.database.sql.out.SQLTypeConverter;
 import net.foxopen.fox.dbinterface.DatabaseInterface;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.DOMList;
+import net.foxopen.fox.dom.NamespaceAttributeTable;
 import net.foxopen.fox.dom.paging.PagerDefinition;
 import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.ex.ExActionFailed;
@@ -90,6 +91,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -440,7 +442,7 @@ extends FoxComponent implements Validatable {
         mBulkModuleWarningMessages += "XMLSchema has no root elements /xs:schema/xs:element";
       }
       for (DOM lRootElementDOM : lRootElementList) {
-        map_schema(lRootElementDOM, "", null, null, 0, null);
+        map_schema(lRootElementDOM, "", null, null, 0, null, new AtomicInteger(0));
       }
 
       // Assign schema foxids and set to read only
@@ -796,6 +798,7 @@ extends FoxComponent implements Validatable {
   , DOM pParentModelDOM
   , int pElementLevel
   , String pCurrentCellmateKey
+  , AtomicInteger pCellmateCount
   )
   throws
     ExInternal
@@ -942,18 +945,26 @@ extends FoxComponent implements Validatable {
       }
     }
     else if (lCommand_intern_equals=="xs:sequence" && pParseDOM.hasAttr("fox:cellmateKey")) {
-      if (pCurrentCellmateKey != null) {
-        throw new UnsupportedOperationException("Cellmate sequences cannot be nested, found \"" + pParseDOM.getAttr("fox:cellmateKey") + "\" inside \"" + pCurrentCellmateKey + "\"");
+      lCurrentCellmateKey = pParseDOM.getAttr("fox:cellmateKey");
+      NamespaceAttributeTable lCellmateAttributes = pParseDOM.getNamespaceAttributeTable();
+      if (".".equals(lCurrentCellmateKey)) {
+        // If they set the key to . Generate them a unique key and modify the value in the attr table to match
+        lCurrentCellmateKey = lPath + "/CellMates#" + pCellmateCount.incrementAndGet();
+        lCellmateAttributes.addAttribute("fox", "cellmateKey", lCurrentCellmateKey);
       }
 
-      lCurrentCellmateKey = pParseDOM.getAttr("fox:cellmateKey");
-      pParentNodeInfo.addCellmateAttributes(lCurrentCellmateKey, pParseDOM);
+      if (pCurrentCellmateKey != null) {
+        throw new UnsupportedOperationException("Cellmate sequences cannot be nested, found \"" + lCurrentCellmateKey + "\" inside \"" + pCurrentCellmateKey + "\"");
+      }
+
+      pParentNodeInfo.addCellmateAttributes(lCurrentCellmateKey, lCellmateAttributes);
     }
 
     // Get the children of the current node and calls this algorithm with these children
     DOMList children = pParseDOM.getChildElements();
+    AtomicInteger lCellmateCount = new AtomicInteger(0);
     for (DOM child : children) {
-      map_schema(child, lPath, lNodeInfo, lModelDOM, pElementLevel, lCurrentCellmateKey);
+      map_schema(child, lPath, lNodeInfo, lModelDOM, pElementLevel, lCurrentCellmateKey, lCellmateCount);
     }
 
   } // end of map_schema

@@ -2,6 +2,7 @@ package net.foxopen.fox.module.serialiser.layout;
 
 
 import net.foxopen.fox.XFUtil;
+import net.foxopen.fox.module.LayoutDirection;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
@@ -9,8 +10,8 @@ import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
 
 public class IndividualCellItem extends CellItem {
   private final EvaluatedNode mCellItem;
-  private final CellItem.Dimensions mDimensions = new CellItem.Dimensions();
-  private final String mPromptLayout;
+  private final CellItem.Dimensions mDimensions;
+  private final LayoutDirection mPromptLayout;
 
   public IndividualCellItem(int pColumnLimit, WidgetBuilder pItemWidgetBuilder, EvaluatedNode pCellItem) {
     super(pCellItem);
@@ -19,13 +20,36 @@ public class IndividualCellItem extends CellItem {
 
     int lColChars = Integer.parseInt(mCellItem.getStringAttribute(NodeAttribute.FORM_COL_CHARS, "20"));
 
+    int lOffsetSpan, lPromptSpan, lFieldSpan;
     // Calculate prompt column span
     if (pItemWidgetBuilder.hasPrompt(mCellItem)) {
-      mPromptLayout = mCellItem.getStringAttribute(NodeAttribute.PROMPT_LAYOUT, "west");
+      mPromptLayout = LayoutDirection.valueOf(mCellItem.getStringAttribute(NodeAttribute.PROMPT_LAYOUT, "west").toUpperCase());
+    }
+    else {
+      mPromptLayout = LayoutDirection.WEST;
+    }
 
-      String lPromptSpan = mCellItem.getStringAttribute(NodeAttribute.PROMPT_SPAN);
+    // Calculate field column span
+    String lFieldSpanAttr = mCellItem.getStringAttribute(NodeAttribute.FIELD_SPAN);
+    if (lFieldSpanAttr == null) {
+      // Deal with legacy attributes when new fieldSpan is not specified
+      String lWidgetWidth = mCellItem.getFieldWidth();
 
-      if (lPromptSpan == null) {
+      lFieldSpan =  Math.min(pColumnLimit, Math.max(1, (int)Math.ceil(Integer.valueOf(lWidgetWidth) / lColChars)));
+    }
+    else {
+      // If we have a new span attr use it
+      lFieldSpan = Math.min(pColumnLimit, Integer.valueOf(lFieldSpanAttr));
+    }
+
+    // Prompt norths are defaulted to the width of the widget they will sit above
+    if (LayoutDirection.NORTH == mPromptLayout) {
+      lPromptSpan = lFieldSpan;
+    }
+    else {
+      String lPromptSpanAttr = mCellItem.getStringAttribute(NodeAttribute.PROMPT_SPAN);
+
+      if (lPromptSpanAttr == null) {
         // Deal with legacy attributes when new promptSpan is not specified
         String lPromptWidth = mCellItem.getStringAttribute(NodeAttribute.PROMPT_WIDTH, "auto");
         if ("auto".equals(lPromptWidth)) {
@@ -38,53 +62,28 @@ public class IndividualCellItem extends CellItem {
           }
         }
 
-        lPromptSpan = Double.toString(Math.max(1, Math.ceil(new Double(lPromptWidth) / (double)lColChars)));
+        lPromptSpan = Math.max(1, (int)Math.ceil(Integer.valueOf(lPromptWidth) / lColChars));
       }
       else {
         // If we have a new span attr, use it
-        lPromptSpan = Double.toString(Math.min(pColumnLimit, new Double(lPromptSpan)));
+        lPromptSpan = Math.min(pColumnLimit, Integer.valueOf(lPromptSpanAttr));
       }
-
-      mDimensions.promptSpan = new Double(lPromptSpan).intValue();
-    }
-    else {
-      mPromptLayout = "west";
-    }
-
-    // Calculate field column span
-    String lFieldSpan = mCellItem.getStringAttribute(NodeAttribute.FIELD_SPAN);
-    if (lFieldSpan == null) {
-      // Deal with legacy attributes when new fieldSpan is not specified
-      String lWidgetWidth = mCellItem.getFieldWidth();
-
-      lFieldSpan = Double.toString(Math.min(pColumnLimit, Math.max(1, Math.ceil(new Double(lWidgetWidth) / (double)lColChars))));
-    }
-    else {
-      // If we have a new span attr use it
-      lFieldSpan = Double.toString(Math.min(pColumnLimit, new Double(lFieldSpan)));
-    }
-
-    mDimensions.fieldSpan = new Double(lFieldSpan).intValue();
-
-    // Prompt norths are defaulted to the width of the widget they will sit above
-    if ("north".equals(mPromptLayout)) {
-      mDimensions.promptSpan = mDimensions.fieldSpan;
     }
 
     // Calculate offset span
-    String lOffsetSpan = pCellItem.getStringAttribute(NodeAttribute.OFFSET_SPAN);
-    if (!XFUtil.isNull(lOffsetSpan)) {
-      mDimensions.offsetSpan = Integer.parseInt(lOffsetSpan);
+    String lOffsetSpanAttr = pCellItem.getStringAttribute(NodeAttribute.OFFSET_SPAN);
+    if (!XFUtil.isNull(lOffsetSpanAttr)) {
+      lOffsetSpan = Integer.parseInt(lOffsetSpanAttr);
     }
+    else {
+      lOffsetSpan = 0;
+    }
+
+    mDimensions = new CellItem.Dimensions(mCellItem, lOffsetSpan, lPromptSpan, lFieldSpan);
   }
 
   public EvaluatedNode getCellItem() {
     return mCellItem;
-  }
-
-  @Override
-  public boolean isIndividualCell() {
-    return true;
   }
 
   @Override
@@ -93,7 +92,7 @@ public class IndividualCellItem extends CellItem {
   }
 
   @Override
-  public String getPromptLayout() {
+  public LayoutDirection getPromptLayout() {
     return mPromptLayout;
   }
 
