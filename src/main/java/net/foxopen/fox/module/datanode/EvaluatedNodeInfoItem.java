@@ -5,6 +5,8 @@ import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.module.evaluatedattributeresult.DOMAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
 import net.foxopen.fox.module.fieldset.fieldmgr.FieldMgr;
+import net.foxopen.fox.module.mapset.AJAXSearchQueryCachedBinds;
+import net.foxopen.fox.module.mapset.JITMapSet;
 import net.foxopen.fox.module.mapset.MapSet;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.GenericAttributesEvaluatedPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.GenericAttributesPresentationNode;
@@ -41,10 +43,17 @@ public class EvaluatedNodeInfoItem extends EvaluatedNodeInfoGeneric {
       lEvaluatedNodeInfoItem = new EvaluatedNodeInfoItem(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, pVisibility, pNodeInfo);
     }
 
+    //For JIT mapset nodes we need to pre-cache binds for performance
+    //Invoked here for now pending ENI builder/subclass refactor - see FOXRD-664
+    if(lEvaluatedNodeInfoItem.getMapSet() != null && lEvaluatedNodeInfoItem.getMapSet() instanceof JITMapSet) {
+      AJAXSearchQueryCachedBinds.cacheSearchQueryBinds(lEvaluatedNodeInfoItem.getEvaluatedParseTree().getRequestContext(), lEvaluatedNodeInfoItem, lEvaluatedNodeInfoItem.getEvaluatedParseTree().getThreadInfoProvider());
+    }
+
     return lEvaluatedNodeInfoItem;
   }
 
-  protected EvaluatedNodeInfoItem(EvaluatedNode pParent, GenericAttributesEvaluatedPresentationNode<? extends GenericAttributesPresentationNode> pEvaluatedPresentationNode, NodeEvaluationContext pNodeEvaluationContext, NodeVisibility pNodeVisibility, NodeInfo pNodeInfo) {
+  protected EvaluatedNodeInfoItem(EvaluatedNode pParent, GenericAttributesEvaluatedPresentationNode<? extends GenericAttributesPresentationNode> pEvaluatedPresentationNode,
+                                  NodeEvaluationContext pNodeEvaluationContext, NodeVisibility pNodeVisibility, NodeInfo pNodeInfo) {
     super(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, pNodeVisibility, pNodeInfo);
 
     mMapSet = resolveMapSet();
@@ -81,9 +90,9 @@ public class EvaluatedNodeInfoItem extends EvaluatedNodeInfoGeneric {
       //TODO PN need a better way of determining mapset vs schema enum (for multi select)
       //Legacy behaviour: mapset could be defined on child node
       NodeInfo lSelectorNodeInfo = getSelectorNodeInfo();
-      lMapSetName = lSelectorNodeInfo.getAttribute(NodeInfo.FOX_NAMESPACE, NodeAttribute.MAPSET.getExternalString());
+      lMapSetName = lSelectorNodeInfo.getFoxNamespaceAttribute(NodeAttribute.MAPSET);
       // The child node isn't evaluated, so attributes aren't pre-cached. Potentially leading to issues if the mapset-attach here uses a relative context
-      String lMapSetAttach = lSelectorNodeInfo.getAttribute(NodeInfo.FOX_NAMESPACE, NodeAttribute.MAPSET_ATTACH.getExternalString());
+      String lMapSetAttach = lSelectorNodeInfo.getFoxNamespaceAttribute(NodeAttribute.MAPSET_ATTACH);
 
       if(!XFUtil.isNull(lMapSetName)) {
         return super.getEvaluatedParseTree().resolveMapSet(lMapSetName, super.getDataItem(), lMapSetAttach);

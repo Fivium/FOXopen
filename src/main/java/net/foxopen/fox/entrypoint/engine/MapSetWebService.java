@@ -26,6 +26,7 @@ import net.foxopen.fox.ex.ExUserRequest;
 import net.foxopen.fox.module.fieldset.FieldSet;
 import net.foxopen.fox.module.fieldset.JITMapSetInfo;
 import net.foxopen.fox.module.mapset.AJAXQueryDefinition;
+import net.foxopen.fox.module.mapset.AJAXSearchQueryCachedBinds;
 import net.foxopen.fox.module.mapset.MapSet;
 import net.foxopen.fox.module.serialiser.widgets.html.SearchSelectorWidgetBuilder;
 import net.foxopen.fox.thread.ActionRequestContext;
@@ -45,8 +46,6 @@ import java.util.Map;
 
 public class MapSetWebService
 implements WebService {
-  // TODO - AJMS - Replace this with a proper FOXCache when implemented fully
-//  public static Map<String, Object[]> gMapSetCache = new HashMap<>();
 
   private static final String WEB_SERVICE_NAME = "mapset";
   private static final String THREAD_PARAM = "thread";
@@ -76,7 +75,7 @@ implements WebService {
   public static class AjaxSearchEndPoint
   implements EndPoint {
     private static final String END_POINT_NAME = "query";
-    private static final String THREAD_PARAM_TEMPLATE = "/{"+THREAD_PARAM+"}";
+    private static final PathParamTemplate THREAD_PARAM_TEMPLATE = new PathParamTemplate("/{"+THREAD_PARAM+"}");
 
     @Override
     public String getName() {
@@ -97,7 +96,7 @@ implements WebService {
 
     @Override
     public PathParamTemplate getPathParamTemplate() {
-      return new PathParamTemplate(THREAD_PARAM_TEMPLATE);
+      return THREAD_PARAM_TEMPLATE;
     }
 
     @Override
@@ -112,117 +111,104 @@ implements WebService {
 
     public static String buildEndPointURI(RequestURIBuilder pRequestURIBuilder, String pThreadID) {
       pRequestURIBuilder.setParam(THREAD_PARAM, pThreadID);
-      return pRequestURIBuilder.buildWebServiceURI(EngineWebServiceCategory.CATEGORY_NAME, WEB_SERVICE_NAME, END_POINT_NAME, new PathParamTemplate(THREAD_PARAM_TEMPLATE));
+      return pRequestURIBuilder.buildWebServiceURI(EngineWebServiceCategory.CATEGORY_NAME, WEB_SERVICE_NAME, END_POINT_NAME, THREAD_PARAM_TEMPLATE);
     }
 
     @Override
     public WebServiceResponse respond(RequestContext pRequestContext, Map<String, String> pParamMap, String pHttpMethod, WebServiceResponse.Type pDesiredResponseType) {
-      Track.pushDebug("MapSetWebServiceQuery");
+      Track.pushInfo("MapSetWebServiceQuery");
       try {
-        // Find query
         String lSearchTerm = pParamMap.get(SEARCH_PARAM);
         String lFieldID = pParamMap.get(FIELD_PARAM);
         String lThreadId = pParamMap.get(THREAD_PARAM);
 
-        if (false /*gMapSetCache.containsKey(lFieldID)*/) {
-          throw new ExInternal("AJAX MapSets currently can't run from cache, needs thread ramping.");
-          // TODO - AJMS - Commented out code, an attempt at cached information from set-out being used so no thread ramping needed
-//        AJAXQueryDefinition lMapSetDefinition;
-//        BindObjectProvider lBinds;
-//        Object[] lHorror = gMapSetCache.get(lFieldID);
-//        lMapSetDefinition = (AJAXQueryDefinition) ((MapSet)lHorror[0]).getMapSetDefinition();
-//        lBinds = (BindObjectProvider)lHorror[1];
-//
-//        JSONObject lJSONObject = new JSONObject();
-//        UCon lUCon = pRequestContext.getContextUCon().getUCon("MapSetWebService");
-//        try {
-//          // Add on ref bind
-//          DecoratingBindObjectProvider lSearchBindProvider = new DecoratingBindObjectProvider() {
-//            @Override
-//            protected BindObject getBindObjectOrNull(String pBindName, int pIndex) {
-//              if (SEARCH_BIND.equals(pBindName)) {
-//                return new StringBindObject(lSearchTerm);
-//              }
-//              return null;
-//            }
-//          };
-//          lSearchBindProvider.decorate(lBinds);
-//
-//          ParsedStatement lParsedStatement = lMapSetDefinition.getSearchQueryStatement().getParsedStatement();
-//          lParsedStatement.createExecutableQuery(lSearchBindProvider).executeAndDeliver(lUCon, new SearchResultDeliverer(lJSONObject, lMapSetDefinition.getRefPath()));
-//
-//          return new JSONWebServiceResponse(lJSONObject);
-//        }
-//        catch (Throwable th) {
-//          throw new ExInternal("Failed mapset stuff", th);
-//        }
-//        finally {
-//          pRequestContext.getContextUCon().returnUCon(lUCon, "MapSetWebService");
-//        }
+        AJAXSearchQueryCachedBinds lCachedBinds = AJAXSearchQueryCachedBinds.getCachedBindsOrNull(lThreadId, lFieldID);
+        JSONObject lSearchResult;
+        if (lCachedBinds != null) {
+          //If mapset binds are already cached, skip the thread ramp and run the query directly
+          Track.info("BindCacheHit", "Using cached binds to execute AJAX search query");
+          lSearchResult = searchWithCachedBinds(pRequestContext, lSearchTerm, lCachedBinds);
         }
         else {
           // If mapset information wasn't found in the cache we need to ramp the thread and get the information from the fieldset
-
-          ThreadLockManager<JSONObject> lLockManager = new ThreadLockManager<>(lThreadId, false);
-          JSONObject lSearchResult = lLockManager.lockAndPerformAction(pRequestContext, new ThreadLockManager.LockedThreadRunnable<JSONObject>() {
-            @Override
-            public JSONObject doWhenLocked(RequestContext pRequestContext, StatefulXThread pXThread) {
-              Track.info("ThreadLocked");
-              // Get information about the field from the outward fieldset on the thread
-              FieldSet lOutwardFieldSet = pXThread.getFieldSetOut();
-              JITMapSetInfo lJITMapSetInfo = lOutwardFieldSet.getJITMapSetInfo(lFieldID);
-
-              if (lJITMapSetInfo == null) {
-                throw new ExInternal("Cannot find a JITMapSetInfo associated with the field '" + lFieldID + "' in the outward fieldset for thread: " + lThreadId);
-              }
-
-              JSONObject lJSONObject = new JSONObject();
-
-              // Get mapset and dom node for it
-              pXThread.rampAndRun(pRequestContext, new RampedThreadRunnable() {
-                @Override
-                public void run(ActionRequestContext pRequestContext) throws ExUserRequest {
-                  Track.info("RampedAndRunnable");
-                  // Add on ref bind
-                  DecoratingBindObjectProvider lSearchBindProvider = AJAXQueryDefinition.getSearchBindObjectProvider(lSearchTerm);
-
-                  UCon lUCon = pRequestContext.getContextUCon().getUCon("MapSetWebService::query");
-                  pRequestContext.getContextUElem().localise("MapSetWebService::query");
-                  try {
-                    AJAXQueryDefinition lMapSetDefinition = (AJAXQueryDefinition) pRequestContext.getCurrentModule().getMapSetDefinitionByName(lJITMapSetInfo.getJITMapSetName());
-                    DOM lFieldDOM = pRequestContext.getContextUElem().getElemByRef(lJITMapSetInfo.getDOMRef());
-
-                    // Set up item[rec] contexts
-                    lMapSetDefinition.setupContextUElem(pRequestContext.getContextUElem(), lFieldDOM, new PathOrDOM(""));
-                    String lBaseURL = StaticServlet.getURIWithAppMnem(pRequestContext.createURIBuilder(), pRequestContext.getRequestApp().getAppMnem());
-
-                    SearchResultDeliverer lSearchResultDeliverer = new SearchResultDeliverer(lJSONObject, lMapSetDefinition, lBaseURL);
-                    lMapSetDefinition.getSearchQueryStatement(pRequestContext).executeStatement(pRequestContext, lFieldDOM, lUCon, lSearchBindProvider, lSearchResultDeliverer);
-                  }
-                  catch (Throwable th) {
-                    throw new ExInternal("Failed to find and execute the search query for mapset: " + lJITMapSetInfo.getJITMapSetName(), th);
-                  }
-                  finally {
-                    pRequestContext.getContextUElem().delocalise("MapSetWebService::query");
-                    pRequestContext.getContextUCon().returnUCon(lUCon, "MapSetWebService::query");
-                  }
-                }
-              }, "MapSetWebService");
-
-              return lJSONObject;
-            }
-          });
-
-          return new JSONWebServiceResponse(lSearchResult);
+          Track.info("BindCacheMiss", "Ramping thread to execute AJAX search query");
+          lSearchResult = searchWithRampedThread(pRequestContext, lSearchTerm, lFieldID, lThreadId);
         }
+
+        return new JSONWebServiceResponse(lSearchResult);
       }
       finally {
         Track.pop("MapSetWebServiceQuery");
       }
     }
 
+    private JSONObject searchWithRampedThread(RequestContext pRequestContext, final String pSearchTerm, final String pFieldID, final String pThreadId) {
+      ThreadLockManager<JSONObject> lLockManager = new ThreadLockManager<>(pThreadId, false);
+      return lLockManager.lockAndPerformAction(pRequestContext, new ThreadLockManager.LockedThreadRunnable<JSONObject>() {
+        @Override
+        public JSONObject doWhenLocked(RequestContext pRequestContext, StatefulXThread pXThread) {
+          Track.info("ThreadLocked");
+          // Get information about the field from the outward fieldset on the thread
+          FieldSet lOutwardFieldSet = pXThread.getFieldSetOut();
+          JITMapSetInfo lJITMapSetInfo = lOutwardFieldSet.getJITMapSetInfo(pFieldID);
+
+          if (lJITMapSetInfo == null) {
+            throw new ExInternal("Cannot find a JITMapSetInfo associated with the field '" + pFieldID + "' in the outward fieldset for thread: " + pThreadId);
+          }
+
+          JSONObject lJSONObject = new JSONObject();
+
+          // Get mapset and dom node for it
+          pXThread.rampAndRun(pRequestContext, new RampedThreadRunnable() {
+            @Override
+            public void run(ActionRequestContext pRequestContext) throws ExUserRequest {
+              Track.info("RampedAndRunnable");
+              // Add on search bind
+              DecoratingBindObjectProvider lSearchBindProvider = AJAXQueryDefinition.getSearchBindObjectProvider(pSearchTerm);
+
+              UCon lUCon = pRequestContext.getContextUCon().getUCon("MapSetWebService::query");
+              pRequestContext.getContextUElem().localise("MapSetWebService::query");
+              try {
+                AJAXQueryDefinition lMapSetDefinition = (AJAXQueryDefinition) pRequestContext.getCurrentModule().getMapSetDefinitionByName(lJITMapSetInfo.getJITMapSetName());
+                DOM lFieldDOM = pRequestContext.getContextUElem().getElemByRef(lJITMapSetInfo.getDOMRef());
+
+                // Set up item[rec] contexts
+                lMapSetDefinition.setupContextUElem(pRequestContext.getContextUElem(), lFieldDOM, new PathOrDOM(""));
+                String lBaseURL = StaticServlet.getURIWithAppMnem(pRequestContext.createURIBuilder(), pRequestContext.getRequestApp().getAppMnem());
+
+                SearchResultDeliverer lSearchResultDeliverer = new SearchResultDeliverer(lJSONObject, lMapSetDefinition, lBaseURL);
+                lMapSetDefinition.getSearchQueryStatement(pRequestContext).executeStatement(pRequestContext, lFieldDOM, lUCon, lSearchBindProvider, lSearchResultDeliverer);
+              }
+              catch (Throwable th) {
+                throw new ExInternal("Failed to find and execute the search query for mapset: " + lJITMapSetInfo.getJITMapSetName(), th);
+              }
+              finally {
+                pRequestContext.getContextUElem().delocalise("MapSetWebService::query");
+                pRequestContext.getContextUCon().returnUCon(lUCon, "MapSetWebService::query");
+              }
+            }
+          }, "MapSetWebService");
+
+          return lJSONObject;
+        }
+      });
+    }
+
+    private JSONObject searchWithCachedBinds(RequestContext pRequestContext, String pSearchTerm, AJAXSearchQueryCachedBinds pCachedBinds) {
+      JSONObject lSearchResult = new JSONObject();
+
+      //Set up result deliverer
+      String lBaseURL = StaticServlet.getURIWithAppMnem(pRequestContext.createURIBuilder(), pRequestContext.getRequestApp().getAppMnem());
+      SearchResultDeliverer lSearchResultDeliverer = new SearchResultDeliverer(lSearchResult, pCachedBinds.getMapSetDefinition(), lBaseURL);
+
+      //Run query directly
+      pCachedBinds.runSearchQuery(pRequestContext, AJAXQueryDefinition.getSearchBindObjectProvider(pSearchTerm), lSearchResultDeliverer);
+
+      return lSearchResult;
+    }
+
     // Take a record based MapSet statement result and generate JSON for the search selector
-    private class SearchResultDeliverer implements QueryResultDeliverer {
+    private static class SearchResultDeliverer implements QueryResultDeliverer {
       private final JSONObject mJSONObject;
       private final int mSearchQueryResultLimit;
       private final String mRefPath;

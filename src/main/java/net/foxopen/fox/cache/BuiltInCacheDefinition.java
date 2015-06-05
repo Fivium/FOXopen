@@ -2,6 +2,8 @@ package net.foxopen.fox.cache;
 
 import net.foxopen.fox.ex.ExFoxConfiguration;
 
+import java.util.concurrent.TimeUnit;
+
 
 public enum BuiltInCacheDefinition {
   XML_WORKDOCS("XML_WORKDOC", new CacheBuilderFactory() {
@@ -47,6 +49,16 @@ public enum BuiltInCacheDefinition {
       lCacheBuilder.setPurpose("Mapsets (Global)");
       lCacheBuilder.setMaxCapacity(5000);
       lCacheBuilder.setConcurrencyLevel(5);
+      return lCacheBuilder;
+    }
+  }),
+  AJAX_MAPSET_BINDS("AJAX_MAPSET_BINDS", new CacheBuilderFactory() {
+    public FoxCacheBuilder createCacheBuilder() throws ExFoxConfiguration {
+      FoxTTLCacheBuilder lCacheBuilder = new FoxTTLCacheBuilder();
+      lCacheBuilder.setPurpose("AJAX Mapset binds");
+      lCacheBuilder.setMaxCapacity(100);
+      lCacheBuilder.setConcurrencyLevel(5);
+      lCacheBuilder.setTimeToLiveMs((int) TimeUnit.MINUTES.toMillis(10));
       return lCacheBuilder;
     }
   }),

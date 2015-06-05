@@ -5,7 +5,7 @@ import net.foxopen.fox.command.XDoCommandList;
 import net.foxopen.fox.database.sql.bind.BindObject;
 import net.foxopen.fox.database.sql.bind.DecoratingBindObjectProvider;
 import net.foxopen.fox.database.sql.bind.StringBindObject;
-import net.foxopen.fox.dbinterface.InterfaceStatement;
+import net.foxopen.fox.dbinterface.InterfaceQuery;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.module.Mod;
@@ -136,14 +136,36 @@ public class AJAXQueryDefinition
     return mRefPath;
   }
 
-  public InterfaceStatement getSearchQueryStatement(ActionRequestContext pRequestContext) {
+  public InterfaceQuery getSearchQueryStatement(ActionRequestContext pRequestContext) {
     return pRequestContext.resolveInterfaceQuery(mDBInterfaceName, mSearchQueryStatementName);
   }
 
-  public InterfaceStatement getRefQueryStatement(ActionRequestContext pRequestContext) {
+  public InterfaceQuery getRefQueryStatement(ActionRequestContext pRequestContext) {
     return pRequestContext.resolveInterfaceQuery(mDBInterfaceName, mRefQueryStatementName);
   }
 
+  /**
+   * Gets the name of the database interface this definition's queries are stored in.
+   * @return Search and ref query db interface name.
+   */
+  public String getDBInterfaceName() {
+    return mDBInterfaceName;
+  }
+
+  /**
+   * Gets the name of the search query for this AJAX definition. Prefer {@link #getSearchQueryStatement} if a RequestContext
+   * is available.
+   * @return Search query name.
+   */
+  public String getSearchQueryStatementName() {
+    return mSearchQueryStatementName;
+  }
+
+  /**
+   * Gets the maximum number of rows which should be retrieved when executing this definition's search query. The
+   * user can be notified if this limit is exceeded.
+   * @return Maximum results for search query to return.
+   */
   public int getSearchQueryResultLimit() {
     return mSearchQueryResultLimit;
   }
