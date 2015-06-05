@@ -5,9 +5,13 @@ import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.DOMList;
 import net.foxopen.fox.ex.ExCardinality;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.module.datanode.EvaluatedNodeInfo;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfoItem;
 import net.foxopen.fox.module.datanode.NodeAttribute;
+import net.foxopen.fox.module.datanode.NodeEvaluationContext;
+import net.foxopen.fox.module.datanode.NodeInfo;
 import net.foxopen.fox.module.datanode.NodeVisibility;
+import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
 import net.foxopen.fox.module.fieldset.FieldSelectConfig;
 import net.foxopen.fox.module.fieldset.FieldSet;
 import net.foxopen.fox.module.fieldset.fieldinfo.FieldInfo;
@@ -35,20 +39,49 @@ extends OptionFieldMgr {
   /** Path to the repeating item of this FieldMgr relative to the value DOM */
   private final String mSelectorPath;
 
+  /**
+   * Convenience method for getting the <tt>selector</tt> path element's model DOM node (i.e. the repeating item of a multi-selector) for
+   * the given ENI. Returns null if the given EvaluatedNodeInfo is not a multi selector.
+   *
+   * @param pEvaluatedNodeInfo EvaluatedNodeInfo to examine.
+   * @return Model DOM node for the repeating item of a multi select node, or null if the node is not a multi selector.
+   */
+  public static DOM getSelectorModelDOMNodeOrNull(EvaluatedNodeInfo pEvaluatedNodeInfo) {
+    return getSelectorModelDOMNodeOrNull(pEvaluatedNodeInfo.getNodeEvaluationContext(), pEvaluatedNodeInfo.getNodeInfo());
+  }
+
+  /**
+   * Convenience method for getting the <tt>selector</tt> path element's model DOM node (i.e. the repeating item of a multi-selector) for
+   * a given parent NodeInfo. Returns null if the given NodeInfo is not a multi selector.
+   *
+   * @param pNodeEvaluationContext For retrieving <tt>selector</tt> attribute.
+   * @param pContainerNodeInfo NodeInfo to examine.
+   * @return Model DOM node for the repeating item of a multi select node, or null if the node is not a multi selector.
+   */
+  public static DOM getSelectorModelDOMNodeOrNull(NodeEvaluationContext pNodeEvaluationContext, NodeInfo pContainerNodeInfo) {
+
+    StringAttributeResult lSelectorPath = pNodeEvaluationContext.getStringAttributeOrNull(NodeAttribute.SELECTOR);
+    if(lSelectorPath != null) {
+      DOM lCurrentModelDOM = pContainerNodeInfo.getModelDOMElem();
+      try {
+        return lCurrentModelDOM.get1E(lSelectorPath.getString());
+      }
+      catch (ExCardinality e) {
+        throw new ExInternal("Selector path " + lSelectorPath + " failed to locate target in schema for node " + pContainerNodeInfo.getAbsolutePath(), e);
+      }
+    }
+    else {
+      return null;
+    }
+  }
+
   public MultiOptionFieldMgr(EvaluatedNodeInfoItem pEvaluatedNodeInfo, FieldSet pFieldSet, FieldSelectConfig pFieldSelectConfig, String pFieldId, FieldValueMapping pFVM) {
     super(pEvaluatedNodeInfo, pFieldSet, pFieldSelectConfig, pFieldId, pFVM);
 
     //Resolve selector path attribute, which may be a wildcard ("*"), into a deterministic simple path
     //This needs to be done so the FieldInfo knows what elements to create.
-    String lSelectorPath = pEvaluatedNodeInfo.getStringAttribute(NodeAttribute.SELECTOR);
     DOM lCurrentModelDOM = pEvaluatedNodeInfo.getNodeInfo().getModelDOMElem();
-    DOM lSelectorModelDOM;
-    try {
-      lSelectorModelDOM = lCurrentModelDOM.get1E(lSelectorPath);
-    }
-    catch (ExCardinality e) {
-      throw new ExInternal("Selector path " + lSelectorPath + " failed to locate target in schema for node " + pEvaluatedNodeInfo.getIdentityInformation(), e);
-    }
+    DOM lSelectorModelDOM = getSelectorModelDOMNodeOrNull(pEvaluatedNodeInfo);
 
     mSelectorPath = lCurrentModelDOM.getRelativeDownToOrNull(lSelectorModelDOM);
     DOMList lChildElements = getValueDOM().getUL(mSelectorPath);

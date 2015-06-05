@@ -151,7 +151,7 @@ implements Validatable {
    * This should only be called on a ContextUElem where you have called {@link ContextUElem#localise(String)} and should {@link ContextUElem#delocalise(String)} after use.
    *
    * @param pContextUElem localised context to apply labels to
-   * @param pItemDOM
+   * @param pItemDOM Node of :{item} context - can be null if the mapset does not use the :{item} context.
    * @param pMapSetAttach
    */
   public void setupContextUElem(ContextUElem pContextUElem, DOM pItemDOM, PathOrDOM pMapSetAttach) {
@@ -164,12 +164,11 @@ implements Validatable {
     if(pMapSetAttach.isPath()) {
       String lMapSetAttachXPath = pMapSetAttach.getPath();
       try {
-        pContextUElem.setUElem(ContextLabel.MAP_SET_ATTACH, pContextUElem.extendedXPath1E(pItemDOM.getParentOrSelf(), lMapSetAttachXPath, false));
+        //Set the relative DOM for ms attach to :{itemrec} if an item DOM is available, or state attach if not
+        DOM lRelativeDOM = pItemDOM != null ? pItemDOM.getParentOrSelf() : pContextUElem.attachDOM();
+        pContextUElem.setUElem(ContextLabel.MAP_SET_ATTACH, pContextUElem.extendedXPath1E(lRelativeDOM, lMapSetAttachXPath, false));
       }
-      catch (ExCardinality ex) {
-        throw new ExInternal("Failed to set :{map-set-attach} using XPath '" + lMapSetAttachXPath + "'", ex);
-      }
-      catch (ExActionFailed ex) {
+      catch (ExCardinality | ExActionFailed  ex) {
         throw new ExInternal("Failed to set :{map-set-attach} using XPath '" + lMapSetAttachXPath + "'", ex);
       }
     }
@@ -333,10 +332,16 @@ implements Validatable {
     }
   }
 
+  /**
+   * @return The unprefixed name of this mapset as defined by a developer. E.g. <tt>ms-grade-codes</tt>.
+   */
   public final String getLocalName() {
     return mLocalName;
   }
 
+  /**
+   * @return The name of this mapset, prefixed with its owning module's name. E.g. <tt>HR001X/ms-grade-codes</tt>.
+   */
   public final String getFullName() {
     return mFullName;
   }

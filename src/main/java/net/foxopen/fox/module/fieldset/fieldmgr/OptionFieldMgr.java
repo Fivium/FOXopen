@@ -48,20 +48,6 @@ extends DataFieldMgr {
       lFVM = SchemaEnumFVM.createSchemaEnumFVM(pEvalNode);
     }
     else if(JITMapSetFVM.validateENI(pEvalNode)) {
-      // TODO - AJMS - Commented out the pre-cache code for now
-//      pEvalNode.getNodeEvaluationContext().getContextUElem().localise("OptionFieldMgr::createOptionFieldMgr");
-//      try {
-//        AJAXQueryDefinition lAJAXQueryDefinition = (AJAXQueryDefinition) pEvalNode.getMapSet().getMapSetDefinition();
-//        // TODO - AJMS - context localise things with no mapset attach (search comment for other similar hacks)
-//        lAJAXQueryDefinition.setupContextUElem(pEvalNode.getNodeEvaluationContext().getContextUElem(), pEvalNode.getDataItem(), new PathOrDOM(""));
-//        BindObjectProvider lBinds = lAJAXQueryDefinition.getSearchQueryStatement().createBindObjectProvider(pEvalNode.getDataItem(), pEvalNode.getNodeEvaluationContext().getContextUElem());
-//        // TODO - AJMS - !!! - This needs to evaluate the binds here and cache the results. Otherwise the localise is pointless
-//        MapSetWebService.gMapSetCache.put(pFieldId, new Object[] {pEvalNode.getMapSet(), lBinds});
-//      }
-//      finally {
-//        pEvalNode.getNodeEvaluationContext().getContextUElem().delocalise("OptionFieldMgr::createOptionFieldMgr");
-//      }
-
       lFVM = JITMapSetFVM.createMapSetFVM(pEvalNode);
     }
     else if(MapSetFVM.validateENI(pEvalNode)) {

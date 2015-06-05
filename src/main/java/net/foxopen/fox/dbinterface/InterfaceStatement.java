@@ -49,6 +49,7 @@ import net.foxopen.fox.database.sql.bind.ClobStringBindObject;
 import net.foxopen.fox.database.sql.bind.DOMBindObject;
 import net.foxopen.fox.database.sql.bind.DOMListBindObject;
 import net.foxopen.fox.database.sql.bind.DecoratingBindObjectProvider;
+import net.foxopen.fox.database.sql.bind.PreEvaluatedBindObjectProvider;
 import net.foxopen.fox.database.sql.bind.StringBindObject;
 import net.foxopen.fox.database.sql.bind.TimestampBindObject;
 import net.foxopen.fox.dom.DOM;
@@ -101,6 +102,7 @@ public abstract class InterfaceStatement {
 
   private final ParsedStatement mParsedStatement;
 
+  /** Map of bind names to their fm:using definitions. Unnamed binds are assigned ordinal numbers as names. */
   private final Map<String, InterfaceParameter> mNameToUsingParamMap;
 
   protected InterfaceStatement(DOM pDbStatementXML, String pDbInterfaceName, String pStatementContainerElementName, boolean pReplaceBindNames, Mod pMod)
@@ -318,6 +320,20 @@ public abstract class InterfaceStatement {
         Track.recordSuppressedException("Suppressed exception caused by DBMS_OUTPUT disable", th);
       }
     }
+  }
+
+  /**
+   * Pre-evaluates the binds for this interface statement and returns a {@link PreEvaluatedBindObjectProvider} containing them,
+   * which can be used to execute this query at a later stage. The pre-evaluation process executes all bind variable XPaths
+   * and stores the typed results (i.e. String objects for string binds, DOM objects for XML binds). Care must be taken if
+   * the binds are cached for a long time as they may hold live references to DOM objects.
+   *
+   * @param pRequestContext For XPath evaluation.
+   * @param pMatchNode Match node of the query
+   * @return BindObjectProvider containing binds which can be used to execute this query's ParsedStatement at a later stage.
+   */
+  public BindObjectProvider preEvaluateBinds(ActionRequestContext pRequestContext, DOM pMatchNode) {
+    return PreEvaluatedBindObjectProvider.preEvaluateBinds(mNameToUsingParamMap.keySet(), new StatementBindProvider(pMatchNode, pRequestContext.getContextUElem()));
   }
 
   /**

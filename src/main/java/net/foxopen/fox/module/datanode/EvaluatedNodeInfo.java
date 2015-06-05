@@ -8,6 +8,7 @@ import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.evaluatedattributeresult.BooleanAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.FixedStringAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
+import net.foxopen.fox.module.fieldset.fieldmgr.MultiOptionFieldMgr;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.GenericAttributesEvaluatedPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.GenericAttributesPresentationNode;
 import net.foxopen.fox.module.serialiser.OutputSerialiser;
@@ -46,23 +47,12 @@ public abstract class EvaluatedNodeInfo extends EvaluatedNode {
     }
   }
 
-  private DOM getSelectorModelDOMNode() {
-    String lSelectorPath = getStringAttribute(NodeAttribute.SELECTOR);
-    DOM lCurrentModelDOM = mNodeInfo.getModelDOMElem();
-    try {
-      return lCurrentModelDOM.get1E(lSelectorPath);
-    }
-    catch (ExCardinality e) {
-      throw new ExInternal("Selector path " + lSelectorPath + " failed to locate target in schema for node " + this.getIdentityInformation(), e);
-    }
-  }
-
   /**
    * Gets the NodeInfo for the "selector" node of this ENI.
    * @return
    */
   public NodeInfo getSelectorNodeInfo() {
-    return super.getEvaluatedParseTree().getModule().getNodeInfo(getSelectorModelDOMNode());
+    return super.getEvaluatedParseTree().getModule().getNodeInfo(MultiOptionFieldMgr.getSelectorModelDOMNodeOrNull(this));
   }
 
   /** Determine cardinality relationship of relative node for selector widgets

@@ -9,7 +9,7 @@ import net.foxopen.fox.ex.ExInternal;
  *
  * <tt>BindObjectProvider lDecoratingBOP = new DecoratingBindObjectProvider().decorate(lExistingBOP);</tt><br/><br/>
  *
- * The <tt>lDecoratingBOP</tt> object is used first. Only if the bind cannot be found will the lookup be delgated to the
+ * The <tt>lDecoratingBOP</tt> object is used first. Only if the bind cannot be found will the lookup be delegated to the
  *  <tt>lExistingBOP</tt> object.
  */
 public abstract class DecoratingBindObjectProvider

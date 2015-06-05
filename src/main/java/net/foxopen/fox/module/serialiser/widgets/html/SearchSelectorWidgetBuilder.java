@@ -8,10 +8,10 @@ import net.foxopen.fox.entrypoint.servlets.StaticServlet;
 import net.foxopen.fox.entrypoint.uri.RequestURIBuilder;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfo;
+import net.foxopen.fox.module.datanode.EvaluatedNodeInfoItem;
 import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.datanode.NodeVisibility;
 import net.foxopen.fox.module.fieldset.fieldmgr.FieldMgr;
-import net.foxopen.fox.module.fieldset.fieldmgr.OptionFieldMgr;
 import net.foxopen.fox.module.fieldset.fvm.FieldSelectOption;
 import net.foxopen.fox.module.mapset.JITMapSet;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 
-public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfo> {
+public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoItem> {
 
   public static final String HIDDEN_SEARCHABLE_MS_PROPERTY = "hidden-searchable";
   public static final String SUGGESTION_DISPLAY_MS_PROPERTY = "suggestion-display";
@@ -42,9 +42,9 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
   public static final String SUGGESTABLE_JSON_PROPERTY = "suggestable";
   public static final String LIMITED_JSON_PROPERTY = "limited";
 
-  private static final WidgetBuilder<HTMLSerialiser, EvaluatedNodeInfo> INSTANCE = new SearchSelectorWidgetBuilder();
+  private static final WidgetBuilder<HTMLSerialiser, EvaluatedNodeInfoItem> INSTANCE = new SearchSelectorWidgetBuilder();
 
-  public static final WidgetBuilder<HTMLSerialiser, EvaluatedNodeInfo> getInstance() {
+  public static final WidgetBuilder<HTMLSerialiser, EvaluatedNodeInfoItem> getInstance() {
     return INSTANCE;
   }
 
@@ -52,13 +52,10 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
   }
 
   @Override
-  public void buildWidgetInternal(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNodeInfo pEvalNode) {
-    boolean lSearchMandatorySelection = pEvalNode.getBooleanAttribute(NodeAttribute.SEARCH_MANDATORY_SELECTION, false);
+  public void buildWidgetInternal(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNodeInfoItem pEvalNode) {
 
     FieldMgr lFieldMgr = pEvalNode.getFieldMgr();
     List<FieldSelectOption> lSelectOptions = lFieldMgr.getSelectOptions();
-
-    boolean lAJAXMapSet = ((OptionFieldMgr)lFieldMgr).getEvaluatedNodeInfoItem().getMapSet() instanceof JITMapSet;
 
     if (!pEvalNode.isPlusWidget() && lFieldMgr.getVisibility() == NodeVisibility.VIEW) {
       SelectorWidgetBuilder.outputReadOnlyOptions(pSerialiser, lFieldMgr);
@@ -102,76 +99,7 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
       pSerialiser.append(lLoadingElementName);
       pSerialiser.append("\" class=\"tagger tagger-loading\" />");
 
-      // Find DIA values to pass to tagger
-      String lExtraParams = "";
-      try {
-        String lFieldSuggestionWidth = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_SUGGESTION_WIDTH);
-        if (lFieldSuggestionWidth != null) {
-          lExtraParams += "    suggestWidth: '" + Float.parseFloat(lFieldSuggestionWidth) + "em',\n";
-        }
-        String lFieldSuggestionMaxWidth = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_SUGGESTION_MAX_WIDTH);
-        if (lFieldSuggestionMaxWidth != null) {
-          lExtraParams += "    suggestMaxWidth: '" + Float.parseFloat(lFieldSuggestionMaxWidth) + "em',\n";
-        }
-        String lFieldSuggestionMaxHeight = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_SUGGESTION_MAX_HEIGHT);
-        if (lFieldSuggestionMaxHeight != null) {
-          lExtraParams += "    suggestMaxHeight: '" + Float.parseFloat(lFieldSuggestionMaxHeight) + "em',\n";
-        }
-        String lPlaceholder = pEvalNode.getStringAttribute(NodeAttribute.PLACEHOLDER);
-        if (lPlaceholder != null) {
-          lExtraParams += "    placeholder: '" + StringEscapeUtils.escapeHtml4(lPlaceholder) + "',\n";
-        }
-        String lSearchLimit = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_CHARACTER_THRESHOLD);
-        if (lSearchLimit != null) {
-          lExtraParams += "    characterThreshold: " + Float.parseFloat(lSearchLimit) + ",\n";
-        }
-        String lIndentMultiplier = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_INDENT_MULTIPLIER);
-        if (lIndentMultiplier != null) {
-          lExtraParams += "    indentMultiplier: " + Float.parseFloat(lIndentMultiplier) + ",\n";
-        }
-        String lSearchTypingTimeout = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_TYPING_TIMEOUT);
-        if (lSearchTypingTimeout != null) {
-          lExtraParams += "    typingTimeThreshold: " + Float.parseFloat(lSearchTypingTimeout) + ",\n";
-        }
-        if (pEvalNode.getBooleanAttribute(NodeAttribute.SEARCH_DISPLAY_HIERARCHY, false)) {
-          lExtraParams += "    displayHierarchy: true,\n";
-        }
-        if (pEvalNode.getBooleanAttribute(NodeAttribute.SEARCH_CASE_SENSITIVE, false)) {
-          lExtraParams += "    caseSensitive: true,\n";
-        }
-        if (pEvalNode.getBooleanAttribute(NodeAttribute.SEARCH_SORTED_OUTPUT, true)) {
-          lExtraParams += "    sortedOutput: true,\n";
-        }
-        else {
-          lExtraParams += "    sortedOutput: false,\n";
-        }
-        if (lSearchMandatorySelection) {
-          lExtraParams += "    mandatorySelection: true,\n";
-        }
-        String lNoSuggestionsText = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_NO_SUGGESTIONS_TEXT);
-        if (lNoSuggestionsText != null) {
-          lExtraParams += "    noSuggestText: '" + StringEscapeUtils.escapeHtml4(lNoSuggestionsText) + "',\n";
-        }
-        String lEmptyListText = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_EMPTY_SUGGESTIONS_TEXT);
-        if (lEmptyListText != null) {
-          lExtraParams += "    emptyListText: '" + StringEscapeUtils.escapeHtml4(lNoSuggestionsText) + "',\n";
-        }
-        String lLimitedText = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_LIMITED_SUGGESTIONS_TEXT);
-        if (lLimitedText != null) {
-          lExtraParams += "    limitedText: '" + StringEscapeUtils.escapeHtml4(lLimitedText) + "',\n";
-        }
-
-        if (lAJAXMapSet) {
-          lExtraParams += "    ajaxURL: '" + MapSetWebService.AjaxSearchEndPoint.buildEndPointURI(pSerialisationContext.createURIBuilder(), pSerialisationContext.getThreadInfoProvider().getThreadId()) + "',\n"
-          + "    ajaxErrorFunction: function(self, data){self._showMessageSuggestion('The application has experienced an unexpected error, please try again or contact support. Error reference: <strong>' + data.responseJSON.errorDetails.reference + '</strong>', 'error');},\n";
-        }
-      }
-      catch (NumberFormatException ex) {
-        throw new ExInternal("Failed to convert XPath result to Float for search-selector attributes", ex);
-      }
-
       // Pass through lSelectedIdList
-
       Set<String> lSelectedValues = new HashSet<>();
       for (FieldSelectOption lOption : lSelectOptions) {
         if (lOption.isSelected()) {
@@ -191,6 +119,15 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
         lFieldWidth = "'100%'";
       }
 
+      // Find DIA values to pass to tagger
+      String lExtraParams = establishExtraParams(pEvalNode);
+
+      boolean lAJAXMapSet = pEvalNode.getMapSet() instanceof JITMapSet;
+      if (lAJAXMapSet) {
+        lExtraParams += "    ajaxURL: '" + MapSetWebService.AjaxSearchEndPoint.buildEndPointURI(pSerialisationContext.createURIBuilder(), pSerialisationContext.getThreadInfoProvider().getThreadId()) + "',\n"
+          + "    ajaxErrorFunction: function(self, data){self._showMessageSuggestion('The application has experienced an unexpected error, please try again or contact support. Error reference: <strong>' + data.responseJSON.errorDetails.reference + '</strong>', 'error');},\n";
+      }
+
       // Add in the JS to construct the tagger for the select
       pSerialisationContext.addConditionalLoadJavascript("$(function(){\n" +
       "  $('#" + lFieldMgr.getExternalFieldName() + "').tagger({\n" +
@@ -205,6 +142,84 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
       "  });\n" +
       "});");
     }
+  }
+
+  private String establishExtraParams(EvaluatedNodeInfo pEvalNode) {
+    String lExtraParams = "";
+    try {
+      String lFieldSuggestionWidth = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_SUGGESTION_WIDTH);
+      if (lFieldSuggestionWidth != null) {
+        lExtraParams += "    suggestWidth: '" + Float.parseFloat(lFieldSuggestionWidth) + "em',\n";
+      }
+
+      String lFieldSuggestionMaxWidth = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_SUGGESTION_MAX_WIDTH);
+      if (lFieldSuggestionMaxWidth != null) {
+        lExtraParams += "    suggestMaxWidth: '" + Float.parseFloat(lFieldSuggestionMaxWidth) + "em',\n";
+      }
+
+      String lFieldSuggestionMaxHeight = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_SUGGESTION_MAX_HEIGHT);
+      if (lFieldSuggestionMaxHeight != null) {
+        lExtraParams += "    suggestMaxHeight: '" + Float.parseFloat(lFieldSuggestionMaxHeight) + "em',\n";
+      }
+
+      String lPlaceholder = pEvalNode.getStringAttribute(NodeAttribute.PLACEHOLDER);
+      if (lPlaceholder != null) {
+        lExtraParams += "    placeholder: '" + StringEscapeUtils.escapeHtml4(lPlaceholder) + "',\n";
+      }
+
+      String lSearchLimit = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_CHARACTER_THRESHOLD);
+      if (lSearchLimit != null) {
+        lExtraParams += "    characterThreshold: " + Float.parseFloat(lSearchLimit) + ",\n";
+      }
+
+      String lIndentMultiplier = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_INDENT_MULTIPLIER);
+      if (lIndentMultiplier != null) {
+        lExtraParams += "    indentMultiplier: " + Float.parseFloat(lIndentMultiplier) + ",\n";
+      }
+
+      String lSearchTypingTimeout = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_TYPING_TIMEOUT);
+      if (lSearchTypingTimeout != null) {
+        lExtraParams += "    typingTimeThreshold: " + Float.parseFloat(lSearchTypingTimeout) + ",\n";
+      }
+
+      if (pEvalNode.getBooleanAttribute(NodeAttribute.SEARCH_DISPLAY_HIERARCHY, false)) {
+        lExtraParams += "    displayHierarchy: true,\n";
+      }
+
+      if (pEvalNode.getBooleanAttribute(NodeAttribute.SEARCH_CASE_SENSITIVE, false)) {
+        lExtraParams += "    caseSensitive: true,\n";
+      }
+
+      if (pEvalNode.getBooleanAttribute(NodeAttribute.SEARCH_SORTED_OUTPUT, true)) {
+        lExtraParams += "    sortedOutput: true,\n";
+      }
+      else {
+        lExtraParams += "    sortedOutput: false,\n";
+      }
+
+      if (pEvalNode.getBooleanAttribute(NodeAttribute.SEARCH_MANDATORY_SELECTION, false)) {
+        lExtraParams += "    mandatorySelection: true,\n";
+      }
+
+      String lNoSuggestionsText = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_NO_SUGGESTIONS_TEXT);
+      if (lNoSuggestionsText != null) {
+        lExtraParams += "    noSuggestText: '" + StringEscapeUtils.escapeHtml4(lNoSuggestionsText) + "',\n";
+      }
+
+      String lEmptyListText = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_EMPTY_SUGGESTIONS_TEXT);
+      if (lEmptyListText != null) {
+        lExtraParams += "    emptyListText: '" + StringEscapeUtils.escapeHtml4(lNoSuggestionsText) + "',\n";
+      }
+
+      String lLimitedText = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_LIMITED_SUGGESTIONS_TEXT);
+      if (lLimitedText != null) {
+        lExtraParams += "    limitedText: '" + StringEscapeUtils.escapeHtml4(lLimitedText) + "',\n";
+      }
+    }
+    catch (NumberFormatException ex) {
+      throw new ExInternal("Failed to convert XPath result to Float for search-selector attributes", ex);
+    }
+    return lExtraParams;
   }
 
   /**
