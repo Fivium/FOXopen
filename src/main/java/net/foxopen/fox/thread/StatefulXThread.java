@@ -936,7 +936,15 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
       //If this is a POST, or a thread resume (i.e. a stateful GET), send a proper timeout to prevent browsers re-requesting the page on back/forward navigation
       if(pRequestContext.getAuthenticationContext().isAuthenticated()) {
         //If we're authenticated we should use the user's session timeout value so the page isn't cached after session expiry
-        lBrowserCacheTimeMS = TimeUnit.MINUTES.toMillis(pRequestContext.getAuthenticationContext().getSessionTimeoutMins());
+        int lTimeoutMins = pRequestContext.getAuthenticationContext().getSessionTimeoutMins();
+        if(lTimeoutMins == 0) {
+          //Temporary bugfix - sessions which are just logged in still have a timeout min value of 0, so fall back to the standard cache timeout
+          //See FOXRD-666
+          lBrowserCacheTimeMS = ComponentManager.getComponentBrowserCacheMS();
+        }
+        else {
+          lBrowserCacheTimeMS = TimeUnit.MINUTES.toMillis(lTimeoutMins);
+        }
       }
       else {
         //Otherwise treat the page like a standard component with a normal timeout value
