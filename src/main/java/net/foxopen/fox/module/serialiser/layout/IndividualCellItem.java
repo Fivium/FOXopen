@@ -18,7 +18,7 @@ public class IndividualCellItem extends CellItem {
 
     mCellItem = pCellItem;
 
-    int lColChars = Integer.parseInt(mCellItem.getStringAttribute(NodeAttribute.FORM_COL_CHARS, "20"));
+    double lColChars = Double.valueOf(mCellItem.getStringAttribute(NodeAttribute.FORM_COL_CHARS, "20"));
 
     int lOffsetSpan, lPromptSpan, lFieldSpan;
     // Calculate prompt column span
@@ -35,7 +35,7 @@ public class IndividualCellItem extends CellItem {
       // Deal with legacy attributes when new fieldSpan is not specified
       String lWidgetWidth = mCellItem.getFieldWidth();
 
-      lFieldSpan =  Math.min(pColumnLimit, Math.max(1, (int)Math.ceil(Integer.valueOf(lWidgetWidth) / lColChars)));
+      lFieldSpan = Double.valueOf(Math.min(pColumnLimit, Math.max(1, Math.ceil(Double.valueOf(lWidgetWidth) / lColChars)))).intValue();
     }
     else {
       // If we have a new span attr use it
@@ -62,7 +62,7 @@ public class IndividualCellItem extends CellItem {
           }
         }
 
-        lPromptSpan = Math.max(1, (int)Math.ceil(Integer.valueOf(lPromptWidth) / lColChars));
+        lPromptSpan = Double.valueOf(Math.max(1, Math.ceil(Double.valueOf(lPromptWidth) / lColChars))).intValue();
       }
       else {
         // If we have a new span attr, use it
