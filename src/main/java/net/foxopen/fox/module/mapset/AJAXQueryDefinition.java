@@ -7,6 +7,7 @@ import net.foxopen.fox.database.sql.bind.DecoratingBindObjectProvider;
 import net.foxopen.fox.database.sql.bind.StringBindObject;
 import net.foxopen.fox.dbinterface.InterfaceQuery;
 import net.foxopen.fox.dom.DOM;
+import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.module.mapset.MapSetDefinitionFactory.DefinitionBuilder;
@@ -47,6 +48,22 @@ public class AJAXQueryDefinition
       }
       else if(XFUtil.isNull(lRefQueryName)) {
         throw new ExModule("Bad definition - missing mandatory 'ref-query' attribute");
+      }
+
+      //Validate search query name
+      try {
+        pModule.getDatabaseInterface(lDBInterfaceName).getInterfaceQuery(lSearchQueryName);
+      }
+      catch (Throwable th) {
+        throw new ExInternal("Invalid value for search-query: " + lSearchQueryName , th);
+      }
+
+      //Validate ref query name
+      try {
+        pModule.getDatabaseInterface(lDBInterfaceName).getInterfaceQuery(lRefQueryName);
+      }
+      catch (Throwable th) {
+        throw new ExInternal("Invalid value for ref-query: " + lRefQueryName, th);
       }
 
       mDBInterfaceName = lDBInterfaceName;

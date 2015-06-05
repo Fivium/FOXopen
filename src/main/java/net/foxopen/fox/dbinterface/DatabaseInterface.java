@@ -105,22 +105,32 @@ public class DatabaseInterface {
     mInterfaceAPIMap = Collections.unmodifiableMap(lAPIMap);
   }
 
-  public InterfaceQuery getInterfaceQuery(String pDbStatementName) {
+  /**
+   * Gets the query of the given name from this DatabaseInterface. Throws an exception if the query does not exist.
+   * @param pQueryName Name of query to retrieve.
+   * @return The corresponding InterfaceQuery of the given name.
+   */
+  public InterfaceQuery getInterfaceQuery(String pQueryName) {
 
-    InterfaceQuery lStatement = mInterfaceQueryMap.get(pDbStatementName);
+    InterfaceQuery lStatement = mInterfaceQueryMap.get(pQueryName);
     if(lStatement == null){
-      throw new ExInternal("No query found with the name " + pDbStatementName + " in DB interface " + getInterfaceName());
+      throw new ExInternal("No query found with the name " + pQueryName + " in DB interface " + getInterfaceName());
     }
     else {
       return lStatement;
     }
   }
 
-  public InterfaceAPI getInterfaceAPI(String pDbStatementName) {
+  /**
+   * Gets the API of the given name from this DatabaseInterface. Throws an exception if the API does not exist.
+   * @param pAPIName Name of query to retrieve.
+   * @return The corresponding InterfaceQuery of the given name.
+   */
+  public InterfaceAPI getInterfaceAPI(String pAPIName) {
 
-    InterfaceAPI lStatement = mInterfaceAPIMap.get(pDbStatementName);
+    InterfaceAPI lStatement = mInterfaceAPIMap.get(pAPIName);
     if(lStatement == null){
-      throw new ExInternal("No API found with the name " + pDbStatementName + " in DB interface " + getInterfaceName());
+      throw new ExInternal("No API found with the name " + pAPIName + " in DB interface " + getInterfaceName());
     }
     else {
       return lStatement;
