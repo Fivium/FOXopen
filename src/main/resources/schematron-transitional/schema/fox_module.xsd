@@ -176,6 +176,12 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
+        <xs:element name="xpath-list" minOccurs="0" type="fm:xpath-list-type">
+          <xs:unique name="unique-xpath-name-within-module">
+            <xs:selector xpath="./fm:xpath"/>
+            <xs:field xpath="@name"/>
+          </xs:unique>
+        </xs:element>
         <xs:element name="storage-location-list">
           <xs:complexType>
             <xs:sequence>
@@ -438,6 +444,12 @@
                 <xs:complexType>
                   <xs:sequence>
                     <xs:element name="documentation" type="fm:documentation" minOccurs="0"/>
+                    <xs:element name="xpath-list" minOccurs="0" type="fm:xpath-list-type">
+                      <xs:unique name="unique-xpath-name-within-state">
+                        <xs:selector xpath="./fm:xpath"/>
+                        <xs:field xpath="@name"/>
+                      </xs:unique>
+                    </xs:element>
                     <xs:element name="action-list" minOccurs="0">
                       <xs:complexType>
                         <xs:complexContent>
@@ -1976,6 +1988,15 @@ Can also be used to replace all states on the state-call stack with the state sp
       <xs:enumeration value="server-side"/>
     </xs:restriction>
   </xs:simpleType>
+  <xs:simpleType name="overload-types">
+    <xs:annotation>
+      <xs:documentation>Determines whether module overloading is allowed during library merging</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="allowed"/>
+      <xs:enumeration value="not-allowed"/>
+    </xs:restriction>
+  </xs:simpleType>
   <xs:complexType name="presentation-type">
     <xs:sequence>
       <xs:element name="set-page" minOccurs="0">
@@ -2048,6 +2069,17 @@ Can also be used to replace all states on the state-call stack with the state sp
           <xs:attribute name="build-only"/>
           <xs:attributeGroup ref="fox:zzz-action-attr-grp"/>
           <xs:anyAttribute namespace="##other" processContents="skip"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="xpath-list-type">
+    <xs:sequence>
+      <xs:element name="xpath" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:attribute name="name" type="fm:entered-string" use="required"/>
+          <xs:attribute name="value" type="fm:entered-string" use="required"/>
+          <xs:attribute name="overload" type="fm:overload-types"/>
         </xs:complexType>
       </xs:element>
     </xs:sequence>

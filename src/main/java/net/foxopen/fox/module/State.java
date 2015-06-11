@@ -34,14 +34,10 @@ package net.foxopen.fox.module;
 
 
 import com.google.common.collect.Multimap;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.DOMList;
+import net.foxopen.fox.dom.xpath.saxon.StoredXPathResolver;
 import net.foxopen.fox.ex.ExDoSyntax;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExModule;
@@ -50,6 +46,10 @@ import net.foxopen.fox.ex.ExTooMany;
 import net.foxopen.fox.module.parsetree.ParseTree;
 import net.foxopen.fox.module.parsetree.presentationnode.BufferPresentationNode;
 import net.foxopen.fox.module.serialiser.HtmlDoctype;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class State implements Validatable {
@@ -79,9 +79,11 @@ public class State implements Validatable {
 
   private final Multimap<AutoActionType, ActionDefinition> mAutoActionMultimap;
 
-  public State(Mod pModule, String pStateName, String pStateTitle, HtmlDoctype pDocType, Map<String, String> pStateAttributes,
-               Map<String, ActionDefinition> pActionNamesToDefinitions, Map<String, BufferPresentationNode> pParsedBuffers,
-               BufferPresentationNode pSetPageBuffer, Multimap<AutoActionType, ActionDefinition> pAutoActionMultimap) throws ExInternal {
+  private final StoredXPathResolver mStoredXPathResolver;
+
+  private State(Mod pModule, String pStateName, String pStateTitle, HtmlDoctype pDocType, Map<String, String> pStateAttributes,
+                Map<String, ActionDefinition> pActionNamesToDefinitions, Map<String, BufferPresentationNode> pParsedBuffers,
+                BufferPresentationNode pSetPageBuffer, Multimap<AutoActionType, ActionDefinition> pAutoActionMultimap, StoredXPathResolver pStoredXPathResolver)  {
     mModule = pModule;
     mStateName = pStateName;
     mStateTitle = pStateTitle;
@@ -91,6 +93,7 @@ public class State implements Validatable {
     mParsedBuffers = pParsedBuffers;
     mSetPageBuffer = pSetPageBuffer;
     mAutoActionMultimap = pAutoActionMultimap;
+    mStoredXPathResolver = pStoredXPathResolver;
   }
 
   public static State createState(Mod pModule, DOM pMetaData) throws ExModule, ExDoSyntax {
@@ -160,7 +163,10 @@ public class State implements Validatable {
       }
     }
 
-    return new State(pModule, lStateName, lStateTitle, lDocumentType, lStateAttributes, lActionNamesToDefinitions, lParsedBuffers, lSetPageBuffer, lAutoActionMultimap);
+    //Create a stored XPath resolver which delegates to the module definition if necessary
+    StoredXPathResolver lXPathResolver = ModuleStoredXPathResolver.createFromDOMList(pMetaData.getUL("fm:xpath-list/fm:xpath"), pModule.getStoredXPathResolver());
+
+    return new State(pModule, lStateName, lStateTitle, lDocumentType, lStateAttributes, lActionNamesToDefinitions, lParsedBuffers, lSetPageBuffer, lAutoActionMultimap, lXPathResolver);
   }
 
   /**
@@ -271,5 +277,13 @@ public class State implements Validatable {
 
   public HtmlDoctype getDocumentType() {
     return mDocumentType;
+  }
+
+  /**
+   * Gets the StoredXPathResolver for this state, which delegates to its parent module if necessary.
+   * @return Contextual StoredXPathResolver.
+   */
+  public StoredXPathResolver getStoredXPathResolver() {
+    return mStoredXPathResolver;
   }
 }
