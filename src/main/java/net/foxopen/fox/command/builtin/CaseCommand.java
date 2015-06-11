@@ -107,7 +107,6 @@ public class CaseCommand extends BuiltInCommand {
       mValue = pDOM.getAttr("value");
       mCont = pDOM.getAttr("continue-matching");
       mClause = new XDoCommandList(pMod, pDOM);
-      mClause.validate(pMod);
     }
 
     /** Partially constructs a CaseComponent object, specifically only the "expr" and "value" attributes  */
@@ -193,6 +192,20 @@ public class CaseCommand extends BuiltInCommand {
   }
 
   @Override
+  public void validate(Mod pModule) {
+
+    //Validate nested clauses
+
+    if(mDefault != null) {
+      mDefault.mClause.validate(pModule);
+    }
+
+    for (CaseComponent lWhen : mWhens) {
+      lWhen.mClause.validate(pModule);
+    }
+  }
+
+  @Override
   public XDoControlFlow run(ActionRequestContext pRequestContext) {
 
     ContextUElem lContextUElem = pRequestContext.getContextUElem();
@@ -219,7 +232,7 @@ public class CaseCommand extends BuiltInCommand {
       throw new ExInternal("Error evaluating case command", e);
     }
 
-    if(!XFUtil.isNull(mDefault)){
+    if(mDefault != null){
       lFlowResult = lRunner.runCommands(pRequestContext, mDefault.mClause);
     }
 
