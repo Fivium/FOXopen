@@ -16,7 +16,7 @@ public class StoredXPathTranslator {
 
   private static final StoredXPathTranslator INSTANCE = new StoredXPathTranslator();
 
-  private static final Pattern FOX_STORED_XPATH_NAME_PATTERN = Pattern.compile("[^\\s]+?");
+  private static final Pattern FOX_STORED_XPATH_NAME_PATTERN = Pattern.compile("[^\\s\\${}]+?");
   private static final Pattern FOX_STORED_XPATH_MATCH_PATTERN = Pattern.compile("\\$\\{([^\\s]+?)\\}");
 
   public static StoredXPathTranslator instance() {

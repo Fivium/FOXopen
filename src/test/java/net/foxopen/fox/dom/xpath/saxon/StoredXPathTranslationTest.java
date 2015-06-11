@@ -39,7 +39,9 @@ import org.junit.Test;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class StoredXPathTranslationTest {
 
@@ -86,6 +88,17 @@ public class StoredXPathTranslationTest {
 
     lResult = StoredXPathTranslator.instance().translateXPathReferences(new TestXPathResolver(), "${xpath1 ${xpath2}");
     assertEquals("First XPath not replaced (missing trailing }) but second allowed", "${xpath1 " + XPATH_2, lResult);
+  }
+
+  @Test
+  public void testXPathNameValidation() {
+
+    assertTrue("Name containing alphabetic characters is valid",  StoredXPathTranslator.instance().validateXPathName("myXpath"));
+    assertTrue("Name containing numbers is valid",  StoredXPathTranslator.instance().validateXPathName("123"));
+    assertTrue("Name containing colon and hyphen is valid",  StoredXPathTranslator.instance().validateXPathName("namespace:my-xpath"));
+    assertFalse("Name containing whitespace is not valid",  StoredXPathTranslator.instance().validateXPathName("my xpath"));
+    assertFalse("Name containing dollar character is not valid",  StoredXPathTranslator.instance().validateXPathName("$myxpath"));
+    assertFalse("Name containing brace characters is not valid",  StoredXPathTranslator.instance().validateXPathName("{myxpath}"));
   }
 
   @Test
