@@ -215,6 +215,7 @@ implements DevToolbarContext {
             // Set up the root node to keep browsers happy when xpaths return DOM lists
             lOut.append("<xpath-result");
             lOut.append(" xpath=\""+XFUtil.sanitiseStringForOutput(lXPath, XFUtil.SANITISE_HTMLENTITIES)+"\"");
+            lOut.append(" processed-xpath=\""+XFUtil.sanitiseStringForOutput(lXPR.getExecutedPath().getProcessedPath(), XFUtil.SANITISE_HTMLENTITIES)+"\"");
             lOut.append(" time=\"" + (lEndTime-lStartTime) + "ms\"");
             lOut.append(" doms-implicated=\"" + lXPR.getNumberOfImplicatedDocuments() + "\"");
             lOut.append(">\r\n");
