@@ -46,7 +46,6 @@ import net.foxopen.fox.ex.ExTooFew;
 import net.foxopen.fox.ex.ExTooMany;
 import net.foxopen.fox.ex.ExValidation;
 import net.foxopen.fox.plugin.api.dom.FxpDOM;
-import net.foxopen.fox.plugin.api.dom.FxpDOMList;
 import net.sf.saxon.om.NodeInfo;
 import nu.xom.Attribute;
 import nu.xom.Builder;
@@ -2392,7 +2391,7 @@ implements FxpDOM<DOM> {
   }
 
   @Override
-  public FxpDOMList xpathUL(String pXPathString) throws ExBadPath {
+  public DOMList xpathUL(String pXPathString) throws ExBadPath {
     return xpathUL(pXPathString, null);
   }
 

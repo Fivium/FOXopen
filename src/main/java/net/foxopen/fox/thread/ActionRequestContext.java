@@ -11,6 +11,7 @@ import net.foxopen.fox.command.XDoRunner;
 import net.foxopen.fox.command.flow.XDoControlFlow;
 import net.foxopen.fox.dbinterface.InterfaceQuery;
 import net.foxopen.fox.dom.DOM;
+import net.foxopen.fox.dom.xpath.saxon.StoredXPathResolver;
 import net.foxopen.fox.download.DownloadManager;
 import net.foxopen.fox.module.entrytheme.EntryTheme;
 import net.foxopen.fox.module.Mod;
@@ -130,5 +131,12 @@ extends RequestContext {
   public String getCurrentCallId();
 
   public void applyClientActions(String pClientActionJSON);
+
+  /**
+   * Gets the current StoredXPathResolver for this RequestContext, which may be different across state/module calls
+   * depending on which XPath definitions are currently in scope.
+   * @return A contextual StoredXPathResolver.
+   */
+  public StoredXPathResolver getStoredXPathResolver();
 
 }

@@ -48,6 +48,7 @@ import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.DOMList;
 import net.foxopen.fox.dom.NamespaceAttributeTable;
 import net.foxopen.fox.dom.paging.PagerDefinition;
+import net.foxopen.fox.dom.xpath.saxon.StoredXPathResolver;
 import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.ex.ExApp;
@@ -223,6 +224,8 @@ extends FoxComponent implements Validatable {
   private Map<String, ClientVisibilityRule> mVisibilityRuleNameToVisibilityRuleMap = new HashMap<String, ClientVisibilityRule>();
 
   private HtmlDoctype mDocumentType = null;
+
+  private final StoredXPathResolver mStoredXPathResolver;
 
   /** Map of buffer names to pre-parsed Presentaion Nodes */
   private HashMap<String, BufferPresentationNode> mParsedBuffers = new HashMap<String, BufferPresentationNode>();
@@ -417,6 +420,9 @@ extends FoxComponent implements Validatable {
           throw exceptionForNamedElement(lAction, "action", th);
         }
       }
+
+      //Parse the module level XPath list
+      mStoredXPathResolver = ModuleStoredXPathResolver.createFromDOMList(lModuleDOM.getUL("fm:xpath-list/fm:xpath"));
 
       // Once the actions names have been collected, actually construct the objects for each State
       for (DOM lStateDOM : lStateDOMList) {
@@ -1629,7 +1635,7 @@ extends FoxComponent implements Validatable {
       // Merge element definition
       if(lMergeChildNameIntern=="xs:element") {
         mergeElementDefinition(
-          pParentTargetNode
+        pParentTargetNode
         , pParentSourceNode
         , lMergeChildDOM
         , lMergeChildContext
@@ -1644,7 +1650,7 @@ extends FoxComponent implements Validatable {
       || lMergeChildNameIntern=="xs:simpleType"
       ) {
         mergeSimpleOrComplexTypeDefinition(
-          pParentTargetNode
+        pParentTargetNode
         , pParentSourceNode
         , lMergeChildDOM
         , lMergeChildContext
@@ -1662,7 +1668,7 @@ extends FoxComponent implements Validatable {
       || lMergeChildNameIntern=="xs:restriction"
       ) {
         mergeRestrictionExtensionDefinition(
-          pParentTargetNode
+        pParentTargetNode
         , pParentSourceNode
         , lMergeChildDOM
         , lMergeChildContext
@@ -1680,7 +1686,7 @@ extends FoxComponent implements Validatable {
       || lMergeChildNameIntern=="xs:dd"
       ) {
         mergeAndRecurseOrCloneAndStop(
-          pParentTargetNode
+        pParentTargetNode
         , pParentSourceNode
         , lMergeChildDOM
         , lMergeChildContext
@@ -1715,7 +1721,7 @@ extends FoxComponent implements Validatable {
         }
 
         mergeNamedSection(
-          pParentTargetNode
+        pParentTargetNode
         , pParentSourceNode
         , lMergeChildDOM
         , lMergeChildContext
@@ -1730,6 +1736,13 @@ extends FoxComponent implements Validatable {
         );
       }
 
+      //Elements which are not merged together, and brought in entirely from a library - overloading by main module is only allowed if a flag is set on the library element
+      else if(
+        lMergeChildNameIntern=="fm:xpath"
+      ) {
+        mergeNamedElementOrValidateOverload("name", pParentTargetNode, lMergeChildDOM, lMergeChildContext, lMergeChildNameIntern, pSourceModuleName);
+      }
+
      else if(
          lMergeChildNameIntern=="fm:css"
       ) {
@@ -1739,7 +1752,7 @@ extends FoxComponent implements Validatable {
         }
 
         mergeCSSItem(
-          pParentTargetNode
+        pParentTargetNode
         , pParentSourceNode
         , lMergeChildDOM
         , lMergeChildContext
@@ -1842,6 +1855,7 @@ extends FoxComponent implements Validatable {
       || lMergeChildNameIntern=="fm:pagination-definition-list"
       || lMergeChildNameIntern=="fm:client-visibility-rule-list"
       || lMergeChildNameIntern=="fm:css-list"
+      || lMergeChildNameIntern=="fm:xpath-list"
       ) {
 
         if(!pEnableModuleMetaMerging) {
@@ -2390,6 +2404,53 @@ extends FoxComponent implements Validatable {
 
   } // end mergeNamedSection
 
+  /**
+   * Merges in a named element from a library module. If the element is defined in the target (main) module, the target
+   * definition is retained only if the library definition is marked up with <tt>overload="allowed"</tt>. If overloading is
+   * not allowed, an exception is thrown.
+   *
+   * @param pIdentifyingAttribute Attribute to use to determine the element's name.
+   * @param pParentTargetNode Target container in the merge DOM.
+   * @param pSourceElementDOM Element from nested library.
+   * @param pSourceElementContext For debug.
+   * @param pSourceElementName Name of element being merged.
+   * @param pSourceModuleName Name of module currently being processed.
+   * @throws ExModule
+   */
+  private final void mergeNamedElementOrValidateOverload(String pIdentifyingAttribute, DOM pParentTargetNode, DOM pSourceElementDOM,
+                                                         String pSourceElementContext, String pSourceElementName, String pSourceModuleName)
+  throws ExModule {
+
+    //Establish identifier for this element (i.e. fm:xpath name attribute)
+    String lIdentifier = pSourceElementDOM.getAttrOrNull(pIdentifyingAttribute);
+    String lNameContext = pSourceElementContext+'('+lIdentifier+')';
+    if(lIdentifier == null) {
+      throw new ExModule(pIdentifyingAttribute + " not specified in " + lNameContext);
+    }
+
+    //Look up elements with the same name in the main module's list container (i.e. fm:xpath-list)
+    DOMList lComplementList = pParentTargetNode.getElementsByAttrValue(pSourceElementName, pIdentifyingAttribute, lIdentifier);
+
+    //Sanity check there are no duplicate definitions
+    int lComplementCount = lComplementList.getLength();
+    if(lComplementCount > 1) {
+      throw new ExInternal("Duplicate "+pSourceElementName+" definitions located in schema/module/library when merging " +pSourceElementContext);
+    }
+
+    if(lComplementCount == 0) {
+      //Definition is in library and not in main so it can be merged in without problems
+      DOM lCopiedNode = pSourceElementDOM.copyToParent(pParentTargetNode);
+      setSourceModuleAttr(lCopiedNode, pSourceModuleName);
+    }
+    else {
+      //Definition is in both library and in main - check that the library allows an overload
+      //(if it does, take no action and keep the definition from the main module)
+      if(!"allowed".equals(pSourceElementDOM.getAttr("overload"))) {
+        throw new ExModule("Overloading not allowed for " + pSourceElementName + " with " + pIdentifyingAttribute + " of '" + lIdentifier + "' (defined in " + pSourceModuleName + ")");
+      }
+    }
+  }
+
   private static final void setSourceModuleAttr(DOM pTargetNode, String pSourceModuleName) {
 
     String lCurrentAttrVal = pTargetNode.getAttr(MERGE_SOURCE_MODULE_ATTR_NAME);
@@ -2831,6 +2892,15 @@ extends FoxComponent implements Validatable {
 
   public HtmlDoctype getDocumentType() {
     return mDocumentType;
+  }
+
+  /**
+   * Gets the StoredXPathResolver for this module definition. This is a root level StoredXPathResolver with no parent to
+   * delegate to.
+   * @return StoredXPathResolver for this module.
+   */
+  public StoredXPathResolver getStoredXPathResolver() {
+    return mStoredXPathResolver;
   }
 
   public void addBulkModuleErrorMessage(String pModuleErrorMessage) {

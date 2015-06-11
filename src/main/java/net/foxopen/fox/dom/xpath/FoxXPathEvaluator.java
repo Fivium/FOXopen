@@ -38,6 +38,7 @@ import net.foxopen.fox.cache.CacheManager;
 import net.foxopen.fox.cache.BuiltInCacheDefinition;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.xpath.saxon.DynamicNamespaceContext;
+import net.foxopen.fox.dom.xpath.saxon.StoredXPathTranslator;
 import net.foxopen.fox.enginestatus.EngineStatus;
 import net.foxopen.fox.ex.ExBadPath;
 import net.foxopen.fox.ex.ExInternal;
@@ -144,6 +145,11 @@ public class FoxXPathEvaluator {
     lPath = FoxConstantPath.getFoxConstantPathOrNull(pPath);
     if(lPath != null){
       return lPath;
+    }
+
+    //Do a quick check for stored XPath references which should be translated if any are found
+    if(StoredXPathTranslator.instance().containsStoredXPathReference(pPath)) {
+      pPath = StoredXPathTranslator.instance().translateXPathReferences(pPath);
     }
 
     //Now, try this as a simple path - this method will return null if it's not simple
