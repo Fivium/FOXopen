@@ -223,24 +223,32 @@ implements ListeningPersistable, Iterable<ModuleCall>, ThreadEventListener {
     mStack.removeFirst();
     notifyStateChangeListeners(pRequestContext, EventType.MODULE);
 
-    //If the stack has calls remaining on it, we may need to run callbacks
-    if(mStack.size() > 0) {
+    //Any errors which occur from here must manually abort the popped module call, because Thread abort only aborts the top call
+    try {
+      //If the stack has calls remaining on it, we may need to run callbacks
+      if(mStack.size() > 0) {
 
-      ModuleCall lNewTopModuleCall = getTopModuleCall();
+        ModuleCall lNewTopModuleCall = getTopModuleCall();
 
-      if(pMountData || pRunCallbacks) {
-        //Mount DOMs and refresh the ContextUElem for the newly entered module
-        lNewTopModuleCall.mount(pRequestContext);
+        if(pMountData || pRunCallbacks) {
+          //Mount DOMs and refresh the ContextUElem for the newly entered module
+          lNewTopModuleCall.mount(pRequestContext);
+        }
+
+        if(pRunCallbacks){
+          runCallbacks(pRequestContext, lRemovedModuleCall, lNewTopModuleCall, pAllowCallbackTransformations);
+        }
       }
 
-      if(pRunCallbacks){
-        runCallbacks(pRequestContext, lRemovedModuleCall, lNewTopModuleCall, pAllowCallbackTransformations);
+      //Now we've potentially read the return DOM/callback handlers etc we can unmount the popped call
+      if(lRemovedModuleCall.isMounted()){
+        lRemovedModuleCall.unmountModuleCall(pRequestContext);    //Ok here or needs moving up?
       }
     }
-
-    //Now we've potentially read the return DOM/callback handlers etc we can unmount the popped call
-    if(lRemovedModuleCall.isMounted()){
-      lRemovedModuleCall.unmountModuleCall(pRequestContext);    //Ok here or needs moving up?
+    catch (Throwable th) {
+      //Catch all to ensure DOM handlers on the just-popped call are aborted in the event of an error
+      lRemovedModuleCall.getContextUElem().abortDOMHandlers();
+      throw new ExInternal("Error caught handling callback", th);
     }
   }
 
