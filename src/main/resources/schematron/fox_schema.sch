@@ -97,7 +97,7 @@
     <sch:let name="fox_ns" value="'http://www.og.dti.gov/fox(_global)?/'"/>
     <sch:rule context="xs:schema">
       <sch:report test="namespace::*[ matches( . ,$fox_ns) and not(matches(.,concat($fox_ns,local-name(.),'$' ) )) ]">
-        <sch:value-of select="namespace::*[*[ matches( . ,$fox_ns) and not(matches(.,concat($fox_ns,local-name(.),'$' ) )) ]]"/>
+        Namespace does not match prefix: <sch:value-of select="namespace::*[ matches( . ,$fox_ns) and not(matches(.,concat($fox_ns,local-name(.),'$' ) )) ]"/>
       </sch:report>
     </sch:rule>
   </sch:pattern>
