@@ -1,6 +1,6 @@
 package net.foxopen.fox.module.serialiser.layout.methods;
 
-import net.foxopen.fox.module.DisplayOrderComparator;
+import net.foxopen.fox.module.DisplayOrder;
 import net.foxopen.fox.module.LayoutDirection;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfo;
@@ -18,7 +18,7 @@ import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
 import net.foxopen.fox.track.Track;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -51,7 +51,7 @@ public class FormLayout implements LayoutMethod {
     lRowCount++;
 
     // Construct list of items to process, and group up cellmates
-    List<CellItem> lCellItems = new ArrayList<>();
+    LinkedList<CellItem> lCellItems = new LinkedList<>();
     for (EvaluatedNodeInfo lItemNodeInfo : pEvalNodeInfo.getChildren()){
       if (lItemNodeInfo.getVisibility() == NodeVisibility.DENIED) {
         continue;
@@ -61,7 +61,7 @@ public class FormLayout implements LayoutMethod {
     }
 
     // Sort form items based on displayOrder
-    Collections.sort(lCellItems, DisplayOrderComparator.getInstance());
+    DisplayOrder.sort(lCellItems);
 
     // Process the flow layout
     for (int lItemIndex = 0; lItemIndex < lCellItems.size(); lItemIndex++) {

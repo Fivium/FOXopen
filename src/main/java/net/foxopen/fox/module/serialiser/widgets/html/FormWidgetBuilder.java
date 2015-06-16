@@ -156,34 +156,8 @@ public class FormWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
 
             pSerialiser.append(">");
 
-            // Output debug information if turned on
             if (pSerialisationContext.getDevToolbarContext().isFlagOn(DevToolbarContext.Flag.HTML_GEN_DEBUG)) {
-              StringBuilder lItemDebugInfo = new StringBuilder();
-              if (!lColumnItem.isFiller()) {
-                lItemDebugInfo.append("<p><strong>Namespaces:</strong><ol><li>");
-                lItemDebugInfo.append(Joiner.on("</li><li>").join(lColumnItem.getItemNode().getNamespacePrecedenceList()));
-                lItemDebugInfo.append("</li></ol></p>");
-                lItemDebugInfo.append("<p>");
-                lItemDebugInfo.append(StringEscapeUtils.escapeHtml4(lColumnItem.getItemNode().getIdentityInformation()));
-                lItemDebugInfo.append("</p>");
-              }
-              lItemDebugInfo.append("<p><strong>Column Type:</strong> ");
-              if (lColumnItem.isFiller()) {
-                lItemDebugInfo.append("Filler");
-              }
-              else if (lColumnItem.isPrompt()) {
-                lItemDebugInfo.append("Prompt");
-              }
-              else {
-                lItemDebugInfo.append("Field");
-              }
-              lItemDebugInfo.append("</p>");
-              lItemDebugInfo.append("<p><strong>Width:</strong> ");
-              lItemDebugInfo.append(lColumnItem.getColSpan());
-              lItemDebugInfo.append(" of ");
-              lItemDebugInfo.append(lColumnLimit);
-              lItemDebugInfo.append(" logical columns</p>");
-              pSerialiser.addDebugInformation(lItemDebugInfo.toString());
+              outputCellDebugInformation(pSerialiser, lColumnItem, lColumnLimit);
             }
 
             if (!lColumnItem.isFiller()) {
@@ -238,5 +212,55 @@ public class FormWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
     finally {
       Track.pop("FormWidget");
     }
+  }
+
+  /**
+   * Output as much debug information as possible for a LayoutWidgetItemColumn
+   *
+   * @param pSerialiser Serialiser to output debug with
+   * @param pColumnItem The item to get information from
+   * @param pColumnLimit Limit for reference in debug information
+   */
+  private void outputCellDebugInformation(HTMLSerialiser pSerialiser, LayoutWidgetItemColumn pColumnItem, int pColumnLimit) {
+    StringBuilder lItemDebugInfo = new StringBuilder();
+    if (!pColumnItem.isFiller()) {
+      lItemDebugInfo.append("<p><strong>Namespaces:</strong><ol><li>");
+      lItemDebugInfo.append(Joiner.on("</li><li>").join(pColumnItem.getItemNode().getNamespacePrecedenceList()));
+      lItemDebugInfo.append("</li></ol></p>");
+      lItemDebugInfo.append("<p>");
+      lItemDebugInfo.append(StringEscapeUtils.escapeHtml4(pColumnItem.getItemNode().getIdentityInformation()));
+      lItemDebugInfo.append("</p>");
+
+      lItemDebugInfo.append("<p><strong>DisplayOrder:</strong> ");
+      lItemDebugInfo.append(pColumnItem.getItemNode().getDisplayOrder());
+      lItemDebugInfo.append("</p>");
+      if (!XFUtil.isNull(pColumnItem.getItemNode().getDisplayBeforeAttribute())) {
+        lItemDebugInfo.append("<p><strong>DisplayBefore:</strong> ");
+        lItemDebugInfo.append(pColumnItem.getItemNode().getDisplayBeforeAttribute());
+        lItemDebugInfo.append("</p>");
+      }
+      if (!XFUtil.isNull(pColumnItem.getItemNode().getDisplayAfterAttribute())) {
+        lItemDebugInfo.append("<p><strong>DisplayAfter:</strong> ");
+        lItemDebugInfo.append(pColumnItem.getItemNode().getDisplayAfterAttribute());
+        lItemDebugInfo.append("</p>");
+      }
+    }
+    lItemDebugInfo.append("<p><strong>Column Type:</strong> ");
+    if (pColumnItem.isFiller()) {
+      lItemDebugInfo.append("Filler");
+    }
+    else if (pColumnItem.isPrompt()) {
+      lItemDebugInfo.append("Prompt");
+    }
+    else {
+      lItemDebugInfo.append("Field");
+    }
+    lItemDebugInfo.append("</p>");
+    lItemDebugInfo.append("<p><strong>Width:</strong> ");
+    lItemDebugInfo.append(pColumnItem.getColSpan());
+    lItemDebugInfo.append(" of ");
+    lItemDebugInfo.append(pColumnLimit);
+    lItemDebugInfo.append(" logical columns</p>");
+    pSerialiser.addDebugInformation(lItemDebugInfo.toString());
   }
 }

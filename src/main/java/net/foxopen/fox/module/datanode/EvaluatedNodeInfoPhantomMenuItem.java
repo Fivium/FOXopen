@@ -3,7 +3,7 @@ package net.foxopen.fox.module.datanode;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.module.ActionDefinition;
-import net.foxopen.fox.module.DisplayOrderComparator;
+import net.foxopen.fox.module.DisplayOrder;
 import net.foxopen.fox.module.MenuOutActionProvider;
 import net.foxopen.fox.module.evaluatedattributeresult.DOMAttributeResult;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.GenericAttributesEvaluatedPresentationNode;
@@ -13,7 +13,6 @@ import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 import net.foxopen.fox.module.serialiser.widgets.WidgetType;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -77,7 +76,7 @@ extends EvaluatedNodeInfoItem
       }
     }
 
-    Collections.sort(mEvaluatedNodeActionList, DisplayOrderComparator.getInstance());
+    DisplayOrder.sort(mEvaluatedNodeActionList);
   }
 
   @Override

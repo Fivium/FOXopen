@@ -1,7 +1,7 @@
 package net.foxopen.fox.thread.facet;
 
 import net.foxopen.fox.dom.DOM;
-import net.foxopen.fox.module.DisplayOrderComparator;
+import net.foxopen.fox.module.DisplayOrder;
 import net.foxopen.fox.module.facet.ModuleFacetType;
 import net.foxopen.fox.module.tabs.EvaluatedTabInfo;
 import net.foxopen.fox.module.tabs.TabGroup;
@@ -83,7 +83,7 @@ implements TabGroup, Serializable, DeserialisationHandler {
   public void refreshTabInfoList(List<EvaluatedTabInfo> pTabInfoList) {
     mTabInfoList.clear();
     mTabInfoList.addAll(pTabInfoList);
-    Collections.sort(mTabInfoList, DisplayOrderComparator.getInstance());
+    DisplayOrder.sort(mTabInfoList);
   }
 
   @Override
