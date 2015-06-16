@@ -319,8 +319,9 @@ public class DocControl {
    * for the purposes of XPath execution (see {@link DOM#wrap}). Once created, the DocumentWrapper is stored on this
    * DocControl for reuse.
    * @return The DocumentWrapper.
+   * @param pNode Node to be wrapped - used to create a JIT wrapper by UnattachedDocControl, in which case it must be top level element.
    */
-  public XOMDocumentWrapper getOrCreateDocumentWrapper(){
+  public XOMDocumentWrapper getOrCreateDocumentWrapper(Node pNode){
     XOMDocumentWrapper lDocumentWrapper = null;
     if(mDocumentWrapperRef != null){
       lDocumentWrapper = mDocumentWrapperRef.get();

@@ -4,6 +4,7 @@ import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.auth.AuthenticationContext;
 import net.foxopen.fox.auth.SecurityScope;
 import net.foxopen.fox.dom.DOM;
+import net.foxopen.fox.dom.xpath.saxon.XPathVariableManager;
 import net.foxopen.fox.download.DownloadParcel;
 import net.foxopen.fox.module.facet.ModuleFacet;
 import net.foxopen.fox.module.fieldset.FieldSet;
@@ -29,9 +30,10 @@ public interface Serialiser {
   public void deleteThread(String pThreadId);
 
   public void createModuleCall(String pModuleCallId, int pStackPosition, String pAppMnem, String pModuleName, String pEntryThemeName,
-                               Map<String, WorkingDataDOMStorageLocation> pLabelToStorageLocationMap, List<CallbackHandler> pCallbackHandlerList, SecurityScope pSecurityScope);
+                               Map<String, WorkingDataDOMStorageLocation> pLabelToStorageLocationMap, List<CallbackHandler> pCallbackHandlerList, SecurityScope pSecurityScope,
+                               XPathVariableManager pXPathVariableManager);
 
-  public void updateModuleCall(String pModuleCallId, SecurityScope pSecurityScope);
+  public void updateModuleCall(String pModuleCallId, SecurityScope pSecurityScope, XPathVariableManager pXPathVariableManager);
 
   public void deleteModuleCall(String pModuleCallId);
 

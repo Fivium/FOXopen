@@ -2204,7 +2204,8 @@ implements FxpDOM<DOM> {
    * @return String representation of this node.
    */
   public String toString() {
-    return getName()+"("+ getClass().getName() + ") #" + String.valueOf(hashCode());
+    //Note: avoid using actuator based methods in case DocControl is null
+    return DOM.getFullNameSafe(mXOMNode) +"("+ getClass().getName() + ") #" + String.valueOf(hashCode());
   }
 
   /**
@@ -2340,7 +2341,7 @@ implements FxpDOM<DOM> {
    */
   public NodeInfo wrap(){
     //This method could be expanded to return different wrap types in the future.
-    return DocControl.getDocControl(mXOMNode).getOrCreateDocumentWrapper().wrap(mXOMNode);
+    return DocControl.getDocControl(mXOMNode).getOrCreateDocumentWrapper(mXOMNode).wrap(mXOMNode);
   }
 
   /**

@@ -307,6 +307,9 @@ public class SaxonEnvironment {
     XPathEvaluator lXPE = new XPathEvaluator(SaxonEnvironment.getSaxonConfiguration());
     lXPE.getStaticContext().setBackwardsCompatibilityMode(pBackwardsCompatible);
 
+    //All XPath expressions should use the ThreadLocal variable resolver if one exists - setup the proxy for accessing it here
+    lXPE.setXPathVariableResolver(VariableResolverProxy.INSTANCE);
+
     if (pNamespaceMap == null) {
       lXPE.setNamespaceContext(gFoxNamespaceContext);
     }

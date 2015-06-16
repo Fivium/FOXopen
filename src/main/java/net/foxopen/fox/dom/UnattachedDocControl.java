@@ -32,8 +32,10 @@ $Id$
 */
 package net.foxopen.fox.dom;
 
+import net.foxopen.fox.dom.xpath.saxon.SaxonEnvironment;
 import net.foxopen.fox.ex.ExDOM;
 
+import net.foxopen.fox.track.Track;
 import net.sf.saxon.option.xom.XOMDocumentWrapper;
 import nu.xom.Element;
 import nu.xom.Node;
@@ -152,8 +154,11 @@ extends DocControl {
   }
 
   @Override
-  public XOMDocumentWrapper getOrCreateDocumentWrapper() {
-    throw new ExDOM("Cannot getOrCreateDocumentWrapper on an UnattachedDocControl"); //Always error - this is a serious problem
+  public XOMDocumentWrapper getOrCreateDocumentWrapper(Node pNode) {
+    //Previously threw an exception but now tolerated for XPath variable support (element variables are unattached)
+    //XPath processing should still check for node attachment and prevent XPath execution on unattached nodes in inappropriate circumstances
+    Track.info("WrapUnattachedNode", "Creating JIT document wrapper for unattached node " + (pNode instanceof Element ? ((Element) pNode).getLocalName() : ""));
+    return new XOMDocumentWrapper(pNode, SaxonEnvironment.getSaxonConfiguration());
   }
 
   /**

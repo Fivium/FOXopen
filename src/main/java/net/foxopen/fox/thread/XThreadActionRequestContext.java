@@ -13,6 +13,7 @@ import net.foxopen.fox.dbinterface.InterfaceQuery;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.PathOrDOM;
 import net.foxopen.fox.dom.xpath.ContextualityLevel;
+import net.foxopen.fox.dom.xpath.saxon.XPathVariableManager;
 import net.foxopen.fox.dom.xpath.saxon.StoredXPathResolver;
 import net.foxopen.fox.download.DownloadManager;
 import net.foxopen.fox.entrypoint.FoxGlobals;
@@ -240,5 +241,10 @@ implements ActionRequestContext {
   @Override
   public StoredXPathResolver getStoredXPathResolver() {
     return mXThread.getTopModuleCall().getTopState().getStoredXPathResolver();
+  }
+
+  @Override
+  public XPathVariableManager getXPathVariableManager() {
+    return mXThread.getTopModuleCall().getXPathVariableManager();
   }
 }

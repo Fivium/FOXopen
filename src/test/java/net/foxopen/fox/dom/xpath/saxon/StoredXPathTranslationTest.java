@@ -162,6 +162,10 @@ public class StoredXPathTranslationTest {
       return new TestXPathResolver();
     }
 
+    @Override
+    public XPathVariableManager getXPathVariableManager() {
+      return null;
+    }
 
     @Override
     public ContextUElem getContextUElem() {

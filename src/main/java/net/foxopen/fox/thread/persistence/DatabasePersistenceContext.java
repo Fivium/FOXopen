@@ -3,22 +3,23 @@ package net.foxopen.fox.thread.persistence;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.WeakHashMap;
-
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.thread.RequestContext;
 import net.foxopen.fox.thread.persistence.SharedDOMManager.SharedDOMType;
 import net.foxopen.fox.track.Track;
 import net.foxopen.fox.track.TrackTimer;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 
 /**
@@ -110,7 +111,10 @@ implements PersistenceContext {
   }
   private final List<PersistenceEntry> mRequirePersisting = new ArrayList<>();
 
-  private final Set<ListeningPersistable> mListeningPersistables = Collections.newSetFromMap(new WeakHashMap<ListeningPersistable, Boolean>());
+  private final Set<ListeningPersistable> mListeningPersistables = Collections.newSetFromMap(new WeakHashMap<>());
+
+  /** Facets which have been marked for persistence in the current cycle. */
+  private final Set<PersistenceFacet> mMarkedFacets = EnumSet.noneOf(PersistenceFacet.class);
 
   private final String mThreadId;
 
@@ -135,8 +139,9 @@ implements PersistenceContext {
   }
 
   @Override
-  public void requiresPersisting(Persistable pPersistable, PersistenceMethod pMethod) {
+  public void requiresPersisting(Persistable pPersistable, PersistenceMethod pMethod, PersistenceFacet... pFacetsToMark) {
     mRequirePersisting.add(new PersistenceEntry(pPersistable, pMethod));
+    mMarkedFacets.addAll(Arrays.asList(pFacetsToMark));
   }
 
   @Override
@@ -193,6 +198,7 @@ implements PersistenceContext {
 
         //Clear for next persistence cycle
         mRequirePersisting.clear();
+        mMarkedFacets.clear();
       }
       finally {
         Track.pop("ThreadSerialise", TrackTimer.THREAD_SERIALISE);
@@ -230,5 +236,10 @@ implements PersistenceContext {
   @Override
   public SharedDOMManager getSharedDOMManager(SharedDOMType pDOMType, String pDOMId) {
     return DatabaseSharedDOMManager.getOrCreateDOMManager(pDOMType, pDOMId);
+  }
+
+  @Override
+  public boolean isFacetMarked(PersistenceFacet pFacet) {
+    return mMarkedFacets.contains(pFacet);
   }
 }
