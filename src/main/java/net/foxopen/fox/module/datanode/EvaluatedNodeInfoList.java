@@ -6,7 +6,7 @@ import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.DOMList;
 import net.foxopen.fox.dom.paging.DOMPager;
 import net.foxopen.fox.ex.ExInternal;
-import net.foxopen.fox.module.DisplayOrderComparator;
+import net.foxopen.fox.module.DisplayOrder;
 import net.foxopen.fox.module.MandatoryDisplayOption;
 import net.foxopen.fox.module.evaluatedattributeresult.BooleanAttributeResult;
 import net.foxopen.fox.module.fieldset.fieldmgr.FieldMgr;
@@ -112,7 +112,7 @@ public class EvaluatedNodeInfoList extends EvaluatedNodeInfoGeneric {
           }
         }
       }
-      Collections.sort(mPotentialColumns, DisplayOrderComparator.getInstance());
+      DisplayOrder.sort(mPotentialColumns);
 
       // Evaluate and add all the children of the list (the rows)
       addChildren();

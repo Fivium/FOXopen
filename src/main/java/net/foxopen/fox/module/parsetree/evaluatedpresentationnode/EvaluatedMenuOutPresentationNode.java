@@ -6,7 +6,7 @@ import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.ex.ExCardinality;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.ActionDefinition;
-import net.foxopen.fox.module.DisplayOrderComparator;
+import net.foxopen.fox.module.DisplayOrder;
 import net.foxopen.fox.module.MenuOutActionProvider;
 import net.foxopen.fox.module.datanode.EvaluatedNodeAction;
 import net.foxopen.fox.module.datanode.EvaluatedNodeFactory;
@@ -22,7 +22,6 @@ import net.foxopen.fox.module.serialiser.components.ComponentBuilderType;
 import net.foxopen.fox.module.serialiser.components.html.MenuOutWidgetHelper;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -85,7 +84,7 @@ implements MenuOutActionProvider {
       }
     }
 
-    Collections.sort(mEvaluatedNodeActionList, DisplayOrderComparator.getInstance());
+    DisplayOrder.sort(mEvaluatedNodeActionList);
 
     mFlow = XFUtil.nvl(mNodeEvaluationContext.getStringAttributeOrNull(NodeAttribute.FLOW), new FixedStringAttributeResult(MenuOutWidgetHelper.MENU_FLOW_ACROSS));
     mClasses = mNodeEvaluationContext.getStringAttributes(NodeAttribute.MENU_CLASS, NodeAttribute.MENU_TABLE_CLASS);

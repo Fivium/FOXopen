@@ -5,7 +5,7 @@ import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExCardinality;
 import net.foxopen.fox.ex.ExModule;
-import net.foxopen.fox.module.DisplayOrderComparator;
+import net.foxopen.fox.module.DisplayOrder;
 import net.foxopen.fox.module.parsetree.presentationnode.ContainerPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.PresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.TabGroupPresentationNode.TabPromptPresentationNode;
@@ -112,7 +112,7 @@ public abstract class TabInfoProvider {
     String lPreTabActionName = XFUtil.nvl(pDOM.getAttrOrNull(PRE_TAB_ACTION_NAME_ATTR), pDefaultPreTabActionName);
     String lPostTabActionName = XFUtil.nvl(pDOM.getAttrOrNull(POST_TAB_ACTION_NAME_ATTR), pDefaultPostTabActionName);
 
-    String lDisplayOrder = XFUtil.nvl(pDOM.getAttr("displayOrder"), DisplayOrderComparator.AUTO_ATTR_VALUE);
+    String lDisplayOrder = XFUtil.nvl(pDOM.getAttr("displayOrder"), DisplayOrder.AUTO_ATTR_VALUE);
 
     String lDefaultXPath = XFUtil.nvl(pDOM.getAttr("default"), "false()");
 
