@@ -1792,6 +1792,33 @@ Can also be used to replace all states on the state-call stack with the state sp
             <xs:attribute name="tabDOM" type="fm:entered-string"/>
           </xs:complexType>
         </xs:element>
+        <xs:element name="set-variable">
+          <xs:annotation>
+            <xs:documentation>Sets a variable which can be referred to in subsequent XPath expression evaluation using $variableName syntax.
+            The variable is scoped to the current module call. Use the "expr" attribute if the value should be the result of an XPath expression
+            (including a non-string item such as an xs:date), or the "textValue" attribute for a fixed string value.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:attribute name="name" type="fm:entered-string" use="required">
+              <xs:annotation>
+                <xs:documentation>Name of the variable to set. This must be a valid NCName.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="expr" type="fm:entered-string" use="optional">
+              <xs:annotation>
+                <xs:documentation>XPath expression to evaluate and use as the value for the variable. This may be a sequence containing nodes
+                of any type. Variables will resolve to copies of the items selected by this expression, not the original items. Avoid setting
+                large sequences as variable values as this will cause a serialisation overhead.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="textValue" type="fm:entered-string" use="optional">
+               <xs:annotation>
+                <xs:documentation>Fixed text to set the variable's value to. The item type of the variable will be a string. To set to
+                other item types, use the expr attribute and qualify the item type as a constructor, e.g. "xs:date('2015-01-01')".</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
       </xs:choice>
       <xs:choice minOccurs="0">
         <xs:element name="call-module">

@@ -15,6 +15,7 @@ import net.foxopen.fox.database.sql.bind.DOMBindObject;
 import net.foxopen.fox.database.xml.BinaryXMLWriter;
 import net.foxopen.fox.database.xml.XMLWriterStrategy;
 import net.foxopen.fox.dom.DOM;
+import net.foxopen.fox.dom.xpath.saxon.XPathVariableManager;
 import net.foxopen.fox.download.DownloadParcel;
 import net.foxopen.fox.ex.ExDB;
 import net.foxopen.fox.ex.ExInternal;
@@ -165,7 +166,7 @@ implements Serialiser {
       writeObjectToBlob(pThreadPropertyMap, lPropertyMapBlob, "PropertyMap", false);
     }
     catch (ExDB | SQLException e) {
-      throw new ExInternal("Failed to insert thread", e);
+      throw new ExInternal("Failed to update thread", e);
     }
     finally {
       Track.pop("UpdateThread");
@@ -178,7 +179,8 @@ implements Serialiser {
 
   @Override
   public void createModuleCall(String pModuleCallId, int pStackPosition, String pAppMnem, String pModuleName, String pEntryThemeName,
-                               Map<String, WorkingDataDOMStorageLocation> pLabelToStorageLocationMap, List<CallbackHandler> pCallbackHandlerList, SecurityScope pSecurityScope) {
+                               Map<String, WorkingDataDOMStorageLocation> pLabelToStorageLocationMap, List<CallbackHandler> pCallbackHandlerList, SecurityScope pSecurityScope,
+                               XPathVariableManager pXPathVariableManager) {
 
     Track.pushInfo("InsertModuleCall", "Insert module call with ID " + pModuleCallId + " (" + pModuleName + ")");
     try {
@@ -193,10 +195,15 @@ implements Serialiser {
       lBindMap.defineBind(":callback_handlers", XStreamManager.serialiseObjectToXMLString(pCallbackHandlerList));
       lBindMap.defineBind(":security_scope", XStreamManager.serialiseObjectToXMLString(pSecurityScope));
 
-      mUCon.executeAPI(SQLManager.instance().getStatement(INSERT_MODULE_CALL_FILENAME, getClass()), lBindMap);
+      lBindMap.defineBind(":xpath_variables", UCon.bindOutBlob());
+
+      UConStatementResult lStatementResult = mUCon.executeAPI(SQLManager.instance().getStatement(INSERT_MODULE_CALL_FILENAME, getClass()), lBindMap);
+
+      Blob lXPathVariableBlob = lStatementResult.getBlob(":xpath_variables");
+      writeObjectToBlob(pXPathVariableManager, lXPathVariableBlob, "XPathVariableManager", false);
     }
-    catch (ExDB e) {
-      throw new ExInternal("Failed to insert thread", e);
+    catch (ExDB | SQLException e) {
+      throw new ExInternal("Failed to insert module call", e);
     }
     finally {
       Track.pop("InsertModuleCall");
@@ -204,17 +211,32 @@ implements Serialiser {
   }
 
   @Override
-  public void updateModuleCall(String pModuleCallId, SecurityScope pSecurityScope) {
+  public void updateModuleCall(String pModuleCallId, SecurityScope pSecurityScope, XPathVariableManager pXPathVariableManager) {
 
     Track.pushInfo("UpdateModuleCall", "Update module call with ID " + pModuleCallId);
     try {
       UConBindMap lBindMap = new UConBindMap();
-      lBindMap.defineBind(":security_scope", XStreamManager.serialiseObjectToXMLString(pSecurityScope));
+
+      //Only update security scope if it has changed during the churn
+      if(mPersistenceContext.isFacetMarked(PersistenceFacet.MODULE_CALL_SECURITY_SCOPE)) {
+        lBindMap.defineBind(":security_scope", XStreamManager.serialiseObjectToXMLString(pSecurityScope));
+      }
+      else {
+        lBindMap.defineBind(":security_scope", null);
+      }
+
+      lBindMap.defineBind(":xpath_variables", UCon.bindOutBlob());
       lBindMap.defineBind(":call_id", pModuleCallId);
 
-      mUCon.executeAPI(SQLManager.instance().getStatement(UPDATE_MODULE_CALL_FILENAME, getClass()), lBindMap);
+      UConStatementResult lStatementResult = mUCon.executeAPI(SQLManager.instance().getStatement(UPDATE_MODULE_CALL_FILENAME, getClass()), lBindMap);
+
+      //Only update XPath variables if they have changed during the churn
+      if(mPersistenceContext.isFacetMarked(PersistenceFacet.MODULE_CALL_XPATH_VARIABLES)) {
+        Blob lXPathVariableBlob = lStatementResult.getBlob(":xpath_variables");
+        writeObjectToBlob(pXPathVariableManager, lXPathVariableBlob, "XPathVariableManager", false);
+      }
     }
-    catch (ExDB e) {
+    catch (ExDB | SQLException e) {
       throw new ExInternal("Failed to update module call", e);
     }
     finally {

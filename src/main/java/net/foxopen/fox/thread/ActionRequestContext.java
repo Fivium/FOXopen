@@ -11,6 +11,7 @@ import net.foxopen.fox.command.XDoRunner;
 import net.foxopen.fox.command.flow.XDoControlFlow;
 import net.foxopen.fox.dbinterface.InterfaceQuery;
 import net.foxopen.fox.dom.DOM;
+import net.foxopen.fox.dom.xpath.saxon.XPathVariableManager;
 import net.foxopen.fox.dom.xpath.saxon.StoredXPathResolver;
 import net.foxopen.fox.download.DownloadManager;
 import net.foxopen.fox.module.entrytheme.EntryTheme;
@@ -138,5 +139,12 @@ extends RequestContext {
    * @return A contextual StoredXPathResolver.
    */
   public StoredXPathResolver getStoredXPathResolver();
+
+  /**
+   * Gets the XPathVariableManager for this RequestContext, to use for resolving XPath variables. Typically the manager
+   * will be scoped to a ModuleCall so variables may resolve differently within a churn depending on the state of the call stack.
+   * @return Current XPathVariableManager.
+   */
+  public XPathVariableManager getXPathVariableManager();
 
 }

@@ -415,6 +415,7 @@ implements ListeningPersistable, Iterable<ModuleCall>, ThreadEventListener {
       lDebugInfo += "<li>Local cached mapsets: " + lCall.getMapSetManager().debugOutput() + "</li>";
       lDebugInfo += "<li>Facets: <ul>" + lCall.debugFacetProviders() + "</ul></li>";
       lDebugInfo += "<li>Security scope: <pre>" + XStreamManager.serialiseObjectToXMLString(lCall.getSecurityScope()).replaceAll("<", "&lt;").replaceAll(">", "&gt;") + "</pre></li>";
+      lDebugInfo += "<li>XPath variables: <pre>" + XStreamManager.serialiseObjectToXMLString(lCall.getXPathVariableManager()).replaceAll("<", "&lt;").replaceAll(">", "&gt;") + "</pre></li>";
       lDebugInfo += "<li>State calls:<br/> " + lCall.getStateCallStack().debugOutput() + "</li>";
 
       lDebugInfo += "</ul>";

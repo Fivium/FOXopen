@@ -68,6 +68,7 @@ import net.foxopen.fox.command.builtin.RenameCommand;
 import net.foxopen.fox.command.builtin.RunApiCommand;
 import net.foxopen.fox.command.builtin.RunQueryCommand;
 import net.foxopen.fox.command.builtin.SecurityScopeCommand;
+import net.foxopen.fox.command.builtin.SetVariableCommand;
 import net.foxopen.fox.command.builtin.ShowPopupCommand;
 import net.foxopen.fox.command.builtin.StateCommand;
 import net.foxopen.fox.command.builtin.SwitchTabCommand;
@@ -158,6 +159,7 @@ public class CommandProvider {
     registerCommandFactory(new RunApiCommand.Factory());
     registerCommandFactory(new RunQueryCommand.Factory());
     registerCommandFactory(new SecurityScopeCommand.Factory());
+    registerCommandFactory(new SetVariableCommand.Factory());
     registerCommandFactory(new ShowPopupCommand.Factory());
     registerCommandFactory(new StateCommand.Factory());
     registerCommandFactory(new SwitchTabCommand.Factory());

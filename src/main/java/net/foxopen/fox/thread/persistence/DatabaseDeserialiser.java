@@ -25,6 +25,7 @@ import net.foxopen.fox.thread.persistence.data.StateCallPersistedData;
 import net.foxopen.fox.thread.persistence.data.StatefulXThreadPersistedData;
 import net.foxopen.fox.thread.persistence.kryo.KryoManager;
 import net.foxopen.fox.thread.persistence.xstream.XStreamManager;
+import net.foxopen.fox.thread.stack.ModuleXPathVariableManager;
 import net.foxopen.fox.thread.stack.callback.CallbackHandler;
 import net.foxopen.fox.thread.storage.WorkingDataDOMStorageLocation;
 import net.foxopen.fox.track.Track;
@@ -57,16 +58,15 @@ implements Deserialiser {
     mContextUCon = pContextUCon;
   }
 
-  private static final <T> T kryoDeserialise(Class<T> pObjectClass, UConStatementResult lSelectXThreadResult, String pColumnName, String pDescription, String pThreadId) {
+  private static <T> T kryoDeserialise(Class<T> pObjectClass, Blob pBlob, String pDescription, String pEntityId) {
 
     T lResult;
     Track.pushDebug(pDescription + "Deserialise");
     try {
       Kryo lKryo = KryoManager.getKryoInstance();
 
-      Blob lBlob = lSelectXThreadResult.getBlob(pColumnName);
-      if(lBlob.length() > 0) {
-        Input lInput = new Input(lBlob.getBinaryStream());
+      if(pBlob.length() > 0) {
+        Input lInput = new Input(pBlob.getBinaryStream());
         lResult = lKryo.readObject(lInput, pObjectClass);
         lInput.close();
 
@@ -77,7 +77,7 @@ implements Deserialiser {
       }
     }
     catch (SQLException e) {
-      throw new ExInternal("Failed to retrieve " + pDescription + " for thread " + pThreadId, e);
+      throw new ExInternal("Failed to retrieve " + pDescription + " for ID " + pEntityId, e);
     }
     finally {
       Track.pop(pDescription + "Deserialise");
@@ -111,8 +111,8 @@ implements Deserialiser {
           Track.pop("AuthContextDeserialise");
         }
 
-        lThreadPropertyMap = kryoDeserialise(ThreadPropertyMap.class, lSelectXThreadResult, "THREAD_PROPERTY_MAP", "ThreadPropertyMap", pThreadId);
-        lFieldSet = kryoDeserialise(FieldSet.class, lSelectXThreadResult, "FIELD_SET", "FieldSet", pThreadId);
+        lThreadPropertyMap = kryoDeserialise(ThreadPropertyMap.class, lSelectXThreadResult.getBlob("THREAD_PROPERTY_MAP"), "ThreadPropertyMap", pThreadId);
+        lFieldSet = kryoDeserialise(FieldSet.class, lSelectXThreadResult.getBlob("FIELD_SET"), "FieldSet", pThreadId);
       }
       catch (ExDB e) {
         throw new ExInternal("Failed to retrieved thread " + pThreadId, e);
@@ -153,6 +153,8 @@ implements Deserialiser {
             ResultSet lResultSet = lUConResultSet.getResultSet();
             while (lResultSet.next()) {
 
+              String lModuleCallId = lResultSet.getString("CALL_ID");
+
               Clob lStorageLocationClob = lResultSet.getClob("STORAGE_LOCATIONS");
               Clob lCallbackHandlerClob = lResultSet.getClob("CALLBACK_HANDLERS");
               Clob lSecurityScopeClob = lResultSet.getClob("SECURITY_SCOPE");
@@ -161,8 +163,10 @@ implements Deserialiser {
               List<CallbackHandler> lCallbackHandlers = (List<CallbackHandler>) XStreamManager.getXStream().fromXML(lCallbackHandlerClob.getCharacterStream());
               SecurityScope lSecurityScope = (SecurityScope) XStreamManager.getXStream().fromXML(lSecurityScopeClob.getCharacterStream());
 
+              ModuleXPathVariableManager lXPathVariableManager = kryoDeserialise(ModuleXPathVariableManager.class, lResultSet.getBlob("XPATH_VARIABLES"), "XPathVariables", lModuleCallId);
+
               ModuleCallPersistedData lModuleCallData = new ModuleCallPersistedData (
-                lResultSet.getString("CALL_ID")
+                lModuleCallId
               , lResultSet.getInt("STACK_POSITION")
               , lResultSet.getString("APP_MNEM")
               , lResultSet.getString("MODULE_NAME")
@@ -170,6 +174,7 @@ implements Deserialiser {
               , lLabelToStorageLocationMap
               , lCallbackHandlers
               , lSecurityScope
+              , lXPathVariableManager
               );
 
               lModuleCallDataList.add(lModuleCallData);

@@ -12,6 +12,7 @@ import net.foxopen.fox.command.flow.XDoControlFlow;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.handler.DOMHandler;
 import net.foxopen.fox.dom.handler.InternalDOMHandler;
+import net.foxopen.fox.dom.xpath.saxon.XPathVariableManager;
 import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.ex.ExApp;
@@ -32,6 +33,7 @@ import net.foxopen.fox.thread.facet.ModuleCallFacetProvider;
 import net.foxopen.fox.thread.persistence.Persistable;
 import net.foxopen.fox.thread.persistence.PersistableType;
 import net.foxopen.fox.thread.persistence.PersistenceContext;
+import net.foxopen.fox.thread.persistence.PersistenceFacet;
 import net.foxopen.fox.thread.persistence.PersistenceMethod;
 import net.foxopen.fox.thread.persistence.PersistenceResult;
 import net.foxopen.fox.thread.persistence.data.ModuleCallPersistedData;
@@ -61,6 +63,7 @@ implements Persistable {
 
   private final String mCallId;
   private final ContextUElem mContextUElem;
+  private final ModuleXPathVariableManager mXPathVariableManager;
   private final List<CallbackHandler> mCallbackHandlerList;
 
   private final ModuleCallStack mOwningCallStack;
@@ -100,7 +103,7 @@ implements Persistable {
     }
 
     ModuleCall lCall = new ModuleCall(lModuleCallId, lEntryTheme, lContextUElem, pModuleCallData.getCallbackHandlerList(), pOwningCallStack, lLabelToStorageLocationMap,
-                                      pModuleCallData.getSecurityScope(), false, pPersistenceContext);
+                                      pModuleCallData.getSecurityScope(), false, pPersistenceContext, pModuleCallData.getXPathVariableManager());
 
     return lCall;
   }
@@ -123,18 +126,20 @@ implements Persistable {
     return lContextUElem;
   }
 
-  private static ModuleCall createNew(EntryTheme pEntryTheme, DOMHandlerProvider pHandlerProvider, DOM pParamsDOM, DOM pEnvironmentDOM, List<CallbackHandler> pCallbackHandlerList, ModuleCallStack pOwningCallStack,
-                                      PersistenceContext pPersistenceContext) {
+  private static ModuleCall createNew(EntryTheme pEntryTheme, DOMHandlerProvider pHandlerProvider, DOM pParamsDOM, DOM pEnvironmentDOM,
+                                      List<CallbackHandler> pCallbackHandlerList, ModuleCallStack pOwningCallStack, PersistenceContext pPersistenceContext) {
     String lNewCallId = XFUtil.unique();
 
     Map<String, WorkingDataDOMStorageLocation> lLabelToWorkingStorageLocationMap = new HashMap<>();
     ContextUElem lContextUElem = bootstrapContextUElem(lNewCallId, pEntryTheme, pHandlerProvider, pParamsDOM, pEnvironmentDOM, lLabelToWorkingStorageLocationMap);
 
-    return new ModuleCall(lNewCallId, pEntryTheme, lContextUElem, pCallbackHandlerList, pOwningCallStack, lLabelToWorkingStorageLocationMap, SecurityScope.defaultInstance(), true, pPersistenceContext);
+    return new ModuleCall(lNewCallId, pEntryTheme, lContextUElem, pCallbackHandlerList, pOwningCallStack, lLabelToWorkingStorageLocationMap, SecurityScope.defaultInstance(),
+                          true, pPersistenceContext, new ModuleXPathVariableManager());
   }
 
   private ModuleCall (String pCallId, EntryTheme pEntryTheme, ContextUElem pContextUElem, List<CallbackHandler> pCallbackHandlerList, ModuleCallStack pOwningCallStack,
-                      Map<String, WorkingDataDOMStorageLocation> pLabelToWorkingStorageLocationMap, SecurityScope pSecurityScope, boolean pIsNew, PersistenceContext pPersistenceContext) {
+                      Map<String, WorkingDataDOMStorageLocation> pLabelToWorkingStorageLocationMap, SecurityScope pSecurityScope, boolean pIsNew, PersistenceContext pPersistenceContext,
+                      ModuleXPathVariableManager pXPathVariableManager) {
     mCallId = pCallId;
 
     mAppMnem = pEntryTheme.getModule().getApp().getAppMnem();
@@ -168,6 +173,10 @@ implements Persistable {
 
       mEntryThemeProcessed = true;
     }
+
+    mXPathVariableManager = pXPathVariableManager;
+    //This must be set here as it needs a reference to this ModuleCall (either when new or deserialised)
+    mXPathVariableManager.setPersistenceContextProxy(() -> pPersistenceContext.requiresPersisting(ModuleCall.this, PersistenceMethod.UPDATE, PersistenceFacet.MODULE_CALL_XPATH_VARIABLES));
   }
 
   private static ContextUElem bootstrapContextUElem(String pCallId, EntryTheme pEntryTheme, DOMHandlerProvider pHandlerProvider, DOM pParamsDOM, DOM pEnvironmentDOM,
@@ -231,7 +240,7 @@ implements Persistable {
   public void setSecurityScope(ActionRequestContext pRequestContext, SecurityScope pSecurityScopeParams) {
     mSecurityScope = pSecurityScopeParams;
     mOwningCallStack.notifyStateChangeListeners(pRequestContext, ModuleStateChangeListener.EventType.SECURITY_SCOPE);
-    pRequestContext.getPersistenceContext().requiresPersisting(this, PersistenceMethod.UPDATE);
+    pRequestContext.getPersistenceContext().requiresPersisting(this, PersistenceMethod.UPDATE, PersistenceFacet.MODULE_CALL_SECURITY_SCOPE);
   }
 
   public SecurityScope getSecurityScope() {
@@ -451,13 +460,13 @@ implements Persistable {
   @Override
   public Collection<PersistenceResult> create(PersistenceContext pPersistenceContext) {
     pPersistenceContext.getSerialiser().createModuleCall(mCallId, mOwningCallStack.moduleCallIndex(this), mAppMnem, mModuleName, mEntryThemeName,
-      mLabelToWorkingStorageLocationMap, mCallbackHandlerList, mSecurityScope);
+                                                         mLabelToWorkingStorageLocationMap, mCallbackHandlerList, mSecurityScope, mXPathVariableManager);
     return Collections.singleton(new PersistenceResult(this, PersistenceMethod.CREATE));
   }
 
   @Override
   public Collection<PersistenceResult> update(PersistenceContext pPersistenceContext) {
-    pPersistenceContext.getSerialiser().updateModuleCall(mCallId, mSecurityScope);
+    pPersistenceContext.getSerialiser().updateModuleCall(mCallId, mSecurityScope, mXPathVariableManager);
     return Collections.singleton(new PersistenceResult(this, PersistenceMethod.UPDATE));
   }
 
@@ -560,5 +569,9 @@ implements Persistable {
 
   public MapSetManager getMapSetManager() {
     return mMapSetManager;
+  }
+
+  public XPathVariableManager getXPathVariableManager() {
+    return mXPathVariableManager;
   }
 }
