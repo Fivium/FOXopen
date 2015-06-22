@@ -5,6 +5,7 @@ import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.xpath.XPathResult;
 import net.foxopen.fox.dom.xpath.saxon.XPathVariableManager;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.thread.persistence.PersistenceContextProxy;
 import net.foxopen.fox.track.Track;
 import net.sf.saxon.om.NameChecker;
 import net.sf.saxon.value.AtomicValue;
@@ -212,12 +213,4 @@ implements XPathVariableManager {
       .collect(Collectors.toList());
   }
 
-  /**
-   * Lambda for notifying a {@link net.foxopen.fox.thread.persistence.PersistenceContext} that an update is required due
-   * to a variable modification.
-   */
-  @FunctionalInterface
-  interface PersistenceContextProxy {
-    void updateRequired();
-  }
 }

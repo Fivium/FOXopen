@@ -72,6 +72,7 @@ implements PersistedData {
     return mLabelToStorageLocationMap;
   }
 
+  /** Might be null if no XPath variables have been serialised */
   public ModuleXPathVariableManager getXPathVariableManager() {
     return mXPathVariableManager;
   }

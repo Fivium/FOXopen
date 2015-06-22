@@ -1,11 +1,15 @@
 package net.foxopen.fox.thread;
 
+import net.foxopen.fox.thread.persistence.PersistenceContextProxy;
+
 import java.util.EnumMap;
 import java.util.Map;
 
 public class ThreadPropertyMap {
 
   private final Map<ThreadProperty.Type, ThreadProperty> mMap;
+  /** Used to tell a PersistenceContext when an update has occurred */
+  private transient PersistenceContextProxy mPersistenceContextProxy = () -> {};
 
   public static ThreadPropertyMap createDefaultPropertyMap() {
 
@@ -23,6 +27,7 @@ public class ThreadPropertyMap {
 
   public void setBooleanProperty(ThreadProperty.Type pType, boolean pValue) {
     mMap.put(pType, new ThreadProperty(pType, pValue));
+    mPersistenceContextProxy.updateRequired();
   }
 
   public boolean getBooleanProperty(ThreadProperty.Type pType) {
@@ -31,10 +36,15 @@ public class ThreadPropertyMap {
 
   public void setStringProperty(ThreadProperty.Type pType, String pValue) {
     mMap.put(pType, new ThreadProperty(pType, pValue));
+    mPersistenceContextProxy.updateRequired();
   }
 
   public String getStringProperty(ThreadProperty.Type pType) {
     return mMap.get(pType).stringValue();
+  }
+
+  void setPersistenceContextProxy(PersistenceContextProxy pPersistenceContextProxy) {
+    mPersistenceContextProxy = pPersistenceContextProxy;
   }
 
   @Override
