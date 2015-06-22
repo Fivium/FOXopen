@@ -52,10 +52,15 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class ModuleXPathVariableManagerTest {
@@ -303,6 +308,147 @@ public class ModuleXPathVariableManagerTest {
     mVariableManager.setVariable(null, "1");
   }
 
+  @Test
+   public void testClearVariable() {
+    mVariableManager.setVariable("testVar", "test");
+    assertNotNull("Variable available immediately after setting", mVariableManager.resolveVariable("testVar"));
+    mVariableManager.clearVariable("testVar");
+    assertNull("Variable not available after clearing", mVariableManager.resolveVariable("testVar"));
+  }
+
+  @Test
+  public void testLocalVariables()
+  throws ExActionFailed {
+    mVariableManager.setVariable("globalVar", "test");
+
+    Map<String, Object> lLocalVars = new HashMap<>();
+    lLocalVars.put("localStringVar", "test string");
+    lLocalVars.put("localIntegerVar", 2);
+    lLocalVars.put("localXPathVar", getXPathResult(":{ctxt}/FORM/FIELD_1"));
+
+    assertNull("Local variables not available before localise", mVariableManager.resolveVariable("localStringVar"));
+
+    mVariableManager.localise("testing", lLocalVars);
+
+    assertEquals("Local string variable can now be resolved", "test string", mVariableManager.resolveVariable("localStringVar"));
+    assertEquals("Local integer variable can now be resolved", 2, mVariableManager.resolveVariable("localIntegerVar"));
+    assertEquals("Local XPath variable can now be resolved", "FIELD_1", ((List<DOM>) mVariableManager.resolveVariable("localXPathVar")).get(0).getName());
+
+    mVariableManager.delocalise("testing");
+
+    assertNull("Local string variable not available after delocalise", mVariableManager.resolveVariable("localStringVar"));
+    assertNull("Local integer variable not available after delocalise", mVariableManager.resolveVariable("localIntegerVar"));
+    assertNull("Local XPath variable not available after delocalise", mVariableManager.resolveVariable("localXPathVar"));
+  }
+
+  @Test
+  public void testLocalVariables_MultipleLocalisations() {
+
+    mVariableManager.setVariable("globalVar", "global level");
+
+    Map<String, Object> lLocalVars = new HashMap<>();
+    lLocalVars.put("localVar", "localised level 1");
+    lLocalVars.put("localVar2", "localised level 1");
+
+    mVariableManager.localise("level 1", lLocalVars);
+
+    assertEquals("Global variable resolved to correct value", "global level", mVariableManager.resolveVariable("globalVar"));
+    assertEquals("Overloaded local variable resolved to level 1 value", "localised level 1", mVariableManager.resolveVariable("localVar"));
+    assertEquals("Non-overloaded local variable resolved to level 1 value", "localised level 1", mVariableManager.resolveVariable("localVar2"));
+
+    //Localise again with overloaded localVar
+    lLocalVars = new HashMap<>();
+    lLocalVars.put("localVar", "localised level 2");
+    lLocalVars.put("level2Var", "localised level 2");
+
+    mVariableManager.localise("level 2", lLocalVars);
+    assertEquals("Global variable resolved to correct value", "global level", mVariableManager.resolveVariable("globalVar"));
+    assertEquals("Overloaded local variable resolved to level 2 value", "localised level 2", mVariableManager.resolveVariable("localVar"));
+    assertEquals("Non-overloaded local variable resolved to level 1 value", "localised level 1", mVariableManager.resolveVariable("localVar2"));
+    assertNotNull("New local variable now available", mVariableManager.resolveVariable("level2Var"));
+
+    mVariableManager.delocalise("level 2");
+
+    assertEquals("Global variable resolved to correct value", "global level", mVariableManager.resolveVariable("globalVar"));
+    assertEquals("Overloaded local variable resolved to level 1 value", "localised level 1", mVariableManager.resolveVariable("localVar"));
+    assertEquals("Non-overloaded local variable resolved to level 1 value", "localised level 1", mVariableManager.resolveVariable("localVar2"));
+    assertNull("Level 2 local variable no longer available", mVariableManager.resolveVariable("level2Var"));
+
+    mVariableManager.delocalise("level 1");
+
+    assertEquals("Global variable resolved to correct value", "global level", mVariableManager.resolveVariable("globalVar"));
+    assertNull("Overloaded local variable no longer available", mVariableManager.resolveVariable("localVar"));
+    assertNull("Non-overloaded local variable no longer available", mVariableManager.resolveVariable("localVar2"));
+  }
+
+  @Test
+  public void testCannotClearLocalVariable() {
+
+    mVariableManager.setVariable("globalVar", "test");
+
+    Map<String, Object> lLocalVars = new HashMap<>();
+    lLocalVars.put("localVar", "localised");
+
+    mVariableManager.localise("test", lLocalVars);
+
+    mVariableManager.clearVariable("localVar");
+    assertNotNull("Attempt to clear local variable does not succeed", mVariableManager.resolveVariable("localVar"));
+
+    mVariableManager.clearVariable("globalVar");
+    assertNull("Global variable is cleared even when localised", mVariableManager.resolveVariable("globalVar"));
+
+  }
+
+  @Test
+  public void testSetVariableWhenLocalised() {
+    mVariableManager.localise("test", Collections.emptyMap());
+    mVariableManager.setVariable("globalVar", "test");
+    mVariableManager.delocalise("test");
+
+    assertNotNull("Global variable is available even though it was set when localised", mVariableManager.resolveVariable("globalVar"));
+  }
+
+  @Test
+  public void testIsVariableSet() {
+
+    mVariableManager.setVariable("globalVar", "test");
+    assertTrue("globalVar is set (global search)", mVariableManager.isVariableSet("globalVar", false));
+    assertFalse("globalVar is not set (local search)", mVariableManager.isVariableSet("globalVar", true));
+
+    mVariableManager.clearVariable("globalVar");
+    assertFalse("globalVar is not set after being cleared", mVariableManager.isVariableSet("globalVar", true));
+
+    mVariableManager.setVariable("emptyVar", Collections.emptyList());
+    assertTrue("nullVar is set even though value is empty sequence", mVariableManager.isVariableSet("emptyVar", false));
+
+    Map<String, Object> lLocalVars = new HashMap<>();
+    lLocalVars.put("localVar", "localised");
+    mVariableManager.localise("test", lLocalVars);
+    mVariableManager.setVariable("localVar", "test");
+
+    assertTrue("localVar is set (global search)", mVariableManager.isVariableSet("localVar", false));
+    assertTrue("localVar is set (local search)", mVariableManager.isVariableSet("localVar", true));
+
+  }
+
+  @Test
+  public void testIsSetXPathFunction()
+  throws ExActionFailed {
+
+    mVariableManager.setVariable("testVar", "test");
+    assertTrue("XPath function detects variable is set", getXPathResult("fox:is-set('testVar')").asBoolean());
+    assertFalse("XPath function detects variable is not set", getXPathResult("fox:is-set('unsetVar')").asBoolean());
+
+  }
+
+  @Test(expected = ExInternal.class)
+  public void testDelocaliseFailsOnMismatch() {
+
+    mVariableManager.localise("L1", Collections.emptyMap());
+    mVariableManager.localise("L2", Collections.emptyMap());
+    //Should fail because L2 is top of stack
+    mVariableManager.delocalise("L1");
+  }
 
   private class TestRequestContext implements ActionRequestContext {
 
