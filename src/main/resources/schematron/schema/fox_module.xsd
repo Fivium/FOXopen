@@ -1812,9 +1812,21 @@ Can also be used to replace all states on the state-call stack with the state sp
               </xs:annotation>
             </xs:attribute>
             <xs:attribute name="textValue" type="fm:entered-string" use="optional">
-               <xs:annotation>
+              <xs:annotation>
                 <xs:documentation>Fixed text to set the variable's value to. The item type of the variable will be a string. To set to
                 other item types, use the expr attribute and qualify the item type as a constructor, e.g. "xs:date('2015-01-01')".</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="clear-variable">
+          <xs:annotation>
+            <xs:documentation>Clears an XPath variable which was previously set with fm:set-variable. If the variable was not already set, no action is taken.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:attribute name="name" type="fm:entered-string" use="required">
+              <xs:annotation>
+                <xs:documentation>Name of the variable to clear.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
           </xs:complexType>

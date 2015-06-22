@@ -46,7 +46,7 @@ public interface XPathVariableManager {
   void setVariable(String pVariableName, Object pValue);
 
   /**
-   * Clears (unsets) a global variable.
+   * Clears (unsets) a global variable. If the variable was not set, no action is taken.
    * @param pVariableName Variable to clear.
    */
   void clearVariable(String pVariableName);
