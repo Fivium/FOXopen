@@ -33,6 +33,10 @@ extends BuiltInCommand {
     mXPath = pParseUElem.getAttr("expr");
     mTextValue = pParseUElem.getAttr("textValue");
 
+    if(XFUtil.isNull(mVariableName)) {
+      throw new ExDoSyntax("name attribute must be specified");
+    }
+
     if(!(XFUtil.isNull(mXPath) ^ XFUtil.isNull(mTextValue))) {
       throw new ExDoSyntax("expr and textValue attributes are mutually exclusive and one must be specified");
     }

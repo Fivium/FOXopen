@@ -42,6 +42,7 @@ import net.foxopen.fox.command.builtin.AssignmentCommand;
 import net.foxopen.fox.command.builtin.AttachCommand;
 import net.foxopen.fox.command.builtin.AugmentCommand;
 import net.foxopen.fox.command.builtin.CaseCommand;
+import net.foxopen.fox.command.builtin.ClearVariableCommand;
 import net.foxopen.fox.command.builtin.CompareCommand;
 import net.foxopen.fox.command.builtin.ContextClearCommand;
 import net.foxopen.fox.command.builtin.ContextLocaliseCommand;
@@ -133,6 +134,7 @@ public class CommandProvider {
     registerCommandFactory(new AttachCommand.Factory());
     registerCommandFactory(new AugmentCommand.Factory());
     registerCommandFactory(new CaseCommand.Factory());
+    registerCommandFactory(new ClearVariableCommand.Factory());
     registerCommandFactory(new CompareCommand.Factory());
     registerCommandFactory(new ContextClearCommand.Factory());
     registerCommandFactory(new ContextLocaliseCommand.Factory());
