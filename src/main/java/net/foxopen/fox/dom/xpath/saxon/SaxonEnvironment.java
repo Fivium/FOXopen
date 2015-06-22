@@ -162,6 +162,7 @@ public class SaxonEnvironment {
     //XQueries and XSLTs created from the global configuration.
     gSaxonProcessor.registerExtensionFunction(new FoxContextFunction());
     gSaxonProcessor.registerExtensionFunction(new ExistsContextFunction());
+    gSaxonProcessor.registerExtensionFunction(new IsSetFunction());
     gSaxonProcessor.registerExtensionFunction(new NvlFunction());
     gSaxonProcessor.registerExtensionFunction(new Nvl2Function());
     gSaxonProcessor.registerExtensionFunction(new MapSetKeyFunction());
