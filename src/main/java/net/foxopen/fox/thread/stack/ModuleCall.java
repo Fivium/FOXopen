@@ -102,8 +102,14 @@ implements Persistable {
       throw new ExInternal("Failed to get theme " + lEntryThemeName + " in mod " + lModuleName + " from app " + lAppMnem + " when retrieving module call " + lModuleCallId, th);
     }
 
+    //Bootstrap a new XPathVariableManager if nothing was persisted (will be the case if no variables were set before)
+    ModuleXPathVariableManager lXPathVariableManager = pModuleCallData.getXPathVariableManager();
+    if(lXPathVariableManager == null) {
+      lXPathVariableManager = new ModuleXPathVariableManager();
+    }
+
     ModuleCall lCall = new ModuleCall(lModuleCallId, lEntryTheme, lContextUElem, pModuleCallData.getCallbackHandlerList(), pOwningCallStack, lLabelToStorageLocationMap,
-                                      pModuleCallData.getSecurityScope(), false, pPersistenceContext, pModuleCallData.getXPathVariableManager());
+                                      pModuleCallData.getSecurityScope(), false, pPersistenceContext, lXPathVariableManager);
 
     return lCall;
   }

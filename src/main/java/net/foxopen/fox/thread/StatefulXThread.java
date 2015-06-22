@@ -45,6 +45,7 @@ import net.foxopen.fox.thread.persistence.Deserialiser;
 import net.foxopen.fox.thread.persistence.Persistable;
 import net.foxopen.fox.thread.persistence.PersistableType;
 import net.foxopen.fox.thread.persistence.PersistenceContext;
+import net.foxopen.fox.thread.persistence.PersistenceFacet;
 import net.foxopen.fox.thread.persistence.PersistenceMethod;
 import net.foxopen.fox.thread.persistence.PersistenceResult;
 import net.foxopen.fox.thread.persistence.data.StatefulXThreadPersistedData;
@@ -268,8 +269,6 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     mAppMnem = pAppMnem;
     mThreadId = pThreadId;
 
-    mThreadPropertyMap = pThreadPropertyMap;
-
     mFoxSessionID = pFoxSessionID;
 
     mPersistenceContext = pPersistenceContext;
@@ -288,6 +287,10 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     mDOMProvider = StatefulXThreadDOMProvider.createNew(pRequestContext, this, pUserThreadSession, pAuthenticationContext);
 
     mDownloadManager = new ThreadDownloadManager(this);
+
+    mThreadPropertyMap = pThreadPropertyMap;
+    //Ensure the property map is set up so persistence context is notified when it is modified
+    mThreadPropertyMap.setPersistenceContextProxy(() -> mPersistenceContext.requiresPersisting(this, PersistenceMethod.UPDATE, PersistenceFacet.THREAD_PROPERTIES));
 
     mTempResourceProvider = new StatefulThreadTempResourceProvider();
   }
@@ -1168,14 +1171,10 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
 
   private void setBooleanThreadProperty(ThreadProperty.Type pProperty, boolean pValue) {
     mThreadPropertyMap.setBooleanProperty(pProperty, pValue);
-    //TODO PN - mark property map as requiring update
-    //mPersistenceContext...
   }
 
   private void setStringThreadProperty(ThreadProperty.Type pProperty, String pValue) {
     mThreadPropertyMap.setStringProperty(pProperty, pValue);
-    //TODO PN - mark property map as requiring update
-    //mPersistenceContext...
   }
 
   public String getThreadAppMnem() {

@@ -161,9 +161,11 @@ implements Serialiser {
       Blob lFieldSetBlob = lStatementResult.getBlob(":field_set_blob");
       writeObjectToBlob(pFieldSet, lFieldSetBlob, "FieldSet", false);
 
-      //TODO PN conditional update
-      Blob lPropertyMapBlob = lStatementResult.getBlob(":property_map_blob");
-      writeObjectToBlob(pThreadPropertyMap, lPropertyMapBlob, "PropertyMap", false);
+      //Only update thread properties if they were modified in this churn
+      if(mPersistenceContext.isFacetMarked(PersistenceFacet.THREAD_PROPERTIES)) {
+        Blob lPropertyMapBlob = lStatementResult.getBlob(":property_map_blob");
+        writeObjectToBlob(pThreadPropertyMap, lPropertyMapBlob, "PropertyMap", false);
+      }
     }
     catch (ExDB | SQLException e) {
       throw new ExInternal("Failed to update thread", e);
@@ -199,8 +201,10 @@ implements Serialiser {
 
       UConStatementResult lStatementResult = mUCon.executeAPI(SQLManager.instance().getStatement(INSERT_MODULE_CALL_FILENAME, getClass()), lBindMap);
 
-      Blob lXPathVariableBlob = lStatementResult.getBlob(":xpath_variables");
-      writeObjectToBlob(pXPathVariableManager, lXPathVariableBlob, "XPathVariableManager", false);
+      if(mPersistenceContext.isFacetMarked(PersistenceFacet.MODULE_CALL_XPATH_VARIABLES)) {
+        Blob lXPathVariableBlob = lStatementResult.getBlob(":xpath_variables");
+        writeObjectToBlob(pXPathVariableManager, lXPathVariableBlob, "XPathVariableManager", false);
+      }
     }
     catch (ExDB | SQLException e) {
       throw new ExInternal("Failed to insert module call", e);
