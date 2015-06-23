@@ -3686,6 +3686,21 @@ If the fm:default element is reached, then its contents are evaluated.
     <xs:sequence>
       <xs:element name="call" minOccurs="0">
         <xs:complexType>
+          <xs:sequence minOccurs="0">
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="context">
+              <xs:complexType>
+                <xs:attribute name="name" type="fm:entered-string" use="required"/>
+                <xs:attribute name="xpath" type="fm:entered-string" use="required"/>
+              </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="variable">
+              <xs:complexType>
+                <xs:attribute name="name" type="fm:entered-string" use="required"/>
+                <xs:attribute name="textValue" type="fm:entered-string"/>
+                <xs:attribute name="expr" type="fm:entered-string"/>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
           <xs:attribute name="action" type="fm:entered-string" use="required"/>
         </xs:complexType>
       </xs:element>
