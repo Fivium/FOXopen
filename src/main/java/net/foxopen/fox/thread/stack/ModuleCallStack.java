@@ -276,7 +276,12 @@ implements ListeningPersistable, Iterable<ModuleCall>, ThreadEventListener {
 
     // Run auto-callback-init actions
     for (ActionDefinition lAction : lNewState.getAutoActions(AutoActionType.CALLBACK_INIT)) {
-      lCallbackRunner.runCommands(pRequestContext, lAction.getXDoCommandList());
+      try {
+        lCallbackRunner.runCommands(pRequestContext, lAction.checkPreconditionsAndGetCommandList(pRequestContext));
+      }
+      catch (Throwable th) {
+        throw new ExInternal("Error running auto callback " + lAction.getActionName(), th);
+      }
     }
 
     if(lCallbackRunner.executionAllowed()){
@@ -288,7 +293,12 @@ implements ListeningPersistable, Iterable<ModuleCall>, ThreadEventListener {
 
     // Run auto-callback-final actions
     for (ActionDefinition lAction : lNewState.getAutoActions(AutoActionType.CALLBACK_FINAL)) {
-      lCallbackRunner.runCommands(pRequestContext, lAction.getXDoCommandList());
+      try {
+        lCallbackRunner.runCommands(pRequestContext, lAction.checkPreconditionsAndGetCommandList(pRequestContext));
+      }
+      catch (Throwable th) {
+        throw new ExInternal("Error running auto callback " + lAction.getActionName(), th);
+      }
     }
 
     lCallbackRunner.processCompletion(pRequestContext, this);

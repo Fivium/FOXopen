@@ -125,7 +125,12 @@ implements Persistable {
     XDoControlFlow lResultControlFlow = XDoControlFlowContinue.instance();
     for (ActionDefinition lAction : lAutoActions) {
       //Note: this runner will only actions run until a break is hit
-      lResultControlFlow = pActionRunner.runCommands(pRequestContext, lAction.getXDoCommandList());
+      try {
+        lResultControlFlow = pActionRunner.runCommands(pRequestContext, lAction.checkPreconditionsAndGetCommandList(pRequestContext));
+      }
+      catch (Throwable th) {
+        throw new ExInternal("Error running auto action " + lAction.getActionName(), th);
+      }
     }
 
     return lResultControlFlow;

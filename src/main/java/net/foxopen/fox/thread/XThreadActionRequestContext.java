@@ -88,7 +88,7 @@ implements ActionRequestContext {
 
   @Override
   public XDoCommandList resolveActionName(String pActionName){
-    return mXThread.resolveActionName(pActionName);
+    return getCurrentState().getActionByName(pActionName).checkPreconditionsAndGetCommandList(this);
   }
 
   @Override
