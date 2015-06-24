@@ -289,4 +289,9 @@ implements DevToolbarContext {
   public String getEntryPointURI(RequestURIBuilder pRequestURIBuilder) {
     return FoxMainServlet.buildGetEntryURI(pRequestURIBuilder, mXThread.getThreadAppMnem(), mXThread.getTopModuleCall().getModule().getName(), mXThread.getTopModuleCall().getEntryTheme().getName());
   }
+
+  @Override
+  public Collection<String> getXPathVariableNames() {
+    return mXThread.getTopModuleCall().getXPathVariableManager().getAllVariableNames();
+  }
 }

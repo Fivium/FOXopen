@@ -450,6 +450,18 @@ public class ModuleXPathVariableManagerTest {
     mVariableManager.delocalise("L1");
   }
 
+  @Test
+  public void testGetAllVariableNames() {
+
+    mVariableManager.setVariable("globalVar", "test");
+    Map<String, Object> lLocalVars = new HashMap<>();
+    lLocalVars.put("localVar", "localised");
+    mVariableManager.localise("test", lLocalVars);
+
+    assertTrue("Name collection contains global variable", mVariableManager.getAllVariableNames().contains("globalVar"));
+    assertTrue("Name collection contains local variable", mVariableManager.getAllVariableNames().contains("localVar"));
+  }
+
   private class TestRequestContext implements ActionRequestContext {
 
     @Override

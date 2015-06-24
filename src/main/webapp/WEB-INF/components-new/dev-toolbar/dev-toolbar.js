@@ -47,6 +47,11 @@ var DevToolbar = {
       DevToolbar.toggleDevToolbarPinned();
     });
 
+    //Handler for showing context/variable info banner
+    $('#dev-toolbar-contexts').click(function (e){
+      $('#contextLabelData').toggle();
+    });
+
     //Handler for flush link
     $('#dev-toolbar-flush a').click(function (e){
       DevToolbar.flush(e.currentTarget.href, e);
