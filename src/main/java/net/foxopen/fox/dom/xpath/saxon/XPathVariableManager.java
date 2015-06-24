@@ -2,6 +2,7 @@ package net.foxopen.fox.dom.xpath.saxon;
 
 import net.foxopen.fox.dom.xpath.XPathResult;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -73,5 +74,11 @@ public interface XPathVariableManager {
    * @param pPurpose Localisation purpose, for validating that the stack has been correctly maintained.
    */
   void delocalise(String pPurpose);
+
+  /**
+   * Gets an unordered set of all the variable names currently defined on this manager.
+   * @return All known variable names.
+   */
+  Collection<String> getAllVariableNames();
 
 }

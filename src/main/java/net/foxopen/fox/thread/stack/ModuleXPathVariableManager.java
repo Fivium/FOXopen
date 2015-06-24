@@ -144,6 +144,15 @@ implements XPathVariableManager {
     }
   }
 
+  @Override
+  public Collection<String> getAllVariableNames() {
+    //Go through all stack entries, flattening each individual key set into a single collection
+    return mVariableStack
+      .stream()
+      .flatMap(e -> e.mVariables.keySet().stream())
+      .collect(Collectors.toSet());
+  }
+
   /**
    * Converts an object from an XPath result into a "cacheable" object which can be stored in an XPathVariableManager.
    * DOM/Node objects are cloned into unconnected elements, and collections are handled recursively.

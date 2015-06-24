@@ -87,4 +87,6 @@ public interface DevToolbarContext {
 
   public String getEntryPointURI(RequestURIBuilder pRequestURIBuilder);
 
+  public Collection<String> getXPathVariableNames();
+
 }
