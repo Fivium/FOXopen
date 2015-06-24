@@ -2098,6 +2098,22 @@ Can also be used to replace all states on the state-call stack with the state sp
       <xs:element name="action" minOccurs="0" maxOccurs="unbounded">
         <xs:complexType>
           <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="0" name="requires">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element maxOccurs="unbounded" minOccurs="0" name="context">
+                    <xs:complexType>
+                      <xs:attribute name="name" type="fm:entered-string" use="required"/>
+                    </xs:complexType>
+                  </xs:element>
+                  <xs:element maxOccurs="unbounded" minOccurs="0" name="variable">
+                    <xs:complexType>
+                      <xs:attribute name="name" type="fm:entered-string" use="required"/>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
             <xs:element name="do" type="fm:do-block-type"/>
             <xs:element name="documentation" type="fm:documentation" minOccurs="0"/>
           </xs:sequence>

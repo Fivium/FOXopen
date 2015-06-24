@@ -6,7 +6,13 @@ import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.NamespaceAttributeTable;
 import net.foxopen.fox.ex.ExCardinality;
 import net.foxopen.fox.ex.ExDoSyntax;
+import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExModule;
+import net.foxopen.fox.thread.ActionRequestContext;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 
 /**
  * Definition of an action as defined in module or state markup.
@@ -19,6 +25,8 @@ implements Validatable {
   private final NamespaceAttributeTable mNamespaceAttributes;
   private final AutoActionType mAutoActionType; //Can be null
   private final boolean mApplyFlag;
+
+  private final Collection<InvokePrecondition> mInvokePreconditions;
 
   public static ActionDefinition createActionDefinition(DOM pDefinitionElement, Mod pModule)
   throws ExModule, ExDoSyntax {
@@ -57,22 +65,45 @@ implements Validatable {
     //Establish auto action type
     AutoActionType lAutoActionType = AutoActionType.getTypeFromActionName(lActionName);
 
-    return new ActionDefinition(lActionName, lXDoCommandList, pDefinitionElement.getNamespaceAttributeTable(), lAutoActionType, lApplyFlag);
+    //Parse preconditions
+    Collection<InvokePrecondition> lInvokePreconditions = new HashSet<>();
+    for(DOM lRequiresDefinition : pDefinitionElement.getUL("fm:requires/*")) {
+      String lNameAttr = lRequiresDefinition.getAttr("name");
+      String lElemName = lRequiresDefinition.getLocalName();
+
+      if(XFUtil.isNull(lNameAttr)) {
+        throw new ExDoSyntax("fm:requires " + lElemName + " definition missing mandatory name attribute");
+      }
+
+      if("variable".equals(lElemName)) {
+        lInvokePreconditions.add(new VariablePrecondition(lNameAttr));
+      }
+      else if("context".equals(lElemName)) {
+        lInvokePreconditions.add(new ContextLabelPrecondition(lNameAttr));
+      }
+    }
+
+    return new ActionDefinition(lActionName, lXDoCommandList, pDefinitionElement.getNamespaceAttributeTable(), lAutoActionType,
+                                lApplyFlag, Collections.unmodifiableCollection(lInvokePreconditions));
   }
 
-  private ActionDefinition(String pActionName, XDoCommandList pXDoCommandList, NamespaceAttributeTable pNamespaceAttributes, AutoActionType pAutoActionType, boolean pApplyFlag) {
+  private ActionDefinition(String pActionName, XDoCommandList pXDoCommandList, NamespaceAttributeTable pNamespaceAttributes, AutoActionType pAutoActionType,
+                           boolean pApplyFlag, Collection<InvokePrecondition> pInvokePreconditions) {
     mActionName = pActionName;
     mXDoCommandList = pXDoCommandList;
     mNamespaceAttributes = pNamespaceAttributes;
     mAutoActionType = pAutoActionType;
     mApplyFlag = pApplyFlag;
+    mInvokePreconditions = pInvokePreconditions;
   }
 
   public String getActionName() {
     return mActionName;
   }
 
-  public XDoCommandList getXDoCommandList() {
+  public XDoCommandList checkPreconditionsAndGetCommandList(ActionRequestContext pRequestContext) {
+    //Validate that the request context is in the correct state to run this action
+    mInvokePreconditions.forEach(e -> e.validate(pRequestContext));
     return mXDoCommandList;
   }
 
@@ -95,5 +126,51 @@ implements Validatable {
 
   public AutoActionType getAutoActionType() {
     return mAutoActionType;
+  }
+
+  /**
+   * A condition which must be satisfied before an action can be invoked.
+   */
+  private interface InvokePrecondition {
+    void validate(ActionRequestContext pRequestContext);
+  }
+
+  /**
+   * Precondition which requires that a local variable must be set.
+   */
+  private static class VariablePrecondition
+  implements InvokePrecondition {
+    private final String mVariableName;
+
+    private VariablePrecondition(String pVariableName) {
+      mVariableName = pVariableName;
+    }
+
+    @Override
+    public void validate(ActionRequestContext pRequestContext) {
+      if(!pRequestContext.getXPathVariableManager().isVariableSet(mVariableName, true)){
+        throw new ExInternal("Action requires local variable " + mVariableName + " to be set");
+      }
+    }
+  }
+
+  /**
+   * Precondition which requires that a context label must be set.
+   */
+  private static class ContextLabelPrecondition
+  implements InvokePrecondition {
+
+    private final String mLabelName;
+
+    private ContextLabelPrecondition(String pLabelName) {
+      mLabelName = pLabelName;
+    }
+
+    @Override
+    public void validate(ActionRequestContext pRequestContext) {
+      if(pRequestContext.getContextUElem().getUElemOrNull(mLabelName) == null){
+        throw new ExInternal("Action requires context label " + mLabelName + " to be set");
+      }
+    }
   }
 }

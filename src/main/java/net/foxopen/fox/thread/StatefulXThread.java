@@ -32,7 +32,6 @@ import net.foxopen.fox.ex.ExUserRequest;
 import net.foxopen.fox.logging.ErrorLogger;
 import net.foxopen.fox.module.ActionDefinition;
 import net.foxopen.fox.module.AutoActionType;
-import net.foxopen.fox.module.State;
 import net.foxopen.fox.module.entrytheme.EntryTheme;
 import net.foxopen.fox.module.fieldset.FieldSet;
 import net.foxopen.fox.module.fieldset.action.InternalAction;
@@ -420,11 +419,6 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     }
   }
 
-  public XDoCommandList resolveActionName(String pActionName)  {
-    State lState = getTopModuleCall().getTopState();
-    return lState.getActionByName(pActionName).getXDoCommandList();
-  }
-
   public void setFoxSessionID(String pFoxSessionID) {
     mFoxSessionID = pFoxSessionID;
   }
@@ -767,7 +761,12 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
           //Run auto action inits
           Collection<ActionDefinition> lInitActions = pRequestContext.getCurrentState().getAutoActions(AutoActionType.ACTION_INIT);
           for (ActionDefinition lAction : lInitActions) {
-            lActionRunner.runCommands(pRequestContext, lAction.getXDoCommandList());
+            try {
+              lActionRunner.runCommands(pRequestContext, lAction.checkPreconditionsAndGetCommandList(pRequestContext));
+            }
+            catch (Throwable th) {
+              throw new ExInternal("Error running auto action " + lAction.getActionName(), th);
+            }
           }
 
           //Run main action (runner will skip if an auto action caused a break)
@@ -775,7 +774,12 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
 
           //Run auto action finals
           for (ActionDefinition lAction : lFinalActions) {
-            lActionRunner.runCommands(pRequestContext, lAction.getXDoCommandList());
+            try {
+              lActionRunner.runCommands(pRequestContext, lAction.checkPreconditionsAndGetCommandList(pRequestContext));
+            }
+            catch (Throwable th) {
+              throw new ExInternal("Error running auto action " + lAction.getActionName(), th);
+            }
           }
 
           //Process any callstack transformations etc
