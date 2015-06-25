@@ -110,7 +110,7 @@ extends BuiltInCommand {
         lDOM = pContextUElem.extendedXPath1E(pContextUElem.attachDOM(), mXPath);
       }
       catch (ExTooMany | ExActionFailed | ExTooFew e) {
-        throw new ExInternal("Failed to set context label " + mName);
+        throw new ExInternal("Failed to set context label " + mName, e);
       }
       pContextUElem.setUElem(mName, ContextualityLevel.LOCALISED, lDOM);
     }
