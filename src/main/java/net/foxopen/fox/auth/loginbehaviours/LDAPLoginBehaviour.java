@@ -130,12 +130,12 @@ public class LDAPLoginBehaviour implements LoginBehaviour {
         return new AuthenticationResult(AuthenticationResult.Code.INVALID, "Invalid username or password", null);
       }
       else {
-        if (FoxGlobals.getInstance().canShowStackTracesOnError()) {
-          return new AuthenticationResult(AuthenticationResult.Code.INVALID, "An unexpected error has occurred: " + XFUtil.getJavaStackTraceInfo(e), null);
-        }
-        else {
-          return new AuthenticationResult(AuthenticationResult.Code.INVALID, "An unexpected error has occurred", null);
-        }
+        // Add the exception to the error log despite suppressing it
+        Track.recordSuppressedException("LDAPAuthError", e);
+        // Add the serialised stack trace to Track to help developers identify the problem
+        Track.logAlertText("LDAPAuthError", XFUtil.getJavaStackTraceInfo(e));
+        // Return an invalid AuthenticationResult
+        return new AuthenticationResult(AuthenticationResult.Code.INVALID, "An unexpected error has occurred", null);
       }
     }
   }
