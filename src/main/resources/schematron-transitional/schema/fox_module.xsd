@@ -268,6 +268,7 @@
                         <xs:documentation>Enter an XPath to the initial attach point of this entry theme. The initial document of the XPath will be the document node of the default storage location. Therefore the XPath "/*" will evaluate to the root element of the default storage location.</xs:documentation>
                       </xs:annotation>
                     </xs:element>
+                    <xs:element minOccurs="0" name="before-entry" type="fm:do-block-type"/>
                     <xs:element minOccurs="0" name="security">
                       <xs:annotation>
                         <xs:documentation>User privilege checking logic for this entry-theme.</xs:documentation>

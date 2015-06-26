@@ -85,6 +85,7 @@ implements Trackable, Validatable {
   private final String mAttachXPath;
   private final String mStateName;
   private final XDoCommandList mXDo;
+  private final XDoCommandList mBeforeEntryXDo;
   private final List<DataDOMStorageLocation> mStorageLocationList;
   private final DataDOMStorageLocation mDefaultStorageLocation;
   private final Map<String, SyncMode> mStorageLocationNamesToSyncModes;
@@ -182,7 +183,6 @@ implements Trackable, Validatable {
       mStorageLocationNamesToSyncModes = lParseResult.getStorageLocationSyncModes();
 
       // Look up "do" actions
-
       DOM lDoBlock;
       try {
         lDoBlock = pEntryThemeDOM.get1E("fm:do");
@@ -191,6 +191,15 @@ implements Trackable, Validatable {
         throw new ExModule("Bad entry-theme do", pEntryThemeDOM,x);
       }
       mXDo = new XDoCommandList(pModule, lDoBlock);
+
+      //Parse before entry do block if specified
+      DOM lBeforeEntryDoBlock = pEntryThemeDOM.get1EOrNull("fm:before-entry");
+      if(lBeforeEntryDoBlock != null) {
+        mBeforeEntryXDo = new XDoCommandList(pModule, lBeforeEntryDoBlock);
+      }
+      else {
+        mBeforeEntryXDo = XDoCommandList.emptyCommandList();
+      }
 
       //TODO subclass for web service entry themes
 
@@ -390,6 +399,7 @@ implements Trackable, Validatable {
   @Override
   public void validate(Mod module) throws ExInternal {
     mXDo.validate(module);
+    mBeforeEntryXDo.validate(module);
   }
 
   /**
@@ -620,8 +630,21 @@ implements Trackable, Validatable {
     return mAttachXPath;
   }
 
+  /**
+   * Gets the list of commands to run for this entry theme.
+   * @return
+   */
   public XDoCommandList getXDo() {
     return mXDo;
+  }
+
+  /**
+   * Gets a list of commands to run before the entry theme is entered, i.e. before the storage locations have been evaluated.
+   * This can be used by module developers to initialise parameters for SL binds, etc.
+   * @return Commands to run before entry theme processing. May be an empty list.
+   */
+  public XDoCommandList getBeforeEntryXDo() {
+    return mBeforeEntryXDo;
   }
 
   public String getStateName() {
