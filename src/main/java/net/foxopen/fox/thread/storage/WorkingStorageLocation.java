@@ -32,11 +32,6 @@ $Id$
 */
 package net.foxopen.fox.thread.storage;
 
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.regex.Pattern;
-
 import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.sql.ExecutableAPI;
@@ -50,6 +45,11 @@ import net.foxopen.fox.database.storage.WorkDoc;
 import net.foxopen.fox.database.storage.dom.XMLWorkDoc;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.track.Track;
+
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 
 /**
@@ -160,7 +160,7 @@ public abstract class WorkingStorageLocation<SL extends StorageLocation> {
   /**
    * Gets the evaluated cache key appended with the SQL strings of the database statements used by this storage location.
    * Used for caching in an environment where SQL strings are likely to be frequently modified (i.e. in development), avoiding
-   * the need to flush WorkDoc seperately to flushing application modules. This is experimental and may need to be removed
+   * the need to flush WorkDoc separately to flushing application modules. This is experimental and may need to be removed
    * if it causes cache bloat.
    * @return Evaluated cache key which is dependent on the underlying storage location's definition.
    */
@@ -173,8 +173,9 @@ public abstract class WorkingStorageLocation<SL extends StorageLocation> {
     for(StatementType lStatementType : EnumSet.of(getQueryStatementType(), StatementType.UPDATE, StatementType.INSERT)) {
       DatabaseStatement lDBStatement = getStorageLocation().getDatabaseStatement(lStatementType);
       if(lDBStatement != null) {
-        lBuilder.append(lStatementType + ": ");
+        lBuilder.append(lStatementType).append(": ");
         lBuilder.append(lDBStatement.getParsedStatement().getOriginalStatement());
+        lDBStatement.getBindList().forEach(e -> lBuilder.append(e.getUsingString()));
       }
     }
 

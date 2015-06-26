@@ -145,16 +145,21 @@ implements ListeningPersistable, Iterable<ModuleCall>, ThreadEventListener {
       getTopModuleCall().unmountIfMounted(pRequestContext);
     }
 
-    //Push the new module onto the stack
+    //Push the new module call onto the stack
     //This has to be first otherwise the mounted request context is not in the right state
     mStack.addFirst(lNewModuleCall);
 
+    //Run before-entry block and register SL DOM handlers - must be done when the module is actually on the stack so "getTopModule" calls return the correct module
+    lNewModuleCall.initialise(pRequestContext);
+
+    //Tell interested objects about the new module call
     notifyStateChangeListeners(pRequestContext, EventType.MODULE);
 
+    //Open DOM handlers
     lNewModuleCall.mount(pRequestContext);
 
+    //Run entry theme
     XDoRunner lEntryThemeRunner = pRequestContext.createCommandRunner(true);
-
     lNewModuleCall.processEntryTheme(pRequestContext, lEntryThemeRunner);
 
     //This may run a subsequent CST which would cause this module to become unmounted!

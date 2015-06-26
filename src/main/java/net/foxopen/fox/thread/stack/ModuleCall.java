@@ -21,14 +21,14 @@ import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.ex.ExServiceUnavailable;
 import net.foxopen.fox.ex.ExUserRequest;
-import net.foxopen.fox.module.entrytheme.EntryTheme;
 import net.foxopen.fox.module.Mod;
+import net.foxopen.fox.module.State;
+import net.foxopen.fox.module.entrytheme.EntryTheme;
 import net.foxopen.fox.module.facet.ModuleFacet;
 import net.foxopen.fox.module.facet.ModuleFacetProvider;
-import net.foxopen.fox.module.State;
 import net.foxopen.fox.module.mapset.MapSetManager;
-import net.foxopen.fox.thread.DOMHandlerProvider;
 import net.foxopen.fox.thread.ActionRequestContext;
+import net.foxopen.fox.thread.DOMHandlerProvider;
 import net.foxopen.fox.thread.facet.ModuleCallFacetProvider;
 import net.foxopen.fox.thread.persistence.Persistable;
 import net.foxopen.fox.thread.persistence.PersistableType;
@@ -108,13 +108,12 @@ implements Persistable {
       lXPathVariableManager = new ModuleXPathVariableManager();
     }
 
-    ModuleCall lCall = new ModuleCall(lModuleCallId, lEntryTheme, lContextUElem, pModuleCallData.getCallbackHandlerList(), pOwningCallStack, lLabelToStorageLocationMap,
-                                      pModuleCallData.getSecurityScope(), false, pPersistenceContext, lXPathVariableManager);
-
-    return lCall;
+    return new ModuleCall(lModuleCallId, lEntryTheme, lContextUElem, pModuleCallData.getCallbackHandlerList(), pOwningCallStack, lLabelToStorageLocationMap,
+                          pModuleCallData.getSecurityScope(), false, pPersistenceContext, lXPathVariableManager);
   }
 
-  private static ContextUElem restoreContextUElem(PersistenceContext pPersistenceContext, DOMHandlerProvider pHandlerProvider, String pCallId, Map<String, WorkingDataDOMStorageLocation> pLabelToWorkingStorageLocationMap){
+  private static ContextUElem restoreContextUElem(PersistenceContext pPersistenceContext, DOMHandlerProvider pHandlerProvider, String pCallId,
+                                                  Map<String, WorkingDataDOMStorageLocation> pLabelToWorkingStorageLocationMap){
 
     ContextUElem lContextUElem = new ContextUElem();
 
@@ -137,7 +136,7 @@ implements Persistable {
     String lNewCallId = XFUtil.unique();
 
     Map<String, WorkingDataDOMStorageLocation> lLabelToWorkingStorageLocationMap = new HashMap<>();
-    ContextUElem lContextUElem = bootstrapContextUElem(lNewCallId, pEntryTheme, pHandlerProvider, pParamsDOM, pEnvironmentDOM, lLabelToWorkingStorageLocationMap);
+    ContextUElem lContextUElem = bootstrapContextUElem(lNewCallId, pHandlerProvider, pParamsDOM, pEnvironmentDOM);
 
     return new ModuleCall(lNewCallId, pEntryTheme, lContextUElem, pCallbackHandlerList, pOwningCallStack, lLabelToWorkingStorageLocationMap, SecurityScope.defaultInstance(),
                           true, pPersistenceContext, new ModuleXPathVariableManager());
@@ -185,8 +184,17 @@ implements Persistable {
     mXPathVariableManager.setPersistenceContextProxy(() -> pPersistenceContext.requiresPersisting(ModuleCall.this, PersistenceMethod.UPDATE, PersistenceFacet.MODULE_CALL_XPATH_VARIABLES));
   }
 
-  private static ContextUElem bootstrapContextUElem(String pCallId, EntryTheme pEntryTheme, DOMHandlerProvider pHandlerProvider, DOM pParamsDOM, DOM pEnvironmentDOM,
-                                                    Map<String, WorkingDataDOMStorageLocation> pLabelToWorkingStorageLocationMap){
+  /**
+   * Creates a new ContextUElem populated with the default DOMHandlers from the given DOMHandlerProvider. WSL DOMHandlers
+   * are not setup by this method, as the ModuleCall must be fully constructed before these can be created. The :{params}
+   * and :{env} DOMs are also set based on the values passed to the module call builder.
+   * @param pCallId Module call ID
+   * @param pHandlerProvider Source of default DOMHandlers
+   * @param pParamsDOM Params DOM to use.
+   * @param pEnvironmentDOM Env DOM to use.
+   * @return New ContextUElem, set up with the standard internal DOMHandlers but missing WSL DOMHandlers.
+   */
+  private static ContextUElem bootstrapContextUElem(String pCallId, DOMHandlerProvider pHandlerProvider, DOM pParamsDOM, DOM pEnvironmentDOM){
 
     ContextUElem lContextUElem = new ContextUElem();
 
@@ -208,9 +216,40 @@ implements Persistable {
       lContextUElem.registerDOMHandler(lHandler);
     }
 
-    //Set a default attach point for WSL bind evaluation
-    lContextUElem.setUElem(ContextLabel.ATTACH, lContextUElem.getUElem(ContextLabel.THEME), ContextLabel.THEME.asString());
-    lContextUElem.setUElem(ContextLabel.ACTION, lContextUElem.getUElem(ContextLabel.THEME), ContextLabel.THEME.asString());
+    return lContextUElem;
+  }
+
+  /**
+   * Initialises this module call by setting the initial state, running the fm:before-entry block, evaluating WSL binds
+   * and setting up WSL DOMHandlers on its ContextUElem. This method must be called after the ModuleCall is pushed onto
+   * its owning ModuleCallStack, so actions/XPaths etc relying on access to the top module call resolve the correct one.
+   *
+   * @param pRequestContext Current RequestContext.
+   */
+  void initialise(ActionRequestContext pRequestContext) {
+
+    EntryTheme lEntryTheme = getEntryTheme();
+
+    //Temporarily set :{action} so it always resolves to something (legacy feature)
+    DOM lTempAttachPoint = mContextUElem.getUElem(ContextLabel.THEME);
+    mContextUElem.setUElem(ContextLabel.ACTION, lTempAttachPoint, ContextLabel.THEME.asString());
+
+    //Set up the initial state now so the before-entry XDo and SL bind evaluation has access to it - this also sets a new attach point
+    mStateCallStack.statePush(pRequestContext, lEntryTheme.getStateName(), lTempAttachPoint);
+
+    //Run the fm:before-entry block
+    pRequestContext.createIsolatedCommandRunner(true).runCommandsAndComplete(pRequestContext, lEntryTheme.getBeforeEntryXDo());
+
+    //Evaluate storage location binds and set up SL DOM handlers
+    registerStorageLocationDOMHandlers(pRequestContext.getDOMHandlerProvider(), lEntryTheme);
+  }
+
+  /**
+   * Evaluates WSL binds for implicated storage locations and registers their DOM handlers on the ModuleCall's ContextUElem.
+   * @param pHandlerProvider For retrieving DOMHandlers.
+   * @param pEntryTheme Entry theme being processed.
+   */
+  private void registerStorageLocationDOMHandlers(DOMHandlerProvider pHandlerProvider, EntryTheme pEntryTheme) {
 
     //Create a WSL for each SL defined on the entry theme
     List<DataDOMStorageLocation> lStorageLocationList = pEntryTheme.getStorageLocationList();
@@ -218,21 +257,19 @@ implements Persistable {
       WorkingDataDOMStorageLocation lWorkingStoreLocation;
       try {
         //Create a WSL being sure not to ask for temp table binds - the XThread will deal with temporary WSLs seperately.
-        lWorkingStoreLocation = lStorageLocation.createWorkingStorageLocation(lContextUElem, pCallId, pEntryTheme);
+        lWorkingStoreLocation = lStorageLocation.createWorkingStorageLocation(mContextUElem, mCallId, pEntryTheme);
       }
-      catch (ExInternal x) {
-        throw new ExInternal("Error evaluating Data Storage Location", x);
+      catch (Throwable th) {
+        throw new ExInternal("Error evaluating Data Storage Location", th);
       }
 
       //Get a handler for this WSL and register on the ContextUElem
-      DOMHandler lSLDOMHandler = pHandlerProvider.createDOMHandlerForWSL(lWorkingStoreLocation, pCallId);
-      lContextUElem.registerDOMHandler(lSLDOMHandler);
+      DOMHandler lSLDOMHandler = pHandlerProvider.createDOMHandlerForWSL(lWorkingStoreLocation, mCallId);
+      mContextUElem.registerDOMHandler(lSLDOMHandler);
 
       //Make a record of the WSL
-      pLabelToWorkingStorageLocationMap.put(lSLDOMHandler.getContextLabel(), lWorkingStoreLocation);
+      mLabelToWorkingStorageLocationMap.put(lSLDOMHandler.getContextLabel(), lWorkingStoreLocation);
     }
-
-    return lContextUElem;
   }
 
   public String getCallId() {
@@ -301,10 +338,16 @@ implements Persistable {
     mStateCallStack.getTopStateCall().setScrollPosition(pScrollPosition);
   }
 
+  /**
+   * Establishes the attach point, performs security validation, then runs the entry theme fm:do block and
+   * auto-state-init actions for this ModuleCall. The call must be fully initialised and mounted before this method is invoked.
+   * @param pRequestContext Current RequestContext.
+   * @param pEntryThemeRunner XDoRunner for running the fm:do block and state init actions.
+   */
   void processEntryTheme(ActionRequestContext pRequestContext, XDoRunner pEntryThemeRunner){
 
     if(mEntryThemeProcessed){
-      throw new IllegalStateException("Entry theme has already been processed for this module call");
+      throw new ExInternal("Entry theme has already been processed for this module call");
     }
 
     EntryTheme lEntryTheme = getEntryTheme();
@@ -315,12 +358,12 @@ implements Persistable {
       String lDefaultSLContextLabel = lEntryTheme.getDefaultStorageLocation().getDocumentContextLabel();
 
       //Set the initial context node for attach/action evaluation to the root element of the default storage location
-      DOM lAttachPointForAttachEvalulation = mContextUElem.getUElem(lDefaultSLContextLabel);
+      DOM lAttachPointForAttachEvaluation = mContextUElem.getUElem(lDefaultSLContextLabel);
 
-      mContextUElem.setUElem(ContextLabel.ATTACH, lAttachPointForAttachEvalulation, lDefaultSLContextLabel);
-      mContextUElem.setUElem(ContextLabel.ACTION, lAttachPointForAttachEvalulation, lDefaultSLContextLabel);
+      mContextUElem.setUElem(ContextLabel.ATTACH, lAttachPointForAttachEvaluation, lDefaultSLContextLabel);
+      mContextUElem.setUElem(ContextLabel.ACTION, lAttachPointForAttachEvaluation, lDefaultSLContextLabel);
 
-      DOM lInitialAttachPoint = null;
+      DOM lInitialAttachPoint;
       // Evaluate entry theme attach XPATH expression
       if(!XFUtil.isNull(lEntryTheme.getAttachXPath())) {
         try {
@@ -331,15 +374,12 @@ implements Persistable {
         }
       }
       else {
-        lInitialAttachPoint = lAttachPointForAttachEvalulation;
+        lInitialAttachPoint = lAttachPointForAttachEvaluation;
         Track.alert("EntryThemeAttach", "Entry theme attach point not defined; assuming default of root");
       }
 
-      //Add state to the call stack
-      StateCall lStateCall = mStateCallStack.statePush(pRequestContext, lEntryTheme.getStateName(), lInitialAttachPoint);
-      mOwningCallStack.notifyStateChangeListeners(pRequestContext, EventType.STATE);
-
-      // Reset attach points to their required location as per entry theme (attach is set in state constructor)
+      // Reset attach points to their required location as per entry theme
+      mContextUElem.setUElem(ContextLabel.ATTACH, lInitialAttachPoint);
       mContextUElem.setUElem(ContextLabel.ACTION, lInitialAttachPoint);
 
       //Check privs - this may result in a CST which should prevent the main do block / auto state init from running
@@ -353,7 +393,7 @@ implements Persistable {
         pEntryThemeRunner.runCommands(pRequestContext, lEntryTheme.getXDo());
 
         //Run auto state init actions
-        lStateCall.runInitActions(pRequestContext, pEntryThemeRunner);
+        mStateCallStack.getTopStateCall().runInitActions(pRequestContext, pEntryThemeRunner);
       }
       else {
         //Place the CST caused by a failed security check in the runner, so the module exit is processed in the ModuleCallStack
@@ -443,7 +483,6 @@ implements Persistable {
     lImplicated.addAll(mStateCallStack.delete(pPersistenceContext));
 
     //Mark DOMs as deleted so any attempted updates are skipped
-    //TODO PN - actually delete them (if not too slow)
     for(InternalDOMHandler lDOMHandler : mContextUElem.getDOMHandlersByType(InternalDOMHandler.class)) {
       lImplicated.add(new PersistenceResult(lDOMHandler, PersistenceMethod.DELETE));
     }
@@ -545,6 +584,14 @@ implements Persistable {
       return mEnvironmentDOM;
     }
 
+    /**
+     * Constructs a new ModuleCall based on the parameters provided to this builder. The ModuleCall must be pushed onto its
+     * stack and {@link #initialise}d before it can be used.
+     * @param pTargetCallStack ModuleCallStack which will own this new ModuleCall.
+     * @param pDOMHandlerProvider Source of DOMHandlers for the new ModuleCall's ContextUElem.
+     * @param pPersistenceContext Current PersistenceContext.
+     * @return New ModuleCall.
+     */
     ModuleCall build(ModuleCallStack pTargetCallStack, DOMHandlerProvider pDOMHandlerProvider, PersistenceContext pPersistenceContext){
 
       DOM lParamsDOM = mParamsDOM;
