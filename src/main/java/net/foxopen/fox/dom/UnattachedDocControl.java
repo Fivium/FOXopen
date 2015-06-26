@@ -157,7 +157,7 @@ extends DocControl {
   public XOMDocumentWrapper getOrCreateDocumentWrapper(Node pNode) {
     //Previously threw an exception but now tolerated for XPath variable support (element variables are unattached)
     //XPath processing should still check for node attachment and prevent XPath execution on unattached nodes in inappropriate circumstances
-    Track.info("WrapUnattachedNode", "Creating JIT document wrapper for unattached node " + (pNode instanceof Element ? ((Element) pNode).getLocalName() : ""));
+    Track.debug("WrapUnattachedNode", "Creating JIT document wrapper for unattached node " + (pNode instanceof Element ? ((Element) pNode).getLocalName() : ""));
     return new XOMDocumentWrapper(pNode, SaxonEnvironment.getSaxonConfiguration());
   }
 
