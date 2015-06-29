@@ -16,15 +16,17 @@ implements DisplayOrderSortable {
   private final TabInfo mTabInfo;
   private final String mTabKey;
   private final boolean mEnabled;
+  private final boolean mVisible;
   private final DOM mTabDOM; //DOM element the :{tab} context points to in the HTML loop (can be an unconnected element for number loops)
   private final DOM mRelativeDOM; //DOM element the :{action} context points to in a tab action (either tab DOM or tab group attach point)
   private final String mDisplayOrder;
   private final boolean mDefault;
 
-  EvaluatedTabInfo(TabInfo pTabInfo, String pTabKey, boolean pEnabled, DOM pTabDOM, DOM pRelativeDOM, String pDisplayOrder, boolean pDefault) {
+  EvaluatedTabInfo(TabInfo pTabInfo, String pTabKey, boolean pEnabled, boolean pVisible, DOM pTabDOM, DOM pRelativeDOM, String pDisplayOrder, boolean pDefault) {
     mTabInfo = pTabInfo;
     mTabKey = pTabKey;
     mEnabled = pEnabled;
+    mVisible = pVisible;
     mTabDOM = pTabDOM;
     mRelativeDOM = pRelativeDOM;
     mDisplayOrder = pDisplayOrder;
@@ -37,6 +39,10 @@ implements DisplayOrderSortable {
 
   public boolean isEnabled() {
     return mEnabled;
+  }
+
+  public boolean isVisible() {
+    return mVisible;
   }
 
   public boolean isDefault() {
