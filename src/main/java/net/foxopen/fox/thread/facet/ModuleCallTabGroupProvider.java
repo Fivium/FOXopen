@@ -109,6 +109,9 @@ implements TabGroupProvider {
       lTabKeyDuplicateCheck.add(lTabInfo.getTabKey());
     }
 
+    //Remove tab infos which aren't visible
+    lTabInfoList.removeIf(e -> !e.isVisible());
+
     //Force the refresh (note this may re-order the info list)
     lTabGroup.refreshTabInfoList(lTabInfoList);
 

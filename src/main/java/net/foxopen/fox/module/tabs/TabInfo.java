@@ -15,6 +15,7 @@ class TabInfo {
 
   final String mTabKeyXPath;
   final String mTabEnabledXPath;
+  final String mTabVisibleXPath;
   final String mTabContextName;
   final String mPreTabActionName;
   final String mPostTabActionName;
@@ -23,10 +24,11 @@ class TabInfo {
   final PresentationNode mPromptPresentationNode;
   final PresentationNode mContentPresentationNode;
 
-  TabInfo(String pTabKeyXPath, String pTabEnabledXPath, String pTabContextName, String pPreTabActionName, String pPostTabActionName,
+  TabInfo(String pTabKeyXPath, String pTabEnabledXPath, String pTabVisibleXPath, String pTabContextName, String pPreTabActionName, String pPostTabActionName,
           String pDisplayOrderXPath, String pDefaultXPath, PresentationNode pPromptPresentationNode, PresentationNode pContentPresentationNode) {
     mTabKeyXPath = pTabKeyXPath;
     mTabEnabledXPath = pTabEnabledXPath;
+    mTabVisibleXPath = pTabVisibleXPath;
     mTabContextName = pTabContextName;
     mPreTabActionName = pPreTabActionName;
     mPostTabActionName = pPostTabActionName;
@@ -90,6 +92,16 @@ class TabInfo {
       }
     }
 
+    boolean lVisible = true;
+    if (!XFUtil.isNull(mTabVisibleXPath)) {
+      try {
+        lVisible = pContextUElem.extendedXPathBoolean(pTabDOM, mTabVisibleXPath);
+      }
+      catch (ExActionFailed e) {
+        throw new ExInternal("Failed to evaluate XPath for tab visible attribute", e);
+      }
+    }
+
     boolean lDefault = false;
     if(pEvaluateDefaultAttr) {
       try {
@@ -100,6 +112,6 @@ class TabInfo {
       }
     }
 
-    return new EvaluatedTabInfo(this, lTabKey, lEnabled, pTabDOM, pRelativeDOM, lDisplayOrder, lDefault);
+    return new EvaluatedTabInfo(this, lTabKey, lEnabled, lVisible, pTabDOM, pRelativeDOM, lDisplayOrder, lDefault);
   }
 }

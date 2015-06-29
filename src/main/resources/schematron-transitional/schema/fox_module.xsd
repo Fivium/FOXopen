@@ -4165,6 +4165,11 @@ If you specify a match attribute you will need to define an explicit cache key b
     </xs:sequence>
     <xs:attribute name="preTabChangeAction" type="fm:entered-string"/>
     <xs:attribute name="postTabChangeAction" type="fm:entered-string"/>
+    <xs:attribute name="visible" type="fm:entered-string">
+      <xs:annotation>
+        <xs:documentation>XPath boolean. If true, this tab will be visible on the screen. Default is true if not specified.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="enabled" type="fm:entered-string"/>
     <xs:attribute name="displayOrder" type="fm:entered-string"/>
     <xs:attribute name="default" type="fm:entered-string">

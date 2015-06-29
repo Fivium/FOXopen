@@ -66,6 +66,7 @@ public abstract class TabInfoProvider {
   throws ExModule {
     String lTabKeyXPath = pDOM.getAttrOrNull("tabKey");
     String lTabEnabledXPath = pDOM.getAttrOrNull("enabled");
+    String lTabVisibleXPath = pDOM.getAttrOrNull("visible");
     String lTabContextName = XFUtil.nvl(pDOM.getAttrOrNull("tabContextName"), DEFAULT_TAB_CONTEXT_NAME);
 
     //Check a key has (not) been provided if required
@@ -116,7 +117,7 @@ public abstract class TabInfoProvider {
 
     String lDefaultXPath = XFUtil.nvl(pDOM.getAttr("default"), "false()");
 
-    return new TabInfo(lTabKeyXPath, lTabEnabledXPath, lTabContextName, lPreTabActionName, lPostTabActionName, lDisplayOrder, lDefaultXPath, lPromptPresentationNode, lContentPresentationNode);
+    return new TabInfo(lTabKeyXPath, lTabEnabledXPath, lTabVisibleXPath, lTabContextName, lPreTabActionName, lPostTabActionName, lDisplayOrder, lDefaultXPath, lPromptPresentationNode, lContentPresentationNode);
   }
 
   protected TabInfoProvider(TabInfo pTabInfo) {
