@@ -25,6 +25,8 @@ extends PresentationNode {
   /** tabContainerStyle value for contained tabs */
   public static final String TAB_CONTAINER_STYLE_CONTAINED = "contained";
 
+  private static final String TAB_GROUP_UNIQUE_FACET_CATEGORY = "TAB_GROUPS";
+
   private final String mTabGroupName;
   private final String mAttachXPath;
 
@@ -77,6 +79,11 @@ extends PresentationNode {
     TabGroupProvider lTabGroupProvider = pEvaluatedParseTree.getModuleFacetProvider(TabGroupProvider.class);
 
     TabGroup lTabGroup = lTabGroupProvider.getOrCreateTabGroup(mTabGroupName, lMatchNode, mTabInfoProviderList, pEvaluatedParseTree.getContextUElem());
+
+    //Check this is the only time this tab group is rendered by the ParseTree (prevents problems arising from duplicate tab group definitions)
+    if(!pEvaluatedParseTree.validateFacetUniqueness(TAB_GROUP_UNIQUE_FACET_CATEGORY, lTabGroup.getTabGroupKey())) {
+      throw new ExInternal("Tab group " + lTabGroup.getTabGroupKey() + " is set out multiple times - this is not allowed");
+    }
 
     return new EvaluatedTabGroupPresentationNode(pParent, this, pEvaluatedParseTree, pEvalContext, lTabGroup);
   }
