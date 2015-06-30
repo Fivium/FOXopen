@@ -86,14 +86,15 @@ implements ListeningPersistable, Iterable<ModuleCall>, ThreadEventListener {
       }
 
       mHasBeenMounted = true;
-
-      Track.setProperty(TrackProperty.MODULE_START_NAME, getTopModuleCall().getModule().getName());
-      Track.setProperty(TrackProperty.STATE_START_NAME, getTopModuleCall().getTopState().getName());
     }
     finally {
       Track.pop("ModuleCallStackRampUp", TrackTimer.THREAD_RAMP_UP);
       pRequestContext.getContextUCon().stopRetainingUCon();
     }
+
+    //Keep these lines out of THREAD_RAMP_UP timer block - they may caused MODULE_LOAD timer to increment, so timers will overlap
+    Track.setProperty(TrackProperty.MODULE_START_NAME, getTopModuleCall().getModule().getName());
+    Track.setProperty(TrackProperty.STATE_START_NAME, getTopModuleCall().getTopState().getName());
   }
 
   /**
