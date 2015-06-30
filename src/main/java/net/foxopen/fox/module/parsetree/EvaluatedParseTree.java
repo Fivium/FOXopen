@@ -54,6 +54,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -124,6 +125,9 @@ public class EvaluatedParseTree implements SerialisationContext {
 
   /** Tracks recursion within child evaluation (to prevent infinite buffer recursion) */
   private int mRecursionLevel = 0;
+
+  /** Used to validate uniqueness of certain facets (i.e. tab groups) within a parse tree evaluation cycle */
+  private Set<String> mUniqueFacetKeys = new HashSet<>();
 
   public EvaluatedParseTree(ActionRequestContext pRequestContext, FieldSet pFieldSet, ThreadInfoProvider pThreadInfoProvider) {
 
@@ -621,5 +625,23 @@ public class EvaluatedParseTree implements SerialisationContext {
 
   public String getAuthenticationSessionID () {
     return mRequestContext.getAuthenticationContext().getSessionId();
+  }
+
+  /**
+   * Checks if the given facet category and identifier tuple has already been recorded by this ParseTree, and records it
+   * if not. This can be used to ensure that a ParseTree only renders a certain facet once.
+   * @param pFacetCategory Category of facet to check uniqueness for.
+   * @param pIdentifier Unique identifier for the facet.
+   * @return True if the facet has not been recorded yet (i.e. true if it is unique), false if it already been recorded.
+   */
+  public boolean validateFacetUniqueness(String pFacetCategory, String pIdentifier) {
+    String lKey = pFacetCategory + "/" + pIdentifier;
+    if(mUniqueFacetKeys.contains(lKey)) {
+      return false;
+    }
+    else {
+      mUniqueFacetKeys.add(lKey);
+      return true;
+    }
   }
 }
