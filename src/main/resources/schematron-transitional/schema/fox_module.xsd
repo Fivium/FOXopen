@@ -3429,7 +3429,6 @@ If the fm:default element is reached, then its contents are evaluated.
               <xs:restriction base="xs:string">
                 <xs:enumeration value="standard"/>
                 <xs:enumeration value="contained"/>
-                <xs:enumeration value="multiline"/>
               </xs:restriction>
             </xs:simpleType>
           </xs:attribute>
@@ -3447,6 +3446,14 @@ If the fm:default element is reached, then its contents are evaluated.
           <xs:attribute name="preTabChangeAction" use="optional" type="fm:entered-string"/>
           <xs:attribute name="postTabChangeAction" use="optional" type="fm:entered-string"/>
           <xs:attribute name="clientSide" use="optional" type="fm:entered-string"/>
+          <xs:attribute name="tabContainerStyle" use="optional" default="standard">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="standard"/>
+                <xs:enumeration value="contained"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
         </xs:complexType>
       </xs:element>
       <xs:element name="tab-prompt-link">
@@ -4182,7 +4189,7 @@ If you specify a match attribute you will need to define an explicit cache key b
   <xs:complexType name="tab-type">
     <xs:complexContent>
       <xs:extension base="fm:tab-base-type">
-        <xs:attribute name="tabKey" type="fm:entered-string"/>
+        <xs:attribute name="tabKey" type="fm:entered-string" use="required"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>

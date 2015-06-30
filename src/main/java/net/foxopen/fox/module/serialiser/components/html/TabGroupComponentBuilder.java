@@ -7,6 +7,7 @@ import net.foxopen.fox.module.fieldset.action.SwitchTabAction;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedPresentationNode;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedTabGroupPresentationNode;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedTabGroupPresentationNode.EvaluatedTabPromptPresentationNode;
+import net.foxopen.fox.module.parsetree.presentationnode.TabGroupPresentationNode;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
 import net.foxopen.fox.module.serialiser.components.ComponentBuilder;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
@@ -40,16 +41,23 @@ extends ComponentBuilder<HTMLSerialiser, EvaluatedTabGroupPresentationNode> {
   }
 
   private static String establishTabClass(EvaluatedTabGroupPresentationNode pEvalNode) {
-    String lTabClass;
 
-    if(pEvalNode.isMultiline()) {
-      lTabClass = "multiline-tabs";
-    }
-    else if(!XFUtil.isNull(pEvalNode.getTabStyle())) {
-      lTabClass = pEvalNode.getTabStyle() + "-tabs";
+    String lTabClass;
+    if(TabGroupPresentationNode.TAB_STYLE_CONTAINED.equals(pEvalNode.getTabStyle())) {
+      lTabClass = "contained-tabs";
     }
     else {
       lTabClass = "";
+    }
+
+    //Only set the multiline style if the threshold is exceeded
+    if(pEvalNode.isMultiline()) {
+      lTabClass += " multiline-tabs";
+    }
+
+    //Set group container style if not standard
+    if(TabGroupPresentationNode.TAB_CONTAINER_STYLE_CONTAINED.equals(pEvalNode.getTabContainerStyle())) {
+      lTabClass += " contained-tab-content";
     }
 
     if(!XFUtil.isNull(pEvalNode.getCSSClass())) {

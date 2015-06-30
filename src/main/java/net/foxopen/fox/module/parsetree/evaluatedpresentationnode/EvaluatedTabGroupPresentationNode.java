@@ -1,8 +1,5 @@
 package net.foxopen.fox.module.parsetree.evaluatedpresentationnode;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
@@ -15,6 +12,9 @@ import net.foxopen.fox.module.parsetree.presentationnode.TabGroupPresentationNod
 import net.foxopen.fox.module.serialiser.components.ComponentBuilderType;
 import net.foxopen.fox.module.tabs.EvaluatedTabInfo;
 import net.foxopen.fox.module.tabs.TabGroup;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class EvaluatedTabGroupPresentationNode
 extends EvaluatedPresentationNode<TabGroupPresentationNode> {
@@ -45,7 +45,7 @@ extends EvaluatedPresentationNode<TabGroupPresentationNode> {
         lClientSide = lContextUElem.extendedXPathBoolean(lContextUElem.attachDOM(), pOriginalNode.getClientSideXPath());
       }
       catch (ExActionFailed e) {
-        throw new ExInternal("Failed to evaluate tab clientSide XPath boolean", e);
+        throw new ExInternal("Failed to evaluate tab group clientSide XPath boolean", e);
       }
     }
     mClientSide = lClientSide;
@@ -56,7 +56,7 @@ extends EvaluatedPresentationNode<TabGroupPresentationNode> {
         mCSSClass = lContextUElem.extendedStringOrXPathString(lContextUElem.attachDOM(), pOriginalNode.getClassXPath());
       }
       catch (ExActionFailed e) {
-        throw new ExInternal("Failed to evaluate tab class XPath", e);
+        throw new ExInternal("Failed to evaluate tab group class XPath", e);
       }
     }
     else {
@@ -99,7 +99,7 @@ extends EvaluatedPresentationNode<TabGroupPresentationNode> {
         lContextUElem.delocalise("TabGroup");
       }
     }
-    //Null out conextual tab info so consumers don't get confused by its presence
+    //Null out contextual tab info so consumers don't get confused by its presence
     mCurrentTabInfo = null;
 
 
@@ -133,6 +133,10 @@ extends EvaluatedPresentationNode<TabGroupPresentationNode> {
 
   public String getTabStyle() {
     return getOriginalNode().getTabStyle();
+  }
+
+  public String getTabContainerStyle() {
+    return getOriginalNode().getTabContainerStyle();
   }
 
   public TabGroup getTabGroup() {

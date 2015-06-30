@@ -19,10 +19,17 @@ import java.util.List;
 public class TabGroupPresentationNode
 extends PresentationNode {
 
+  /** tabStyle value for contained tabs */
+  public static final String TAB_STYLE_CONTAINED = "contained";
+
+  /** tabContainerStyle value for contained tabs */
+  public static final String TAB_CONTAINER_STYLE_CONTAINED = "contained";
+
   private final String mTabGroupName;
   private final String mAttachXPath;
 
   private final String mTabStyle;
+  private final String mTabContainerStyle;
   private final String mClassXPath;
   private final String mMultilineThresholdXPath;
   private final String mTabSize;
@@ -36,6 +43,7 @@ extends PresentationNode {
     mAttachXPath = XFUtil.nvl(pCurrentNode.getAttr("attach"), ".");
 
     mTabStyle = pCurrentNode.getAttr("tabStyle");
+    mTabContainerStyle = pCurrentNode.getAttr("tabContainerStyle");
     mMultilineThresholdXPath = pCurrentNode.getAttr("multilineThreshold");
     mTabSize = pCurrentNode.getAttr("size");
     mClassXPath = pCurrentNode.getAttr("class");
@@ -75,6 +83,10 @@ extends PresentationNode {
 
   public String getTabStyle() {
     return mTabStyle;
+  }
+
+  public String getTabContainerStyle() {
+    return mTabContainerStyle;
   }
 
   public String getTabSize() {
