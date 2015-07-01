@@ -43,7 +43,7 @@ public abstract class TabInfoProvider {
         lProviderList.add(new ForEachDOMTabInfoProvider(lChild, createTabInfoFromDOM(lChild, lDefaultPreTabActionName, lDefaultPostTabActionName, false)));
       }
       else if("tab-for-each-number".equals(lElemName)) {
-        lProviderList.add(new ForEachNumberTabInfoProvider(lChild, createTabInfoFromDOM(lChild, lDefaultPreTabActionName, lDefaultPostTabActionName, true)));
+        lProviderList.add(new ForEachNumberTabInfoProvider(lChild, createTabInfoFromDOM(lChild, lDefaultPreTabActionName, lDefaultPostTabActionName, false)));
       }
       else {
         throw new ExModule("Unrecognised element name within fm:tab-group " + lElemName);

@@ -47,7 +47,7 @@ extends TabInfoProvider {
       lFrom = Double.parseDouble(pContextUElem.extendedStringOrXPathString(pRelativeDOM, mFromXPath));
     }
     catch (ExActionFailed | NumberFormatException e) {
-      throw new ExInternal("Failed to evaluate 'from' attribute for fm:tab-for-each-number");
+      throw new ExInternal("Failed to evaluate 'from' attribute for fm:tab-for-each-number", e);
     }
 
     double lTo;
@@ -55,19 +55,20 @@ extends TabInfoProvider {
       lTo = Double.parseDouble(pContextUElem.extendedStringOrXPathString(pRelativeDOM, mToXPath));
     }
     catch (ExActionFailed | NumberFormatException e) {
-      throw new ExInternal("Failed to evaluate 'to' attribute for fm:tab-for-each-number");
+      throw new ExInternal("Failed to evaluate 'to' attribute for fm:tab-for-each-number", e);
     }
 
     ForEachIterator lIterator = new ForEachIterator(false, null, "loopStatus", lFrom, lTo, 1d);
     lIterator.doForEach(pContextUElem, null, new IterationExecutable() {
       public boolean execute(DOM pOptionalCurrentItem, ForEachIterator.Status pIteratorStatus) {
         //Create a dummy "tab" element so :{tab}/text() is the loop index value for tab XPaths
-        DOM lLoopStepDOM = DOM.createDocument("tab").setText(String.valueOf((int) pIteratorStatus.getCurrentStep()));
+        String lCurrentStep = String.valueOf((int) pIteratorStatus.getCurrentStep());
+        DOM lLoopStepDOM = DOM.createDocument("tab").setText(lCurrentStep);
         //Note: ContextUElem is already localised by ForEachIterator
         pContextUElem.setUElem(getTabInfo().mTabContextName, ContextualityLevel.LOCALISED, lLoopStepDOM);
 
         //The :{tab} DOM should be the loop index when evaluating the tab contents, but tab actions should be relative to the tab group attach
-        lTabInfoList.add(getTabInfo().evaluate(lLoopStepDOM, false, pRelativeDOM, pContextUElem, pEvaluateDefaultAttr));
+        lTabInfoList.add(getTabInfo().evaluate(lLoopStepDOM, lCurrentStep, pRelativeDOM, pContextUElem, pEvaluateDefaultAttr));
         return true;
       }
     });

@@ -18,6 +18,6 @@ extends TabInfoProvider {
 
   @Override
   public List<EvaluatedTabInfo> evaluate(DOM pRelativeDOM, ContextUElem pContextUElem, boolean pEvaluateDefaultAttr) {
-    return Collections.singletonList(getTabInfo().evaluate(pRelativeDOM, false, pRelativeDOM, pContextUElem, pEvaluateDefaultAttr));
+    return Collections.singletonList(getTabInfo().evaluate(pRelativeDOM, null, pRelativeDOM, pContextUElem, pEvaluateDefaultAttr));
   }
 }

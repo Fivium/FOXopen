@@ -42,20 +42,16 @@ class TabInfo {
    * Evaluates the XPaths on this TabInfo, relative to the given DOM, and returns the evaluated form.
    * @param pTabDOM The DOM of the tab from a for-each loop, or the tab group attach DOM, depending on the source of this
    * TabInfo.
-   * @param pTabDOMIsContextual True if pTabDOM represents a contextual tab from a for-each loop (for example).
-   * @param pContextUElem
-   * @param pEvaluateDefaultAttr
-   * @return
+   * @param pDefaultTabKey Default value to use as a tab key if no tabKey attribute is specified. Use null if no default is available.
+   * @param pContextUElem For XPath evaluation.
+   * @param pEvaluateDefaultAttr If true, the "default" attribute is evaluated. This only needs to be true for initial creation.
+   * @return New EvaluatedTabInfo.
    */
-  EvaluatedTabInfo evaluate(DOM pTabDOM, boolean pTabDOMIsContextual, DOM pRelativeDOM, ContextUElem pContextUElem, boolean pEvaluateDefaultAttr) {
+  EvaluatedTabInfo evaluate(DOM pTabDOM, String pDefaultTabKey, DOM pRelativeDOM, ContextUElem pContextUElem, boolean pEvaluateDefaultAttr) {
 
     String lTabKey;
-    if (pTabDOMIsContextual) {
-      //If contextual then there is a "real" DOM for this tab which we can use the reference of
-      //If not, then the tab DOM will be the tab group attach DOM which is no use for generating a tab key
-      lTabKey = pTabDOM.getFoxId();
-    }
-    else if (!XFUtil.isNull(mTabKeyXPath)) {
+
+    if (!XFUtil.isNull(mTabKeyXPath)) {
       try {
         lTabKey = pContextUElem.extendedStringOrXPathString(pTabDOM, mTabKeyXPath);
 
@@ -67,6 +63,9 @@ class TabInfo {
       catch (ExActionFailed e) {
         throw new ExInternal("Failed to evaluate XPath for tab-key", e);
       }
+    }
+    else if(pDefaultTabKey != null) {
+      lTabKey = pDefaultTabKey;
     }
     else {
       throw new ExInternal("A tab-key must be specified for tabs without a relative tab DOM");
