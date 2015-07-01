@@ -47,7 +47,7 @@ extends TabInfoProvider {
     lIterator.doForEach(pContextUElem, lXPathMatchedItems, new IterationExecutable() {
       public boolean execute(DOM pOptionalCurrentItem, ForEachIterator.Status pIteratorStatus) {
         //The tab DOM is also the relative DOM for this type of loop (i.e. :{action} for a tab change action should be the same as :{tab}
-        lTabInfoList.add(getTabInfo().evaluate(pOptionalCurrentItem, true, pOptionalCurrentItem, pContextUElem, pEvaluateDefaultAttr));
+        lTabInfoList.add(getTabInfo().evaluate(pOptionalCurrentItem, pOptionalCurrentItem.getFoxId(), pOptionalCurrentItem, pContextUElem, pEvaluateDefaultAttr));
         return true;
       }
     });
