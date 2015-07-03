@@ -186,8 +186,8 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
       else {
         Track.debug("ContextUElemDeserialise", "Deserialised label :{" + mLabelName + "} for ref '" + mContextRef + "'");
         //Only create a label entry if we found a corresponding DOM - otherwise we'll have problems later when getUElem returns null
-        //Shouldn't need to be global as this operation should only be happening to a non-localised ContextUElem
-        pContextUElem.putLabelEntry(mLabelName, lLabelDOM, mContextualityLevel, false);
+        //Do this globally in case we're currently localised
+        pContextUElem.putLabelEntry(mLabelName, lLabelDOM, mContextualityLevel, true);
       }
     }
   }
@@ -305,14 +305,14 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
   }
 
   /**
-   * Gets the current set of contextual labels (i.e. non-document labels) as SerialisedLabels, for external serialisation/storage
+   * Gets the current set of state level contextual labels as SerialisedLabels, for external serialisation/storage.
    * The label's containing document must have been loaded into this ContextUElem for the serialisation process to work.
    */
   public Collection<SerialisedLabel> getSerialisedContextualLabels() {
     Collection<SerialisedLabel> lLabelSet = new HashSet<>();
 
     for (LabelEntry lEntry : getCurrentLabelEntriesCopy()) {
-      if (lEntry.mContextualityLevel != ContextualityLevel.DOCUMENT) {
+      if (lEntry.mContextualityLevel == ContextualityLevel.STATE) {
         lLabelSet.add(lEntry.getSerialisedLabel());
       }
     }

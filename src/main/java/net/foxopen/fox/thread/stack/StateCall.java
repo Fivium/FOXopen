@@ -66,10 +66,6 @@ implements Persistable {
     if(mContextualLabels != null) {
       Track.debug("StateCall", "Reassigning contexts for state " + mStateName);
 
-      if(pContextUElem.isLocalised()) {
-        throw new ExInternal("Cannot load context when localised to " + pContextUElem.getLocalisedPurpose());
-      }
-
       //Clear all non-document labels from the ContextUElem - either they will be replaced with updated values, or are no longer valid
       pContextUElem.clearContextualLabels();
 
