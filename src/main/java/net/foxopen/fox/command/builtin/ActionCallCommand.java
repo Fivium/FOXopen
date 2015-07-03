@@ -65,7 +65,13 @@ extends BuiltInCommand {
 
   public XDoControlFlow run(ActionRequestContext pRequestContext) {
 
-    ContextUElem lContextUElem = pRequestContext.getContextUElem().localise("fm:call/" + mActionName);
+    ContextUElem lContextUElem = pRequestContext.getContextUElem();
+
+    //Only bother localising if we have contexts to set
+    if(mContextsToSet.size() > 0) {
+      lContextUElem.localise("fm:call/" + mActionName);
+    }
+
     try {
       //Set all required contexts
       mContextsToSet.forEach(e -> e.setContext(lContextUElem));
@@ -84,7 +90,9 @@ extends BuiltInCommand {
       }
     }
     finally {
-      lContextUElem.delocalise("fm:call/" + mActionName);
+      if(mContextsToSet.size() > 0) {
+        lContextUElem.delocalise("fm:call/" + mActionName);
+      }
     }
   }
 

@@ -3,7 +3,6 @@ package net.foxopen.fox.thread.stack;
 
 import com.google.common.collect.Iterators;
 import net.foxopen.fox.ContextLabel;
-import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.command.XDoRunner;
 import net.foxopen.fox.command.flow.XDoControlFlow;
 import net.foxopen.fox.dom.DOM;
@@ -12,9 +11,9 @@ import net.foxopen.fox.module.ActionDefinition;
 import net.foxopen.fox.module.AutoActionType;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.module.State;
+import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.thread.DOMHandlerProvider;
 import net.foxopen.fox.thread.RequestContext;
-import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.thread.ThreadEventListener;
 import net.foxopen.fox.thread.ThreadEventType;
 import net.foxopen.fox.thread.persistence.ListeningPersistable;
@@ -368,19 +367,8 @@ implements ListeningPersistable, Iterable<ModuleCall>, ThreadEventListener {
   }
 
   public XDoControlFlow handleStateStackTransformation(ActionRequestContext pRequestContext, StateStackTransformation pTransformation) {
-
-    StateCallStack lStateStack = getTopModuleCall().getStateCallStack();
-
-    //Legacy behaviour: cannot transform the state call stack in a localise or for-each. This could probably be relaxed.
-    ContextUElem lContextUElem = pRequestContext.getContextUElem();
-    if(lContextUElem.isLocalised()) {
-      throw new ExInternal("Cannot perform a state callstack transformation (" +  pTransformation.getDescription() + ") when context is localised for " + lContextUElem.getLocalisedPurpose());
-    }
-
-    XDoControlFlow lControlFlow = pTransformation.transform(pRequestContext, lStateStack);
-
-    //propogate result from state transformation
-    return lControlFlow;
+    //Propagate result from state transformation
+    return pTransformation.transform(pRequestContext, getTopModuleCall().getStateCallStack());
   }
 
 
