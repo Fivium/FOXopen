@@ -305,6 +305,10 @@ ul.small-tabs img {
   font-weight: 600;
 }
 
+.link-button::before {
+  color: #666;
+}
+
 .green-icon::before {
   color: #0B8433;
 }
