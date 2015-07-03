@@ -619,10 +619,6 @@ button.link-button, a.button.link-button, .button.link-button {
   color: #0979C6;
 }
 
-.link-button:before {
-  color: #666;
-}
-
 /* No-prompt actions (icon only) */
 .no-prompt-action::before {
   margin: 0;
