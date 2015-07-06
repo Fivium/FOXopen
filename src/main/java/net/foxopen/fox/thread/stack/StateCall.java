@@ -5,6 +5,7 @@ import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.command.XDoRunner;
 import net.foxopen.fox.command.flow.XDoControlFlow;
 import net.foxopen.fox.command.flow.XDoControlFlowContinue;
+import net.foxopen.fox.dom.xpath.ContextualityLevel;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.ActionDefinition;
 import net.foxopen.fox.module.AutoActionType;
@@ -80,7 +81,7 @@ implements Persistable {
 
   void unmount(ActionRequestContext pRequestContext){
     //Save the latest contextual labels from the ContextUElem
-    mContextualLabels = pRequestContext.getContextUElem().getSerialisedContextualLabels();
+    mContextualLabels = pRequestContext.getContextUElem().getSerialisedContextualLabels(ContextualityLevel.STATE);
 
     //Always serialise the state (assume something has changed)
     pRequestContext.getPersistenceContext().requiresPersisting(this, PersistenceMethod.UPDATE);
