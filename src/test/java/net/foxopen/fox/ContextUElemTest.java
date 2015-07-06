@@ -911,7 +911,7 @@ public class ContextUElemTest {
   }
 
   private ContextUElem constructNewContextFromExisting() {
-    Collection<ContextUElem.SerialisedLabel> lSerialisedLabels = mContextUElem.getSerialisedContextualLabels();
+    Collection<ContextUElem.SerialisedLabel> lSerialisedLabels = mContextUElem.getSerialisedContextualLabels(ContextualityLevel.STATE);
 
     ContextUElem lNewContextUElem = new ContextUElem(mRootDOM, ContextLabel.ROOT);
     lNewContextUElem.registerDOMHandler(new TestDOMHandler(mRootDOM, ContextLabel.ROOT.asString()));

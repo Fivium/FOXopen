@@ -290,7 +290,7 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
   public void clearContextualLabels() {
     for (ContextUElem.LabelEntry lLabel : getCurrentLabelEntriesCopy()) {
       if (lLabel.mContextualityLevel != ContextualityLevel.DOCUMENT) {
-        removeUElem(lLabel.mLabelName, false, false);
+        removeUElem(lLabel.mLabelName, false, true);
       }
     }
   }
@@ -305,14 +305,17 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
   }
 
   /**
-   * Gets the current set of state level contextual labels as SerialisedLabels, for external serialisation/storage.
+   * Gets the current set of contextual labels as SerialisedLabels, for external serialisation/storage.
    * The label's containing document must have been loaded into this ContextUElem for the serialisation process to work.
+   * @param pMaxContextualityLevel  The maximum inclusive ContextualityLevel to get serialised labels for. E.g. to get
+   *                                state labels pass STATE, to get state and localised pass LOCALISED, etc.
+   * @return Set of SerialisedLabels for the given ContextualityLevel and below.
    */
-  public Collection<SerialisedLabel> getSerialisedContextualLabels() {
+  public Collection<SerialisedLabel> getSerialisedContextualLabels(ContextualityLevel pMaxContextualityLevel) {
     Collection<SerialisedLabel> lLabelSet = new HashSet<>();
 
     for (LabelEntry lEntry : getCurrentLabelEntriesCopy()) {
-      if (lEntry.mContextualityLevel == ContextualityLevel.STATE) {
+      if (lEntry.mContextualityLevel.asInt() > ContextualityLevel.DOCUMENT.asInt() && lEntry.mContextualityLevel.asInt() <= pMaxContextualityLevel.asInt()) {
         lLabelSet.add(lEntry.getSerialisedLabel());
       }
     }
@@ -732,7 +735,7 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
          */
 
         if (lHandler.isTransient()) {
-          removeUElem(lHandler.getContextLabel(), false, false);
+          removeUElem(lHandler.getContextLabel(), false, true);
 
           //TODO is there a better way to do this loop
           //Clear the cached DOMs from LabelEntries implicated by this document - they are also potentially stale.
@@ -838,7 +841,7 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
    * @param pUElem The DOM node to map to the label.
    */
   public final void defineUElem(ContextLabel pLabel, DOM pUElem) {
-    setUElemInternal(pLabel, null, null, pUElem, true, false, null, false);
+    setUElemInternal(pLabel, null, null, pUElem, true, false, null, true);
   }
 
   /**
@@ -851,7 +854,7 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
    * @param pDocumentContextLabel The ContextLabel of the document which the target element exists on.
    */
   public final void defineUElem(ContextLabel pLabel, DOM pUElem, ContextLabel pDocumentContextLabel) {
-    setUElemInternal(pLabel, null, null, pUElem, true, false, pDocumentContextLabel.asString(), false);
+    setUElemInternal(pLabel, null, null, pUElem, true, false, pDocumentContextLabel.asString(), true);
   }
 
   /**
@@ -881,8 +884,8 @@ public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
   }
 
   /**
-   * Sets a label to UElem mapping. If the mapping already exists it is repointed. The proposed label name is validated
-   * to ensure it is allowed to be set.
+   * Sets a label to UElem mapping for the current localisation level. If the mapping already exists it is repointed.
+   * The proposed label name is validated to ensure it is allowed to be set.
    *
    * @param pLabel              The label String to set.
    * @param pContextualityLevel The ContextualityLevel of this label definition. See {@link ContextualityLevel}.
