@@ -1,9 +1,5 @@
 package net.foxopen.fox.module.mapset;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.command.XDoCommandList;
@@ -18,6 +14,10 @@ import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.module.mapset.MapSetDefinitionFactory.DefinitionBuilder;
 import net.foxopen.fox.thread.storage.CacheKey;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 
 /**
@@ -104,7 +104,7 @@ extends MapSetDefinition {
         lMatchNode = pContextUElem.extendedXPath1E(mQueryMatchXPath);
       }
       catch (ExActionFailed | ExCardinality e) {
-        throw new ExInternal("Failed to run match XPath for query based mapset");
+        throw new ExInternal("Failed to run match XPath for query based mapset", e);
       }
     }
     else {
