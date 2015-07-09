@@ -2,6 +2,7 @@ package net.foxopen.fox.thread;
 
 import net.foxopen.fox.ContextLabel;
 import net.foxopen.fox.auth.AuthenticationContext;
+import net.foxopen.fox.database.storage.WorkDocValidator;
 import net.foxopen.fox.database.storage.dom.XMLWorkDoc;
 import net.foxopen.fox.dom.handler.DOMHandler;
 import net.foxopen.fox.dom.handler.InternalDOMHandler;
@@ -58,7 +59,7 @@ implements DOMHandlerProvider, ThreadEventListener {
     return lDOMProvider;
   }
 
-  public StatefulXThreadDOMProvider(SysDOMHandler pSysDOMHandler, TempDOMHandler pTempDOMHandler, SessionDOMHandler pSessionDOMHandler, DOMHandler pUserDOMHandler) {
+  private StatefulXThreadDOMProvider(SysDOMHandler pSysDOMHandler, TempDOMHandler pTempDOMHandler, SessionDOMHandler pSessionDOMHandler, DOMHandler pUserDOMHandler) {
     mSysDOMHandler = pSysDOMHandler;
     mTempDOMHandler = pTempDOMHandler;
     mSessionDOMHandler = pSessionDOMHandler;
@@ -191,6 +192,11 @@ implements DOMHandlerProvider, ThreadEventListener {
       mLastTempDOMString = mTempDOMHandler.getDOM().outputNodeToString(true);
       mTempDOMHandler.flushDOM();
     }
+  }
+
+  @Override
+  public WorkDocValidator.Result validatePendingWorkDocs(ActionRequestContext pRequestContext) {
+    return mWorkDocManager.getWorkDocValidator().validatePending(pRequestContext);
   }
 
   String getLastTempDOMString() {

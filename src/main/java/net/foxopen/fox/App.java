@@ -633,7 +633,7 @@ public class App {
     }
 
     UCon lUCon = null;
-    Track.pushInfo("GetComponent");
+    Track.pushInfo("GetComponent", pComponentPath);
     try {
       // If the component name set is empty, make sure it's populated JIT
       if (mComponentNameSet == null || mComponentNameSet.size() == 0) {

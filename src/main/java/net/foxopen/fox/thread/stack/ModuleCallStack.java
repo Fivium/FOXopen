@@ -5,6 +5,7 @@ import com.google.common.collect.Iterators;
 import net.foxopen.fox.ContextLabel;
 import net.foxopen.fox.command.XDoRunner;
 import net.foxopen.fox.command.flow.XDoControlFlow;
+import net.foxopen.fox.database.storage.WorkDocValidator;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.ActionDefinition;
@@ -75,6 +76,14 @@ implements ListeningPersistable, Iterable<ModuleCall>, ThreadEventListener {
     mStack = new ArrayDeque<>();
   }
 
+  /**
+   * Mounts the top ModuleCall on this stack if it is not already mounted. This opens all the ModuleCall's implicated
+   * DOMHandlers, makes the DOMs writeable and prepares the ContextUElem for action processing.<br><br>
+   *
+   * WorkDoc DOMHandlers may require additional validation to make them writeable after they are opened; see {@link WorkDocValidator}.
+   *
+   * @param pRequestContext Current RequestContext.
+   */
   public void rampUp(ActionRequestContext pRequestContext){
     Track.pushInfo("ModuleCallStackRampUp", "Mounting callstack", TrackTimer.THREAD_RAMP_UP);
     try {
@@ -158,12 +167,18 @@ implements ListeningPersistable, Iterable<ModuleCall>, ThreadEventListener {
     //Open DOM handlers
     lNewModuleCall.mount(pRequestContext);
 
-    //Run entry theme
-    XDoRunner lEntryThemeRunner = pRequestContext.createCommandRunner(true);
-    lNewModuleCall.processEntryTheme(pRequestContext, lEntryThemeRunner);
+    //Validate work docs
+    WorkDocValidator.Result lValidationResult = pRequestContext.getDOMHandlerProvider().validatePendingWorkDocs(pRequestContext);
 
-    //This may run a subsequent CST which would cause this module to become unmounted!
-    lEntryThemeRunner.processCompletion(pRequestContext, this);
+    //Check the WorkDoc was valid, only run entry theme if it was - note that the finalise method may run a CST to kick us out
+    if(lValidationResult.finaliseWithTransform(pRequestContext, this)) {
+      //Run entry theme
+      XDoRunner lEntryThemeRunner = pRequestContext.createCommandRunner(true);
+      lNewModuleCall.processEntryTheme(pRequestContext, lEntryThemeRunner);
+
+      //This may run a subsequent CST which would cause this module to become unmounted!
+      lEntryThemeRunner.processCompletion(pRequestContext, this);
+    }
 
     //Pushing/entry theme process is complete, save the DOMs
     //Note: module call may have been unmounted by call stack transformations run above
@@ -240,14 +255,20 @@ implements ListeningPersistable, Iterable<ModuleCall>, ThreadEventListener {
           lNewTopModuleCall.mount(pRequestContext);
         }
 
-        if(pRunCallbacks){
+        //Validate WorkDocs on the target module (this should only do anything if we mounted the module call above)
+        WorkDocValidator.Result lValidationResult = pRequestContext.getDOMHandlerProvider().validatePendingWorkDocs(pRequestContext);
+
+        //This might run a transform to kick us out if the WorkDoc is not valid
+        boolean lWorkDocsValid = lValidationResult.finaliseWithTransform(pRequestContext, this);
+
+        if(lWorkDocsValid && pRunCallbacks){
           runCallbacks(pRequestContext, lRemovedModuleCall, lNewTopModuleCall, pAllowCallbackTransformations);
         }
       }
 
       //Now we've potentially read the return DOM/callback handlers etc we can unmount the popped call
       if(lRemovedModuleCall.isMounted()){
-        lRemovedModuleCall.unmountModuleCall(pRequestContext);    //Ok here or needs moving up?
+        lRemovedModuleCall.unmountModuleCall(pRequestContext);
       }
     }
     catch (Throwable th) {

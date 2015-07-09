@@ -16,6 +16,7 @@ import net.foxopen.fox.cache.FoxCache;
 import net.foxopen.fox.command.XDoCommandList;
 import net.foxopen.fox.command.XDoRunner;
 import net.foxopen.fox.command.builtin.PragmaCommand;
+import net.foxopen.fox.database.storage.WorkDocValidator;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.handler.DOMHandler;
 import net.foxopen.fox.dom.handler.PostableDOMHandler;
@@ -463,8 +464,11 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
       //Ramp up the callstack (mount top module)
       mModuleCallStack.rampUp(lActionRequestContext);
 
-      //Run the action/xpath/etc
-      pRunnable.run(lActionRequestContext);
+      //Only run the action if the WorkDocs are valid (validate method may cause CST/exception if not)
+      if(validateAfterRampUp(lActionRequestContext, pRunnable.allowCallStackTransformation())) {
+        //Run the action/xpath/etc
+        pRunnable.run(lActionRequestContext);
+      }
 
       //Unmounts + serialises WorkDoc DOMs. This will make all DOMs RO.
       mModuleCallStack.rampDown(lActionRequestContext);
@@ -550,8 +554,11 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
       if(!XFUtil.isNull(lResumeAction)) {
         mModuleCallStack.rampUp(lActionRequestContext);
 
-        //Run action - don't validate against the FieldSet because it won't be in there
-        processExternalAction(lActionRequestContext, lResumeAction, lActionRequestContext.getContextUElem().attachDOM().getRef(), false);
+        //Only allow resume action if the WorkDocs are valid (validate method may run CST if not)
+        if(validateAfterRampUp(lActionRequestContext, true)) {
+          //Run action - don't validate against the FieldSet because it won't be in there
+          processExternalAction(lActionRequestContext, lResumeAction, lActionRequestContext.getContextUElem().attachDOM().getRef(), false);
+        }
 
         mModuleCallStack.rampDown(lActionRequestContext);
       }
@@ -572,6 +579,27 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     }
     finally {
       Track.pop("ThreadExternalResume");
+    }
+  }
+
+  /**
+   * Applies WorkDoc validation to any pending WorkDocs following a ModuleCallStack ramp up. This needs to be invoked
+   * before any writes are attempted to WorkDocs which have validation enabled - otherwise the WorkDoc's DOM will remain RO.
+   * @param pRequestContext Current RequestContext.
+   * @param pAllowTransformation If true, the fm:validation block's resulting CST will be run. This should only be true if
+   *                             the XThread is being invoked in a way which can signal the CST to the end user (i.e. a screen churn).
+   *                             If false, an exception will be thrown if the WorkDoc is not valid.
+   * @return True if all WorkDocs are valid, or false if pAllowTransformation is true (otherwise raises an exception).
+   */
+  private boolean validateAfterRampUp(ActionRequestContext pRequestContext, boolean pAllowTransformation) {
+
+    WorkDocValidator.Result lValidationResult = mDOMProvider.validatePendingWorkDocs(pRequestContext);
+
+    if(pAllowTransformation) {
+      return lValidationResult.finaliseWithTransform(pRequestContext, mModuleCallStack);
+    }
+    else {
+      return lValidationResult.finaliseWithError();
     }
   }
 
@@ -617,6 +645,11 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
 
         //Always mark as requiring an update (the fieldset will always change)
         mPersistenceContext.requiresPersisting(StatefulXThread.this, PersistenceMethod.UPDATE);
+      }
+
+      @Override
+      public boolean allowCallStackTransformation() {
+        return true;
       }
     };
 

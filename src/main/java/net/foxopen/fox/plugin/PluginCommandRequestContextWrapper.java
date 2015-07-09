@@ -148,7 +148,7 @@ implements FxpCommandContext {
       XMLWorkDoc lWorkDoc = XMLWorkDoc.getOrCreateXMLWorkDoc(lWSL, false);
 
       DOM lDOM;
-      lWorkDoc.open(mRequestContext.getContextUCon());
+      lWorkDoc.open(mRequestContext.getContextUCon(), false);
       try {
         lDOM = lWorkDoc.getDOM();
       }

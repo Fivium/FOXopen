@@ -622,7 +622,8 @@ implements FxpDOM<DOM> {
   }
 
    /**
-   * Get the unique reference (i.e. FOXID) of this element. If the element does not have a FOXID, an exception is thrown.
+   * Get the unique reference (i.e. FOXID) of this element. If the element does not have a FOXID and the DOM is RO, an exception is thrown.
+   * Otherwise the FOXID is bootstrapped on the element.
    * @return The unique reference string.
    */
   public String getRef() {

@@ -79,6 +79,7 @@ implements Trackable, Validatable {
   }
 
   private static final String SYNC_MODE_ATTR_NAME = "synchronisation-mode";
+  private static final String VALIDATION_ENABLED_ATTR_NAME = "validation-enabled";
 
   private final Mod mModule;
   private final String mThemeName;
@@ -89,6 +90,7 @@ implements Trackable, Validatable {
   private final List<DataDOMStorageLocation> mStorageLocationList;
   private final DataDOMStorageLocation mDefaultStorageLocation;
   private final Map<String, SyncMode> mStorageLocationNamesToSyncModes;
+  private final Map<String, Boolean> mStorageLocationValidationFlags;
   private final String mType;
   private final boolean mPublished;
   private final EntryThemeSecurity mEntryThemeSecurity;
@@ -181,6 +183,7 @@ implements Trackable, Validatable {
       mStorageLocationList = lParseResult.getStorageLocationList();
       mDefaultStorageLocation = lParseResult.getDefaultStorageLocation();
       mStorageLocationNamesToSyncModes = lParseResult.getStorageLocationSyncModes();
+      mStorageLocationValidationFlags = lParseResult.getStorageLocationValidationFlags();
 
       // Look up "do" actions
       DOM lDoBlock;
@@ -261,6 +264,7 @@ implements Trackable, Validatable {
     List<DataDOMStorageLocation> getStorageLocationList();
     DataDOMStorageLocation getDefaultStorageLocation();
     Map<String, SyncMode> getStorageLocationSyncModes();
+    Map<String, Boolean> getStorageLocationValidationFlags();
   }
 
   private StorageLocationParseResult parseStorageLocationDefinition(DOM pEntryThemeDOM)
@@ -289,7 +293,7 @@ implements Trackable, Validatable {
     }
 
 
-    if(!XFUtil.isNull(lStorageLocationName)) {
+    if(lStorageLocationListDefinition == null) {
       //Read the sync mode attribute off the single storage location definition
       final SyncMode lSyncMode;
       if(lStorageLocationDefinition.hasAttr(SYNC_MODE_ATTR_NAME)) {
@@ -299,12 +303,15 @@ implements Trackable, Validatable {
         lSyncMode = SyncMode.SYNCHRONISED;
       }
 
+      boolean lValidationEnabled = Boolean.valueOf(XFUtil.nvl(lStorageLocationDefinition.getAttr(VALIDATION_ENABLED_ATTR_NAME), "true"));
+
       //Single SL defined - this will also be the default
       final DataDOMStorageLocation lStorageLocation = mModule.getDataStorageLocation(lStorageLocationName);
       return new StorageLocationParseResult() {
         public List<DataDOMStorageLocation> getStorageLocationList() { return Collections.unmodifiableList(Collections.singletonList(lStorageLocation)); }
         public DataDOMStorageLocation getDefaultStorageLocation() { return lStorageLocation; }
         public Map<String, SyncMode> getStorageLocationSyncModes() { return Collections.singletonMap(lStorageLocation.getName(), lSyncMode); }
+        public Map<String, Boolean> getStorageLocationValidationFlags() { return Collections.singletonMap(lStorageLocation.getName(), lValidationEnabled); }
       };
     }
     else {
@@ -317,6 +324,8 @@ implements Trackable, Validatable {
         lDefaultSyncMode = SyncMode.SYNCHRONISED;
       }
 
+      boolean lValidationEnabledDefault = Boolean.valueOf(XFUtil.nvl(lStorageLocationListDefinition.getAttr(VALIDATION_ENABLED_ATTR_NAME), "true"));
+
       //List of SLs defined - parse it and ensure that a default is specified
       DOMList lSLDefinitionList = lStorageLocationListDefinition.getUL("fm:storage-location");
 
@@ -327,6 +336,7 @@ implements Trackable, Validatable {
 
       final List<DataDOMStorageLocation> lResultList = new ArrayList<>(lSLDefinitionList.size());
       final Map<String, SyncMode> lSyncModeMap = new HashMap<>(lSLDefinitionList.size());
+      final Map<String, Boolean> lValidationFlagMap = new HashMap<>(lSLDefinitionList.size());
       Set<String> lContextLabels = new HashSet<>();
 
       //Retrieve the SL for each item in the list
@@ -349,6 +359,16 @@ implements Trackable, Validatable {
           lSyncMode = lDefaultSyncMode;
         }
         lSyncModeMap.put(lStorageLocation.getName(), lSyncMode);
+
+        //Work out validation flag for the SL
+        boolean lValidationEnabled;
+        if(lSLDefinition.hasAttr(VALIDATION_ENABLED_ATTR_NAME)) {
+          lValidationEnabled = Boolean.valueOf(XFUtil.nvl(lSLDefinition.getAttr(VALIDATION_ENABLED_ATTR_NAME), "true"));
+        }
+        else {
+          lValidationEnabled = lValidationEnabledDefault;
+        }
+        lValidationFlagMap.put(lStorageLocation.getName(), lValidationEnabled);
 
         //Check that storage location context labels are unique in this entry theme
         String lContextLabel = lStorageLocation.getDocumentContextLabel();
@@ -386,6 +406,7 @@ implements Trackable, Validatable {
         public List<DataDOMStorageLocation> getStorageLocationList() { return Collections.unmodifiableList(lResultList); }
         public DataDOMStorageLocation getDefaultStorageLocation() { return lFinalDefaultSL; }
         public Map<String, SyncMode> getStorageLocationSyncModes() { return Collections.unmodifiableMap(lSyncModeMap); }
+        public Map<String, Boolean> getStorageLocationValidationFlags() { return lValidationFlagMap; }
       };
     }
   }
@@ -658,11 +679,25 @@ implements Trackable, Validatable {
   /**
    * Looks up the SyncMode defined for the storage location on this entry theme. This will only return null if the storage
    * location is not defined on the entry theme.
-   * @param pStorageLocatioName SL to look up.
+   * @param pStorageLocationName SL to look up.
    * @return SL sync mode.
    */
-  public SyncMode getSyncModeForStorageLocation(String pStorageLocatioName) {
-    return mStorageLocationNamesToSyncModes.get(pStorageLocatioName);
+  public SyncMode getSyncModeForStorageLocation(String pStorageLocationName) {
+    return mStorageLocationNamesToSyncModes.get(pStorageLocationName);
+  }
+
+  /**
+   * Determines if the given storage location requires its fm:validation block to be executed within this entry theme.
+   * Only synchronised storage locations with SELECT statements and fm:validation blocks defined are candidates for validation.
+   * @param pStorageLocation SL to check.
+   * @return True if validation is required.
+   */
+  public boolean isValidationRequiredForStorageLocation(DataDOMStorageLocation pStorageLocation) {
+    String lStorageLocationName = pStorageLocation.getName();
+    return pStorageLocation.hasQueryStatement() &&
+      !pStorageLocation.getValidationCommands().isEmpty() &&
+      mStorageLocationNamesToSyncModes.get(lStorageLocationName) == SyncMode.SYNCHRONISED &&
+      mStorageLocationValidationFlags.get(lStorageLocationName);
   }
 
   public boolean isAllowedPasswordExpiredAccess() {

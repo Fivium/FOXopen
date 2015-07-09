@@ -3,6 +3,7 @@ package net.foxopen.fox.thread;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import net.foxopen.fox.ContextUCon;
+import net.foxopen.fox.database.storage.WorkDocValidator;
 import net.foxopen.fox.database.storage.dom.XMLWorkDoc;
 import net.foxopen.fox.ex.ExInternal;
 
@@ -21,21 +22,29 @@ import net.foxopen.fox.ex.ExInternal;
 public class XThreadWorkDocManager {
 
   private final Multiset<String> mWorkDocOpenCounter = HashMultiset.create(4);
+  private final WorkDocValidator mWorkDocValidator = WorkDocValidator.createValidator();
 
   XThreadWorkDocManager() { }
 
   /**
    * Opens the given WorkDoc if it is not already open by this object's XThread.
-   * @param pContextUCon For opening WorkDoc.
+   * @param pRequestContext Current RequestContext.
    * @param pWorkDoc WorkDoc to open.
    */
-  public void openIfRequired(ContextUCon pContextUCon, XMLWorkDoc pWorkDoc) {
+  public void openIfRequired(ActionRequestContext pRequestContext, XMLWorkDoc pWorkDoc) {
 
     String lCacheKey = pWorkDoc.getCacheKey();
 
     if(mWorkDocOpenCounter.count(lCacheKey) == 0) {
+
+      //Check if this WorkDoc requires validation and mark it if so
+      boolean lRequiresValidation = pRequestContext.getCurrentTheme().isValidationRequiredForStorageLocation(pWorkDoc.getWorkingStoreLocation().getStorageLocation());
+      if(lRequiresValidation) {
+        mWorkDocValidator.markAsPendingValidation(pWorkDoc);
+      }
+
       //No usages in the counter - this is first time this thread wants to open the WorkDoc, so actually open it
-      pWorkDoc.open(pContextUCon);
+      pWorkDoc.open(pRequestContext.getContextUCon(), lRequiresValidation);
     }
 
     //Record the open attempt so we can validate the stack against close attempts
@@ -77,4 +86,7 @@ public class XThreadWorkDocManager {
     }
   }
 
+  public WorkDocValidator getWorkDocValidator() {
+    return mWorkDocValidator;
+  }
 }
