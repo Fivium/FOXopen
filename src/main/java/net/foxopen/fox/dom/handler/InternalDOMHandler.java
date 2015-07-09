@@ -170,7 +170,7 @@ implements DOMHandler, Persistable {
 
     @Override
     public DOM getInitialDOM(ActionRequestContext pRequestContext) {
-      mWorkDoc.open(pRequestContext.getContextUCon());
+      mWorkDoc.open(pRequestContext.getContextUCon(), false);
       try {
         return mWorkDoc.getDOM();
       }

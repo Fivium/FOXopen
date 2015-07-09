@@ -33,22 +33,24 @@ $Id$
 package net.foxopen.fox.thread.storage;
 
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-
 import net.foxopen.fox.ContextUElem;
-import net.foxopen.fox.module.Validatable;
+import net.foxopen.fox.command.XDoCommandList;
 import net.foxopen.fox.dom.DOM;
+import net.foxopen.fox.ex.ExDoSyntax;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.ex.ExTooFew;
 import net.foxopen.fox.ex.ExTooMany;
 import net.foxopen.fox.module.Mod;
+import net.foxopen.fox.module.Validatable;
 import net.foxopen.fox.track.Track;
 import net.foxopen.fox.track.TrackFlag;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 
 /**
@@ -77,6 +79,8 @@ implements Validatable {
   private final CacheKey mCacheKey;
 
   private final Map<StatementType, DatabaseStatement> mStatementMap = new HashMap<>();
+
+  private final XDoCommandList mValidationCommands;
 
   /**
    * Creates a new storage location definition.
@@ -116,6 +120,19 @@ implements Validatable {
 
     //Determine the cache key for this storage location
     mCacheKey = createCacheKey(pStorageLocationDOM, pAutoGenerateCacheKey);
+
+    DOM lValidateBlock = pStorageLocationDOM.get1EOrNull("fm:validation");
+    if(lValidateBlock != null) {
+      try {
+        mValidationCommands = new XDoCommandList(pModule, lValidateBlock);
+      }
+      catch (ExDoSyntax e) {
+        throw new ExModule("Invalid command syntax in storage-location validation block", e);
+      }
+    }
+    else {
+      mValidationCommands = XDoCommandList.emptyCommandList();
+    }
   }
 
   protected StorageLocation(String pName, Map<StatementType, DatabaseStatement> pStatementMap) {
@@ -124,6 +141,7 @@ implements Validatable {
     mAppMnem = "";
     mModName = "";
     mCacheKey = null;
+    mValidationCommands = XDoCommandList.emptyCommandList();
 
     mStatementMap.putAll(pStatementMap);
   }
@@ -317,7 +335,8 @@ implements Validatable {
     return lResult;
   }
 
-  public void validate(Mod module) {
+  public void validate(Mod pModule) {
+    mValidationCommands.validate(pModule);
   }
 
   public String getAppMnem() {
@@ -335,5 +354,9 @@ implements Validatable {
    */
   public CacheKey getCacheKey() {
     return mCacheKey;
+  }
+
+  public XDoCommandList getValidationCommands() {
+    return mValidationCommands;
   }
 }

@@ -36,13 +36,15 @@ extends XMLWorkDoc {
   /** Flag indicating if the DOM should have Auto IDs set or not */
   private final boolean mIsAutoIds;
 
+  private boolean mPendingValidation = false;
+
   WriteableXMLWorkDoc(WorkingDataDOMStorageLocation pWorkingStoreLocation, boolean pIsAutoIds, XMLWorkDocDOMAccessor pDOMAccessor) {
     super(pWorkingStoreLocation, pDOMAccessor);
     mIsAutoIds = pIsAutoIds;
   }
 
   @Override
-  public void open(ContextUCon pContextUCon) {
+  public void open(ContextUCon pContextUCon, boolean pRequiresValidation) {
 
     Track.pushInfo("WorkDocOpen", getDOMAccessor().getClass().getSimpleName());
     try {
@@ -52,7 +54,7 @@ extends XMLWorkDoc {
         //during the open operation.
         //IMPORTANT: this is giving us a conceptual object lock for this WorkDoc (similar to how entitlements used to work)
         //Any changes to this routine must be carefully tested to ensure the lock is still acquired at the correct point.
-        //In particualar no change to object state should occur until the database lock is acquired.
+        //In particular no change to object state should occur until the database lock is acquired.
         boolean lRowExists = openLocatorInWaitLoop(lUCon);
 
         //Don't do the open check until we have a lock - effectively synchronising access to this object
@@ -69,13 +71,15 @@ extends XMLWorkDoc {
           insertNewRow(lUCon);
         }
 
-        //Set correct actuator
-        if(mIsAutoIds) {
-          getDOM().getDocControl().setDocumentReadWriteAutoIds();
-        }
-        else {
-          //Default is read write no auto IDs
-          getDOM().getDocControl().setDocumentReadWrite();
+        //Make writeable and call getRef to force a FOXID on the new DOM - otherwise brand new documents (created from an INSERT)
+        //will be missing a FOXID and cause errors later on
+        makeDOMWriteable();
+        getDOM().getRef();
+
+        //Set back to RO if this needs to be validated later
+        if(pRequiresValidation) {
+          getDOM().getDocControl().setDocumentReadOnly();
+          mPendingValidation = true;
         }
 
         mIsOpen = true;
@@ -88,6 +92,30 @@ extends XMLWorkDoc {
     finally {
       Track.pop("WorkDocOpen");
     }
+  }
+
+  private void makeDOMWriteable() {
+    //Set correct actuator
+    if(mIsAutoIds) {
+      getDOM().getDocControl().setDocumentReadWriteAutoIds();
+    }
+    else {
+      //Default is read write no auto IDs
+      getDOM().getDocControl().setDocumentReadWrite();
+    }
+  }
+
+  @Override
+  public void markAsValidated(boolean pIsValid) {
+    if(!mPendingValidation) {
+      throw new ExInternal("Cannot validate WorkDoc if it is not marked as pending validation");
+    }
+
+    if(pIsValid) {
+      makeDOMWriteable();
+    }
+
+    mPendingValidation = false;
   }
 
   @Override

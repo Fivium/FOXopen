@@ -29,8 +29,8 @@ implements PostableDOMHandler, AbortableDOMHandler {
       mWorkDoc = XMLWorkDoc.getOrCreateXMLWorkDoc(mWorkingStoreLocation, true);
     }
 
-    //Open the WorkDoc if it's not already open (accounts for multiple access attempt swithin a call stack transformation)
-    mWorkDocManager.openIfRequired(pRequestContext.getContextUCon(), mWorkDoc);
+    //Open the WorkDoc if it's not already open (accounts for multiple access attempts within a call stack transformation)
+    mWorkDocManager.openIfRequired(pRequestContext, mWorkDoc);
   }
 
   @Override

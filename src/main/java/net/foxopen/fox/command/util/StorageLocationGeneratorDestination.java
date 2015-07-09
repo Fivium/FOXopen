@@ -58,7 +58,7 @@ implements GeneratorDestination {
       WorkingDataDOMStorageLocation lWSL = lStorageLocation.createWorkingStorageLocation(pRequestContext.getContextUElem(), pRequestContext.getCurrentCallId(), SyncMode.SYNCHRONISED);
       XMLWorkDoc lWorkDoc = XMLWorkDoc.getOrCreateXMLWorkDoc(lWSL, false);
 
-      lWorkDoc.open(pRequestContext.getContextUCon());
+      lWorkDoc.open(pRequestContext.getContextUCon(), false);
       try {
         DOM lTargetDOM = lWorkDoc.getDOM();
         pGenerator.writeOutput(lTargetDOM);

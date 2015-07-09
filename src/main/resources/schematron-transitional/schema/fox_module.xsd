@@ -236,7 +236,7 @@
                         <xs:complexType>
                           <xs:simpleContent>
                             <xs:extension base="fm:entered-string">
-                              <xs:attributeGroup ref="fm:synchronisation-mode-attr-grp"/>
+                              <xs:attributeGroup ref="fm:sl-option-attr-grp"/>
                             </xs:extension>
                           </xs:simpleContent>
                         </xs:complexType>
@@ -252,13 +252,13 @@
                                 <xs:simpleContent>
                                   <xs:extension base="fm:entered-string">
                                     <xs:attribute name="default" type="xs:boolean" use="optional"/>
-                                    <xs:attributeGroup ref="fm:synchronisation-mode-attr-grp"/>
+                                    <xs:attributeGroup ref="fm:sl-option-attr-grp"/>
                                   </xs:extension>
                                 </xs:simpleContent>
                               </xs:complexType>
                             </xs:element>
                           </xs:sequence>
-                          <xs:attributeGroup ref="fm:synchronisation-mode-attr-grp"/>
+                          <xs:attributeGroup ref="fm:sl-option-attr-grp"/>
                         </xs:complexType>
                       </xs:element>
                     </xs:choice>
@@ -2201,6 +2201,11 @@ Can also be used to replace all states on the state-call stack with the state sp
           </xs:sequence>
         </xs:complexType>
       </xs:element>
+      <xs:element name="validation" minOccurs="0" type="fm:do-block-type">
+        <xs:annotation>
+          <xs:documentation>This fm:do block is executed before the storage location's DOM is opened for editing and before any posted values are applied to it. Callstack transformations such as a module call or exit module which occur in this block will be executed immediately, preventing the DOM from being modified. Use this to prevent unauthorised DOM modifications in the case that some external condition is met (for instance, the application status has changed and moved to a read-only stage).</xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="file-storage-location-type">
@@ -4133,7 +4138,7 @@ If you specify a match attribute you will need to define an explicit cache key b
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>
-  <xs:attributeGroup name="synchronisation-mode-attr-grp">
+  <xs:attributeGroup name="sl-option-attr-grp">
     <xs:attribute name="synchronisation-mode">
       <xs:annotation>
         <xs:documentation>Defines how database storage location updates are handled. The default is 'synchronised' if not specified.</xs:documentation>
@@ -4144,6 +4149,14 @@ If you specify a match attribute you will need to define an explicit cache key b
           <xs:enumeration value="unsynchronised"/>
           <xs:enumeration value="read-only"/>
         </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="validation-enabled">
+      <xs:annotation>
+        <xs:documentation>Controls if the fm:validation section of the storage location definition should be executed within this entry theme, if it is defined. The default is 'true'. Note this setting only applies to synchronised storage locations.</xs:documentation>
+      </xs:annotation>
+      <xs:simpleType>
+        <xs:restriction base="xs:boolean"/>
       </xs:simpleType>
     </xs:attribute>
   </xs:attributeGroup>

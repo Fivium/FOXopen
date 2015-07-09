@@ -35,16 +35,16 @@ package net.foxopen.fox.thread.storage;
 
 import net.foxopen.fox.ContextLabel;
 import net.foxopen.fox.ContextUElem;
-import net.foxopen.fox.module.Validatable;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.ex.ExTooFew;
 import net.foxopen.fox.ex.ExTooMany;
-import net.foxopen.fox.module.entrytheme.EntryTheme;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.module.SyncMode;
+import net.foxopen.fox.module.Validatable;
+import net.foxopen.fox.module.entrytheme.EntryTheme;
 
 /**
  * Implementation of a StorageLocation used for storing the data (root) DOMs for a StatefulXThread.
@@ -54,7 +54,7 @@ extends StorageLocation
 implements Validatable {
 
   /** Used to differentiate between Clob and Binary XML storage options. */
-  private static enum XMLStorageType{
+  private enum XMLStorageType{
     BINARY,
     CLOB;
 
@@ -155,18 +155,6 @@ implements Validatable {
     }
   }
 
-//  /**
-//   * Constructs a new WorkingStorageLocation representing the evaluated form of this StorageLocation, with a SyncMode of
-//   * SYNCHRONISED.
-//   * @param pContextUElem Context for XPath evaluation.
-//   * @param pCallId Current module call ID for UNIQUE bind evaluation.
-//   * @return A new WorkingStorageLocation.
-//   * @throws ExModule
-//   */
-//  public WorkingDataDOMStorageLocation createWorkingStorageLocation(ContextUElem pContextUElem, String pCallId) {
-//    return new WorkingDataDOMStorageLocation(this, pContextUElem, pCallId, hasQueryStatement(), SyncMode.SYNCHRONISED);
-//  }
-
   /**
    * Constructs a new WorkingStorageLocation representing the evaluated form of this StorageLocation. The SyncMode is
    * determined by entry theme markup.
@@ -192,9 +180,6 @@ implements Validatable {
   public WorkingDataDOMStorageLocation createWorkingStorageLocation(ContextUElem pContextUElem, String pCallId, SyncMode pSyncMode) {
     //Note: binds are only evaluated if a query statement is present
     return new WorkingDataDOMStorageLocation(this, pContextUElem, pCallId, hasQueryStatement(), pSyncMode);
-  }
-
-  public void validate(Mod module) {
   }
 
   public final String getNewDocRootElementName() {

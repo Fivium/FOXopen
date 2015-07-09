@@ -32,19 +32,18 @@ $Id$
 */
 package net.foxopen.fox.thread.storage;
 
-import java.sql.Blob;
-
-import java.util.Map;
-
 import net.foxopen.fox.ContextLabel;
 import net.foxopen.fox.ContextUElem;
-import net.foxopen.fox.module.Validatable;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.filetransfer.UploadInfo;
 import net.foxopen.fox.module.Mod;
+import net.foxopen.fox.module.Validatable;
+
+import java.sql.Blob;
+import java.util.Map;
 
 
 public class FileStorageLocation
@@ -149,14 +148,6 @@ implements Validatable {
     }
 
   }
-
-  /**
-   * Validates that the module, and its sub-components, are valid.
-   *
-   * @param module the module where the component resides
-   * @throws ExInternal if the component syntax is invalid.
-   */
-  public void validate(Mod module) {}
 
   public boolean isUploadTarget() {
     return mIsUploadTarget;

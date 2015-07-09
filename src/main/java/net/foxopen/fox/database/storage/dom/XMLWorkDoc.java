@@ -2,8 +2,8 @@ package net.foxopen.fox.database.storage.dom;
 
 import net.foxopen.fox.ContextUCon;
 import net.foxopen.fox.XFUtil;
-import net.foxopen.fox.cache.CacheManager;
 import net.foxopen.fox.cache.BuiltInCacheDefinition;
+import net.foxopen.fox.cache.CacheManager;
 import net.foxopen.fox.cache.FoxCache;
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.sql.ExecutableQuery;
@@ -116,9 +116,13 @@ implements WorkDoc {
    * the database transaction it was opened in is rolled back or committed. If the WSL SELECT statement does not contain
    * a FOR UPDATE clause this behaviour will not be guaranteed. WorkDoc consumers must ensure they have called <tt>open</tt>
    * before performing any additional operations on the object.
-   * @param pContextUCon
+   *
+   * @param pContextUCon For running SELECT/INSERT statements.
+   * @param pRequiresValidation If true, the WorkDoc's DOM will be made read only until {@link #markAsValidated} is invoked.
+   *                            This allows consumers to perform the validation logic at a later stage but before the DOM is
+   *                            modified. The consumer must manage and execute the validation logic itself.
    */
-  public abstract void open(ContextUCon pContextUCon);
+  public abstract void open(ContextUCon pContextUCon, boolean pRequiresValidation);
 
   /**
    * Gets the XML document held by this WorkDoc. This may be null if the WorkDoc has not yet been open, and may be out
@@ -145,6 +149,14 @@ implements WorkDoc {
    */
   public abstract void post(ContextUCon pContextUCon);
 
+  /**
+   * Marks this WorkDoc as validated, if it was previously opened with the "requires validation" flag. If the validation
+   * was successful, this will make the underlying DOM fully writeable (if this is a writeable WorkDoc).
+   * You cannot mark a WorkDoc as validated if it was not opened with the "requires validation" flag or if it has already
+   * been marked as validated.
+   * @param pIsValid The result of the validation (true if valid).
+   */
+  public abstract void markAsValidated(boolean pIsValid);
 
   public Object getLOBForBinding(UCon pUCon, BindSQLType pBindTypeRequired) {
     return mDOMAccessor.getLOBForBinding(pUCon, pBindTypeRequired, getDOM());

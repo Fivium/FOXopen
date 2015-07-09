@@ -24,7 +24,7 @@ extends XMLWorkDoc {
   }
 
   @Override
-  public void open(ContextUCon pContextUCon) {
+  public void open(ContextUCon pContextUCon, boolean pRequiresValidation) {
     Track.pushInfo("ROWorkDocOpen", getDOMAccessor().getClass().getSimpleName());
     synchronized(this) {
       try {
@@ -65,6 +65,10 @@ extends XMLWorkDoc {
   @Override
   public void post(ContextUCon pContextUCon) {
     Track.info("SkipRODOMPost", "Skipping post of RO DOM");
+  }
+
+  @Override
+  public void markAsValidated(boolean pIsValid) {
   }
 
   private void readExistingRow(UCon pUCon) {
