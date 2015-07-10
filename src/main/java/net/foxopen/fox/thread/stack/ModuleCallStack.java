@@ -50,6 +50,7 @@ implements ListeningPersistable, Iterable<ModuleCall>, ThreadEventListener {
   private final Set<ModuleStateChangeListener> mStateChangeListeners = new HashSet<>();
 
   private Deque<ModuleCall> mStackAtPersistenceCycleStart;
+  private Set<ModuleCall> mModuleCallsRemovedDuringPersistenceCycle = new HashSet<>();
 
   /** Tracks whether a newly-created ModuleCallStack has been mounted at least once. */
   private boolean mHasBeenMounted = false;
@@ -204,8 +205,15 @@ implements ListeningPersistable, Iterable<ModuleCall>, ThreadEventListener {
 
     //Mark the callstack as requiring an update - this will process module calls/deletes
     pRequestContext.getPersistenceContext().requiresPersisting(this, PersistenceMethod.UPDATE);
+
+    //Mark removed module call as requiring delete - although the callstack update will physically delete the module call,
+    //this will prevent the PersistenceContext from attempting to update the module call if it is created and removed in the same churn
+    //and it is marked for update (i.e. due to a facet change)
+    mModuleCallsRemovedDuringPersistenceCycle.add(lRemovedModuleCall);
+//    pRequestContext.getPersistenceContext().requiresPersisting(lRemovedModuleCall, PersistenceMethod.DELETE);
+
     //Mark state call stack as requiring delete - in case of insert followed by immediate delete (i.e. push/pop in same churn)
-    pRequestContext.getPersistenceContext().requiresPersisting(lRemovedModuleCall.getStateCallStack(), PersistenceMethod.DELETE);
+    //pRequestContext.getPersistenceContext().requiresPersisting(lRemovedModuleCall.getStateCallStack(), PersistenceMethod.DELETE);
 
     //Run any auto state final actions - legacy behaviour was only to run these when running callbacks
     if(pRunCallbacks) {
@@ -451,7 +459,10 @@ implements ListeningPersistable, Iterable<ModuleCall>, ThreadEventListener {
 
   @Override
   public void startPersistenceCycle() {
+    //Take a copy of the stack for later comparison which establishes additions/removals
     mStackAtPersistenceCycleStart = new ArrayDeque<>(mStack);
+    //Reset the removed ModuleCall tracker
+    mModuleCallsRemovedDuringPersistenceCycle.clear();
   }
 
   @Override
@@ -465,15 +476,25 @@ implements ListeningPersistable, Iterable<ModuleCall>, ThreadEventListener {
 
     Collection<PersistenceResult> lDone = new HashSet<>();
 
-    //Deletions
+    //"Hard" deletions of modules which existed in the stack at the start of the churn - these need a delete statement to run
     for(ModuleCall lModuleCall : mStackAtPersistenceCycleStart) {
       if(!mStack.contains(lModuleCall)) {
         Collection<PersistenceResult> lImplicatedPersistables = lModuleCall.delete(pPersistenceContext);
         lDone.addAll(lImplicatedPersistables);
+
+        //Avoid processing the delete again below as a "soft delete" - the implicated persistables should be identical
+        mModuleCallsRemovedDuringPersistenceCycle.remove(lModuleCall);
       }
     }
 
-    //Additions
+    //"Soft deletions" of module calls which were added and deleted in same churn
+    //No database access required, but the implicated components must be marked as deleted to prevent unnecessary updates if they were marked for update
+    for(ModuleCall lModuleCall : mModuleCallsRemovedDuringPersistenceCycle) {
+      //Don't run the delete statement but get the implicated results
+      lDone.addAll(lModuleCall.allImplicatedByDelete());
+    }
+
+    //New module calls which require an insert statement to run
     for(ModuleCall lModuleCall : mStack) {
       if(!mStackAtPersistenceCycleStart.contains(lModuleCall)) {
         Collection<PersistenceResult> lImplicatedPersistables = lModuleCall.create(pPersistenceContext);
