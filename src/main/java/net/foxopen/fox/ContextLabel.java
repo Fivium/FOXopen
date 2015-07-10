@@ -129,7 +129,7 @@ public enum ContextLabel {
    * A special DOM used with storage location fm:valdiation blocks. The DOM contains the converted results of the storage
    * location's SELECT statement.
    */
-  STORAGE_LOCATION_SELECT("storage-location-select", ContextualityLevel.DOCUMENT),
+  STORAGE_LOCATION_SELECT("storage-location-select", ContextualityLevel.LOCALISED),
 
   /**
    * The attach point of the current state. This is also used as the default context item of an XPath expression if one
