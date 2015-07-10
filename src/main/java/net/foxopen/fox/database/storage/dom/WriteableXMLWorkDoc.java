@@ -38,6 +38,8 @@ extends XMLWorkDoc {
 
   private boolean mPendingValidation = false;
 
+  private DOM mSelectColumnXML = null;
+
   WriteableXMLWorkDoc(WorkingDataDOMStorageLocation pWorkingStoreLocation, boolean pIsAutoIds, XMLWorkDocDOMAccessor pDOMAccessor) {
     super(pWorkingStoreLocation, pDOMAccessor);
     mIsAutoIds = pIsAutoIds;
@@ -48,6 +50,9 @@ extends XMLWorkDoc {
 
     Track.pushInfo("WorkDocOpen", getDOMAccessor().getClass().getSimpleName());
     try {
+
+      mPendingValidation = pRequiresValidation;
+
       UCon lUCon = pContextUCon.getUCon("WorkDoc Open");
       try {
         //Attempt to select the target row - this should get a row lock which is important for transactional integrity
@@ -79,7 +84,6 @@ extends XMLWorkDoc {
         //Set back to RO if this needs to be validated later
         if(pRequiresValidation) {
           getDOM().getDocControl().setDocumentReadOnly();
-          mPendingValidation = true;
         }
 
         mIsOpen = true;
@@ -204,6 +208,19 @@ extends XMLWorkDoc {
     }
 
     mIsOpen = false;
+  }
+
+  @Override
+  protected void acceptSelectColumnXML(DOM pSelectColumnXML) {
+    //Only bother keeping a reference to the additional columns if this WorkDoc is pending validation - they won't be used otherwise
+    if(mPendingValidation) {
+      mSelectColumnXML = pSelectColumnXML;
+    }
+  }
+
+  @Override
+  public DOM getSelectColumnXMLOrNull() {
+    return mSelectColumnXML;
   }
 
   private boolean openLocatorInWaitLoop(UCon pUCon) {

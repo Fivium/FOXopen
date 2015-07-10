@@ -66,10 +66,18 @@ public class WorkDocValidator {
         XDoCommandList lValidationCommands = lWorkDoc.getWorkingStoreLocation().getStorageLocation().getValidationCommands();
         ContextUElem lContextUElem = pRequestContext.getContextUElem();
 
-        //Set attach point and run validate command block
+        //Setup ContextUElem and run validate command block
         lContextUElem.localise("WorkDocValidate/" + lWorkDoc.getWorkingStoreLocation().getStorageLocationName());
         try {
+          //Attach point should be the root of the document currently being validated
           lContextUElem.setUElem(ContextLabel.ATTACH, lWorkDoc.getDOM());
+
+          //If the SELECT statement got additional columns, provide a special context label for them
+          if(lWorkDoc.getSelectColumnXMLOrNull() != null) {
+            lContextUElem.setUElem(ContextLabel.STORAGE_LOCATION_SELECT, lWorkDoc.getSelectColumnXMLOrNull());
+          }
+
+          //Run the validation command block
           lCommandRunner.runCommands(pRequestContext, lValidationCommands);
         }
         finally {
