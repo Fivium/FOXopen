@@ -2,6 +2,7 @@ package net.foxopen.fox.database.storage.dom;
 
 import net.foxopen.fox.ContextUCon;
 import net.foxopen.fox.database.UCon;
+import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExDBTimeout;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.thread.storage.WorkingDataDOMStorageLocation;
@@ -88,5 +89,14 @@ extends XMLWorkDoc {
 
   @Override
   protected void abortInternal() {
+  }
+
+  @Override
+  protected void acceptSelectColumnXML(DOM pSelectColumnXML) {
+  }
+
+  @Override
+  public DOM getSelectColumnXMLOrNull() {
+    return null;
   }
 }

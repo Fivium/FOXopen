@@ -7,8 +7,6 @@ import net.foxopen.fox.cache.CacheManager;
 import net.foxopen.fox.cache.FoxCache;
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.sql.ExecutableQuery;
-import net.foxopen.fox.database.sql.ScalarResultDeliverer;
-import net.foxopen.fox.database.sql.ScalarResultType;
 import net.foxopen.fox.database.sql.bind.BindSQLType;
 import net.foxopen.fox.database.storage.WorkDoc;
 import net.foxopen.fox.dom.DOM;
@@ -197,7 +195,7 @@ implements WorkDoc {
 
   /**
    * Executes the select statement and retrieves the LOB value from the result set.
-   * @param pUCon
+   * @param pUCon UCon to run SELECT statement
    * @return LOB retrieved.
    * @throws ExDBTooFew If the select statement retrieves no rows.
    * @throws ExDBTimeout If the target row is locked and NOWAIT was specified.
@@ -207,10 +205,13 @@ implements WorkDoc {
   throws ExDBTooFew, ExDBTimeout, ExDB {
 
     ExecutableQuery lSelectStatement = getWorkingStoreLocation().getExecutableSelectStatement();
-    ScalarResultDeliverer lDeliverer = ScalarResultType.SQL_OBJECT.getResultDeliverer();
+    XMLWorkDocResultDeliverer lDeliverer = new XMLWorkDocResultDeliverer();
     lSelectStatement.executeAndDeliver(pUCon, lDeliverer);
 
-    return lDeliverer.getResult();
+    //Tell subclasses about the column XML
+    acceptSelectColumnXML(lDeliverer.getAdditionalColumnXML());
+
+    return lDeliverer.getDOMColumn();
   }
 
 
@@ -288,4 +289,18 @@ implements WorkDoc {
   protected String getDOMChangeNumber() {
     return mDOMChangeNumber;
   }
+
+  /**
+   * Subclasses should use this method to decide what action to take when the storage location SELECT statement contains
+   * additional columns.
+   * @param pSelectColumnXML Additional column XML representation, or null if no additional columns were selected.
+   */
+  protected abstract void acceptSelectColumnXML(DOM pSelectColumnXML);
+
+  /**
+   * Gets a DOM containing the converted results of the storage location's additional columns, or null if no additional
+   * columns were selected.
+   * @return XML document or null.
+   */
+  public abstract DOM getSelectColumnXMLOrNull();
 }
