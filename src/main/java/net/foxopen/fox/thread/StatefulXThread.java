@@ -1021,6 +1021,9 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
 
     mPersistenceContext.endPersistenceCycle(pRequestContext);
 
+    //Flush references to FieldMgrs etc which are no longer required to prevent retention when the thread is cached (should be properly addressed by FOXRD-363)
+    mFieldSetOut.flushTransientData();
+
     //Set the expected fieldset for the next incoming request
     mFieldSetIn = mFieldSetOut;
 
