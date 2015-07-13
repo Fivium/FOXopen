@@ -1,19 +1,5 @@
 package net.foxopen.fox.database.sql;
 
-import java.sql.Blob;
-import java.sql.Clob;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.SQLXML;
-import java.sql.Timestamp;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.parser.ParsedStatement;
@@ -27,6 +13,19 @@ import net.foxopen.fox.ex.ExDBTimeout;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.track.Track;
 import net.foxopen.fox.track.TrackTimer;
+
+import java.sql.Blob;
+import java.sql.Clob;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.SQLXML;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -274,7 +273,7 @@ public abstract class ExecutableStatement {
     executeInternal(pUCon, null, true);
   }
 
-  private final String generateErrorMessage() {
+  public final String generateErrorMessage() {
     StringBuilder lErrorMessage = new StringBuilder("Error executing statement " + mParsedStatement.getStatementPurpose() + ":\n\n");
 
     lErrorMessage.append(mParsedStatement.getOriginalStatement());

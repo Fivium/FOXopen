@@ -12,7 +12,7 @@ public class WriteableLOBWorkDoc<T>
 extends LOBWorkDoc<T> {
 
   private static final int LOB_WAIT_TIMEOUT_SECS = 7;
-  private static final WaitingRowSelector gRowSelector = new WaitingRowSelector(LOB_WAIT_TIMEOUT_SECS);
+  private static final WaitingRowSelector<Boolean> gRowSelector = new WaitingRowSelector<>(LOB_WAIT_TIMEOUT_SECS);
 
   public WriteableLOBWorkDoc(Class<T> pLOBClass, WorkingFileStorageLocation<T> pWorkingStorageLocation) {
     super(pLOBClass, pWorkingStorageLocation);
@@ -33,8 +33,8 @@ extends LOBWorkDoc<T> {
 
   private boolean selectAndLockRow(UCon pUCon) {
 
-    WaitingRowSelector.SelectAction lSelectAction = new WaitingRowSelector.SelectAction() {
-      public boolean attemptSelect(UCon pUCon) throws ExDBTimeout {
+    WaitingRowSelector.SelectAction<Boolean> lSelectAction = new WaitingRowSelector.SelectAction<Boolean>() {
+      public Boolean attemptSelect(UCon pUCon) throws ExDBTimeout {
         return selectRow(pUCon);
       }
     };
