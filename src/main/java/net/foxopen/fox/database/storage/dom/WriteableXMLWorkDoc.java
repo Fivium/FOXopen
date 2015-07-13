@@ -25,7 +25,7 @@ extends XMLWorkDoc {
 
   private static final int RECORD_LOCKED_TIMEOUT_SECS = 8;
   private static final Iterator gUniqueIterator = XFUtil.getUniqueIterator();
-  private static final WaitingRowSelector gRowSelector = new WaitingRowSelector(RECORD_LOCKED_TIMEOUT_SECS);
+  private static final WaitingRowSelector<XMLWorkDocSelectResult> gRowSelector = new WaitingRowSelector<>(RECORD_LOCKED_TIMEOUT_SECS);
 
   /** Flag indicating if this WorkDoc is currently open. */
   private boolean mIsOpen;
@@ -60,7 +60,7 @@ extends XMLWorkDoc {
         //IMPORTANT: this is giving us a conceptual object lock for this WorkDoc (similar to how entitlements used to work)
         //Any changes to this routine must be carefully tested to ensure the lock is still acquired at the correct point.
         //In particular no change to object state should occur until the database lock is acquired.
-        boolean lRowExists = openLocatorInWaitLoop(lUCon);
+        XMLWorkDocSelectResult lSelectResult = openLocatorInWaitLoop(lUCon);
 
         //Don't do the open check until we have a lock - effectively synchronising access to this object
         if(isOpen()) {
@@ -68,12 +68,12 @@ extends XMLWorkDoc {
         }
 
         //If a row was selected above
-        if(lRowExists) {
+        if(lSelectResult.rowExists()) {
           readExistingRow(lUCon);
         }
         else {
           //No row found - use the insert statement if defined
-          insertNewRow(lUCon);
+          insertNewRow(lUCon, lSelectResult);
         }
 
         //Make writeable and call getRef to force a FOXID on the new DOM - otherwise brand new documents (created from an INSERT)
@@ -223,10 +223,10 @@ extends XMLWorkDoc {
     return mSelectColumnXML;
   }
 
-  private boolean openLocatorInWaitLoop(UCon pUCon) {
+  private XMLWorkDocSelectResult openLocatorInWaitLoop(UCon pUCon) {
 
-    WaitingRowSelector.SelectAction lSelectAction = new WaitingRowSelector.SelectAction() {
-      public boolean attemptSelect(UCon pUCon) throws ExDBTimeout {
+    WaitingRowSelector.SelectAction<XMLWorkDocSelectResult> lSelectAction = new WaitingRowSelector.SelectAction<XMLWorkDocSelectResult>() {
+      public XMLWorkDocSelectResult attemptSelect(UCon pUCon) throws ExDBTimeout {
         return selectRowAndOpenLocator(pUCon);
       }
     };
@@ -276,10 +276,10 @@ extends XMLWorkDoc {
     runUpdateStatement(pUCon);
 
     //Check the correct row was updated
-    boolean lRowExists = openLocatorInWaitLoop(pUCon);
+    XMLWorkDocSelectResult lSelectResult = openLocatorInWaitLoop(pUCon);
 
     //If a row was selected above and the LOB is neither empty nor null
-    if(lRowExists && !(getDOMAccessor().isLocatorEmpty(pUCon) || getDOMAccessor().isLocatorNull(pUCon))) {
+    if(lSelectResult.rowExists() && !(getDOMAccessor().isLocatorEmpty(pUCon) || getDOMAccessor().isLocatorNull(pUCon))) {
       String lWrittenChangeNum = getDOMAccessor().readChangeNumber(pUCon);
 
       String lDOMChangeNumber = getDOMChangeNumber();
@@ -289,11 +289,16 @@ extends XMLWorkDoc {
       }
     }
     else {
-      throw new ExInternal("Storage Location: Update/Query pair do not access the same row/column or failed to update column (column still null): " + getWorkingStoreLocation().getStorageLocationName());
+      throw new ExInternal("Storage Location: Update/Query pair do not access the same row/column or failed to update column (column still null): " + getWorkingStoreLocation().getStorageLocationName(), lSelectResult.getSelectException());
     }
   }
 
-  private void insertNewRow(UCon pUCon) {
+  /**
+   * Attempts to insert a new row if the storage location has an INSERT statement defined.
+   * @param pUCon Connection to use for insert attempt.
+   * @param pOriginalSelectResult Result from the original SELECT attempt, used to generate a useful error message if the insert fails.
+   */
+  private void insertNewRow(UCon pUCon, XMLWorkDocSelectResult pOriginalSelectResult) {
 
     Track.pushDebug("InsertRow");
     try {
@@ -312,22 +317,22 @@ extends XMLWorkDoc {
         runInsertStatement(pUCon);
 
         //Check the correct row was inserted and ensure we now have a reference to the LOB pointer for writing later
-        boolean lRowExists = openLocatorInWaitLoop(pUCon);
+        XMLWorkDocSelectResult lSelectResult = openLocatorInWaitLoop(pUCon);
 
         //If a row was selected above (note locator may still be empty), check the change number
-        if(lRowExists && !getDOMAccessor().isLocatorNull(pUCon)) {
+        if(lSelectResult.rowExists() && !getDOMAccessor().isLocatorNull(pUCon)) {
 
           if(getDOMAccessor().isLocatorEmpty(pUCon)) {
             //Locator was still empty (i.e. empty_clob insert), force an update on close
             mDOMModifyCountAtOpen = mDOMModifyCountAtOpen - 1;
           }
         }
-        else if(!lRowExists){
-          throw new ExInternal("Storage Location: Insert/Query pair do not access the same row/column (no data found): " + getWorkingStoreLocation().getStorageLocationName());
+        else if(!lSelectResult.rowExists()){
+          throw new ExInternal("Storage Location: Insert/Query pair do not access the same row/column (no data found): " + getWorkingStoreLocation().getStorageLocationName(), lSelectResult.getSelectException());
         }
       }
       else {
-        throw new ExInternal("No row returned and no insert statement defined for storage location " + getWorkingStoreLocation().getStorageLocationName());
+        throw new ExInternal("No row returned and no insert statement defined for storage location " + getWorkingStoreLocation().getStorageLocationName(), pOriginalSelectResult.getSelectException());
       }
     }
     finally {

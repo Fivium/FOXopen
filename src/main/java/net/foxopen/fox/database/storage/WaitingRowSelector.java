@@ -7,8 +7,9 @@ import net.foxopen.fox.track.Track;
 
 /**
  * Encapsulation of the attempt lock... wait... repeat behaviour shared by writeable WorkDocs.
+ * @param <T> Type of object to be returned when a row is selected.
  */
-public class WaitingRowSelector {
+public class WaitingRowSelector<T> {
 
   private final int mLockAttempts;
 
@@ -16,14 +17,14 @@ public class WaitingRowSelector {
    * Action which should be performed in order to acquire the lock and do any additional reading/setup based on the results
    * of the select statement.
    */
-  public interface SelectAction {
+  public interface SelectAction<T> {
     /**
      * Attempts to select the row. Implementors must throw ExDBTimeout if the select times out.
-     * @param pUCon
-     * @return True if 1 row was selected, or false if 0 rows were selected.
+     * @param pUCon Connection to use for select attempt.
+     * @return Arbitrary object representing the result of the select attempt.
      * @throws ExDBTimeout
      */
-    public boolean attemptSelect(UCon pUCon) throws ExDBTimeout;
+    T attemptSelect(UCon pUCon) throws ExDBTimeout;
   }
 
   public WaitingRowSelector(int pLockAttempts) {
@@ -34,18 +35,19 @@ public class WaitingRowSelector {
    * Attempts to lock a row from a select statement, retrying a defined number of times if the row is already locked.
    * The retry behaviour depends on the select statement containing the FOR UPDATE NOWAIT clause (if NOWAIT is not specified,
    * the read will hang until the lock is granted by Oracle). If the row remains locked after retrying, an exception is raised.
-   * @param pUCon
-   * @return True if a row was selected, false if not.
+   * @param pUCon          Connection to use in select attempt.
+   * @param pSelectAction  Behaviour for selecting the row.
+   * @param pDebugInfo     For appending to error messages.
+   * @return Arbitrary result object from the given SelectAction.
    */
-  public boolean selectRow(UCon pUCon, SelectAction pSelectAction, String pDebugInfo) {
+  public T selectRow(UCon pUCon, SelectAction<T> pSelectAction, String pDebugInfo) {
     //Open a locator to the target XMLType by running the select statement
     boolean lRowExists = false;
 
     ExDBTimeout lExDBTimeout = null;
     TRY_LOOP: for(int lTry=0; lTry < mLockAttempts; lTry++) {
       try {
-        lRowExists = pSelectAction.attemptSelect(pUCon);
-        return lRowExists;
+        return pSelectAction.attemptSelect(pUCon);
       }
       catch (ExDBTimeout e) {
         lExDBTimeout = e;

@@ -222,17 +222,17 @@ implements WorkDoc {
    * @return True if a row was found, false otherwise.
    * @throws ExDBTimeout
    */
-  protected boolean selectRowAndOpenLocator(UCon pUCon)
+  protected XMLWorkDocSelectResult selectRowAndOpenLocator(UCon pUCon)
   throws ExDBTimeout {
 
     try {
       Object lResultLOB = selectScalarLOB(pUCon);
       //If the LOB column is not null, open the locator
       mDOMAccessor.openLocator(pUCon, lResultLOB);
-      return true;
+      return XMLWorkDocSelectResult.rowExistsResult();
     }
     catch (ExDBTooFew e) {
-      return false;
+      return XMLWorkDocSelectResult.tooFewRowsResult(e);
     }
     catch (ExDBTimeout e) {
       //Ensure timeouts are caught and re-raised (and not caught below by ExDB catch-all)

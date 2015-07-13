@@ -31,9 +31,9 @@ extends XMLWorkDoc {
       try {
         UCon lUCon = pContextUCon.getUCon("WorkDoc Open");
         try {
-          boolean lRowExists = selectRowAndOpenLocator(lUCon);
-          if(!lRowExists) {
-            throw new ExInternal("Row not found and cannot be inserted for a read-only WorkDoc");
+          XMLWorkDocSelectResult lSelectResult = selectRowAndOpenLocator(lUCon);
+          if(!lSelectResult.rowExists()) {
+            throw new ExInternal("Row not found and cannot be inserted for a read-only WorkDoc", lSelectResult.getSelectException());
           }
           //Populate the DOM member from the database row (only does a read if it has changed)
           readExistingRow(lUCon);

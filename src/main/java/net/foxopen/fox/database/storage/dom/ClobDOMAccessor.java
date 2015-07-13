@@ -111,7 +111,7 @@ implements XMLWorkDocDOMAccessor {
       }
     }
     else {
-      throw new ExInternal("Do not know how to convert type " + pLOB.getClass().getName());
+      throw new ExInternal("Do not know how to convert column type " + pLOB.getClass().getName() + " for storage location - not a CLOB or XMLTYPE");
     }
   }
 

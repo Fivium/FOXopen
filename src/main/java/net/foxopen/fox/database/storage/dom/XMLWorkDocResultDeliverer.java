@@ -37,7 +37,7 @@ implements QueryResultDeliverer{
 
     try {
       if(!lResultSet.next()) {
-        throw new ExDBTooFew("XMLWorkDocResultDeliverer requires exactly 1 row, got 0 for statement " + pQuery.getParsedStatement().getStatementPurpose());
+        throw new ExDBTooFew("XMLWorkDocResultDeliverer requires exactly 1 row, got 0\n\n" + pQuery.generateErrorMessage());
       }
 
       if(lResultSet.getMetaData().getColumnCount() == 1) {
@@ -74,7 +74,7 @@ implements QueryResultDeliverer{
         //Null out due to failure
         mDOMColumn = null;
         mAdditionalColumnXML = null;
-        throw new ExDBTooMany("XMLWorkDocResultDeliverer requires exactly 1 row, got more than 1 for query " + pQuery.getParsedStatement().getStatementPurpose());
+        throw new ExDBTooMany("XMLWorkDocResultDeliverer requires exactly 1 row, got more than 1\n\n" + pQuery.generateErrorMessage());
       }
     }
     catch (SQLException e) {
