@@ -456,7 +456,7 @@ var FOXjs = {
     }
     //Attempt to focus a focusable element
     //TODO PN this needs to be aware of element visibility (otherwise IE might have an error)
-    lFocusTargets.children('input, select, textarea').focus()
+    lFocusTargets.find('input, select, textarea').focus()
   },
 
   gClientActionQueue: new Array(),
