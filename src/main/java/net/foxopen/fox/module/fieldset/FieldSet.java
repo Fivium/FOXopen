@@ -405,4 +405,14 @@ public class FieldSet {
   public JITMapSetInfo getJITMapSetInfo(String pFieldID) {
     return mJITMapSetInfoFields.get(pFieldID);
   }
+
+  /**
+   * Flushes transient churn specific data for this FieldSet so it is not retained for longer than necessary.
+   */
+  public void flushTransientData() {
+    //TODO PN: this should be dealt with more gracefully - FOXRD-363
+    mEditableItemRefs.clear();
+    mFoxIdToFieldMgrMap.clear();
+    mFoxIdToExternalFoxId.clear();
+  }
 }
