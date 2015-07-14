@@ -152,6 +152,10 @@ public class EvaluatedNodeInfoItem extends EvaluatedNodeInfoGeneric {
         lWidgetType = WidgetType.fromBuilderType(WidgetBuilderType.RADIO);
         Track.alert("SingleSelectTickbox", "Tickboxes not supported in single select mode, switching to radio for node " + getIdentityInformation(), TrackFlag.BAD_MARKUP);
       }
+      else if(lWidgetType.getBuilderType() == WidgetBuilderType.RADIO && isMultiSelect()) {
+        //Validate that a radio widget isn't marked up as a multi selector
+        Track.alert("MultiSelectRadio", "Radio widget is marked up as a multi selector - this will be treated as a single item selector for node " + getIdentityInformation(), TrackFlag.BAD_MARKUP);
+      }
       else if(lWidgetType.getBuilderType().getFieldSelectConfig() != null && !"xs:boolean".equals(getNodeInfo().getDataType()) &&
         getStringAttribute(NodeAttribute.MAPSET) == null && getSchemaEnumeration() == null) {
         // TODO PN this is a hack; FVM should deal with this more gracefully

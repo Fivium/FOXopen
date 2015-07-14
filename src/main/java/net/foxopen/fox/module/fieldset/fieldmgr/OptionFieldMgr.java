@@ -17,6 +17,7 @@ import net.foxopen.fox.module.fieldset.fvm.FieldValueMapping;
 import net.foxopen.fox.module.fieldset.fvm.JITMapSetFVM;
 import net.foxopen.fox.module.fieldset.fvm.MapSetFVM;
 import net.foxopen.fox.module.fieldset.fvm.SchemaEnumFVM;
+import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 import net.foxopen.fox.track.Track;
 
 import java.util.ArrayList;
@@ -59,7 +60,8 @@ extends DataFieldMgr {
     }
 
     DataFieldMgr lNewFieldMgr;
-    if(!pEvalNode.isMultiSelect()) {
+    //Force radios to be SingleOptionFieldMgrs in case they've been accidentally marked up as multi selectors
+    if(!pEvalNode.isMultiSelect() || pEvalNode.getWidgetBuilderType() == WidgetBuilderType.RADIO) {
       //Construct the new FieldMgr
       if(lStrictBoolean) {
         lNewFieldMgr = new StrictBooleanFieldMgr(pEvalNode, pFieldSet, pFieldSelectConfig, pFieldId);
