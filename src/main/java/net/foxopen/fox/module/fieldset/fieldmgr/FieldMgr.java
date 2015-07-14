@@ -134,6 +134,17 @@ public abstract class FieldMgr {
   public abstract String getExternalFieldName();
 
   /**
+   * Gets a string value which should be used to uniquely identify this FieldMgr externally, i.e. as the xfid data attribute
+   * in the generated HTML. Note this may be different to the result of getExternalFieldName for fields which contain sub-fields
+   * with the same name (i.e. radio groups).
+   * @return External ID to be used to uniquely identify this field in generated output.
+   */
+  public String getExternalFieldId() {
+    //By default there is a 1:1 mapping between name and ID, subclasses may override where this is not the case
+    return getExternalFieldName();
+  }
+
+  /**
    * Gets a list of FieldSelectOptions if this FieldMgr represents a field which can have multiple options selected, or
    * null if it does not.
    * @return

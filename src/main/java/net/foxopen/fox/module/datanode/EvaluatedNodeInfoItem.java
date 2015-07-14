@@ -174,7 +174,8 @@ public class EvaluatedNodeInfoItem extends EvaluatedNodeInfoGeneric {
 
   @Override
   public String getExternalFoxId() {
-    return mFieldMgr.getExternalFieldName(); //TODO PN this is loosely coupled logic (relying on implicit FieldSet behaviour)
+    //Delegate to FieldMgr to determine the xfid for this item
+    return mFieldMgr.getExternalFieldId();
   }
 
   @Override
