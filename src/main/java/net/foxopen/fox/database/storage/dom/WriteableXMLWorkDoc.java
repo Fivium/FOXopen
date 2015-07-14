@@ -36,8 +36,10 @@ extends XMLWorkDoc {
   /** Flag indicating if the DOM should have Auto IDs set or not */
   private final boolean mIsAutoIds;
 
+  /** True if the WorkDoc has been opened with the requires validation flag and has not yet been validated. */
   private boolean mPendingValidation = false;
 
+  /** DOM representation of additional columns retrieved from the SELECT statement. Null if not opened or no additional columns exist. */
   private DOM mSelectColumnXML = null;
 
   WriteableXMLWorkDoc(WorkingDataDOMStorageLocation pWorkingStoreLocation, boolean pIsAutoIds, XMLWorkDocDOMAccessor pDOMAccessor) {
