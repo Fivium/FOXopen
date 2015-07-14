@@ -89,7 +89,7 @@ public class FieldSet {
     FieldMgr lNewFieldMgr = FieldMgr.createFieldMgr(pEvaluatedNodeInfoItem, this, mFieldSequenceGenerator.nextFieldId(pEvaluatedNodeInfoItem));
     String lFoxId = pEvaluatedNodeInfoItem.getDataItem().getFoxId();
     mFoxIdToFieldMgrMap.put(lFoxId, lNewFieldMgr);
-    mFoxIdToExternalFoxId.put(lFoxId, lNewFieldMgr.getExternalFieldName());
+    mFoxIdToExternalFoxId.put(lFoxId, lNewFieldMgr.getExternalFieldId());
 
     return lNewFieldMgr;
   }

@@ -33,7 +33,14 @@ extends DataFieldMgr {
   }
 
   public String getExternalFieldName() {
+    //Field name for radio items is shared across the radio group
     return mRadioGroup.getRadioGroupId();
+  }
+
+  @Override
+  public String getExternalFieldId() {
+    //Unlike with the name, the external ID needs to represent this individual radio option rather than the group
+    return mWrappedFieldMgr.getExternalFieldName();
   }
 
   @Override
