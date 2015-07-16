@@ -106,6 +106,7 @@ public class ParseTree {
           return new MailToPresentationNode(pNode);
         case "fm:evaluate-attributes":
           // Ignored container as all attributes are evaluated now
+          Track.alert("EvaluateAttributesDeprecated", "fm:evaluate-attributes is no longer required - please remove it", TrackFlag.BAD_MARKUP);
           return new ContainerPresentationNode(pNode);
         case "fm:heading":
           return new HeadingPresentationNode(pNode);
