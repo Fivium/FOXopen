@@ -73,7 +73,7 @@ extends GenericAttributesEvaluatedPresentationNode<HtmlPresentationNode> {
 
       // Image elements require a source, see http://www.w3.org/html/wg/drafts/html/master/#the-img-element:attr-img-src-2
       if (lImageSource == null || lImageSource.getString() == null) {
-        throw new ExInternal("Image tag found without a src attribute.");
+        throw new ExInternal("Image tag found without a src attribute?");
       }
 
       // Warn about images missing alt attributes
@@ -87,14 +87,14 @@ extends GenericAttributesEvaluatedPresentationNode<HtmlPresentationNode> {
     else if (SCRIPT_TAG_NAME.equals(mTagName) && mAttributeMap.get("src") != null) {
       // Re-write src for scripts
       StringAttributeResult lScriptSource = mAttributeMap.get("src");
-      if (lScriptSource == null || lScriptSource.getString() == null) {
+      if (lScriptSource != null && lScriptSource.getString() != null) {
         mAttributeMap.put("src", new FixedStringAttributeResult(pEvaluatedParseTree.getStaticResourceOrFixedURI(lScriptSource.getString())));
       }
     }
     else if (LINK_TAG_NAME.equals(mTagName) && mAttributeMap.get("href") != null) {
       // Re-write href for links
       StringAttributeResult lLinkHref = mAttributeMap.get("href");
-      if (lLinkHref == null || lLinkHref.getString() == null) {
+      if (lLinkHref != null && lLinkHref.getString() != null) {
         mAttributeMap.put("href", new FixedStringAttributeResult(pEvaluatedParseTree.getStaticResourceOrFixedURI(lLinkHref.getString())));
       }
     }
