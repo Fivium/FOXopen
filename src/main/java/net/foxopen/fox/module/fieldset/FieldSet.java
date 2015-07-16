@@ -69,6 +69,8 @@ public class FieldSet {
 
   private transient FieldSequenceGenerator mFieldSequenceGenerator;
 
+  //Note: transient fields might be null after deserialise
+
   private transient Set<String> mEditableItemRefs = new HashSet<>();
 
   private transient Map<String, FieldMgr> mFoxIdToFieldMgrMap = new HashMap<>();
@@ -410,9 +412,18 @@ public class FieldSet {
    * Flushes transient churn specific data for this FieldSet so it is not retained for longer than necessary.
    */
   public void flushTransientData() {
+    //Collection references may be null if FieldSet has been deserialised
     //TODO PN: this should be dealt with more gracefully - FOXRD-363
-    mEditableItemRefs.clear();
-    mFoxIdToFieldMgrMap.clear();
-    mFoxIdToExternalFoxId.clear();
+    if(mEditableItemRefs != null) {
+      mEditableItemRefs.clear();
+    }
+
+    if(mFoxIdToFieldMgrMap != null) {
+      mFoxIdToFieldMgrMap.clear();
+    }
+
+    if(mFoxIdToExternalFoxId != null) {
+      mFoxIdToExternalFoxId.clear();
+    }
   }
 }
