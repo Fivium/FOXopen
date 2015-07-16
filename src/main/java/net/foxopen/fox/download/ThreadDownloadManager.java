@@ -109,7 +109,7 @@ implements DownloadManager {
   private DownloadParcel getOrCreateFileDownloadParcel(RequestContext pRequestContext, WorkingFileStorageLocation pWFSL, UploadedFileInfo pUploadedFileInfo) {
     //Work out the parcel id from the storage location cache key - if there's already a parcel, we don't want to generate another one
     //NOTE: this is depending on the cache key being unique enough to identify the same file download, if this is not true then it will not work properly.
-    String lParcelId = UploadedFileDownloadParcel.generateParcelId(pWFSL);
+    String lParcelId = UploadedFileDownloadParcel.generateParcelId(pWFSL, pUploadedFileInfo);
     DownloadParcel lParcel = getDownloadParcelOrNull(lParcelId);
     if(lParcel == null) {
       lParcel = UploadedFileDownloadParcel.createParcelFromUploadedFileInfo(pWFSL, pUploadedFileInfo);
