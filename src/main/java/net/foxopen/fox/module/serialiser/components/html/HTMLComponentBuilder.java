@@ -6,6 +6,7 @@ import net.foxopen.fox.download.DownloadLinkXDoResult;
 import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.entrypoint.servlets.FoxMainServlet;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedHtmlPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.HtmlPresentationNode;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
@@ -77,9 +78,9 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
     pSerialiser.append(lTagName);
 
     // add attribute for the element
-    Map<String, String> lAttributeMap = pEvalNode.getAttributeMap();
+    Map<String, StringAttributeResult> lAttributeMap = pEvalNode.getAttributeMap();
     ATTRIBUTE_LOOP:
-    for (Map.Entry<String, String> lEntry : lAttributeMap.entrySet()) {
+    for (Map.Entry<String, StringAttributeResult> lEntry : lAttributeMap.entrySet()) {
       if (IGNORE_ATTRIBUTES.contains(lEntry.getKey())) {
         continue ATTRIBUTE_LOOP;
       }
@@ -87,7 +88,7 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
       pSerialiser.append(" ");
       pSerialiser.append(lEntry.getKey());
       pSerialiser.append("=\"");
-      pSerialiser.append(lEntry.getValue());
+      pSerialiser.append(pSerialiser.getSafeStringAttribute(lEntry.getValue()));
       pSerialiser.append("\"");
     } // end ATTRIBUTE_LOOP
 
@@ -230,8 +231,8 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
         .append("lPopUpURLList[listSize][1] = \"" + WINDOW_TYPE + "\";\n")
         .append("lPopUpURLList[listSize][2] = \"" + lLink.getDownloadURL() + "\";\n")
         .append("lPopUpURLList[listSize][3] = \"" + lLink.getFilename() +"\";\n")
-        .append("lPopUpURLList[listSize][4] = "+ ( "\"\"" ) + ";\n") //window features
-        .append("lPopUpURLList[listSize][5] = "+ ( "\"\"" ) +";\n"); //window type
+        .append("lPopUpURLList[listSize][4] = " + ("\"\"") + ";\n") //window features
+        .append("lPopUpURLList[listSize][5] = " + ( "\"\"" ) +";\n"); //window type
     }
 
     if (lDownloadLinks.size() > 0) {
