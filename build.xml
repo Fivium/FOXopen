@@ -9,6 +9,7 @@
   <property name="input.source_tests" value="src/test/java"/>
   <property name="input.source_sql" value="src/main/sql"/>
   <property name="input.source_web" value="src/main/webapp"/>
+  <property name="input.resources" value="src/main/resources"/>
 
   <property name="output.javadoc_dir" value="target/docs/api"/>
   <property name="output.build_dir" value="target"/>
@@ -101,7 +102,7 @@
   <target name="war-env-name" description="Set the name for the WAR file if it's not passed in" if="env.WAR_NAME">
     <war destfile="${output.deploy_dir}/${env.WAR_NAME}" webxml="${input.source_web}/WEB-INF/web.xml" compress="on">
       <fileset dir="${input.source_web}"/>
-      <fileset dir="../../">
+      <fileset dir="${input.resources}">
         <include name="schematron/**" if="release.development"/>
       </fileset>
       <lib dir="${input.lib}" excludes="junit*.jar mockito*.jar"/>
@@ -118,7 +119,7 @@
     <input message="Please enter FOX Version (default=FOXr??.??.??):" addproperty="fox.version" defaultvalue="FOXr??.??.??"/>
     <war destfile="${output.deploy_dir}/${fox.war_name}" webxml="${input.source_web}/WEB-INF/web.xml" compress="on">
       <fileset dir="${input.source_web}"/>
-      <fileset dir="../../">
+      <fileset dir="${input.resources}">
         <include name="schematron/**" if="release.development"/>
       </fileset>
       <lib dir="${input.lib}" excludes="junit*.jar mockito*.jar"/>
