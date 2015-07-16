@@ -2,9 +2,13 @@ package net.foxopen.fox.module.parsetree.evaluatedpresentationnode;
 
 import com.google.common.collect.Table;
 import net.foxopen.fox.dom.DOM;
+import net.foxopen.fox.dom.xpath.XPathResult;
 import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.PresentationAttribute;
+import net.foxopen.fox.module.evaluatedattributeresult.FixedStringAttributeResult;
+import net.foxopen.fox.module.evaluatedattributeresult.PresentationStringAttributeResult;
+import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
 import net.foxopen.fox.module.parsetree.EvaluatedParseTree;
 import net.foxopen.fox.module.parsetree.presentationnode.HtmlPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.PresentationNode;
@@ -33,7 +37,7 @@ extends GenericAttributesEvaluatedPresentationNode<HtmlPresentationNode> {
 
   private final String mTagName;
 
-  private final Map<String, String> mAttributeMap = new HashMap<>();
+  private final Map<String, StringAttributeResult> mAttributeMap = new HashMap<>();
 
   public EvaluatedHtmlPresentationNode(EvaluatedPresentationNode<? extends PresentationNode> pParent, HtmlPresentationNode pOriginalPresentationNode, EvaluatedParseTree pEvaluatedParseTree, DOM pEvalContext) {
     super(pParent, pOriginalPresentationNode, pEvalContext);
@@ -49,44 +53,50 @@ extends GenericAttributesEvaluatedPresentationNode<HtmlPresentationNode> {
         continue;
       }
 
-      String lAttrValue = lPresentationAttribute.getValue();
       // Pre-cache evaluated attribute if it's marked as evaluatable
       if (lPresentationAttribute.isEvaluatableAttribute()) {
         try {
-          lAttrValue = pEvaluatedParseTree.getContextUElem().extendedStringOrXPathString(lPresentationAttribute.getEvalContextRuleDOM(), lAttrValue);
+          // Eval to string (XPathResult has a string object in it as well as an "escaping required" field)
+          XPathResult lResult = pEvaluatedParseTree.getContextUElem().extendedConstantOrXPathResult(lPresentationAttribute.getEvalContextRuleDOM(), lPresentationAttribute.getValue());
+          mAttributeMap.put(lAttributeCell.getColumnKey(), new PresentationStringAttributeResult(lResult));
         }
         catch (ExActionFailed e) {
-          throw e.toUnexpected("Failed evaluating XPath on attribute '" + lAttributeCell.getColumnKey() + "' for a regular HTML element");
+          throw new ExInternal("Failed to evaluate XPath for attribute '" + lAttributeCell.getColumnKey() + "'", e);
         }
       }
-
-      mAttributeMap.put(lAttributeCell.getColumnKey(), lAttrValue);
     }
 
     // Rewrite src/href tags to use correct servlet prefix etc
     if (IMAGE_TAG_NAME.equals(mTagName)) {
       // Re-write image src tag so URI uses correct servlet
-      String lImageSource = mAttributeMap.get("src");
+      StringAttributeResult lImageSource = mAttributeMap.get("src");
 
       // Image elements require a source, see http://www.w3.org/html/wg/drafts/html/master/#the-img-element:attr-img-src-2
-      if (lImageSource == null) {
+      if (lImageSource == null || lImageSource.getString() == null) {
         throw new ExInternal("Image tag found without a src attribute.");
       }
 
       // Warn about images missing alt attributes
-      if (mAttributeMap.get("alt") == null) {
+      StringAttributeResult lAltTag = mAttributeMap.get("alt");
+      if (lAltTag == null || lAltTag.getString() == null) {
         Track.alert("MissingAttribute", "Image tag [@src='" + lImageSource + "'] found without an alt attribute. When specifying an img element always put an alt tag explaining the image contents for accessibility purposes.", TrackFlag.BAD_MARKUP);
       }
 
-      mAttributeMap.put("src", pEvaluatedParseTree.getStaticResourceOrFixedURI(lImageSource));
+      mAttributeMap.put("src", new FixedStringAttributeResult(pEvaluatedParseTree.getStaticResourceOrFixedURI(lImageSource.getString())));
     }
     else if (SCRIPT_TAG_NAME.equals(mTagName) && mAttributeMap.get("src") != null) {
       // Re-write src for scripts
-      mAttributeMap.put("src", pEvaluatedParseTree.getStaticResourceOrFixedURI(mAttributeMap.get("src")));
+      StringAttributeResult lScriptSource = mAttributeMap.get("src");
+      if (lScriptSource == null || lScriptSource.getString() == null) {
+        mAttributeMap.put("src", new FixedStringAttributeResult(pEvaluatedParseTree.getStaticResourceOrFixedURI(lScriptSource.getString())));
+      }
     }
     else if (LINK_TAG_NAME.equals(mTagName) && mAttributeMap.get("href") != null) {
       // Re-write href for links
-      mAttributeMap.put("href", pEvaluatedParseTree.getStaticResourceOrFixedURI(mAttributeMap.get("href")));
+      StringAttributeResult lLinkHref = mAttributeMap.get("href");
+      if (lLinkHref == null || lLinkHref.getString() == null) {
+        mAttributeMap.put("href", new FixedStringAttributeResult(pEvaluatedParseTree.getStaticResourceOrFixedURI(lLinkHref.getString())));
+      }
     }
   }
 
@@ -108,7 +118,7 @@ extends GenericAttributesEvaluatedPresentationNode<HtmlPresentationNode> {
     return ComponentBuilderType.HTML_TAG;
   }
 
-  public Map<String, String> getAttributeMap() {
+  public Map<String, StringAttributeResult> getAttributeMap() {
     return Collections.unmodifiableMap(mAttributeMap);
   }
 }
