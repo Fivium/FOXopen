@@ -63,6 +63,10 @@ public final class DOMSplicer {
     return null;
   }
 
+  public final boolean hasChars(Index pFromIndex) {
+    return pFromIndex.nodeValue().length() > 0;
+  }
+
   public final char charAt(Index pFromIndex) {
     return pFromIndex.nodeValue().charAt(pFromIndex.mOffset);
   }
@@ -154,7 +158,7 @@ public final class DOMSplicer {
 
     private final String nodeValue() {
       if(mNodeIndex!=mLastNodeValueIndex) {
-        DOM lDOM = mDOMList.item(mNodeIndex);
+        DOM lDOM = mNodeIndex < mDOMList.size() ? mDOMList.item(mNodeIndex) : null;
         if(lDOM!=null && lDOM.isText()) {
           mLastNodeValue = lDOM.value(false);
         }

@@ -105,7 +105,8 @@ implements HTMLValueTransformer {
     while((lStart=lDOMSplicer.indexOf('[', lIndex)) != null) {
 
       // Skip when not two "[[" characters together
-      if(lDOMSplicer.charAt(lStart.incClone(1))!='[') {
+      DOMSplicer.Index lNextIdx = lStart.incClone(1);
+      if(!lDOMSplicer.hasChars(lNextIdx) || lDOMSplicer.charAt(lNextIdx)!='[') {
         lIndex = lStart.incClone(1);
         continue SEEK_MM_LOOP;
       }
