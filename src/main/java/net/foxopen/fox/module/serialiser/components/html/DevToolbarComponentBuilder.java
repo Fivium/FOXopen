@@ -58,9 +58,9 @@ public class DevToolbarComponentBuilder extends ComponentBuilder<HTMLSerialiser,
       pSerialiser.append("\">");
 
       pSerialiser.append("<div id=\"dev-toolbar\" class=\"short-dev-toolbar\">\n" +
-      "<form id=\"devToolbarForm\">\n" +
-      "<span id=\"dev-toolbar-icon\"></span>\n" +
-      "<ul id=\"dev-toolbar-main-actions\">\n");
+          "<form id=\"devToolbarForm\">\n" +
+          "<span id=\"dev-toolbar-icon\"></span>\n" +
+          "<ul id=\"dev-toolbar-main-actions\">\n");
 
       // Flush Link
       pSerialiser.append("<li id=\"dev-toolbar-flush\"><a href=\"");
@@ -87,7 +87,7 @@ public class DevToolbarComponentBuilder extends ComponentBuilder<HTMLSerialiser,
       pSerialiser.append("',windowOptions:'refwin'});return false;\">Run XPath</a></li>\n");
 
       pSerialiser.append("</ul>\n" +
-        "<ul id=\"dev-toolbar-doms\">\n");
+          "<ul id=\"dev-toolbar-doms\">\n");
 
       RequestURIBuilder lDOMViewURIBuilder = pSerialisationContext.createURIBuilder();
       lDOMViewURIBuilder.setParam(ViewDOMBangHandler.THREAD_ID_PARAM, lThreadId);
@@ -105,7 +105,7 @@ public class DevToolbarComponentBuilder extends ComponentBuilder<HTMLSerialiser,
         pSerialiser.append("}</a></li>\n");
       }
       pSerialiser.append("</ul>\n" +
-        "<ul id=\"dev-toolbar-view\">\n");
+          "<ul id=\"dev-toolbar-view\">\n");
 
       RequestURIBuilder lDebugPageURIBuilder = pSerialisationContext.createURIBuilder();
       lDebugPageURIBuilder.setParam(DebugPageBangHandler.THREAD_ID_PARAM, lThreadId);
@@ -148,10 +148,10 @@ public class DevToolbarComponentBuilder extends ComponentBuilder<HTMLSerialiser,
         pSerialiser.append("<li><a href=\"#\" id=\"dbmsOutputInfo\">DBMS_OUTPUT</a></li>\n");
       }
       pSerialiser.append("</ul>\n" +
-      "<div id=\"dev-toolbar-toggle-mode\" class=\"icon-circle-down\"></div>\n" +
-      "<div id=\"dev-toolbar-toggle-pin\" class=\"icon-pushpin\"></div>\n" +
-      "<div id=\"dev-toolbar-advanced\" class=\"icon-cog\">\n" +
-      "  <ul id=\"dev-toolbar-advanced-tooltip\">\n");
+          "<div id=\"dev-toolbar-toggle-mode\" class=\"icon-circle-down\"></div>\n" +
+          "<div id=\"dev-toolbar-toggle-pin\" class=\"icon-pushpin\"></div>\n" +
+          "<div id=\"dev-toolbar-advanced\" class=\"icon-cog\">\n" +
+          "  <ul id=\"dev-toolbar-advanced-tooltip\">\n");
 
       //Ouput checkboxes for dev flags
       for(DevToolbarContext.Flag lDevFlag : DevToolbarContext.Flag.values()) {
@@ -184,15 +184,15 @@ public class DevToolbarComponentBuilder extends ComponentBuilder<HTMLSerialiser,
 
 
       pSerialiser.append("</ul>\n" +
-      "    </div>\n" +
-      "    <div id=\"dev-toolbar-timing\">\n" +
-      "    </div>\n" +
-      "    <div id=\"dev-toolbar-messages\">\n" +
-      "      <div id=\"dev-toolbar-messages-tooltip\"></div>\n" +
-      "    </div>\n" +
-      "  </form>\n" +
-      "</div>\n" +
-      "<div id=\"dev-toolbar-spacer\" class=\"short-dev-toolbar-spacer\"></div>");
+          "    </div>\n" +
+          "    <div id=\"dev-toolbar-timing\">\n" +
+          "    </div>\n" +
+          "    <div id=\"dev-toolbar-messages\">\n" +
+          "      <div id=\"dev-toolbar-messages-tooltip\"></div>\n" +
+          "    </div>\n" +
+          "  </form>\n" +
+          "</div>\n" +
+          "<div id=\"dev-toolbar-spacer\" class=\"short-dev-toolbar-spacer\"></div>");
 
 
       //Dump out label info so it can be picked up by JS and placed in a popover
@@ -250,10 +250,10 @@ public class DevToolbarComponentBuilder extends ComponentBuilder<HTMLSerialiser,
       pSerialiser.append("\"></script>");
 
       pSerialisationContext.addConditionalLoadJavascript("DevToolbar.gTrackId = '" +  Track.currentTrackId() + "';\n" +
-        "DevToolbar.gBangUrlPrefix = '" + pSerialisationContext.createURIBuilder().buildServletURI(BangHandlerServlet.getServletPath()) + "/';\n" +
-        "DevToolbar.processOnLoad();\n" +
-        "DevToolbar.setContextLabelInfo($('#contextLabelData > *'));\n" +
-        "DevToolbar.setDbmsOutputInfo($('#dbmsOutputData *'));\n");
+          "DevToolbar.gBangUrlPrefix = '" + pSerialisationContext.createURIBuilder().buildServletURI(BangHandlerServlet.getServletPath()) + "/';\n" +
+          "DevToolbar.init();\n" +
+          "DevToolbar.setContextLabelInfo($('#contextLabelData > *'));\n" +
+          "DevToolbar.setDbmsOutputInfo($('#dbmsOutputData *'));\n");
     }
     finally {
       Track.pop("DevToolbar");

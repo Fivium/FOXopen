@@ -1,27 +1,44 @@
-// TODO - NP - Lint this and sort it out
-var FOXjs = {
+/*
+ * FOX JS
+ *
+ * Copyright 2015, Fivium Ltd.
+ * Released under the BSD 3-Clause license.
+ *
+ * Dependencies:
+ *   jQuery v1.11
+ *   jQuery-FontSpy v3
+ *   Tooltipster v3.2.6
+ */
 
+// Can be run through JSDoc (https://github.com/jsdoc3/jsdoc) and JSHint (http://www.jshint.com/)
+
+/*jshint laxcomma: true, laxbreak: true, strict: false */
+
+var FOXjs = {
   gPageDisabled: false,
   gPageExpired: false,
-  gBeforeSubmitEvents: new Array(),
+
+  // Store a reason for why the page cannot be submitted
+  gBlockSubmitReason: null,
 
   // Hold timers to clear later
   gTimers: {},
-  gBlockSubmitReason: null,
+
+  // Array of client actions
+  gClientActionQueue: [],
 
   /**
-   * Remove cookie by name
+   * Get a cookie for a given name
+   * @param {string} name The name of the cookie to get
+   * @returns {string} The value stored in the cookie
+   * @static
    */
-  removeCookie: function(name) {
-    this.setCookie(name, '', -1);
-  },
-
   getCookie: function(name) {
     if (document.cookie.length > 0) {
-      begin = document.cookie.indexOf(name+'=');
+      var begin = document.cookie.indexOf(name + "=");
       if (begin != -1) {
-        begin += name.length+1;
-        end = document.cookie.indexOf(';', begin);
+        begin += name.length + 1;
+        var end = document.cookie.indexOf(";", begin);
         if (end == -1) {
           end = document.cookie.length;
         }
@@ -31,101 +48,104 @@ var FOXjs = {
     return null;
   },
 
-  setCookie: function(name, value, expiredays, path) {
-    var ExpireDate = new Date();
-    ExpireDate.setTime(ExpireDate.getTime() + (expiredays * 24 * 3600 * 1000));
-    document.cookie = name + '=' + escape(value) + ((expiredays == null) ? '' : '; expires=' + ExpireDate.toGMTString()) + ((path == null) ? '' : '; path=' + path);
+  /**
+   * Set the value of a cookie, optionally specifying when to expire and a path the cookie should be available on
+   * @param {string} name The name of the cookie to set
+   * @param {string} value The value of the cookie
+   * @param {int} expireDays How many days should the cookie last for
+   * @param {string} path The path to scope access to this cookie to
+   * @static
+   */
+  setCookie: function(name, value, expireDays, path) {
+    var newCookie = name + "=" + encodeURI(value);
+    if (expireDays !== null) {
+      var expiresDateTime = new Date();
+      expiresDateTime.setTime(expiresDateTime.getTime() + (expireDays * 24 * 3600 * 1000));
+      newCookie += "; expires=" + expiresDateTime.toUTCString();
+    }
+    if (path !== null) {
+      newCookie += "; path=" + path;
+    }
+    document.cookie = newCookie;
   },
 
-  /*
-   * On-load processing
+  /**
+   * Remove a cookie on the current domain which has a given name
+   * @param {string} name The name of the cookie to remove
+   * @static
    */
-  processOnload: function() {
+  removeCookie: function(name) {
+    this.setCookie(name, "", -1, null);
+  },
 
-    // check icon font has loaded
-    // glyphs have to be ones that are more than 1em wide otherwise this doesn't work in IE
-    fontSpy('icomoon',{glyphs: '\ue9be\ue90e\ue91b\ue920'});
+  /**
+   * Initialise everything needed for a FOX page e.g. Scroll position, hint icons, calendars...
+   * @param {function} successFunction Function to run when a page is successfully initialised
+   */
+  init: function(successFunction) {
+    // Check icon font has loaded
+    // Glyphs have to be ones that are more than 1em wide otherwise this doesn't work in IE
+    fontSpy("icomoon", {glyphs: "\ue9be\ue90e\ue91b\ue920"});
 
-    // preserve scroll position
-    var scrollPos = parseInt(document.mainForm.scroll_position.value);
-    if (scrollPos > 0) {
-      window.scrollTo(0, scrollPos);
+    // Preserve scroll position
+    var scrollPosition = parseInt(document.mainForm.scroll_position.value);
+    if (scrollPosition > 0) {
+      window.scrollTo(0, scrollPosition);
     }
 
-    $.fn.tooltipster('setDefaults', {
+    // Prevent page presentation caching in browsers that support it
+    $(window).on("unload", function () {
+      // no body needed
+    });
+
+    // Set default properties for hint icons
+    $.fn.tooltipster("setDefaults", {
       contentAsHTML: true,
       delay: 0,
       speed: 100,
-      position: 'bottom',
+      position: "bottom",
       maxWidth: 250
     });
 
-    // prevent page presentation caching in browsers that support it
-    $(window).on("unload", function () {
-      // do nothing
+    // Enable hints on focus of elements with hint icons, rather than requiring hovering the icon
+    $("[data-hint-id]").on({
+      focus: function() {
+        $("#" + $(this).data("hint-id")).tooltipster("show");
+      },
+      blur: function() {
+        $("#" + $(this).data("hint-id")).tooltipster("hide");
+      }
     });
 
-    // Reset dev toolbar handlers and state
-    if (this.getCookie("devtoolbar") == "true") {
-      $('#dev-toolbar-list').show();
-    }
-    var that = this;
-    $('#devToolbar p').click(
-      function () {
-        $('#dev-toolbar-list').toggle();
-        if ($('#dev-toolbar-list').is(":visible")) {
-          that.setCookie("devtoolbar", "true", 1);
+    // Add tooltipster hooks to elements with hints/tooltips
+    $(".hint, .tooltip").each(
+        function() {
+          if ($(this).attr("title").indexOf("href") >= 0) {
+            $(this).tooltipster({interactive: true});
+          }
+          else {
+            $(this).tooltipster();
+          }
+          if ($(this).attr("data-tooltip-title") !== undefined) {
+            $(this).tooltipster("content", "<h4>" + $(this).attr("data-tooltip-title") + "</h4>" + $(this).tooltipster("content"));
+          }
         }
-        else {
-          that.removeCookie("devtoolbar");
-        }
-      }
     );
 
-    // Enable autoside on textareas with the autosize data attribute
+    // Enable autosize on textareas with the autosize data attribute
     $("textarea[data-auto-resize = 'true']").autosize();
 
     // TODO - NP - Implement text area input limiting
     //$("textarea[data-maxlength]").limitOrSomething();
 
-    // Enable hints on focus of elements with hint icons, rather than requiring hovering the icon
-    $('[data-hint-id]').on('focus', function() {$('#'+$(this).data('hint-id')).tooltipster('show')});
-    $('[data-hint-id]').on('blur', function() {$('#'+$(this).data('hint-id')).tooltipster('hide')});
-
-    $('.hint, .tooltip').each(
-      function() {
-          if ($(this).attr('title').indexOf('href') >= 0) {
-              $(this).tooltipster({interactive: true});
-          }
-          else {
-              $(this).tooltipster();
-          }
-
-          if ($(this).attr('data-tooltip-title') != undefined) {
-              $(this).tooltipster('content', '<h4>' + $(this).attr('data-tooltip-title') + '</h4>' + $(this).tooltipster('content'));
-          }
-      }
-    );
-
-    // Enable debug information tooltips on any debug icons
-    $('[data-debug-id]').each(
-      function() {
-        $(this).tooltipster({
-          'content': $('#'+$(this).attr('data-debug-id')).children()
-        , 'maxWidth' : 768
-        });
-      }
-    );
-
-    // Enable date pickers
-    $( ".date-input").not(".date-time-input").not('[readonly="readonly"]').datepicker({
+    // Initialise the date pickers for fields that need them
+    $( ".date-input").not(".date-time-input").not("[readonly='readonly']").datepicker({
       changeMonth: true,
       changeYear: true,
       dateFormat: "dd'-'M'-'yy",
       showButtonPanel: true,
       yearRange: "c-100:c+100"
     });
-
     $( ".date-time-input" ).not('[readonly="readonly"]').datetimepicker({
       controlType: $.timepicker.textTimeControl,
       changeMonth: true,
@@ -134,7 +154,6 @@ var FOXjs = {
       showButtonPanel: true,
       yearRange: "c-100:c+100"
     });
-
     $( ".date-icon").click(function(){
       var inputId = '#' + $(this).attr("id").replace("icon","");
       if($(inputId).datepicker( "widget" ).is(":visible")) {
@@ -145,36 +164,42 @@ var FOXjs = {
       }
     });
 
-    // run page scripts or catch erroneous navigation
-    if (!this._isExpired()) {
-      conditionalLoadScript();
+    // Run page scripts or catch erroneous navigation
+    if (!this.isExpired()) {
+      successFunction();
+
+      // Trigger any blocks of code inside a $(document).on('foxReady', function(){ });
+      $(document).trigger('foxReady');
+
       // Okay to give 'back' nav warning again
-      this.removeCookie("backWarningGiven_"+document.mainForm["thread_id"].value);
+      this.removeCookie("backWarningGiven_" + document.mainForm.thread_id.value);
+
+      this.allowSubmit();
     }
     else {
-      if (!(typeof(auditOutputFlag) != "undefined" && auditOutputFlag == true)) {
-        this.erroneousNavigation();
-      }
+      this.erroneousNavigation();
     }
-
-    this.allowSubmit();
   },
 
+  /**
+   * Show an alert with information telling the user that because of their backwards navigation links will not work until
+   * they navigate forwards again.
+   */
   erroneousNavigation: function() {
-    var cookie_id = "backWarningGiven_"+document.mainForm["thread_id"].value;
-    this._setPageExpired(true);
-    gPageExpired = true;
-    if (!this.getCookie(cookie_id)) {
+    var cookieId = "backWarningGiven_" + document.mainForm.thread_id.value;
+    this.setPageExpired(true);
+    if (!FOXjs.getCookie(cookieId)) {
       alert("Warning: You appear to have navigated to this page using the Back button of your web browser.\n\nYou may view or copy information from this expired page, but you cannot use any of the links or buttons. You must navigate forward again in order to continue work.");
       // warn only on first back
-      this.setCookie(cookie_id, "true", 1);
+      FOXjs.setCookie(cookieId, "true", 1, null);
     }
   },
 
   /**
    * Check to see if the page has "expired"
+   * @private
    */
-  _isExpired: function() {
+  isExpired: function() {
     // Get the cookie's raw value (decoded from URI encoding)
     var fieldSetCookie = this.getCookie("field_set");
     // Parse into an object
@@ -182,8 +207,8 @@ var FOXjs = {
     // Loop through each item in the array and find the object with a matching thread id
     for(var i = 0; i < fieldSetArray.length; i++){
       // t = thread id, f = field set id
-      if(document.mainForm["thread_id"].value == fieldSetArray[i].t){
-        return (fieldSetArray[i].f != document.mainForm["field_set"].value);
+      if(document.mainForm.thread_id.value == fieldSetArray[i].t){
+        return (fieldSetArray[i].f != document.mainForm.field_set.value);
       }
     }
     // This thread ID not found in cookie
@@ -192,39 +217,45 @@ var FOXjs = {
 
   /**
    * Greys out page and marks it as expired if passed true
+   * @param {boolean} isExpired Is the page expired
+   * @private
    */
-  _setPageExpired: function(pExpired) {
+  setPageExpired: function(isExpired) {
     try {
-      // cope with IE
-      document.body.style.opacity = aExpired ? "0.6" : "1.0";
-      document.body.style.filter = aExpired ? "alpha(opacity=60)" : "alpha(opacity=100)";
+      // Cope with IE
+      document.body.style.opacity = isExpired ? "0.6" : "1.0";
+      document.body.style.filter = isExpired ? "alpha(opacity=60)" : "alpha(opacity=100)";
     }
     catch (e) {
       // doesn't matter
     }
 
-    if (pExpired) {
+    if (isExpired) {
+      this.gPageExpired = true;
       $(document.body).addClass("disabled");
     }
     else {
+      this.gPageExpired = false;
       $(document.body).removeClass("disabled");
     }
   },
 
   /**
    * Block out the page and "disable" it if passed true
+   * @param {boolean} isDisabled Is the page disabled
+   * @protected
    */
-  _setPageDisabled: function(pDisable) {
-    if (pDisable == this.gPageDisabled) {
+  setPageDisabled: function(isDisabled) {
+    if (isDisabled == this.gPageDisabled) {
       return;
     }
 
     if (this.gPageExpired) {
       // Page shouldn't be expired and disabled
-      this._setPageExpired(false);
+      this.setPageExpired(false);
     }
 
-    if (pDisable) {
+    if (isDisabled) {
       var blockingDiv = document.createElement("div");
       blockingDiv.setAttribute("id", "blocking-div");
       blockingDiv.style.height = document.body.scrollHeight;
@@ -242,14 +273,15 @@ var FOXjs = {
       document.body.removeChild(document.getElementById("blocking-div"));
     }
 
-    this.gPageDisabled = pDisable;
+    this.gPageDisabled = isDisabled;
   },
 
   /**
    * Display optional loading blocker when sending data to update
+   * @private
    */
-  _showUpdating: function() {
-    var updatingDiv = $('#updating');
+  showUpdating: function() {
+    var updatingDiv = $("#updating");
 
     if (!updatingDiv) {
       // If no loading div on the page ignore this fucntion
@@ -258,18 +290,18 @@ var FOXjs = {
 
     updatingDiv.show();
 
-    var blankingFrame = $('#iframe-wrapper');
+    var blankingFrame = $("#iframe-wrapper");
     blankingFrame.show();
 
-    // Update src URLs of images in the updating div so IE continues to run their animation
-    $('img', updatingDiv).each(function() {
-        this.src = this.src;
-      }
+    $("img", updatingDiv).each(function() {
+          // Update src URLs of images in the updating div so IE continues to run their animation
+          this.src = this.src;
+        }
     );
 
     document.body.style.cursor = "wait";
 
-    this._setPageDisabled(true);
+    this.setPageDisabled(true);
 
     window.setTimeout(function(){
       var closeButton = document.getElementById("updating-close-button");
@@ -284,14 +316,15 @@ var FOXjs = {
   },
 
   /**
-   * Run client side actions
+   * Run a server side action. Make sure the main form is up to date and post it.
+   * @param {object} options Information about the action to run
    */
   action: function(options) {
     var settings = $.extend({
       ref: null
-    , ctxt: null
-    , confirm: null
-    , params: null
+      , ctxt: null
+      , confirm: null
+      , params: null
     }, options);
 
     if (settings.ref === null) {
@@ -302,7 +335,7 @@ var FOXjs = {
       return; // Can't run an action if a confirm is defined and not okay'd by the user
     }
 
-    if (this._isExpired()) {
+    if (this.isExpired()) {
       // If the page has expired notify them
       var goForward = confirm("Warning: this page has expired.\n\nIt looks like you have navigated back to this page using the browser back button. You will need to navigate forwards to the most recent page before you can activate any links or buttons.\n\nClick OK to be taken back to your current workflow position.\nClick CANCEL to remain on this expired page.");
       // A bit ugly, but worst case scenario is that we go nowhere and user has to use browser forward button
@@ -310,20 +343,17 @@ var FOXjs = {
       if (goForward) {
         // IE, Opera will go to top of history stack with this
         // assuming < 999 pages navigated
-        for (var i = 999; i > 0; i--) {
-          window.history.go(i);
+        for (var b = 999; b > 0; b--) {
+          window.history.go(b);
         }
 
         // Firefox prefers this instead
-        for (var i = 1; i <= 999; i++) {
-          window.history.go(i);
+        for (var f = 1; f <= 999; f++) {
+          window.history.go(f);
         }
-        return;
       }
-
-      return;
     }
-    else if (this.gBlockSubmitReason != null) {
+    else if (this.gBlockSubmitReason !== null) {
       alert(this.gBlockSubmitReason);
     }
     else if (!this.gPageDisabled) {
@@ -332,34 +362,35 @@ var FOXjs = {
       document.mainForm.action_name.value = settings.ref;
       document.mainForm.context_ref.value = settings.ctxt;
 
-      //Action params - write to JSON
+      // Action params - write to JSON
       document.mainForm.action_params.value = JSON.stringify(settings.params);
 
       if(this.gClientActionQueue.length > 0) {
-        $(document.mainForm).append($('<input type="hidden" name="client_actions""/>'));
+        $(document.mainForm).append($("<input type=\"hidden\" name=\"client_actions\"/>"));
         document.mainForm.client_actions.value = JSON.stringify(this.gClientActionQueue);
       }
 
-      // process HTMLArea code, or anything else pre-submit
+      // Process HTMLArea code, or anything else pre-submit
       document.mainForm.onsubmit();
 
       // POST form
       document.mainForm.submit();
 
       // Show "loading/updating"
-      this._showUpdating();
+      this.showUpdating();
     }
   },
 
   /**
    * Open popup windows
+   * @param {object} options Information about the window to pop up
    */
   openwin: function(options) {
     var settings = $.extend({
       url: null
-    , windowName: ""
-    , windowOptions: "default"
-    , windowProperties: ""
+      , windowName: ""
+      , windowOptions: "default"
+      , windowProperties: ""
     }, options);
 
     if (settings.url) {
@@ -400,79 +431,108 @@ var FOXjs = {
   },
 
   /**
-   * Left pad pString with pPadCharacter until pString is pLength long
+   * Left pad string with paddingCharacter until string is resultLength long
+   * @param {string} string String to add padding to
+   * @param {string} resultLength Length of the string after padding
+   * @param {string} paddingCharacter Character to pad with
+   * @return {string} string padded with paddingCharacter until resultLength characters long
    */
-  leftPad: function(pString, pLength, pPadCharacter) {
-    pString = pString.toString();
-    return pString.length < pLength ? this.leftPad(pPadCharacter + pString, pLength) : pString;
+  leftPad: function(string, resultLength, paddingCharacter) {
+    string = string.toString();
+    return string.length < resultLength ? this.leftPad(paddingCharacter + string, resultLength) : string;
   },
 
   /**
    * Run timer code for elements with a value of MM:SS with a callback at the deadline
+   * @param {element} element Input field with a timeout defined in it with the format MM:SS
+   * @param {function} callback Function to run after the timeout defined in element
    */
-  startTimer: function(pElement, pCallback) {
+  startTimer: function(element, callback) {
     var that = this;
-    this.gTimers[pElement.attr('id')] = setInterval(function() {
-        var lTimeParts = pElement.val().split(':');
-        var lMinutes = parseInt(lTimeParts[0]);
-        var lSeconds = parseInt(lTimeParts[1]);
-        if (lMinutes === 0 && lSeconds === 0) {
-          // Bail out if there's no time on the clock
-          clearInterval(that.gTimers[pElement.attr('id')]);
-          return;
-        }
-        else if (lSeconds === 0) {
-          // If no seconds left, decrement the minutes and reset the seconds
-          lMinutes--;
-          lSeconds = "60";
-        }
+    this.gTimers[element.attr("id")] = setInterval(function() {
+          var lTimeParts = element.val().split(':');
+          var lMinutes = parseInt(lTimeParts[0]);
+          var lSeconds = parseInt(lTimeParts[1]);
+          if (lMinutes === 0 && lSeconds === 0) {
+            // Bail out if there's no time on the clock to start with
+            clearInterval(that.gTimers[element.attr('id')]);
+            return;
+          }
+          else if (lSeconds === 0) {
+            // If no seconds left, decrement the minutes and reset the seconds
+            lMinutes--;
+            lSeconds = "60";
+          }
 
-        lSeconds--;
+          lSeconds--;
 
-        pElement.val(that.leftPad(lMinutes, 2, '0') + ':' + that.leftPad(lSeconds, 2, '0'));
+          element.val(that.leftPad(lMinutes, 2, "0") + ":" + that.leftPad(lSeconds, 2, "0"));
 
-        // If we just got to the deadline, clear this interval and run the action
-        if (lMinutes === 0 && lSeconds === 0) {
-          clearInterval(that.gTimers[pElement.attr('id')]);
-          pCallback();
+          // If we just got to the deadline, clear this interval and run the action
+          if (lMinutes === 0 && lSeconds === 0) {
+            clearInterval(that.gTimers[element.attr("id")]);
+            callback();
+          }
         }
-      }
-    , 1000);
+        , 1000);
   },
 
-  blockSubmit: function(pReason) {
-    this.gBlockSubmitReason = pReason;
+  /**
+   * Mark the page as non-submittable, i.e. no actions should be run, with a reason
+   * @param {string} reason Reason why the page cannot be submitted currently
+   * @private
+   */
+  blockSubmit: function(reason) {
+    this.gBlockSubmitReason = reason;
   },
 
+  /**
+   * Mark the page as submittable, clearing any previous blockage reason
+   * @private
+   */
   allowSubmit: function() {
     this.gBlockSubmitReason = null;
   },
 
-  focus: function(pExternalFoxId, pYOffset) {
-    var lFocusTargets = $('*[data-xfid=' + pExternalFoxId + ']');
-    //Scroll document to focus position
-    if(lFocusTargets.offset() != null) {
-      $(document).scrollTop(lFocusTargets.offset().top + pYOffset);
+  /**
+   * Move focus to an element with an optional Y offset
+   * @param {string} externalFoxId Value of a data-xfid on one or more elements
+   * @param {int} yOffset Vertical offset, should you want the page to show information about/blow the targeted elements
+   */
+  focus: function(externalFoxId, yOffset) {
+    var lFocusTargets = $("*[data-xfid=" + externalFoxId + "]");
+    // Scroll document to focus position
+    if(lFocusTargets.offset() !== null) {
+      $(document).scrollTop(lFocusTargets.offset().top + yOffset);
     }
-    //Attempt to focus a focusable element
-    //TODO PN this needs to be aware of element visibility (otherwise IE might have an error)
-    lFocusTargets.find('input, select, textarea').focus()
+    // Attempt to focus a focusable element
+    // TODO PN this needs to be aware of element visibility (otherwise IE might have an error)
+    lFocusTargets.find("input, select, textarea").focus()
   },
 
-  gClientActionQueue: new Array(),
-
-  enqueueClientAction: function(pActionType, pActionKey, pActionParams) {
-    this.gClientActionQueue.push({action_type: pActionType, action_key: pActionKey, action_params: pActionParams});
+  /**
+   * Record a client side action with a given actionType for processing by the thread as part of the post data
+   * @param {string} actionType
+   * @param {string} actionKey
+   * @param {object} actionParams
+   */
+  enqueueClientAction: function(actionType, actionKey, actionParams) {
+    this.gClientActionQueue.push({action_type: actionType, action_key: actionKey, action_params: actionParams});
   },
 
-  dequeueClientActions: function(pActionType) {
-    var lPreservedQueue = new Array();
-    var lDequeuedItems = new Array();
+  /**
+   * Get all stored client side actions for a given actionType
+   * @param actionType
+   * @returns {array}
+   */
+  dequeueClientActions: function(actionType) {
+    var lPreservedQueue = [];
+    var lDequeuedItems = [];
 
     while(this.gClientActionQueue.length > 0) {
-      //Remove items from the front of the queue
+      // Remove items from the front of the queue
       var lItem = this.gClientActionQueue.splice(0, 1)[0];
-      if(lItem.action_type == pActionType) {
+      if(lItem.action_type == actionType) {
         lDequeuedItems.push(lItem);
       }
       else {
@@ -480,7 +540,7 @@ var FOXjs = {
       }
     }
 
-    //Replace the original queue with the preserved queue
+    // Replace the original queue with the preserved queue
     this.gClientActionQueue = lPreservedQueue;
 
     return lDequeuedItems;

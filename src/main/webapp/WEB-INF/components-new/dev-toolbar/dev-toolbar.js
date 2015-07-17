@@ -1,3 +1,4 @@
+/*jshint laxcomma: true, laxbreak: true, strict: false */
 var DevToolbar = {
   gPrevScrollTop: 0,
   gShowAdvancedOpts: false,
@@ -5,8 +6,7 @@ var DevToolbar = {
   gTrackId: "",
   gUserExperienceTime: null,
 
-  processOnLoad: function() {
-
+  init: function() {
     //Reorder DOMs
     this.updateDomOrder();
 
@@ -66,6 +66,9 @@ var DevToolbar = {
     $(window).bind('keyup','ctrl',function (e){
       DevToolbar.toggleFlushMode(false);
     });
+    $(window).bind('blur',function (e){
+      DevToolbar.toggleFlushMode(false);
+    });
 
     //Handlers for keyboard shortcuts
     //Flush
@@ -81,15 +84,15 @@ var DevToolbar = {
 
     //DOMs
     $(window).bind('keydown','alt+r',function (e){
-      $('a#root-dom-link').click()
+      $('a#root-dom-link').click();
     });
 
     $(window).bind('keydown','alt+t',function (e){
-      $('a#theme-dom-link').click()
+      $('a#theme-dom-link').click();
     });
 
     $(window).bind('keydown','alt+m',function (e){
-      $('a#temp-dom-link').click()
+      $('a#temp-dom-link').click();
     });
 
     //Advanced flags
@@ -118,20 +121,34 @@ var DevToolbar = {
     //Register change handlers on form inputs - this will submit the whole form on any value change
     $('#devToolbarForm input').change(function() {
       $.post(
-        DevToolbar.gBangUrlPrefix + '!DEVTOOLBAROPTIONS?thread_id=' + $('#thread_id').val(),
-        $('#devToolbarForm').serialize(),
-        function(data) {
-          //Check the request was serviced correctly
-          var error = $(data).find('error').text();
-          if(error != '') {
-            alert(error);
+          DevToolbar.gBangUrlPrefix + '!DEVTOOLBAROPTIONS?thread_id=' + $('#thread_id').val(),
+          $('#devToolbarForm').serialize(),
+          function(data) {
+            //Check the request was serviced correctly
+            var error = $(data).find('error').text();
+            if(error !== '') {
+              alert(error);
+            }
+            $('#devToolbarForm input').prop('disabled', false);
           }
-          $('#devToolbarForm input').prop('disabled', false);
-        }
       );
       //Disable inputs while we wait for response
       $('#devToolbarForm input').prop('disabled', true);
     });
+
+    // Enable HTML debug information tooltips on any debug icons
+    $("[data-debug-id]").each(
+        function() {
+          $(this).tooltipster({
+            "content": $("#" + $(this).attr("data-debug-id")).children()
+            , "maxWidth" : 768
+          });
+        }
+    );
+
+    // TODO - ME - Make this betterer (togglign twice to make sure it's re-flowed and stop rendering issues)
+    $('#dev-toolbar').toggle();
+    $('#dev-toolbar').toggle();
   },
 
   updateDomOrder: function() {
@@ -169,10 +186,10 @@ var DevToolbar = {
     // delta > 0 - scrolling down, move the toolbar offscreen unless it's already hiddden
     if( delta > 0 && -$('#dev-toolbar').position().top <= $('#dev-toolbar').outerHeight()) {
       $('#dev-toolbar').css({top:$('#dev-toolbar').position().top-delta});
-    // delta < 0 - scrolling up, move the toolbar onscreen unless it's already fully visibe
+      // delta < 0 - scrolling up, move the toolbar onscreen unless it's already fully visibe
     } else if ( delta < 0 && $('#dev-toolbar').position().top < 0) {
       // make sure scroll doesn't make top > 0
-      var newTop = ($('#dev-toolbar').position().top-delta > 0) ? 0 : $('#dev-toolbar').position().top-delta
+      var newTop = ($('#dev-toolbar').position().top-delta > 0) ? 0 : $('#dev-toolbar').position().top-delta;
       $('#dev-toolbar').css({top:newTop});
     }
   },
@@ -248,7 +265,7 @@ var DevToolbar = {
       cache: false,
       success: flushSuccess,
       error: flushError
-    }
+    };
 
     $.ajax(flushUrl,settings);
 
@@ -274,9 +291,11 @@ var DevToolbar = {
     }).time;
 
     var timingSummary = [];
-    for(var i = 0; i<timings.componentTimes.length; i++) {
+    for(var i = 0; i < timings.componentTimes.length; i++) {
       var width = Math.ceil(timings.componentTimes[i].time / totalComponentTime * totalWidth);
-      if(width<5) { width = 5 };
+      if(width<5) {
+        width = 5;
+      }
 
       //Generate colour based on type run through java string hashcode algo
       var hue = 0;
@@ -296,8 +315,8 @@ var DevToolbar = {
     $('#dev-toolbar-timing').append('<span id="dev-toolbar-timing-total"><b>' + timings.pageTime + '</b>ms</span>');
 
     var cumulativeTimingInfo = $('<ul></ul>');
-    for(var i = 0; i < timings.cumulativeTimes.length; i++) {
-      cumulativeTimingInfo.append('<li>' + timings.cumulativeTimes[i].label + ' <strong>' + timings.cumulativeTimes[i].time +  '</strong>ms</li>' )
+    for(var j = 0; j < timings.cumulativeTimes.length; j++) {
+      cumulativeTimingInfo.append('<li>' + timings.cumulativeTimes[j].label + ' <strong>' + timings.cumulativeTimes[j].time +  '</strong>ms</li>');
     }
     var _this = this;
 
@@ -306,25 +325,25 @@ var DevToolbar = {
 
         var modifiedTimingInfo = cumulativeTimingInfo.clone();
 
-        if(_this.gUserExperienceTime != null) {
+        if(_this.gUserExperienceTime !== null) {
           modifiedTimingInfo.append('<li>User experience <strong>' + _this.gUserExperienceTime +'</strong>ms</li>');
         }
 
         origin.tooltipster('content', modifiedTimingInfo);
         continueTooltip();
       },
-	  position: 'bottom'
+      position: 'bottom'
     });
 
     $('.component-time').tooltipster({
       position: 'bottom'
     });
     /*
-    // TODO - NP/ME - Add this back in when tooltip code more robust/changed
-    if (timingSummary.length > 0) {
-      var summaryTooltip = '<span class="dev-toolbar-tooltip">' + timingSummary.join('<br />') + '</span>';
-      $('#dev-toolbar-timing-total').append(summaryTooltip);
-    }*/
+     // TODO - NP/ME - Add this back in when tooltip code more robust/changed
+     if (timingSummary.length > 0) {
+     var summaryTooltip = '<span class="dev-toolbar-tooltip">' + timingSummary.join('<br />') + '</span>';
+     $('#dev-toolbar-timing-total').append(summaryTooltip);
+     }*/
   },
 
   parseMessages: function(messages) {
@@ -382,7 +401,7 @@ var DevToolbar = {
 
     function timingsAndMessagesSuccess(data) {
       DevToolbar.buildTimingGraph(data.timings);
-      DevToolbar.parseMessages(data.messages)
+      DevToolbar.parseMessages(data.messages);
     }
 
     function timingsAndMessagesError(xhr, status, error) {
@@ -394,13 +413,13 @@ var DevToolbar = {
       dataType: 'json',
       success: timingsAndMessagesSuccess,
       error: timingsAndMessagesError
-    }
+    };
 
     $.ajax(Url,settings);
   },
 
   toggleAdvancedOpts: function (e) {
-    if((e != undefined && $('#dev-toolbar-advanced-tooltip').css('display') == 'none') || $('#dev-toolbar-advanced input').is(':checked')) {
+    if((e !== undefined && $('#dev-toolbar-advanced-tooltip').css('display') == 'none') || $('#dev-toolbar-advanced input').is(':checked')) {
       $('#dev-toolbar-advanced-tooltip').show(0);
     }
     else {
@@ -434,7 +453,7 @@ var DevToolbar = {
 if (!Array.prototype.reduce) {
   Array.prototype.reduce = function(callback /*, initialValue*/) {
     'use strict';
-    if (this == null) {
+    if (this === null) {
       throw new TypeError('Array.prototype.reduce called on null or undefined');
     }
     if (typeof callback !== 'function') {

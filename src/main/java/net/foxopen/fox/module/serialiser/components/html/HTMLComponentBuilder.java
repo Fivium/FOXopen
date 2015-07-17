@@ -47,7 +47,7 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
    * @see <a href="http://www.w3.org/TR/html-markup/syntax.html#void-element">http://www.w3.org/TR/html-markup/syntax.html#void-element</a>
    */
   private static final List<String> VOID_ELEMENTS = new ArrayList<>(Arrays.asList("br", "hr", "img", "input", "link", "meta", "area", "base", "col", "command", "embed", "keygen",
-                                                                                  "param", "source", "track", "wbr"));
+      "param", "source", "track", "wbr"));
 
   private static final List<String> IGNORE_ATTRIBUTES = new ArrayList<>(Arrays.asList(HtmlPresentationNode.FORCE_SELF_CLOSE_TAG_NAME));
 
@@ -169,31 +169,25 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
   private void insertJavascript(HTMLSerialiser pSerialiser, SerialisationContext pSerialisationContext) {
     // TODO - NP - Dose of mustache needed
     pSerialiser.append("<script type=\"text/javascript\">");
-    pSerialiser.append("$(document).ready( function(){ FOXjs.processOnload();");
-
-    for (String lJS : pSerialisationContext.getUnconditionalLoadJavascript()) {
-      pSerialiser.append(lJS + "\n");
-    }
-
-    pSerialiser.append("});");
-    pSerialiser.append("function conditionalLoadScript(){");
-
+    pSerialiser.append("$(document).ready( function(){ FOXjs.init(function(){");
+    // If init succeeds run this block
     insertAlerts(pSerialiser, pSerialisationContext);
-
     insertModelessPopups(pSerialiser, pSerialisationContext);
-
     insertDownloadLinks(pSerialiser, pSerialisationContext);
-
     insertPopupLinks(pSerialiser, pSerialisationContext);
-
     insertFocusJS(pSerialiser, pSerialisationContext);
 
     for (String lJS : pSerialisationContext.getConditionalLoadJavascript()) {
       pSerialiser.append(lJS);
       pSerialiser.append("\n");
     }
+    pSerialiser.append("});"); // End init success function and init call
+    // Run code on document ready that doesn't rely on init being successful
+    for (String lJS : pSerialisationContext.getUnconditionalLoadJavascript()) {
+      pSerialiser.append(lJS + "\n");
+    }
+    pSerialiser.append("});"); // End document ready function
 
-    pSerialiser.append("}");
     pSerialiser.append("</script>");
   }
 
@@ -227,12 +221,12 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
 
     for(DownloadLinkXDoResult lLink : lDownloadLinks) {
       pSerialiser.append("listSize = lPopUpURLList.length;\n")
-        .append("lPopUpURLList[listSize] = new Array(3);\n")
-        .append("lPopUpURLList[listSize][1] = \"" + WINDOW_TYPE + "\";\n")
-        .append("lPopUpURLList[listSize][2] = \"" + lLink.getDownloadURL() + "\";\n")
-        .append("lPopUpURLList[listSize][3] = \"" + lLink.getFilename() +"\";\n")
-        .append("lPopUpURLList[listSize][4] = " + ("\"\"") + ";\n") //window features
-        .append("lPopUpURLList[listSize][5] = " + ( "\"\"" ) +";\n"); //window type
+          .append("lPopUpURLList[listSize] = new Array(3);\n")
+          .append("lPopUpURLList[listSize][1] = \"" + WINDOW_TYPE + "\";\n")
+          .append("lPopUpURLList[listSize][2] = \"" + lLink.getDownloadURL() + "\";\n")
+          .append("lPopUpURLList[listSize][3] = \"" + lLink.getFilename() +"\";\n")
+          .append("lPopUpURLList[listSize][4] = " + ("\"\"") + ";\n") //window features
+          .append("lPopUpURLList[listSize][5] = " + ("\"\"") + ";\n"); //window type
     }
 
     if (lDownloadLinks.size() > 0) {

@@ -1,3 +1,4 @@
+/*jshint laxcomma: true, laxbreak: true, strict: false */
 var DELETE_UPLOAD_CLIENT_ACTION_TYPE  = 'DeleteUploadFile';
 var SERVER_ERROR_START = 'start';
 var SERVER_ERROR_RECEIVE = 'receive';
@@ -7,7 +8,7 @@ function FileUpload (container, urlBase, urlParams, fileList, widgetOptions) {
   this.container = container;
   this.urlBase = urlBase;
   this.startUrlParams = urlParams;
-  this.fileList = new Array();
+  this.fileList = [];
   this.widgetOptions = widgetOptions;
   this.fileListContainer = container.children("ul");
 
@@ -19,8 +20,8 @@ function FileUpload (container, urlBase, urlParams, fileList, widgetOptions) {
     dataType: 'json',
     dropZone: $('div[data-dropzone-id="' + _this.container.attr('id') + '"]'),
     sequentialUploads: true,
-    add: function(e, data) { _this.handleUploadAdd(e, data) },
-    submit: function(e, data) { return _this.handleUploadSubmit(e, data) }
+    add: function(e, data) { _this.handleUploadAdd(e, data); },
+    submit: function(e, data) { return _this.handleUploadSubmit(e, data); }
   });
 
   if(widgetOptions.readOnly) {
@@ -29,22 +30,22 @@ function FileUpload (container, urlBase, urlParams, fileList, widgetOptions) {
   }
 
   //Overload start/finish actions for modal + modeless widgets
-  if(widgetOptions.widgetMode == "modal") {
+  if(widgetOptions.widgetMode === "modal") {
     this.startUploadGUIActions = function(){
-      FOXjs._setPageDisabled(true);
+      FOXjs.setPageDisabled(true);
     };
 
     //TODO PN proper JS OO
     this.finishUploadGUIActions = function(wasSuccess) {
       //Completion handled flag prevents this running multiple times if completion handlers run simultaneously
       if (!this.completionHandled) {
-        FOXjs._setPageDisabled(false);
+        FOXjs.setPageDisabled(false);
         $('.modalUploadBlocker').remove();
 
-        if (wasSuccess && this.widgetOptions.successAction != null) {
+        if (wasSuccess && this.widgetOptions.successAction !== null) {
           FOXjs.action(this.widgetOptions.successAction);
         }
-        else if (!wasSuccess && this.widgetOptions.failAction != null) {
+        else if (!wasSuccess && this.widgetOptions.failAction !== null) {
           FOXjs.action(this.widgetOptions.failAction);
         }
 
@@ -54,7 +55,7 @@ function FileUpload (container, urlBase, urlParams, fileList, widgetOptions) {
   }
 
   //Convert existing files into file objects
-  if(fileList != null) {
+  if(fileList !== null) {
     for(var i =0; i < fileList.length; i++) {
       this.addFileInfo(fileList[i]);
     }
@@ -89,7 +90,7 @@ function FileUpload (container, urlBase, urlParams, fileList, widgetOptions) {
 
   fileUpload.bind('fileuploaddone', function (e, data) {
     //Individual upload has completed - update the GUI item
-    if(data.result == null) {
+    if(data.result === null) {
       //Interpret a null result as a failure (iframe aborted requests return null and do not call fail event)
       _this.handleFail(null, data.files[0]._foxFileInfo, SERVER_ERROR_RECEIVE);
     }
@@ -120,7 +121,7 @@ FileUpload.prototype = {
   pendingQueue: [],
 
   generateURL: function(action, params) {
-    return this.urlBase + "/" + action  + (params != null ? "?" + $.param(params) : "");
+    return this.urlBase + "/" + action  + (params !== null ? "?" + $.param(params) : "");
   },
 
   generateStartURL: function() {
@@ -157,7 +158,7 @@ FileUpload.prototype = {
       this.pendingQueue.push(data);
 
       //If this is the last file of this "batch", start queue processing
-      if (data.files[0] == data.originalFiles[data.originalFiles.length - 1]) {
+      if (data.files[0] === data.originalFiles[data.originalFiles.length - 1]) {
         this.submitNextPending();
       }
     }
@@ -181,9 +182,9 @@ FileUpload.prototype = {
       data.jqXHR = _this.getUploadInput().fileupload('send', data);
       data.files[0]._foxFileInfo.jqXHR = data.jqXHR;
     }, 'json')
-      .fail(function(jqXHR, textStatus, errorThrown) {
-        _this.handleFail(jqXHR.responseJSON, data.files[0]._foxFileInfo, SERVER_ERROR_START);
-      });
+        .fail(function(jqXHR, textStatus, errorThrown) {
+          _this.handleFail(jqXHR.responseJSON, data.files[0]._foxFileInfo, SERVER_ERROR_START);
+        });
 
     return false;
   },
@@ -244,7 +245,7 @@ FileUpload.prototype = {
   //Common behaviour for success or failure
   handleUploadCompletion: function() {
     //If all uploads are complete, unlock page etc
-    if(this.pendingQueue.length == 0) {
+    if(this.pendingQueue.length === 0) {
       this.finishUploadGUIActions(!this.lastUploadHadError);
       this.enableUpload();
     }
@@ -275,7 +276,7 @@ FileUpload.prototype = {
   deleteFile: function(fileInfo, skipConfirm) {
 
     var confirmDelete = false;
-    if(this.widgetOptions.deleteConfirmText != null && !skipConfirm) {
+    if(this.widgetOptions.deleteConfirmText !== null && !skipConfirm) {
       confirmDelete = confirm(this.widgetOptions.deleteConfirmText);
     }
     else {
@@ -288,14 +289,14 @@ FileUpload.prototype = {
       //Search through and remove
       var lIndex = -1;
       for(i = 0; i < this.fileList.length; i++) {
-        if(this.fileList[i] == fileInfo) {
+        if(this.fileList[i] === fileInfo) {
           lIndex = i;
           break;
         }
       }
 
       //Remove the file info from the array
-      if(lIndex != -1) {
+      if(lIndex !== -1) {
         this.fileList.splice(lIndex, 1);
       }
       else {
@@ -315,7 +316,7 @@ FileUpload.prototype = {
   },
 
   updateDropzoneMaxFiles: function() {
-    if(this.widgetOptions.maxFiles == 1) {
+    if(this.widgetOptions.maxFiles === 1) {
       this.container.find('.dropzone .dropzone-text').text('Drop file here');
       return;
     }
@@ -327,7 +328,7 @@ FileUpload.prototype = {
 
     var maxFilesRemaining = this.widgetOptions.maxFiles - this.fileList.length;
     var maxFilesText;
-    if(maxFilesRemaining == 1) {
+    if(maxFilesRemaining === 1) {
       maxFilesText = '1 more file allowed';
     }
     else {
@@ -342,11 +343,11 @@ FileUpload.prototype = {
     //Checks that the files selected or dropped won't put us over the max file limit.
     //If they would, return false in the callback for submit to block the upload
     var _this = this;
-    var filesAllowed = _this.widgetOptions.maxFiles - $.grep(_this.fileList,function(file, index) { return file.fileId != undefined; }).length;
+    var filesAllowed = _this.widgetOptions.maxFiles - $.grep(_this.fileList,function(file, index) { return file.fileId !== undefined; }).length;
 
     if(data.originalFiles.length > filesAllowed) {
       //This will fire once for each file. We only want to alert once, so do it for the first file
-      if (data.files[0] == data.originalFiles[0]) {
+      if (data.files[0] === data.originalFiles[0]) {
         alert('You tried to upload ' + data.originalFiles.length + ' files, but there\'s only room for ' + filesAllowed + '. Please try again with fewer files.');
       }
       return false;
@@ -362,7 +363,7 @@ FileUpload.prototype = {
 $(document).ready(function() {
 
   //Don't bind drag and drop events if browser doesn't support HTML5 file API
-  if(window.FileReader == undefined) {
+  if(window.FileReader === undefined) {
     return;
   }
 
@@ -370,7 +371,7 @@ $(document).ready(function() {
     var dt = e.originalEvent.dataTransfer;
     // Check drag contains files
     // 'types' is an array in Chrome and a DOMStringList in IE and Firefox so need to use .indexOf for Chrome and .contains for IE and Fx
-    if(dt.types != null && (dt.types.indexOf ? dt.types.indexOf('Files') != -1 : dt.types.contains('application/x-moz-file') || dt.types.contains('Files'))) {
+    if(dt.types !== null && (dt.types.indexOf ? dt.types.indexOf('Files') !== -1 : dt.types.contains('application/x-moz-file') || dt.types.contains('Files'))) {
       $('.dropzone').not('.disableUpload').show();
       $('.fileUploadLink').hide();
     }
@@ -444,10 +445,10 @@ FileInfo.prototype = {
     this.container.appendTo(this.owner.fileListContainer);
 
     //Error messages take precedence
-    if(this.errorMessage != null) {
+    if(this.errorMessage !== null) {
       this.displayErrorMessage();
     }
-    else if(this.fileId != null) {
+    else if(this.fileId !== null) {
       this.displayDownloadUrl();
     }
     else {
@@ -475,10 +476,10 @@ FileInfo.prototype = {
 
     var _this = this;
     this.statusInterval = setInterval(
-      function() {
-        _this.pollStatus();
-      },
-      POLL_STATUS_INTERVAL
+        function() {
+          _this.pollStatus();
+        },
+        POLL_STATUS_INTERVAL
     );
   },
 
@@ -488,16 +489,16 @@ FileInfo.prototype = {
       url: _this.generateUploadInfoURL('status'),
       dataType: 'json'
     })
-      .done(function(data) {
-        _this.statusUpdateFailures = 0;
-        _this.updateStatus(data);
-      })
-      .fail(function() {
-        if(++_this.statusUpdateFailures > 10) {
-          //Stop status polling if FOX is consistently reporting an error
-          clearInterval(_this.statusInterval);
-        }
-      });
+        .done(function(data) {
+          _this.statusUpdateFailures = 0;
+          _this.updateStatus(data);
+        })
+        .fail(function() {
+          if(++_this.statusUpdateFailures > 10) {
+            //Stop status polling if FOX is consistently reporting an error
+            clearInterval(_this.statusInterval);
+          }
+        });
   },
 
   updateStatus: function(statusObject) {
@@ -507,9 +508,9 @@ FileInfo.prototype = {
       if("errorMessage" in statusObject) {
         this.jqXHR.abort();
         this.abortRequested = true;
-        this.owner.handleFail(statusObject, this, SERVER_ERROR_RECEIVE)
+        this.owner.handleFail(statusObject, this, SERVER_ERROR_RECEIVE);
       }
-      else if (statusObject.statusText != "unknown") {
+      else if (statusObject.statusText !== "unknown") {
         this.setStatusString(statusObject.statusText);
         this.setUploadSpeedString(statusObject.uploadSpeed);
         this.setTimeRemainingString(statusObject.timeRemaining);
@@ -556,12 +557,12 @@ FileInfo.prototype = {
     //Error logic: errorMessage may have been set by either the response from the upload, or from a status poll.
     //In the event of a 500 error or upload abort, we may not have an error message, but serverError will be set - in this
     //case we need to go to the server again to ask for the error message.
-    if(this.errorMessage != null) {
+    if(this.errorMessage !== null) {
       this.handleError();
       //Tell the container that there was an error
       this.owner.uploadHadError();
     }
-    else if(result != null && "serverError" in result) {
+    else if(result !== null && "serverError" in result) {
       //Ask server for error message if an error occurred but we don't know what it was
       this.handleServerError();
       //Tell the container that there was an error
@@ -587,17 +588,17 @@ FileInfo.prototype = {
         url: _this.generateUploadInfoURL('status'),
         dataType: 'json'
       })
-        .done(function(data) {
-          //If we got an error message from the status poll, show it to the user
-          _this.errorMessage = data.errorMessage || defaultMsg;
-        })
-        .fail(function(){
-          //Catch-all if the final error status poll failed
-          _this.errorMessage = defaultMsg;
-        })
-        .always(function() {
-          _this.handleError();
-        });
+          .done(function(data) {
+            //If we got an error message from the status poll, show it to the user
+            _this.errorMessage = data.errorMessage || defaultMsg;
+          })
+          .fail(function(){
+            //Catch-all if the final error status poll failed
+            _this.errorMessage = defaultMsg;
+          })
+          .always(function() {
+            _this.handleError();
+          });
     }
     else {
       var message;
@@ -625,7 +626,7 @@ FileInfo.prototype = {
 
   addDeleteButton: function(parentElement) {
     //Only show the delete button if we have a valid DOM ref to delete
-    if(this.uploadDomRef != null && !this.owner.widgetOptions.readOnly) {
+    if(this.uploadDomRef !== null && !this.owner.widgetOptions.readOnly) {
       var deleteSpan = $('<span class="deleteUpload"><a href="#" class="icon-cross" title="Delete" aria-label="Delete ' + this.filename +'"></a></span>');
       deleteSpan.prependTo(parentElement);
       var _this = this;
@@ -662,18 +663,18 @@ FileInfo.prototype = {
 
   createProgressBar: function() {
     this.container.append(
-      '<div class="uploadProgress">' +
-      '<div class="filename">' + this.filename +
-      '<span class="cancelUpload deleteUpload"><a href="#" class="icon-cross" title="Cancel" aria-label="Cancel upload of ' + this.filename +'"></a></span>' +
-      '</div>' +
-      '<div class="statusContainer"><span class="status">&nbsp;</span></div>' +
-      '<div class="uploadSpeedContainer">Speed: <span class="uploadSpeed">&nbsp;</span></div>' +
-      '<div class="timeRemainingContainer">Time Remaining: <span class="timeRemaining">&nbsp;</span></div>' +
-      '<div class="progressBar"><div class="progressBarPct">0%</div></div>' +
-      '</div>'
+        '<div class="uploadProgress">' +
+        '<div class="filename">' + this.filename +
+        '<span class="cancelUpload deleteUpload"><a href="#" class="icon-cross" title="Cancel" aria-label="Cancel upload of ' + this.filename +'"></a></span>' +
+        '</div>' +
+        '<div class="statusContainer"><span class="status">&nbsp;</span></div>' +
+        '<div class="uploadSpeedContainer">Speed: <span class="uploadSpeed">&nbsp;</span></div>' +
+        '<div class="timeRemainingContainer">Time Remaining: <span class="timeRemaining">&nbsp;</span></div>' +
+        '<div class="progressBar"><div class="progressBarPct">0%</div></div>' +
+        '</div>'
     );
 
-    if(this.owner.widgetOptions.widgetMode == "modal" && $('.modalUploadBlocker').length == 0) {
+    if(this.owner.widgetOptions.widgetMode === "modal" && $('.modalUploadBlocker').length === 0) {
       $('body').append('<div class="modalUploadBlocker"></div>');
     }
 
@@ -695,7 +696,7 @@ FileInfo.prototype = {
 
   deleteFile: function() {
     //Check that the delete is OK - skip the confirm dialog for files with errors
-    var deleteAllowed = this.owner.deleteFile(this, this.errorMessage != null);
+    var deleteAllowed = this.owner.deleteFile(this, this.errorMessage !== null);
     if(deleteAllowed) {
       //Delete the LI from the DOM
       this.container.remove();
