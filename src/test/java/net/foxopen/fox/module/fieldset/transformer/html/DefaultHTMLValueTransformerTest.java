@@ -96,6 +96,47 @@ public class DefaultHTMLValueTransformerTest {
     lInput = "<b>Field value <span style=\"background-color:yellow\">[[MY[FIELD]]</span></b>";
     lOutput = DefaultHTMLValueTransformer.parseSubmittedValue(lInput, lTransformConfig).outputNodeContentsToString(false);
     assertEquals("Malformed MM fields are not converted to MM tags", "<b>Field value [[MY[FIELD]]</b>", lOutput);
+
+    lInput = "Field value <b>[[MY_FIELD</b>]]";
+    lOutput = DefaultHTMLValueTransformer.parseSubmittedValue(lInput, lTransformConfig).outputNodeContentsToString(false);
+    assertEquals("Tags correctly reordered if MM field delimiters span across them", "Field value <b><MM>MY_FIELD</MM></b>", lOutput);
+
+    lInput = "Field value [[<b>MY_FIELD]]</b>";
+    lOutput = DefaultHTMLValueTransformer.parseSubmittedValue(lInput, lTransformConfig).outputNodeContentsToString(false);
+    assertEquals("Tags correctly removed if MM field delimiters span across them", "Field value <MM>MY_FIELD</MM>", lOutput);
+
+    //Probably shouldn't be correct
+    lInput = "Field value [[]]";
+    lOutput = DefaultHTMLValueTransformer.parseSubmittedValue(lInput, lTransformConfig).outputNodeContentsToString(false);
+    assertEquals("Empty delimiter converted to MM tag", "Field value <MM/>", lOutput);
+
+    lInput = "[";
+    lOutput = DefaultHTMLValueTransformer.parseSubmittedValue(lInput, lTransformConfig).outputNodeContentsToString(false);
+    assertEquals("Malformed MM field delimiters are not modified", "[", lOutput);
+
+    lInput = "[]";
+    lOutput = DefaultHTMLValueTransformer.parseSubmittedValue(lInput, lTransformConfig).outputNodeContentsToString(false);
+    assertEquals("Malformed MM field delimiters are not modified", "[]", lOutput);
+
+    lInput = "[[";
+    lOutput = DefaultHTMLValueTransformer.parseSubmittedValue(lInput, lTransformConfig).outputNodeContentsToString(false);
+    assertEquals("Malformed MM field delimiters are not modified", "[[", lOutput);
+
+    lInput = "value [[";
+    lOutput = DefaultHTMLValueTransformer.parseSubmittedValue(lInput, lTransformConfig).outputNodeContentsToString(false);
+    assertEquals("Malformed MM field delimiters are not modified", "value [[", lOutput);
+
+    lInput = "value ]]";
+    lOutput = DefaultHTMLValueTransformer.parseSubmittedValue(lInput, lTransformConfig).outputNodeContentsToString(false);
+    assertEquals("Malformed MM field delimiters are not modified", "value ]]", lOutput);
+
+    lInput = "value [[]";
+    lOutput = DefaultHTMLValueTransformer.parseSubmittedValue(lInput, lTransformConfig).outputNodeContentsToString(false);
+    assertEquals("Malformed MM field delimiters are not modified", "value [[]", lOutput);
+
+    lInput = "value [[] trailing";
+    lOutput = DefaultHTMLValueTransformer.parseSubmittedValue(lInput, lTransformConfig).outputNodeContentsToString(false);
+    assertEquals("Malformed MM field delimiters are not modified", "value [[] trailing", lOutput);
   }
 
   @Test
