@@ -19,6 +19,7 @@ implements WebServiceCategory {
   public Collection<? extends WebService> getAllWebServices() {
     return Arrays.asList(
       new AliveWebService(),
+      new AppCacheWebService(),
       new ThreadWebService(),
       new MapSetWebService(),
       new SpatialRendererWebService()
