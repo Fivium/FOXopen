@@ -62,6 +62,15 @@ public enum BuiltInCacheDefinition {
       return lCacheBuilder;
     }
   }),
+  DATA_DEFINITIONS("DATA_DEFINITIONS", new CacheBuilderFactory() {
+    public FoxCacheBuilder createCacheBuilder() throws ExFoxConfiguration {
+      FoxLRUCacheBuilder lCacheBuilder = new FoxLRUCacheBuilder();
+      lCacheBuilder.setPurpose("Data Definitions");
+      lCacheBuilder.setMaxCapacity(100);
+      lCacheBuilder.setConcurrencyLevel(5);
+      return lCacheBuilder;
+    }
+  }),
   DEV_TOOLBAR_FLAGS("DEV_TOOLBAR_FLAGS", new CacheBuilderFactory() {
     public FoxCacheBuilder createCacheBuilder() throws ExFoxConfiguration {
       FoxLRUCacheBuilder lCacheBuilder = new FoxLRUCacheBuilder();

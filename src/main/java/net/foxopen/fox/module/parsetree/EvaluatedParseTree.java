@@ -22,6 +22,7 @@ import net.foxopen.fox.module.PresentationAttribute;
 import net.foxopen.fox.module.State;
 import net.foxopen.fox.module.clientvisibility.ClientVisibilityRule;
 import net.foxopen.fox.module.clientvisibility.EvaluatedClientVisibilityRule;
+import net.foxopen.fox.module.datadefinition.EvaluatedDataDefinition;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfo;
 import net.foxopen.fox.module.datanode.NodeAttribute;
@@ -123,13 +124,16 @@ public class EvaluatedParseTree implements SerialisationContext {
 
   private final List<EvaluatedClientVisibilityRule> mEvaluatedClientVisibilityRules = new ArrayList<>();
 
+  private final List<EvaluatedDataDefinition> mEvaluatedDataDefinitions;
+
   /** Tracks recursion within child evaluation (to prevent infinite buffer recursion) */
   private int mRecursionLevel = 0;
 
   /** Used to validate uniqueness of certain facets (i.e. tab groups) within a parse tree evaluation cycle */
   private Set<String> mUniqueFacetKeys = new HashSet<>();
 
-  public EvaluatedParseTree(ActionRequestContext pRequestContext, FieldSet pFieldSet, ThreadInfoProvider pThreadInfoProvider) {
+  public EvaluatedParseTree(ActionRequestContext pRequestContext, FieldSet pFieldSet, List<EvaluatedDataDefinition> pEvaluatedDataDefinitions, ThreadInfoProvider pThreadInfoProvider) {
+
 
     mRequestContext = pRequestContext;
     mState = pRequestContext.getCurrentState();
@@ -137,12 +141,12 @@ public class EvaluatedParseTree implements SerialisationContext {
     mModule = pRequestContext.getCurrentModule();
     mApp = pRequestContext.getModuleApp();
     mFieldSet = pFieldSet;
+    mEvaluatedDataDefinitions = pEvaluatedDataDefinitions;
 
     //Construct a stateless URI builder which does not allow parameters to be set
     mURIBuilderInstance = RequestURIBuilderImpl.createFromRequestContext(pRequestContext, false);
 
     mThreadInfoProvider = pThreadInfoProvider;
-
 
     // Figure out the mode/view rules
     try {
@@ -643,5 +647,10 @@ public class EvaluatedParseTree implements SerialisationContext {
       mUniqueFacetKeys.add(lKey);
       return true;
     }
+  }
+
+
+  public List<EvaluatedDataDefinition> getEvaluatedDataDefinitions() {
+    return mEvaluatedDataDefinitions;
   }
 }

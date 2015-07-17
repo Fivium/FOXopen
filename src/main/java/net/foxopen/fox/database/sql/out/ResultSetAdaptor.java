@@ -15,9 +15,9 @@ import java.sql.Timestamp;
  */
 public class ResultSetAdaptor
 implements JDBCResultAdaptor {
-  
+
   private final ResultSet mResultSet;
-  
+
   public ResultSetAdaptor(ResultSet pResultSet) {
     mResultSet = pResultSet;
   }
@@ -26,7 +26,7 @@ implements JDBCResultAdaptor {
   public Object getObject(int pIndex) throws SQLException {
     return mResultSet.getObject(pIndex);
   }
-  
+
   @Override
   public SQLXML getSQLXML(int pIndex) throws SQLException {
     return mResultSet.getSQLXML(pIndex);
@@ -46,7 +46,7 @@ implements JDBCResultAdaptor {
   public String getString(int pIndex) throws SQLException {
     return mResultSet.getString(pIndex);
   }
-  
+
   @Override
   public Clob getClob(int pIndex) throws SQLException {
     return mResultSet.getClob(pIndex);
@@ -56,9 +56,14 @@ implements JDBCResultAdaptor {
   public Blob getBlob(int pIndex) throws SQLException {
     return mResultSet.getBlob(pIndex);
   }
-  
+
   @Override
   public Double getDouble(int pIndex) throws SQLException {
     return mResultSet.getDouble(pIndex);
+  }
+
+  @Override
+  public Integer getInteger(int pIndex) throws SQLException {
+    return mResultSet.getInt(pIndex);
   }
 }

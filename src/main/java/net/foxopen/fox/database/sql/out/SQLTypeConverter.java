@@ -34,6 +34,47 @@ public final class SQLTypeConverter {
   private SQLTypeConverter () {}
 
   /**
+   * Converts a ResultSet value to a Double/Integer if an appropriate numeric SQL type or a String if not. For a SQLXML
+   * column, the XML string from the JDBC driver is returned. For dates, the default date format mask is used (see
+   * {@link #getValueAsDateString(JDBCResultAdaptor, int, String)}).
+   * @param pResultSet ResultSet to read from.
+   * @param pColumnIndex 1-based index of column to convert.
+   * @param pSQLColumnType Column type of the column.
+   * @return The column value as a numeric type or string
+   * @throws SQLException
+   */
+  public static Object getValueForJSONObject(JDBCResultAdaptor pResultSet, int pColumnIndex, int pSQLColumnType)
+      throws SQLException {
+
+    switch(pSQLColumnType) {
+      case Types.SQLXML:
+        if(pResultSet.getSQLXML(pColumnIndex) == null) {
+          return null;
+        }
+        return pResultSet.getSQLXML(pColumnIndex).getString();
+      case Types.DATE:
+      case Types.TIMESTAMP:
+        return getValueAsDateString(pResultSet, pColumnIndex);
+      case OracleTypes.INTERVALDS:
+      case OracleTypes.INTERVALYM:
+        return pResultSet.getObject(pColumnIndex).toString();
+      case Types.DECIMAL:
+      case Types.DOUBLE:
+      case Types.FLOAT:
+      case Types.NUMERIC:
+        return pResultSet.getDouble(pColumnIndex);
+      case Types.BIGINT:
+      case Types.INTEGER:
+      case Types.SMALLINT:
+      case Types.TINYINT:
+        return pResultSet.getInteger(pColumnIndex);
+      default:
+        //Varchars, numbers, etc
+        return pResultSet.getString(pColumnIndex);
+    }
+  }
+
+  /**
    * Converts a ResultSet value to a String. For a SQLXML column, the XML string from the JDBC driver is returned. For
    * dates, the default date format mask is used (see {@link #getValueAsDateString(JDBCResultAdaptor, int, String)}).
    * @param pResultSet ResultSet to read from.

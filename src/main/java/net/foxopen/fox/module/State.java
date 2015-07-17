@@ -43,13 +43,17 @@ import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.ex.ExTooFew;
 import net.foxopen.fox.ex.ExTooMany;
+import net.foxopen.fox.module.datadefinition.ImplicatedDataDefinition;
 import net.foxopen.fox.module.parsetree.ParseTree;
 import net.foxopen.fox.module.parsetree.presentationnode.BufferPresentationNode;
 import net.foxopen.fox.module.serialiser.HtmlDoctype;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 public class State implements Validatable {
@@ -62,7 +66,7 @@ public class State implements Validatable {
   /** The mStateTitle of the state */
   private final String mStateTitle;
 
-  /** Doctype expted to be output from thsi state if HTML */
+  /** Doctype expected to be output from this state if HTML */
   private final HtmlDoctype mDocumentType;
 
   /** The attributes for the html presentation for a specific state **/
@@ -71,7 +75,7 @@ public class State implements Validatable {
   /** The state actions **/
   private final Map<String, ActionDefinition> mActionNamesToDefinitions;
 
-  /** Map of buffer names to pre-parsed Presentaion Nodes */
+  /** Map of buffer names to pre-parsed Presentation Nodes */
   private final Map<String, BufferPresentationNode> mParsedBuffers;
 
   /** Default set-page buffer */
@@ -81,9 +85,12 @@ public class State implements Validatable {
 
   private final StoredXPathResolver mStoredXPathResolver;
 
+  private final List<ImplicatedDataDefinition> mImplicatedDataDefinitions;
+
   private State(Mod pModule, String pStateName, String pStateTitle, HtmlDoctype pDocType, Map<String, String> pStateAttributes,
                 Map<String, ActionDefinition> pActionNamesToDefinitions, Map<String, BufferPresentationNode> pParsedBuffers,
-                BufferPresentationNode pSetPageBuffer, Multimap<AutoActionType, ActionDefinition> pAutoActionMultimap, StoredXPathResolver pStoredXPathResolver)  {
+                BufferPresentationNode pSetPageBuffer, Multimap<AutoActionType, ActionDefinition> pAutoActionMultimap,
+                StoredXPathResolver pStoredXPathResolver, List<ImplicatedDataDefinition> pImplicatedDataDefinitions)  {
     mModule = pModule;
     mStateName = pStateName;
     mStateTitle = pStateTitle;
@@ -94,6 +101,7 @@ public class State implements Validatable {
     mSetPageBuffer = pSetPageBuffer;
     mAutoActionMultimap = pAutoActionMultimap;
     mStoredXPathResolver = pStoredXPathResolver;
+    mImplicatedDataDefinitions = pImplicatedDataDefinitions;
   }
 
   public static State createState(Mod pModule, DOM pMetaData) throws ExModule, ExDoSyntax {
@@ -143,6 +151,11 @@ public class State implements Validatable {
       lStateAttributes.put(lDisplayAttribute.getAttr("name"), XFUtil.nvl(lDisplayAttribute.value()));
     }
 
+    // Passe the state implicated data definitions
+    DOMList lImplicatedDataDefinitionsList = pMetaData.getUL("fm:presentation/fm:implicated-data-definition-list/fm:data-definition");
+    List<ImplicatedDataDefinition> lImplicatedDataDefinitions = new ArrayList<>(lImplicatedDataDefinitionsList.size());
+    lImplicatedDataDefinitions.addAll(lImplicatedDataDefinitionsList.stream().map(ImplicatedDataDefinition::new).collect(Collectors.toList()));
+
     // Parse the state actions
     DOMList lActionList = pMetaData.getUL("fm:action-list/fm:action");
     // Process Action list into hashtable of XDo Objects
@@ -166,7 +179,7 @@ public class State implements Validatable {
     //Create a stored XPath resolver which delegates to the module definition if necessary
     StoredXPathResolver lXPathResolver = ModuleStoredXPathResolver.createFromDOMList(pMetaData.getUL("fm:xpath-list/fm:xpath"), pModule.getStoredXPathResolver());
 
-    return new State(pModule, lStateName, lStateTitle, lDocumentType, lStateAttributes, lActionNamesToDefinitions, lParsedBuffers, lSetPageBuffer, lAutoActionMultimap, lXPathResolver);
+    return new State(pModule, lStateName, lStateTitle, lDocumentType, lStateAttributes, lActionNamesToDefinitions, lParsedBuffers, lSetPageBuffer, lAutoActionMultimap, lXPathResolver, lImplicatedDataDefinitions);
   }
 
   /**
@@ -285,5 +298,9 @@ public class State implements Validatable {
    */
   public StoredXPathResolver getStoredXPathResolver() {
     return mStoredXPathResolver;
+  }
+
+  public List<ImplicatedDataDefinition> getImplicatedDataDefinitions() {
+    return mImplicatedDataDefinitions;
   }
 }

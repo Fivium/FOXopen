@@ -130,6 +130,10 @@ public class HeaderResourcesComponentBuilder extends ComponentBuilder<HTMLSerial
     javascript(pSerialiser, pSerialisationContext.getStaticResourceURI("js/fox.js"));
     css(pSerialiser, pSerialisationContext.getStaticResourceURI("css/fox.css"));
 
+    if (pSerialisationContext.getEvaluatedDataDefinitions().size() > 0) {
+      javascript(pSerialiser, pSerialisationContext.getStaticResourceURI("js/foxData.js"));
+    }
+
     // Include CSS from CSS List
     insertCSSItems(pSerialisationContext, pSerialiser);
 

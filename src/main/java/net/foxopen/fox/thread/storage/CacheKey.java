@@ -1,10 +1,5 @@
 package net.foxopen.fox.thread.storage;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
@@ -12,6 +7,11 @@ import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.track.Track;
 import net.foxopen.fox.track.Trackable;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -154,6 +154,15 @@ implements Trackable {
 
   public List<StorageLocationBind> getUsingBinds() {
     return mUsingBinds;
+  }
+
+  public boolean containsUniqueBind() {
+    for(StorageLocationBind lBind : getUsingBinds()) {
+      if(lBind.getUsingType() == UsingType.UNIQUE) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override

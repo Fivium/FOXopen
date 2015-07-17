@@ -6,6 +6,7 @@ import net.foxopen.fox.download.DownloadLinkXDoResult;
 import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.entrypoint.servlets.FoxMainServlet;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.module.datadefinition.EvaluatedDataDefinition;
 import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedHtmlPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.HtmlPresentationNode;
@@ -22,7 +23,10 @@ import net.foxopen.fox.thread.stack.transform.ModelessCall.ModelessPopup;
 import net.foxopen.fox.track.Track;
 import net.foxopen.fox.track.TrackFlag;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -47,7 +51,7 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
    * @see <a href="http://www.w3.org/TR/html-markup/syntax.html#void-element">http://www.w3.org/TR/html-markup/syntax.html#void-element</a>
    */
   private static final List<String> VOID_ELEMENTS = new ArrayList<>(Arrays.asList("br", "hr", "img", "input", "link", "meta", "area", "base", "col", "command", "embed", "keygen",
-      "param", "source", "track", "wbr"));
+                                                                                  "param", "source", "track", "wbr"));
 
   private static final List<String> IGNORE_ATTRIBUTES = new ArrayList<>(Arrays.asList(HtmlPresentationNode.FORCE_SELF_CLOSE_TAG_NAME));
 
@@ -176,7 +180,7 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
     insertDownloadLinks(pSerialiser, pSerialisationContext);
     insertPopupLinks(pSerialiser, pSerialisationContext);
     insertFocusJS(pSerialiser, pSerialisationContext);
-
+    insertImplicatedDataDefinitions(pSerialiser, pSerialisationContext);
     for (String lJS : pSerialisationContext.getConditionalLoadJavascript()) {
       pSerialiser.append(lJS);
       pSerialiser.append("\n");
@@ -221,12 +225,12 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
 
     for(DownloadLinkXDoResult lLink : lDownloadLinks) {
       pSerialiser.append("listSize = lPopUpURLList.length;\n")
-          .append("lPopUpURLList[listSize] = new Array(3);\n")
-          .append("lPopUpURLList[listSize][1] = \"" + WINDOW_TYPE + "\";\n")
-          .append("lPopUpURLList[listSize][2] = \"" + lLink.getDownloadURL() + "\";\n")
-          .append("lPopUpURLList[listSize][3] = \"" + lLink.getFilename() +"\";\n")
-          .append("lPopUpURLList[listSize][4] = " + ("\"\"") + ";\n") //window features
-          .append("lPopUpURLList[listSize][5] = " + ("\"\"") + ";\n"); //window type
+        .append("lPopUpURLList[listSize] = new Array(3);\n")
+        .append("lPopUpURLList[listSize][1] = \"" + WINDOW_TYPE + "\";\n")
+        .append("lPopUpURLList[listSize][2] = \"" + lLink.getDownloadURL() + "\";\n")
+        .append("lPopUpURLList[listSize][3] = \"" + lLink.getFilename() + "\";\n")
+        .append("lPopUpURLList[listSize][4] = " + ("\"\"") + ";\n") //window features
+        .append("lPopUpURLList[listSize][5] = " + ("\"\"") + ";\n"); //window type
     }
 
     if (lDownloadLinks.size() > 0) {
@@ -266,6 +270,40 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
     if(lFocusResult != null) {
       String lExternalFoxId = pSerialisationContext.getFieldSet().getExternalFoxId(lFocusResult.getNodeRef());
       pSerialiser.append("FOXjs.focus('" + lExternalFoxId + "', " + lFocusResult.getScrollYOffset() + ");");
+    }
+  }
+
+  private void insertImplicatedDataDefinitions(HTMLSerialiser pSerialiser, SerialisationContext pSerialisationContext) {
+    for (EvaluatedDataDefinition edd : pSerialisationContext.getEvaluatedDataDefinitions()) {
+      pSerialiser.append("FOXdata.registerFoxData(\"");
+      pSerialiser.append(edd.getDataDefinitionName());
+      pSerialiser.append("\", ");
+
+      Map<String, JSONArray> lTransformedDataMap = edd.getTransformedData();
+      if (lTransformedDataMap.size() == 1 && lTransformedDataMap.containsKey(EvaluatedDataDefinition.DEFAULT_INTERNAL_FOX_DATA_KEY)) {
+        try {
+          lTransformedDataMap.get(EvaluatedDataDefinition.DEFAULT_INTERNAL_FOX_DATA_KEY).writeJSONString(pSerialiser.getWriter());
+        }
+        catch (IOException e) {
+          throw new ExInternal("Failed to write out data JSON", e);
+        }
+      }
+      else {
+        // If there were multiple entries register them as an object with key/data properties
+        JSONObject lDataTuple = new JSONObject();
+        for (Map.Entry<String, JSONArray> lTransformedData : lTransformedDataMap.entrySet()) {
+          lDataTuple.put(lTransformedData.getKey(), lTransformedData.getValue());
+        }
+
+        try {
+          lDataTuple.writeJSONString(pSerialiser.getWriter());
+        }
+        catch (IOException e) {
+          throw new ExInternal("Failed to write out data JSON", e);
+        }
+      }
+
+      pSerialiser.append(");");
     }
   }
 

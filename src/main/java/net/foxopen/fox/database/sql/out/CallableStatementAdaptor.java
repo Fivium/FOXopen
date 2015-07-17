@@ -15,7 +15,7 @@ import java.sql.Timestamp;
  */
 public class CallableStatementAdaptor
 implements JDBCResultAdaptor {
-  
+
   private final CallableStatement mCallableStatement;
 
   public CallableStatementAdaptor(CallableStatement pCallableStatement) {
@@ -56,10 +56,15 @@ implements JDBCResultAdaptor {
   public Blob getBlob(int pIndex) throws SQLException {
     return mCallableStatement.getBlob(pIndex);
   }
-  
+
   @Override
   public Double getDouble(int pIndex) throws SQLException {
     return mCallableStatement.getDouble(pIndex);
+  }
+
+  @Override
+  public Integer getInteger(int pIndex) throws SQLException {
+    return mCallableStatement.getInt(pIndex);
   }
 
 }

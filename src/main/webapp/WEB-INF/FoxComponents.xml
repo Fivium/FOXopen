@@ -75,6 +75,13 @@
     <FILE_FORMAT>CHAR</FILE_FORMAT>
     <OVERLOADABLE>FALSE</OVERLOADABLE>
   </COMPONENT>
+  <COMPONENT>
+    <NAME>js/foxData.js</NAME>
+    <TYPE>text/javascript</TYPE>
+    <FILE_PATH>\WEB-INF\components-new\foxData.js</FILE_PATH>
+    <FILE_FORMAT>CHAR</FILE_FORMAT>
+    <OVERLOADABLE>TRUE</OVERLOADABLE>
+  </COMPONENT>
 
   <!-- Tagger -->
   <COMPONENT>

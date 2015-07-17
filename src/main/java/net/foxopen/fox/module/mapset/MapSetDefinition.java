@@ -35,7 +35,6 @@ package net.foxopen.fox.module.mapset;
 
 import net.foxopen.fox.ContextLabel;
 import net.foxopen.fox.ContextUElem;
-import net.foxopen.fox.module.Validatable;
 import net.foxopen.fox.command.XDoCommandList;
 import net.foxopen.fox.command.XDoIsolatedRunner;
 import net.foxopen.fox.dom.DOM;
@@ -44,10 +43,9 @@ import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.ex.ExCardinality;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.Mod;
+import net.foxopen.fox.module.Validatable;
 import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.thread.storage.CacheKey;
-import net.foxopen.fox.thread.storage.StorageLocationBind;
-import net.foxopen.fox.thread.storage.UsingType;
 import net.foxopen.fox.track.Track;
 
 
@@ -90,14 +88,7 @@ implements Validatable {
 
 
     //Establish if the definition is scoped to a module call (i.e. it has a UNIQUE bind)
-    boolean lScopedToModuleCall = false;
-    for(StorageLocationBind lBind : mCacheKey.getUsingBinds()) {
-      if(lBind.getUsingType() == UsingType.UNIQUE) {
-        lScopedToModuleCall = true;
-        break;
-      }
-    }
-    mScopedToModuleCall = lScopedToModuleCall;
+    mScopedToModuleCall = mCacheKey.containsUniqueBind();
   }
 
   protected final DOM createDefaultContainerDOM() {

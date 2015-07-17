@@ -8,6 +8,7 @@ import net.foxopen.fox.download.DownloadLinkXDoResult;
 import net.foxopen.fox.entrypoint.uri.RequestURIBuilder;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.module.State;
+import net.foxopen.fox.module.datadefinition.EvaluatedDataDefinition;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.fieldset.FieldSet;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedBufferPresentationNode;
@@ -118,4 +119,6 @@ public interface SerialisationContext {
   InternalAuthLevel getInternalAuthLevel();
 
   String getAuthenticationSessionID();
+
+  List<EvaluatedDataDefinition> getEvaluatedDataDefinitions();
 }

@@ -199,10 +199,10 @@ public final class MapSetDefinitionFactory {
         }
         else {
           //Get the last tag from the map (should be the only one left)
-          String lDefintionTypeTag = lDefinitionTagNameMap.keySet().iterator().next();
-          DOM lDefinitionTypeDOM = lDefinitionTagNameMap.get(lDefintionTypeTag);
+          String lDefinitionTypeTag = lDefinitionTagNameMap.keySet().iterator().next();
+          DOM lDefinitionTypeDOM = lDefinitionTagNameMap.get(lDefinitionTypeTag);
 
-          if(DefinitionTag.STORAGE_LOCATION.toString().equals(lDefintionTypeTag)) {
+          if(DefinitionTag.STORAGE_LOCATION.toString().equals(lDefinitionTypeTag)) {
             if(lStorageLocationHasQuery) {
               //Legacy: storage location with query
               lDefinitionBuilder = new SLQueryDefinition.Builder(lStorageLocation);
@@ -212,23 +212,23 @@ public final class MapSetDefinitionFactory {
               lDefinitionBuilder = new DefaultDefinition.Builder();
             }
           }
-          else if(DefinitionTag.DOM_QUERY.toString().equals(lDefintionTypeTag) || DefinitionTag.RECORD_QUERY.toString().equals(lDefintionTypeTag)) {
+          else if(DefinitionTag.DOM_QUERY.toString().equals(lDefinitionTypeTag) || DefinitionTag.RECORD_QUERY.toString().equals(lDefinitionTypeTag)) {
             lDefinitionBuilder = new InterfaceQueryDefinition.Builder(pModule, lDefinitionTypeDOM);
           }
-          else if(DefinitionTag.DATABASE_DEFINITION.toString().equals(lDefintionTypeTag)) {
+          else if(DefinitionTag.DATABASE_DEFINITION.toString().equals(lDefinitionTypeTag)) {
             lDefinitionBuilder = new DatabaseDefinition.Builder(pModule, lDefinitionTypeDOM);
           }
-          else if(DefinitionTag.RECORD_LIST.toString().equals(lDefintionTypeTag)) {
+          else if(DefinitionTag.RECORD_LIST.toString().equals(lDefinitionTypeTag)) {
             lDefinitionBuilder = new RecordListDefinition.Builder(lDefinitionTypeDOM);
           }
-          else if (DefinitionTag.TEMPLATE.toString().equals(lDefintionTypeTag)) {
+          else if (DefinitionTag.TEMPLATE.toString().equals(lDefinitionTypeTag)) {
             lDefinitionBuilder = new TemplateDefinition.Builder(pModule, lDefinitionTypeDOM);
           }
-          else if (DefinitionTag.AJAX_DEFINITION.toString().equals(lDefintionTypeTag)) {
+          else if (DefinitionTag.AJAX_DEFINITION.toString().equals(lDefinitionTypeTag)) {
             lDefinitionBuilder = new AJAXQueryDefinition.Builder(pModule, lDefinitionTypeDOM);
           }
           else {
-            throw new ExModule("Invalid mapset definition for " + lMapSetName + " - mapset type not recognised: " + lDefintionTypeTag);
+            throw new ExModule("Invalid mapset definition for " + lMapSetName + " - mapset type not recognised: " + lDefinitionTypeTag);
           }
         }
 

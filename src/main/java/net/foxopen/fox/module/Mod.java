@@ -64,11 +64,12 @@ import net.foxopen.fox.ex.ExServiceUnavailable;
 import net.foxopen.fox.ex.ExTooFew;
 import net.foxopen.fox.ex.ExUserRequest;
 import net.foxopen.fox.module.clientvisibility.ClientVisibilityRule;
+import net.foxopen.fox.module.datadefinition.DataDefinition;
+import net.foxopen.fox.module.datanode.NodeAttribute;
+import net.foxopen.fox.module.datanode.NodeInfo;
 import net.foxopen.fox.module.entrytheme.EntryTheme;
 import net.foxopen.fox.module.mapset.MapSetDefinition;
 import net.foxopen.fox.module.mapset.MapSetDefinitionFactory;
-import net.foxopen.fox.module.datanode.NodeAttribute;
-import net.foxopen.fox.module.datanode.NodeInfo;
 import net.foxopen.fox.module.parsetree.ParseTree;
 import net.foxopen.fox.module.parsetree.presentationnode.BufferPresentationNode;
 import net.foxopen.fox.module.serialiser.HtmlDoctype;
@@ -173,6 +174,9 @@ extends FoxComponent implements Validatable {
 
   /** Map of map set name to MapSetDefinition object */
   private final Map<String, MapSetDefinition> mMapSetDefinitions = new HashMap<>();
+
+  /** Map of data defintion name to DataDefinition object */
+  private final Map<String, DataDefinition> mDataDefinitions = new HashMap<>();
 
   /** Map of pager name to MapSetDefinition object */
   private final Map<String, PagerDefinition> mPageDefNameToPageDefMap = new HashMap<>();
@@ -596,6 +600,25 @@ extends FoxComponent implements Validatable {
         }
         catch (Throwable th) {
           throw exceptionForNamedElement(lMapSetDOM, "map-set", th);
+        }
+      }
+
+      // Parse Data definitions
+      DataDefinition lDataDfn;
+      String lDataDefinitionName;
+      DOMList lDataDefinitionDOMList = lModuleDOM.getUL("fm:data-definition-list/fm:data-definition");
+      for(DOM lDataDefinitionDOM : lDataDefinitionDOMList) {
+        try {
+          lDataDfn = DataDefinition.createDefinitionFromDOM(lDataDefinitionDOM, this);
+          lDataDefinitionName = lDataDfn.getName();
+          // Ensure we have not already defined a data definition of the same name
+          if (mDataDefinitions.containsKey(lDataDefinitionName)) {
+            throw new ExModule("Duplicate definition for data-definition " + lDataDefinitionName);
+          }
+          mDataDefinitions.put(lDataDefinitionName, lDataDfn);
+        }
+        catch (Throwable th) {
+          throw exceptionForNamedElement(lDataDefinitionDOM, "data-definition", th);
         }
       }
 
@@ -2720,6 +2743,17 @@ extends FoxComponent implements Validatable {
       throw new ExInternal("Map Set '"+pName+"' not defined in Module "+getName());
     }
     return lMapSetDfn;
+  }
+
+  public DataDefinition getDataDefinitionByName(String pName) {
+    if(pName == null) {
+      throw new ExInternal("Null passed to Mod.getDataDefinitionByName");
+    }
+    DataDefinition lDataDefinition = mDataDefinitions.get(pName);
+    if(lDataDefinition == null) {
+      throw new ExInternal("Data Definition '"+pName+"' not defined in Module "+getName());
+    }
+    return lDataDefinition;
   }
 
   public final PagerDefinition getPagerDefinitionByName(String pName) {

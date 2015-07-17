@@ -552,7 +552,7 @@ Mapsets can have the following structures:
                       <xs:element name="storage-location">
                         <xs:annotation>
                           <xs:documentation>The storage location where the map set is to be
-                          stored</xs:documentation>
+                            stored</xs:documentation>
                         </xs:annotation>
                       </xs:element>
                       <xs:element name="dom-query" nillable="false">
@@ -567,7 +567,7 @@ Mapsets can have the following structures:
                         <xs:annotation>
                           <xs:documentation>Specify a query which will return one or more rows. Each row will be treated as a 'rec' element in the mapset with 'key' and 'data' columns. There is no need to specify a target-path on the query.
 
-The 'data' column may be a string or an XMLType. For XML, the content of the XMLType's root element will be treated as the content of the 'data' element. The 'key' column must always be a string.</xs:documentation>
+                            The 'data' column may be a string or an XMLType. For XML, the content of the XMLType's root element will be treated as the content of the 'data' element. The 'key' column must always be a string.</xs:documentation>
                         </xs:annotation>
                         <xs:complexType>
                           <xs:attributeGroup ref="fm:mapset-interface-query-attr-grp"/>
@@ -667,7 +667,7 @@ The 'data' column may be a string or an XMLType. For XML, the content of the XML
                       <xs:element name="refresh-timeout-mins">
                         <xs:annotation>
                           <xs:documentation>If the refresh-timeout is expired then the next time a map
-                          set is accessed the contents will be reloaded</xs:documentation>
+                            set is accessed the contents will be reloaded</xs:documentation>
                         </xs:annotation>
                         <xs:simpleType>
                           <xs:restriction base="xs:integer">
@@ -792,6 +792,113 @@ The 'data' column may be a string or an XMLType. For XML, the content of the XML
             </xs:sequence>
           </xs:complexType>
         </xs:element>
+        <xs:element name="data-definition-list" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>aaa</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="data-definition" minOccurs="1" maxOccurs="unbounded">
+                <xs:annotation>
+                  <xs:documentation>Definition block describing how data should be queried and transformed for use client side</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="data-query">
+                      <xs:complexType>
+                        <xs:annotation>
+                          <xs:documentation>The query to use when getting data for this data-definition</xs:documentation>
+                        </xs:annotation>
+                        <xs:attribute name="interface" type="fm:entered-string" use="required">
+                          <xs:annotation>
+                            <xs:documentation>The name of the db-interface to get the query from</xs:documentation>
+                          </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute name="query" type="fm:entered-string" use="required">
+                          <xs:annotation>
+                            <xs:documentation>The name of the query within the interface that will be executed for each node matched from the match tag</xs:documentation>
+                          </xs:annotation>
+                        </xs:attribute>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="ajax-data" type="xs:boolean" minOccurs="0">
+                      <xs:annotation>
+                        <xs:documentation>If you expect a large amount of data you can have the data be accessed via AJAX to potentially improve the perception of speed</xs:documentation>
+                      </xs:annotation>
+                    </xs:element>
+                    <xs:element name="transformer" minOccurs="1">
+                      <xs:annotation>
+                        <xs:documentation>Specify how the data is transformed from the query result to the javascript access.</xs:documentation>
+                      </xs:annotation>
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:enumeration value="object"/>
+                          <xs:enumeration value="array"/>
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element name="column-mapping" minOccurs="0">
+                      <xs:annotation>
+                        <xs:documentation>Definition block describing how data should be queried and transformed for use client side</xs:documentation>
+                      </xs:annotation>
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="series" minOccurs="0"/>
+                          <xs:element name="x" minOccurs="0"/>
+                          <xs:element name="y" minOccurs="0"/>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="cache-key" minOccurs="0">
+                      <xs:annotation>
+                        <xs:documentation>Definition of the key which this data definition will be cached against. The cache-key should contain all the values which make this data definition unique.</xs:documentation>
+                      </xs:annotation>
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:group ref="fm:using-clause-grp"/>
+                        </xs:sequence>
+                        <xs:attribute fixed="unique" name="type">
+                          <xs:annotation>
+                            <xs:documentation>Shortcut markup for defining a unique cache key. The FOX engine will generate a unique cache key definition for you if you specify this attribute - there is no need to define any using clauses.</xs:documentation>
+                          </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute name="string" type="xs:string" use="optional"/>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:choice minOccurs="0">
+                      <xs:element name="refresh-timeout-mins">
+                        <xs:annotation>
+                          <xs:documentation>If the refresh-timeout is expired then the next time a data definition is accessed the contents will be reloaded</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:integer">
+                            <xs:minInclusive value="0"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                      </xs:element>
+                      <xs:element name="refresh">
+                        <xs:annotation>
+                          <xs:documentation>Specify when the data definition should be refreshed. Use this as an alternative for refresh-timeout-mins - a value of 'always' maps to '0', a value of 'never' maps to '999999999'.</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                            <xs:enumeration value="always"/>
+                            <xs:enumeration value="never"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                      </xs:element>
+                    </xs:choice>
+                  </xs:sequence>
+                  <xs:attribute name="name" type="fm:entered-string" use="required">
+                    <xs:annotation>
+                      <xs:documentation>Unique name of the data-definition. This will be used asthe key to use in an implicated-data-definition-list inside a states presentation block.</xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -884,7 +991,7 @@ The 'data' column may be a string or an XMLType. For XML, the content of the XML
             </xs:annotation>
             <xs:attribute name="match" type="fm:fox-xpath-type" default=".">
               <xs:annotation>
-                <xs:documentation>�match� specifies the pathname of context nodes to process.</xs:documentation>
+                <xs:documentation>The pathname of context nodes to process.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute name="interface" type="fm:entered-string" use="required">
@@ -894,7 +1001,7 @@ The 'data' column may be a string or an XMLType. For XML, the content of the XML
             </xs:attribute>
             <xs:attribute name="mode">
               <xs:annotation>
-                <xs:documentation>ovverides default mode for query</xs:documentation>
+                <xs:documentation>Overrides default mode for query</xs:documentation>
               </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="fm:entered-string">
@@ -907,7 +1014,7 @@ The 'data' column may be a string or an XMLType. For XML, the content of the XML
             </xs:attribute>
             <xs:attribute name="query" type="fm:entered-string">
               <xs:annotation>
-                <xs:documentation>the name of the query within the interface that will be executed for each node matched from the match tag</xs:documentation>
+                <xs:documentation>The name of the query within the interface that will be executed for each node matched from the match tag</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute name="pagination-invoke-name" type="fm:entered-string" use="optional"/>
@@ -1053,19 +1160,19 @@ The 'data' column may be a string or an XMLType. For XML, the content of the XML
           <xs:annotation>
             <xs:documentation>A searched case statement similar to the Oracle PL/SQL implementation.
 
-If present, the attribute "expr" is evaluated and must yield a single value, otherwise the "value" attribute
-must be set. In either case, the single string value yielded will be checked against each fm:when element in
-turn until a match is found, or fm:default is reached.
+              If present, the attribute "expr" is evaluated and must yield a single value, otherwise the "value" attribute
+              must be set. In either case, the single string value yielded will be checked against each fm:when element in
+              turn until a match is found, or fm:default is reached.
 
-fm:when elements also have the attributes "expr" and "value", only one may be set. If the "value" attribute
-or the value resulting from the "expr" attribute match the value of the fm:case, then the action contents of
-fm:case are evaluated.
+              fm:when elements also have the attributes "expr" and "value", only one may be set. If the "value" attribute
+              or the value resulting from the "expr" attribute match the value of the fm:case, then the action contents of
+              fm:case are evaluated.
 
-If the "continue-matching" attribute is set to "true", then after the fm:when contents are evaluated, the
-command will continue to compare the original value against the subsequent fm:when element(s) until a further
-match is found, or fm:default is reached. This allows multiple fm:when elements to be evaluated if desired.
+              If the "continue-matching" attribute is set to "true", then after the fm:when contents are evaluated, the
+              command will continue to compare the original value against the subsequent fm:when element(s) until a further
+              match is found, or fm:default is reached. This allows multiple fm:when elements to be evaluated if desired.
 
-If the fm:default element is reached, then its contents are evaluated.
+              If the fm:default element is reached, then its contents are evaluated.
             </xs:documentation>
           </xs:annotation>
           <xs:complexType>
@@ -1700,21 +1807,21 @@ If the fm:default element is reached, then its contents are evaluated.
         <xs:element name="state-push">
           <xs:annotation>
             <xs:documentation>
-State transition command. Use this command to move between states on your bunsess workflow diagram.
+              State transition command. Use this command to move between states on your bunsess workflow diagram.
 
-This behaviour of this command is determined by the 'action' attribute:
+              This behaviour of this command is determined by the 'action' attribute:
 
-push:
-Adds a new state to the state-call stack.
-Note that any previous states still exist on the stack-call stack. Any previous state will be returned to when the state added is subsequently 'popped' off the stack.
+              push:
+              Adds a new state to the state-call stack.
+              Note that any previous states still exist on the stack-call stack. Any previous state will be returned to when the state added is subsequently 'popped' off the stack.
 
-pop:
-Pops off the state at the top of the state-call stack.
+              pop:
+              Pops off the state at the top of the state-call stack.
 
-replace:
-Replaces the topmost state, on the state-call stack, with the specified state.
-Can also be used to replace all states on the state-call stack with the state specified.
-</xs:documentation>
+              replace:
+              Replaces the topmost state, on the state-call stack, with the specified state.
+              Can also be used to replace all states on the state-call stack with the state specified.
+            </xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:attribute name="name" type="xs:string" use="optional"/>
@@ -1725,21 +1832,21 @@ Can also be used to replace all states on the state-call stack with the state sp
         <xs:element name="state-replace">
           <xs:annotation>
             <xs:documentation>
-State transition command. Use this command to move between states on your bunsess workflow diagram.
+              State transition command. Use this command to move between states on your bunsess workflow diagram.
 
-This behaviour of this command is determined by the 'action' attribute:
+              This behaviour of this command is determined by the 'action' attribute:
 
-push:
-Adds a new state to the state-call stack.
-Note that any previous states still exist on the stack-call stack. Any previous state will be returned to when the state added is subsequently 'popped' off the stack.
+              push:
+              Adds a new state to the state-call stack.
+              Note that any previous states still exist on the stack-call stack. Any previous state will be returned to when the state added is subsequently 'popped' off the stack.
 
-pop:
-Pops off the state at the top of the state-call stack.
+              pop:
+              Pops off the state at the top of the state-call stack.
 
-replace:
-Replaces the topmost state, on the state-call stack, with the specified state.
-Can also be used to replace all states on the state-call stack with the state specified.
-</xs:documentation>
+              replace:
+              Replaces the topmost state, on the state-call stack, with the specified state.
+              Can also be used to replace all states on the state-call stack with the state specified.
+            </xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:attribute name="name" type="xs:string" use="optional"/>
@@ -1750,21 +1857,21 @@ Can also be used to replace all states on the state-call stack with the state sp
         <xs:element name="state-strict-pop">
           <xs:annotation>
             <xs:documentation>
-State transition command. Use this command to move between states on your bunsess workflow diagram.
+              State transition command. Use this command to move between states on your bunsess workflow diagram.
 
-This behaviour of this command is determined by the 'action' attribute:
+              This behaviour of this command is determined by the 'action' attribute:
 
-push:
-Adds a new state to the state-call stack.
-Note that any previous states still exist on the stack-call stack. Any previous state will be returned to when the state added is subsequently 'popped' off the stack.
+              push:
+              Adds a new state to the state-call stack.
+              Note that any previous states still exist on the stack-call stack. Any previous state will be returned to when the state added is subsequently 'popped' off the stack.
 
-pop:
-Pops off the state at the top of the state-call stack.
+              pop:
+              Pops off the state at the top of the state-call stack.
 
-replace:
-Replaces the topmost state, on the state-call stack, with the specified state.
-Can also be used to replace all states on the state-call stack with the state specified.
-</xs:documentation>
+              replace:
+              Replaces the topmost state, on the state-call stack, with the specified state.
+              Can also be used to replace all states on the state-call stack with the state specified.
+            </xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:attribute name="name" type="xs:string" use="optional"/>
@@ -1796,8 +1903,8 @@ Can also be used to replace all states on the state-call stack with the state sp
         <xs:element name="set-variable">
           <xs:annotation>
             <xs:documentation>Sets a variable which can be referred to in subsequent XPath expression evaluation using $variableName syntax.
-            The variable is scoped to the current module call. Use the "expr" attribute if the value should be the result of an XPath expression
-            (including a non-string item such as an xs:date), or the "textValue" attribute for a fixed string value.</xs:documentation>
+              The variable is scoped to the current module call. Use the "expr" attribute if the value should be the result of an XPath expression
+              (including a non-string item such as an xs:date), or the "textValue" attribute for a fixed string value.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:attribute name="name" type="fm:entered-string" use="required">
@@ -1808,14 +1915,14 @@ Can also be used to replace all states on the state-call stack with the state sp
             <xs:attribute name="expr" type="fm:entered-string" use="optional">
               <xs:annotation>
                 <xs:documentation>XPath expression to evaluate and use as the value for the variable. This may be a sequence containing nodes
-                of any type. Variables will resolve to copies of the items selected by this expression, not the original items. Avoid setting
-                large sequences as variable values as this will cause a serialisation overhead.</xs:documentation>
+                  of any type. Variables will resolve to copies of the items selected by this expression, not the original items. Avoid setting
+                  large sequences as variable values as this will cause a serialisation overhead.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute name="textValue" type="fm:entered-string" use="optional">
               <xs:annotation>
                 <xs:documentation>Fixed text to set the variable's value to. The item type of the variable will be a string. To set to
-                other item types, use the expr attribute and qualify the item type as a constructor, e.g. "xs:date('2015-01-01')".</xs:documentation>
+                  other item types, use the expr attribute and qualify the item type as a constructor, e.g. "xs:date('2015-01-01')".</xs:documentation>
               </xs:annotation>
             </xs:attribute>
           </xs:complexType>
@@ -1954,21 +2061,21 @@ Can also be used to replace all states on the state-call stack with the state sp
         <xs:element name="state">
           <xs:annotation>
             <xs:documentation>
-State transition command. Use this command to move between states on your bunsess workflow diagram.
+              State transition command. Use this command to move between states on your bunsess workflow diagram.
 
-This behaviour of this command is determined by the 'action' attribute:
+              This behaviour of this command is determined by the 'action' attribute:
 
-push:
-Adds a new state to the state-call stack.
-Note that any previous states still exist on the stack-call stack. Any previous state will be returned to when the state added is subsequently 'popped' off the stack.
+              push:
+              Adds a new state to the state-call stack.
+              Note that any previous states still exist on the stack-call stack. Any previous state will be returned to when the state added is subsequently 'popped' off the stack.
 
-pop:
-Pops off the state at the top of the state-call stack.
+              pop:
+              Pops off the state at the top of the state-call stack.
 
-replace:
-Replaces the topmost state, on the state-call stack, with the specified state.
-Can also be used to replace all states on the state-call stack with the state specified.
-</xs:documentation>
+              replace:
+              Replaces the topmost state, on the state-call stack, with the specified state.
+              Can also be used to replace all states on the state-call stack with the state specified.
+            </xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:attribute name="action" use="required">
@@ -1988,21 +2095,21 @@ Can also be used to replace all states on the state-call stack with the state sp
         <xs:element name="state-pop">
           <xs:annotation>
             <xs:documentation>
-State transition command. Use this command to move between states on your bunsess workflow diagram.
+              State transition command. Use this command to move between states on your bunsess workflow diagram.
 
-This behaviour of this command is determined by the 'action' attribute:
+              This behaviour of this command is determined by the 'action' attribute:
 
-push:
-Adds a new state to the state-call stack.
-Note that any previous states still exist on the stack-call stack. Any previous state will be returned to when the state added is subsequently 'popped' off the stack.
+              push:
+              Adds a new state to the state-call stack.
+              Note that any previous states still exist on the stack-call stack. Any previous state will be returned to when the state added is subsequently 'popped' off the stack.
 
-pop:
-Pops off the state at the top of the state-call stack.
+              pop:
+              Pops off the state at the top of the state-call stack.
 
-replace:
-Replaces the topmost state, on the state-call stack, with the specified state.
-Can also be used to replace all states on the state-call stack with the state specified.
-</xs:documentation>
+              replace:
+              Replaces the topmost state, on the state-call stack, with the specified state.
+              Can also be used to replace all states on the state-call stack with the state specified.
+            </xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:attribute name="name" type="xs:string" use="optional"/>
@@ -2039,6 +2146,33 @@ Can also be used to replace all states on the state-call stack with the state sp
   </xs:simpleType>
   <xs:complexType name="presentation-type">
     <xs:sequence>
+      <xs:element name="implicated-data-definition-list" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>List data-definitions you wish to be accessible via Javascript when this state is used</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="data-definition">
+              <xs:complexType>
+                <xs:simpleContent>
+                  <xs:extension base="xs:string">
+                    <xs:attribute name="match" type="fm:fox-xpath-type" default="." use="optional">
+                      <xs:annotation>
+                        <xs:documentation>The path of context nodes to process</xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="foxDataKey" type="fm:fox-xpath-type" use="optional">
+                      <xs:annotation>
+                        <xs:documentation>If your match attribute points to a repeating element this attribute is mandatory and should be an XPath that will resolve to a unique key for each matched node</xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                  </xs:extension>
+                </xs:simpleContent>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
       <xs:element name="set-page" minOccurs="0">
         <xs:complexType>
           <xs:complexContent>
@@ -2830,20 +2964,20 @@ Can also be used to replace all states on the state-call stack with the state sp
                     <xs:attribute name="dom-merge-mode">
                       <xs:annotation>
                         <xs:documentation>Defines the merge behaviour used when a DOM column is
-                        selected into an existing DOM node.</xs:documentation>
+                          selected into an existing DOM node.</xs:documentation>
                       </xs:annotation>
                       <xs:simpleType>
                         <xs:restriction base="fm:entered-string">
                           <xs:enumeration value="add-to">
                             <xs:annotation>
                               <xs:documentation>Default merge mode - the existing XML is preserved
-                              in the target node and new nodes are added underneath it.</xs:documentation>
+                                in the target node and new nodes are added underneath it.</xs:documentation>
                             </xs:annotation>
                           </xs:enumeration>
                           <xs:enumeration value="purge">
                             <xs:annotation>
                               <xs:documentation>Causes the target DOM node to be purged of all child
-                              nodes before the selected XML is written into it.</xs:documentation>
+                                nodes before the selected XML is written into it.</xs:documentation>
                             </xs:annotation>
                           </xs:enumeration>
                         </xs:restriction>
@@ -3013,9 +3147,9 @@ Can also be used to replace all states on the state-call stack with the state sp
                           <xs:enumeration value="varchar">
                             <xs:annotation>
                               <xs:documentation>The default for all sql data.
-This is not required to be specified but it included here for completenes.
-Note all numeric sql datatypes will also be converted to varchar by default.
-If you dont want the default conversion then specify a format mask on the source sql code</xs:documentation>
+                                This is not required to be specified but it included here for completenes.
+                                Note all numeric sql datatypes will also be converted to varchar by default.
+                                If you dont want the default conversion then specify a format mask on the source sql code</xs:documentation>
                             </xs:annotation>
                           </xs:enumeration>
                           <xs:enumeration value="xmltype">
@@ -3032,20 +3166,20 @@ If you dont want the default conversion then specify a format mask on the source
                     <xs:attribute name="dom-merge-mode">
                       <xs:annotation>
                         <xs:documentation>Defines the merge behaviour used when a DOM column is
-                        selected into an existing DOM node.</xs:documentation>
+                          selected into an existing DOM node.</xs:documentation>
                       </xs:annotation>
                       <xs:simpleType>
                         <xs:restriction base="fm:entered-string">
                           <xs:enumeration value="add-to">
                             <xs:annotation>
                               <xs:documentation>Default merge mode - the existing XML is preserved
-                              in the target node and new nodes are added underneath it.</xs:documentation>
+                                in the target node and new nodes are added underneath it.</xs:documentation>
                             </xs:annotation>
                           </xs:enumeration>
                           <xs:enumeration value="purge">
                             <xs:annotation>
                               <xs:documentation>Causes the target DOM node to be purged of all child
-                              nodes before the selected XML is written into it.</xs:documentation>
+                                nodes before the selected XML is written into it.</xs:documentation>
                             </xs:annotation>
                           </xs:enumeration>
                         </xs:restriction>
@@ -3100,13 +3234,13 @@ If you dont want the default conversion then specify a format mask on the source
   <xs:group name="do-cmd-grp">
     <xs:annotation>
       <xs:documentation>Complex do command
-with verious control structures</xs:documentation>
+        with verious control structures</xs:documentation>
     </xs:annotation>
     <xs:sequence>
       <xs:element name="do" minOccurs="0">
         <xs:annotation>
           <xs:documentation>Complex do command
-with verious control structures</xs:documentation>
+            with verious control structures</xs:documentation>
         </xs:annotation>
         <xs:complexType>
           <xs:complexContent>
@@ -3224,19 +3358,19 @@ with verious control structures</xs:documentation>
         <xs:annotation>
           <xs:documentation>A searched case statement similar to the Oracle PL/SQL implementation.
 
-If present, the attribute "expr" is evaluated and must yield a single value, otherwise the "value" attribute
-must be set. In either case, the single string value yielded will be checked against each fm:when element in
-turn until a match is found, or fm:default is reached.
+            If present, the attribute "expr" is evaluated and must yield a single value, otherwise the "value" attribute
+            must be set. In either case, the single string value yielded will be checked against each fm:when element in
+            turn until a match is found, or fm:default is reached.
 
-fm:when elements also have the attributes "expr" and "value", only one may be set. If the "value" attribute
-or the value resulting from the "expr" attribute match the value of the fm:case, then the action contents of
-fm:case are evaluated.
+            fm:when elements also have the attributes "expr" and "value", only one may be set. If the "value" attribute
+            or the value resulting from the "expr" attribute match the value of the fm:case, then the action contents of
+            fm:case are evaluated.
 
-If the "continue-matching" attribute is set to "true", then after the fm:when contents are evaluated, the
-command will continue to compare the original value against the subsequent fm:when element(s) until a further
-match is found, or fm:default is reached. This allows multiple fm:when elements to be evaluated if desired.
+            If the "continue-matching" attribute is set to "true", then after the fm:when contents are evaluated, the
+            command will continue to compare the original value against the subsequent fm:when element(s) until a further
+            match is found, or fm:default is reached. This allows multiple fm:when elements to be evaluated if desired.
 
-If the fm:default element is reached, then its contents are evaluated.
+            If the fm:default element is reached, then its contents are evaluated.
           </xs:documentation>
         </xs:annotation>
         <xs:complexType>
@@ -4134,7 +4268,7 @@ If the fm:default element is reached, then its contents are evaluated.
       <xs:annotation>
         <xs:documentation>Optional match attribute for the query to control the relative node for any query bind variables containing relative paths. If not specified, the default match point is the current state attach point.
 
-If you specify a match attribute you will need to define an explicit cache key because the cache key is always evaluated from the state attach point, never from the query match point. </xs:documentation>
+          If you specify a match attribute you will need to define an explicit cache key because the cache key is always evaluated from the state attach point, never from the query match point. </xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>
@@ -4195,7 +4329,7 @@ If you specify a match attribute you will need to define an explicit cache key b
     <xs:attribute name="default" type="fm:entered-string">
       <xs:annotation>
         <xs:documentation>XPath boolean. If true, this tab will be the initially selected tab when the tab group is first displayed.
-        If not specified, a value of "false()" is assumed.</xs:documentation>
+          If not specified, a value of "false()" is assumed.</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:complexType>

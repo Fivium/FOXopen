@@ -33,6 +33,9 @@ import net.foxopen.fox.ex.ExUserRequest;
 import net.foxopen.fox.logging.ErrorLogger;
 import net.foxopen.fox.module.ActionDefinition;
 import net.foxopen.fox.module.AutoActionType;
+import net.foxopen.fox.module.datadefinition.DataDefinition;
+import net.foxopen.fox.module.datadefinition.EvaluatedDataDefinition;
+import net.foxopen.fox.module.datadefinition.ImplicatedDataDefinition;
 import net.foxopen.fox.module.entrytheme.EntryTheme;
 import net.foxopen.fox.module.fieldset.FieldSet;
 import net.foxopen.fox.module.fieldset.action.InternalAction;
@@ -64,6 +67,7 @@ import org.json.simple.JSONValue;
 import javax.servlet.http.HttpServletRequest;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -911,7 +915,14 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
       //Tell ContextUCon to start retaining its UCon so multiple UCons aren't requested in an HTML gen
       pRequestContext.getContextUCon().startRetainingUCon();
       try {
-        EvaluatedParseTree lEPT = new EvaluatedParseTree(pRequestContext, mFieldSetOut, this);
+        // Evaluate data definitions
+        List<EvaluatedDataDefinition> lEvaluatedDataDefinitions = new ArrayList<>();
+        for (ImplicatedDataDefinition idd : pRequestContext.getCurrentState().getImplicatedDataDefinitions()) {
+          DataDefinition lDataDefinition = pRequestContext.getCurrentModule().getDataDefinitionByName(idd.getDataDefinitionName());
+          lEvaluatedDataDefinitions.add(lDataDefinition.getOrCreateEvaluatedDataDefinition(pRequestContext, idd));
+        }
+
+        EvaluatedParseTree lEPT = new EvaluatedParseTree(pRequestContext, mFieldSetOut, lEvaluatedDataDefinitions, this);
 
         HTMLSerialiser lOutputSerialiser = new HTMLSerialiser(lEPT);
         FoxResponse lFoxResponse;
