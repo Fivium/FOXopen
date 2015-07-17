@@ -19,6 +19,23 @@ import java.util.Date;
 public class FlushBangHandler
 implements BangHandler {
 
+  public static void flushApplicationCache() {
+    //Sync'd to prevent issues in App/XThread where a QueueHandler is requested during a flush
+    synchronized(ServiceQueueHandler.class) {
+      ServiceQueueHandler.destroyAllQueueHandlers();
+      //TODO PN clean up this so property object isn't doing the init
+      FoxGlobals.getInstance().getFoxEnvironment().getFileServiceProperties().initFileTransferServiceQueueHandler();
+    }
+    //Important - flush AFTER recreating ServiceQueueHandlers, otherwise new Apps could
+    //assign ServiceQueues to a handler which is just about to be destroyed.
+    try {
+      FoxGlobals.getInstance().getFoxEnvironment().flushApplicationCache();
+    }
+    catch (ExServiceUnavailable | ExFoxConfiguration | ExApp e) {
+      throw new ExInternal("An error occurred while trying to flush the applications. ", e);
+    }
+  }
+
   private static final FlushBangHandler INSTANCE = new FlushBangHandler();
   public static FlushBangHandler instance() {
     return INSTANCE;
@@ -48,20 +65,8 @@ implements BangHandler {
 
   @Override
   public FoxResponse respond(FoxRequest pFoxRequest) {
-    //Sync'd to prevent issues in App/XThread where a QueueHandler is requested during a flush
-    synchronized(ServiceQueueHandler.class) {
-      ServiceQueueHandler.destroyAllQueueHandlers();
-      //TODO PN clean up this so property object isn't doing the init
-      FoxGlobals.getInstance().getFoxEnvironment().getFileServiceProperties().initFileTransferServiceQueueHandler();
-    }
-    //Important - flush AFTER recreating ServiceQueueHandlers, otherwise new Apps could
-    //assign ServiceQueues to a handler which is just about to be destroyed.
-    try {
-      FoxGlobals.getInstance().getFoxEnvironment().flushApplicationCache();
-    }
-    catch (ExServiceUnavailable | ExFoxConfiguration | ExApp e) {
-      throw new ExInternal("An error occured while trying to flush the applications. ", e);
-    }
+
+    flushApplicationCache();
 
     FoxLogger.getLogger().info("Flush Completed");
 
