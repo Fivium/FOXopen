@@ -99,6 +99,7 @@
     <xs:attribute ref="descriptionDisplay"/>
     <xs:attribute ref="descriptionLayout"/>
     <xs:attribute ref="downloadAsAttachment"/>
+    <xs:attribute ref="namespacePreference"/>
   </xs:attributeGroup>
   <xs:attributeGroup name="zzz-set-menu-attr-group">
     <xs:attribute ref="mode" use="optional"/>
