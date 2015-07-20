@@ -4,6 +4,7 @@ package net.foxopen.fox.module.serialiser.widgets.html;
 import com.google.common.base.Joiner;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
+import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.datanode.NodeEvaluationContext;
@@ -49,6 +50,9 @@ public class ErrorRefWidgetBuilder extends WidgetBuilderHTMLSerialiser<Evaluated
     String lErrorItemDOMRef = pEvalNode.getDataItem().value();
 
     DOM lErrorElement = pEvalNode.getContextUElem().getElemByRefOrNull(lErrorItemDOMRef);
+    if (lErrorElement == null) {
+      throw new ExInternal("Error found in the error DOM pointing to an element that can no longer be found in the application DOMs: ref=" + lErrorItemDOMRef);
+    }
     NodeInfo lMatchedItemNodeInfo = pSerialisationContext.getModule().getNodeInfo(lErrorElement);
 
     String lErrorItemNavAction = getNavActionName(lMatchedItemNodeInfo);
