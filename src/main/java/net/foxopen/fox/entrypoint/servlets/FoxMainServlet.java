@@ -9,7 +9,6 @@ import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.auth.AuthenticationContext;
 import net.foxopen.fox.auth.AuthenticationResult;
 import net.foxopen.fox.auth.StandardAuthenticationContext;
-import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.entrypoint.CookieBasedFoxSession;
 import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.entrypoint.FoxSession;
@@ -29,6 +28,7 @@ import net.foxopen.fox.thread.RequestContext;
 import net.foxopen.fox.thread.StatefulXThread;
 import net.foxopen.fox.thread.ThreadLockManager;
 import net.foxopen.fox.thread.XThreadBuilder;
+import net.foxopen.fox.thread.stack.ModuleCall;
 import net.foxopen.fox.track.Track;
 import net.foxopen.fox.track.TrackProperty;
 
@@ -327,9 +327,12 @@ extends EntryPointServlet {
         XThreadBuilder lXThreadBuilder = new XThreadBuilder(lApp.getMnemonicName(), lAuthContext);
 
         StatefulXThread lNewXThread =  lXThreadBuilder.createXThread(pRequestContext);
-        DOM lParamsDOM = ParamsDOMUtils.paramsDOMFromRequest(pRequestContext.getFoxRequest());
 
-        lFoxResponse = lNewXThread.startThread(pRequestContext, lEntryTheme, lParamsDOM, true);
+        //Start thread using entry params and entry theme from URL
+        ModuleCall.Builder lModuleCallBuilder = new ModuleCall.Builder(lEntryTheme);
+        lModuleCallBuilder.setParamsDOM(ParamsDOMUtils.paramsDOMFromRequest(pRequestContext.getFoxRequest()));
+
+        lFoxResponse = lNewXThread.startThread(pRequestContext, lModuleCallBuilder, true);
       }
     }
     catch (ExSessionTimeout e) {
@@ -368,6 +371,6 @@ extends EntryPointServlet {
     //TODO - mark thread as not requiring persistence
 
     StatefulXThread lNewThread = lXThreadBuilder.createXThread(pRequestContext);
-    return lNewThread.startThread(pRequestContext, lTimeoutEntryTheme, ParamsDOMUtils.defaultEmptyDOM(), true);
+    return lNewThread.startThread(pRequestContext, new ModuleCall.Builder(lTimeoutEntryTheme), true);
   }
 }

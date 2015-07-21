@@ -20,10 +20,12 @@ import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.ex.ExServiceUnavailable;
 import net.foxopen.fox.ex.ExUserRequest;
+import net.foxopen.fox.module.entrytheme.EntryTheme;
 import net.foxopen.fox.thread.RequestContext;
 import net.foxopen.fox.thread.StatefulXThread;
 import net.foxopen.fox.thread.ThreadProperty;
 import net.foxopen.fox.thread.XThreadBuilder;
+import net.foxopen.fox.thread.stack.ModuleCall;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -62,6 +64,7 @@ implements WebService {
     private static final String ENTRY_THEME_PARAM_NAME = "entry_theme";
     private static final String WUS_ID_PARAM_NAME = "wus_id";
     private static final String PARAMS_DOM_PARAM_NAME = "params_dom";
+    private static final String ENV_DOM_PARAM_NAME = "env_dom";
     private static final String EXIT_URI_PARAM_NAME = "exit_uri";
     private static final String ORPHAN_FLAG_PARAM_NAME = "orphan_flag";
 
@@ -91,7 +94,7 @@ implements WebService {
 
       String lAppMnem = XFUtil.nvl(pParamMap.get(APP_MNEM_PARAM_NAME), FoxGlobals.getInstance().getFoxEnvironment().getDefaultAppMnem());
       String lModuleName = pParamMap.get(MODULE_PARAM_NAME);
-      String lEntryTheme = pParamMap.get(ENTRY_THEME_PARAM_NAME);
+      String lEntryThemeName = pParamMap.get(ENTRY_THEME_PARAM_NAME);
       String lWUSId = pParamMap.get(WUS_ID_PARAM_NAME);
 
       //If a WUS ID was provided, bootstrap the auth context and verify we have a valid session
@@ -109,16 +112,6 @@ implements WebService {
 
       XThreadBuilder lXThreadBuilder = new XThreadBuilder(lAppMnem, lAuthenticationContext);
 
-      //Parse params DOM if provided
-      String lParamsDOMString = pParamMap.get(PARAMS_DOM_PARAM_NAME);
-      DOM lParamsDOM;
-      if(!XFUtil.isNull(lParamsDOMString)) {
-        lParamsDOM = ParamsDOMUtils.paramsDOMFromXMLString(lParamsDOMString);
-      }
-      else {
-        lParamsDOM = ParamsDOMUtils.defaultEmptyDOM();
-      }
-
       lXThreadBuilder.setBooleanThreadProperty(ThreadProperty.Type.IS_RESUME_ALLOWED, true);
       lXThreadBuilder.setBooleanThreadProperty(ThreadProperty.Type.IS_SKIP_FOX_SESSION_CHECK, true);
       lXThreadBuilder.setStringThreadProperty(ThreadProperty.Type.EXIT_URI, XFUtil.nvl(pParamMap.get(EXIT_URI_PARAM_NAME)));
@@ -129,7 +122,35 @@ implements WebService {
 
       StatefulXThread lNewXThread = lXThreadBuilder.createXThread(pRequestContext);
       try {
-        lNewXThread.startThread(pRequestContext, FoxGlobals.getInstance().getFoxEnvironment().getAppByMnem(lAppMnem).getMod(lModuleName).getEntryTheme(lEntryTheme), lParamsDOM, false);
+        //Construct new ModuleCall Builder with the target entry theme
+        EntryTheme lEntryTheme = FoxGlobals.getInstance().getFoxEnvironment().getAppByMnem(lAppMnem).getMod(lModuleName).getEntryTheme(lEntryThemeName);
+        ModuleCall.Builder lModuleCallBuilder = new ModuleCall.Builder(lEntryTheme);
+
+        //Parse params DOM if provided
+        String lParamsDOMString = pParamMap.get(PARAMS_DOM_PARAM_NAME);
+        if(!XFUtil.isNull(lParamsDOMString)) {
+          try {
+            lModuleCallBuilder.setParamsDOM(ParamsDOMUtils.paramsDOMFromXMLString(lParamsDOMString));
+          }
+          catch (Throwable th) {
+            throw new ExInternal("Error parsing params DOM", th);
+          }
+        }
+
+        //Parse env DOM if provided
+        String lEnvDOMString = pParamMap.get(ENV_DOM_PARAM_NAME);
+        if(!XFUtil.isNull(lEnvDOMString)) {
+          try {
+            //Builder will set correct root element name for the DOM
+            lModuleCallBuilder.setEnvironmentDOM(DOM.createDocumentFromXMLString(lEnvDOMString));
+          }
+          catch (Throwable th) {
+            throw new ExInternal("Error parsing env DOM", th);
+          }
+        }
+
+        //Start the thread
+        lNewXThread.startThread(pRequestContext, lModuleCallBuilder, false);
       }
       catch (ExUserRequest | ExServiceUnavailable | ExModule | ExApp  e) {
         throw new ExInternal("Failed to start thread", e);

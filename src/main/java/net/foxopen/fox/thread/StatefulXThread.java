@@ -36,7 +36,6 @@ import net.foxopen.fox.module.AutoActionType;
 import net.foxopen.fox.module.datadefinition.DataDefinition;
 import net.foxopen.fox.module.datadefinition.EvaluatedDataDefinition;
 import net.foxopen.fox.module.datadefinition.ImplicatedDataDefinition;
-import net.foxopen.fox.module.entrytheme.EntryTheme;
 import net.foxopen.fox.module.fieldset.FieldSet;
 import net.foxopen.fox.module.fieldset.action.InternalAction;
 import net.foxopen.fox.module.parsetree.EvaluatedParseTree;
@@ -314,16 +313,13 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
   }
 
   @Override
-  public FoxResponse startThread(RequestContext pRequestContext, EntryTheme pEntryTheme, DOM pParamsDOM, boolean pGenerateResponse) {
+  public FoxResponse startThread(RequestContext pRequestContext,  ModuleCall.Builder pInitialModuleCallBuilder, boolean pGenerateResponse) {
 
-    ModuleCall.Builder lModuleCallBuilder = new ModuleCall.Builder(pEntryTheme);
-
-    lModuleCallBuilder.setParamsDOM(pParamsDOM);
-
-    //Mount the request context
+    //Create the request context
     ActionRequestContext lActionRequestContext = new XThreadActionRequestContext(pRequestContext, this);
 
-    return startThread(lActionRequestContext, lModuleCallBuilder, pGenerateResponse);
+    //Run initial entry theme
+    return startThread(lActionRequestContext, pInitialModuleCallBuilder, pGenerateResponse);
   }
 
   private void initialiseBeforeActionProcessing(ActionRequestContext pRequestContext){
