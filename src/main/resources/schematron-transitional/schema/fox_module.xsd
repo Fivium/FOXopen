@@ -1832,6 +1832,60 @@ Can also be used to replace all states on the state-call stack with the state sp
             </xs:attribute>
           </xs:complexType>
         </xs:element>
+        <xs:element name="load-document-template">
+          <xs:annotation>
+            <xs:documentation>Loads document template metadata. This command requires the Document Generation plugin to be installed.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:attribute name="doc-template-target-metadata" type="fm:entered-string" use="required">
+              <xs:annotation>
+                <xs:documentation>Location to create the document template target metadata.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="doc-template-name" type="fm:entered-string" use="required">
+              <xs:annotation>
+                <xs:documentation>Name of the document template to load.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="preview-document-template">
+          <xs:annotation>
+            <xs:documentation>Previews the result of running document generation against a document template. This command requires the Document Generation plugin to be installed.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:attribute name="doc-template-target-metadata" type="fm:entered-string" use="required">
+              <xs:annotation>
+                <xs:documentation>Location of the document template target metadata, as loaded by fm:load-document-template.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="doc-template-name" type="fm:entered-string" use="required">
+              <xs:annotation>
+                <xs:documentation>Name of document template to generate.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="fo-target" use="optional">
+              <xs:annotation>
+                <xs:documentation>If specified, the FO used to generate the preview document will be written to this node.</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="fm:entered-string">
+                  <xs:minLength value="1"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="warnings-target" use="optional">
+              <xs:annotation>
+                <xs:documentation>If specified, any warning text encountered while generating the preview document will be written to this node.</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="fm:entered-string">
+                  <xs:minLength value="1"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
       </xs:choice>
       <xs:choice minOccurs="0">
         <xs:element name="call-module">
