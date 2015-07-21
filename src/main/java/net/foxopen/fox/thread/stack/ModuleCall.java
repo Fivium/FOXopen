@@ -572,13 +572,29 @@ implements Persistable {
       mEntryTheme = pEntryTheme;
     }
 
+    /**
+     * Sets the contents of the :{params} DOM for this module call. The given DOM should <b>not</b> be modified after being
+     * passed to this method. The Builder may modify the DOM to ensure that the root element's name is valid.
+     * @param pParamsDOM Params DOM for the module call.
+     * @return Self reference.
+     */
     public Builder setParamsDOM(DOM pParamsDOM){
       mParamsDOM = pParamsDOM;
+      //Ensure root element has correct name
+      mParamsDOM.rename(ContextLabel.PARAMS.asString());
       return this;
     }
 
+    /**
+     * Sets the contents of the :{env} DOM for this module call. The given DOM should <b>not</b> be modified after being
+     * passed to this method. The Builder may modify the DOM to ensure that the root element's name is valid.
+     * @param pEnvironmentDOM Params DOM for the module call.
+     * @return Self reference.
+     */
     public Builder setEnvironmentDOM(DOM pEnvironmentDOM){
       mEnvironmentDOM = pEnvironmentDOM;
+      //Ensure root element has correct name
+      mEnvironmentDOM.rename(ContextLabel.ENV.asString());
       return this;
     }
 
