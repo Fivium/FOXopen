@@ -358,14 +358,18 @@ implements DisplayOrderSortable {
   public String getFieldWidth() {
     String lFieldWidth = getStringAttribute(NodeAttribute.FIELD_WIDTH, "auto");
     if ("auto".equals(lFieldWidth)) {
+      // If no width was specified and it defaulted to auto, determine the width as best we can automatically
       lFieldWidth = getAutoFieldWidth();
+      // Then make sure that automatic value falls within some sensible min/max boundaries
+      Integer lIntWidth = Integer.valueOf(lFieldWidth);
+      Integer lIntMinWidth = Integer.valueOf(getStringAttribute(NodeAttribute.FIELD_MIN_WIDTH, "1"));
+      Integer lIntMaxWidth = Integer.valueOf(getStringAttribute(NodeAttribute.FIELD_MAX_WIDTH, "80"));
+      lIntWidth = Math.min(Math.max(lIntWidth, lIntMinWidth), lIntMaxWidth);
+      return lIntWidth.toString();
     }
-
-    Integer lIntWidth = Integer.valueOf(lFieldWidth);
-    Integer lIntMinWidth = Integer.valueOf(getStringAttribute(NodeAttribute.FIELD_MIN_WIDTH, "1"));
-    Integer lIntMaxWidth = Integer.valueOf(getStringAttribute(NodeAttribute.FIELD_MAX_WIDTH, "80"));
-    lIntWidth = Math.min(Math.max(lIntWidth, lIntMinWidth), lIntMaxWidth);
-    return lIntWidth.toString();
+    else {
+      return lFieldWidth;
+    }
   }
 
   protected String getAutoFieldWidth() {
@@ -375,14 +379,18 @@ implements DisplayOrderSortable {
   public String getFieldHeight() {
     String lFieldHeight = getStringAttribute(NodeAttribute.FIELD_HEIGHT, "auto");
     if ("auto".equals(lFieldHeight)) {
+      // If no height was specified and it defaulted to auto, determine the height as best we can automatically
       lFieldHeight = getAutoFieldHeight();
+      // Then make sure that automatic value falls within some sensible min/max boundaries
+      Integer lIntHeight = Integer.valueOf(lFieldHeight);
+      Integer lIntMinHeight = Integer.valueOf(getStringAttribute(NodeAttribute.FIELD_MIN_HEIGHT, "1"));
+      Integer lIntMaxHeight = Integer.valueOf(getStringAttribute(NodeAttribute.FIELD_MAX_HEIGHT, "10"));
+      lIntHeight = Math.min(Math.max(lIntHeight, lIntMinHeight), lIntMaxHeight);
+      return lIntHeight.toString();
     }
-
-    Integer lIntHeight = Integer.valueOf(lFieldHeight);
-    Integer lIntMinHeight = Integer.valueOf(getStringAttribute(NodeAttribute.FIELD_MIN_HEIGHT, "1"));
-    Integer lIntMaxHeight = Integer.valueOf(getStringAttribute(NodeAttribute.FIELD_MAX_HEIGHT, "10"));
-    lIntHeight = Math.min(Math.max(lIntHeight, lIntMinHeight), lIntMaxHeight);
-    return lIntHeight.toString();
+    else {
+      return lFieldHeight;
+    }
   }
 
   protected String getAutoFieldHeight() {
