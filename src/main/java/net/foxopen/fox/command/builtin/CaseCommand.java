@@ -217,7 +217,7 @@ public class CaseCommand extends BuiltInCommand {
       if (!XFUtil.isNull(lPivot)) {
         for (CaseComponent lWhen : mWhens) {
           if (lPivot.equals(lWhen.getComparator(lContextUElem))) {
-            lRunner.runCommands(pRequestContext, lWhen.mClause);
+            lFlowResult = lRunner.runCommands(pRequestContext, lWhen.mClause);
             if ("true".equals(lWhen.mCont) && lFlowResult.canContinue()) {
               continue;
             }
