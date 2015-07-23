@@ -188,7 +188,7 @@ select {
   background: #E4F0F9;
 }
 
-.tagger .suggestions ul li:hover {
+.tagger .suggestions ul li.focus {
   background: #BDD9EF;
 }
 
