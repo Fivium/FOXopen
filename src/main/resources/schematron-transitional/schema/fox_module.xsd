@@ -2672,11 +2672,40 @@ Can also be used to replace all states on the state-call stack with the state sp
             </xs:element>
             <xs:element name="pagination-definition" type="fm:entered-string" minOccurs="0"/>
             <xs:element minOccurs="0" name="pagination-config">
+              <xs:annotation>
+                <xs:documentation>Configuration options for Top-N paging. The presence of this element declares the query as a Top-N paginated query when it is invoked with a pagination-invoke-name. You must specify at least one of the row-from-bind-name and offset-bind-name attributes, and at least one of the row-to-bind-name and page-size-bind-name attributes.</xs:documentation>
+              </xs:annotation>
               <xs:complexType>
-                <xs:attribute name="row-from-bind-name" type="fm:entered-string"/>
-                <xs:attribute name="row-to-bind-name" type="fm:entered-string"/>
-                <xs:attribute name="scn-bind-name" type="fm:entered-string"/>
-                <xs:attribute name="row-count-column-name" type="fm:entered-string"/>
+                <xs:attribute name="row-from-bind-name" type="fm:entered-string">
+                  <xs:annotation>
+                    <xs:documentation>Name of the "row from" bind variable. This bind is the first row number (inclusive) which should be selected by the query, i.e. as the first argument of a BETWEEN clause.</xs:documentation>
+                  </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="row-to-bind-name" type="fm:entered-string">
+                  <xs:annotation>
+                    <xs:documentation>Name of the "row to" bind variable. This bind is the last row number (inclusive) which should be selected by the query, i.e. as the second argument of a BETWEEN clause.</xs:documentation>
+                  </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="offset-bind-name" type="fm:entered-string">
+                  <xs:annotation>
+                    <xs:documentation>Name of the "offset" bind variable. This bind is the 0-based offset to the first row which should be selected by the query, i.e. as the OFFSET argument of an Oracle 12c Top-N query. Equivalent to row-from-bind-name - 1.</xs:documentation>
+                  </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="page-size-bind-name" type="fm:entered-string">
+                  <xs:annotation>
+                    <xs:documentation>Name of the "page size" bind variable. This bind is number of rows to be selected for a page, i.e. as the NEXT ROWS argument of an Oracle 12c Top-N query.</xs:documentation>
+                  </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="scn-bind-name" type="fm:entered-string">
+                  <xs:annotation>
+                    <xs:documentation>Name of the SCN bind variable, for use in the "AS OF SCN" clause of a flashback query.</xs:documentation>
+                  </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="row-count-column-name" type="fm:entered-string">
+                  <xs:annotation>
+                    <xs:documentation>Name of the column returned by the query which contains its overall row count. Case sensitive.</xs:documentation>
+                  </xs:annotation>
+                </xs:attribute>
               </xs:complexType>
             </xs:element>
             <xs:element name="select" type="fm:entered-string">

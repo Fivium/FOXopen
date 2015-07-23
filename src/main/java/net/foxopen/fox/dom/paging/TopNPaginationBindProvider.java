@@ -1,7 +1,5 @@
 package net.foxopen.fox.dom.paging;
 
-import java.sql.SQLException;
-
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.sql.bind.BindDirection;
@@ -10,6 +8,8 @@ import net.foxopen.fox.database.sql.bind.BindSQLType;
 import net.foxopen.fox.database.sql.bind.DecoratingBindObjectProvider;
 import net.foxopen.fox.database.sql.bind.NumericBindObject;
 import net.foxopen.fox.dbinterface.TopNPaginationConfig;
+
+import java.sql.SQLException;
 
 /**
  * Bind provider for a Top-N paginated query. Provides the "from" and "to" row number binds.
@@ -31,10 +31,18 @@ extends DecoratingBindObjectProvider {
     pBindName = XFUtil.nvl(pBindName, "");
 
     if(pBindName.equals(mTopNPaginationConfig.getRowFromBindName())) {
+      //"row from" is inclusive of the first row number of the current page
       return new NumericBindObject(mPager.getQueryBindRowStart());
+    }
+    else if(pBindName.equals(mTopNPaginationConfig.getOffsetBindName())) {
+      //"offset" is exclusive of the first row number of the current page
+      return new NumericBindObject(mPager.getQueryBindRowStart() - 1);
     }
     else if(pBindName.equals(mTopNPaginationConfig.getRowToBindName())) {
       return new NumericBindObject(mPager.getQueryBindRowEnd());
+    }
+    else if(pBindName.equals(mTopNPaginationConfig.getPageSizeBindName())) {
+      return new NumericBindObject(mPager.getPageSize() + mPager.getLookAheadRows());
     }
     else if(pBindName.equals(mTopNPaginationConfig.getSCNBindName())) {
       return new SCNBindObject();
