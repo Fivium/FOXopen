@@ -137,7 +137,7 @@ public class ForEachPresentationNode extends PresentationNode {
       ContextUElem lContextUElem = pEvaluatedParseTree.getContextUElem();
 
       DOMList lXPathMatchedItems = null;
-      if (mXPath != null) {
+      if (!XFUtil.isNull(mXPath)) {
         try {
           lXPathMatchedItems = lContextUElem.extendedXPathUL(pEvalContext, mXPath);
         }
@@ -151,7 +151,7 @@ public class ForEachPresentationNode extends PresentationNode {
         }
       }
 
-      ForEachIterator lIterator = new ForEachIterator(mXPath != null, mItemContextName, mStatusContextName, mRangeFrom, mRangeTo, mRangeStep);
+      ForEachIterator lIterator = new ForEachIterator(!XFUtil.isNull(mXPath), mItemContextName, mStatusContextName, mRangeFrom, mRangeTo, mRangeStep);
       lIterator.doForEach(lContextUElem, lXPathMatchedItems, new IterationExecutable() {
         public boolean execute(DOM pOptionalCurrentItem, ForEachIterator.Status pIteratorStatus) {
           lForEachContainer.evaluateChildren(pEvaluatedParseTree);

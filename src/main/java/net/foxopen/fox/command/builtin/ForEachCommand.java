@@ -33,6 +33,7 @@ $Id$
 package net.foxopen.fox.command.builtin;
 
 import net.foxopen.fox.ContextUElem;
+import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.command.Command;
 import net.foxopen.fox.command.CommandFactory;
 import net.foxopen.fox.command.XDoCommandList;
@@ -128,7 +129,7 @@ extends BuiltInCommand {
 
     //Retrieve items to be looped over from XPath
     DOMList lIterationDOMList;
-    if (mXPathExpression != null) {
+    if (!XFUtil.isNull(mXPathExpression)) {
       try {
         lIterationDOMList = lContextUElem.extendedXPathUL(mXPathExpression, ContextUElem.ATTACH);
       }
@@ -159,7 +160,7 @@ extends BuiltInCommand {
     LoopCommandExecutor lExecutor = new LoopCommandExecutor();
 
     //Construct and run iterator
-    ForEachIterator lIterator = new ForEachIterator(mXPathExpression != null, mItemContextName, mStatusContextName, mNumRangeFrom, mNumRangeTo, mNumRangeStep);
+    ForEachIterator lIterator = new ForEachIterator(!XFUtil.isNull(mXPathExpression), mItemContextName, mStatusContextName, mNumRangeFrom, mNumRangeTo, mNumRangeStep);
     lIterator.doForEach(lContextUElem, lIterationDOMList, lExecutor);
 
     //Return the last result the executor has (might be an interrupt if the loop stopped prematurely)
