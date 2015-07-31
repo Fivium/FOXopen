@@ -2947,6 +2947,27 @@ Mapsets can have the following structures:
                 </xs:simpleContent>
               </xs:complexType>
             </xs:element>
+            <xs:element name="template-variable" minOccurs="0" maxOccurs="unbounded">
+              <xs:annotation>
+                <xs:documentation>Provides a value for a template variable in templated queries. If a many item sequence is resolved by the XPath, only the first item is considered.</xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:simpleContent>
+                  <xs:extension base="xs:string">
+                    <xs:attribute name="name" use="required">
+                      <xs:annotation>
+                        <xs:documentation>Specifies the name of the template variable the value corresponds to.</xs:documentation>
+                      </xs:annotation>
+                      <xs:simpleType>
+                        <xs:restriction base="fm:entered-string">
+                          <xs:maxLength value="31"/>
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:attribute>
+                  </xs:extension>
+                </xs:simpleContent>
+              </xs:complexType>
+            </xs:element>
             <xs:element name="into" minOccurs="0" maxOccurs="unbounded">
               <xs:annotation>
                 <xs:documentation>Specifies output parameters from SQL to a dom
@@ -3119,6 +3140,17 @@ Mapsets can have the following structures:
                 <xs:enumeration value="PURGE-ALL"/>
                 <xs:enumeration value="AUGMENT"/>
                 <xs:enumeration value="ADD-TO"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute default="none" name="template-type">
+            <xs:annotation>
+              <xs:documentation>If set to 'mustache', Mustache template syntax in the fm:query is expanded based on the values of fm:using and fm:template-variable binds before the query is executed. Default is 'none'.</xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="none"/>
+                <xs:enumeration value="mustache"/>
               </xs:restriction>
             </xs:simpleType>
           </xs:attribute>

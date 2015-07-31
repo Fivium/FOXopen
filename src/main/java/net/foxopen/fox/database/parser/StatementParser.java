@@ -1,12 +1,12 @@
 package net.foxopen.fox.database.parser;
 
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExParser;
 import net.foxopen.fox.track.Track;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -59,7 +59,8 @@ public class StatementParser {
   private StatementParser() {}
 
   /**
-   * Parses a statement as described by {@link #parse(String, String, boolean)}. Bind names are replaced to the JDBC bind string.
+   * Parses a statement as described by {@link #parse(String, String, boolean, boolean)}. Bind names are replaced to the JDBC bind string.
+   * Templating of the resulting statement is not allowed.
    * @param pStatement Statement to parse for binds.
    * @param pPurpose Purpose of the statement, mainly used for debugging.
    * @return ParsedStatement representation of the statement.
@@ -67,7 +68,7 @@ public class StatementParser {
    */
   public static ParsedStatement parse(String pStatement, String pPurpose)
   throws ExParser {
-    return parse(pStatement, pPurpose, true);
+    return parse(pStatement, pPurpose, true, false);
   }
 
   /**
@@ -84,10 +85,12 @@ public class StatementParser {
    * @param pPurpose Purpose of the statement, mainly used for debugging.
    * @param pReplaceBindNames If true, bind names are replaced with the JDBC bind string. See class JavaDoc for why this
    * is important.
+   * @param pAllowTemplating If true, any template markup in the created ParsedStatement will be applied when {@link ParsedStatement#applyTemplates}
+   *                         is invoked.
    * @return ParsedStatement representation of the statement.
    * @throws ExParser If an escape sequence isn't terminated or if EOF is reached and unterminated input remains.
    */
-  public static ParsedStatement parse(String pStatement, String pPurpose, boolean pReplaceBindNames)
+  public static ParsedStatement parse(String pStatement, String pPurpose, boolean pReplaceBindNames, boolean pAllowTemplating)
   throws ExParser {
 
     String lRemainingScript = pStatement;
@@ -113,7 +116,12 @@ public class StatementParser {
       }
       while(lRemainingScript.length() > 0 && lCurrentScriptSegment != null);
 
-      return new ParsedStatement(pStatement, lCurrentStatementSegments, pPurpose, pReplaceBindNames);
+      if(pAllowTemplating) {
+        return new TemplatedParsedStatement(pStatement, lCurrentStatementSegments, pPurpose, pReplaceBindNames);
+      }
+      else {
+        return new ParsedStatement(pStatement, lCurrentStatementSegments, pPurpose, pReplaceBindNames);
+      }
     }
     finally {
       Track.pop("ParseStatement");
@@ -121,26 +129,29 @@ public class StatementParser {
   }
 
   /**
-   * Parses a statement as in {@link #parseSafely(String, String, boolean)}. Bind names are replaced to the JDBC bind string.
+   * Parses a statement as in {@link #parseSafely(String, String, boolean, boolean)}. Bind names are replaced to the JDBC bind string.
+   * Templating of the resulting statement is not allowed.
    * @param pStatement Statement to be parsed.
    * @param pPurpose Statement purpose for debug/display.
    * @return Parsed statement.
    */
   public static ParsedStatement parseSafely(String pStatement, String pPurpose) {
-    return parseSafely(pStatement, pPurpose, true);
+    return parseSafely(pStatement, pPurpose, true, false);
   }
 
   /**
-   * Parses a statement as in {@link #parse(String, String, boolean)}. This method should only be used for parsing static
+   * Parses a statement as in {@link #parse(String, String, boolean, boolean)}. This method should only be used for parsing static
    * queries which are known  to be valid. parse should be used to parse unknown queries and parser exceptions caught
    * and properly reported. This method will throw an ExInternal if parsing fails.
    * @param pStatement Statement to be parsed.
    * @param pPurpose Statement purpose for debug/display.
+   * @param pReplaceBindNames If true, bind names are replaced with the JDBC bind string.
+   * @param pAllowTemplating If true, templating will be supported in the statement.
    * @return Parsed statement.
    */
-  public static ParsedStatement parseSafely(String pStatement, String pPurpose, boolean pReplaceBindNames) {
+  public static ParsedStatement parseSafely(String pStatement, String pPurpose, boolean pReplaceBindNames, boolean pAllowTemplating) {
     try {
-      return parse(pStatement, pPurpose, pReplaceBindNames);
+      return parse(pStatement, pPurpose, pReplaceBindNames, pAllowTemplating);
     }
     catch (ExParser e) {
       throw new ExInternal("Failed to parse statement for " + pPurpose, e);

@@ -1,15 +1,15 @@
 package net.foxopen.fox.database.sql;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.parser.ParsedStatement;
 import net.foxopen.fox.database.sql.bind.BindObject;
 import net.foxopen.fox.database.sql.bind.BindObjectProvider;
 import net.foxopen.fox.track.Track;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 
 
 /**
@@ -29,8 +29,7 @@ extends ExecutableStatement {
   private ResultSetMetaData mResultSetMetaData = null;
 
   public ExecutableQuery(ParsedStatement pParsedStatement, BindObjectProvider pBindProvider) {
-    super(pParsedStatement);
-    evaluateBinds(pBindProvider);
+    super(pParsedStatement, pBindProvider);
   }
 
   @Override

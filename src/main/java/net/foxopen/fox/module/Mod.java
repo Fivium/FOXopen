@@ -100,7 +100,7 @@ import java.util.regex.PatternSyntaxException;
 
 
 public class Mod
-extends FoxComponent implements Validatable {
+extends FoxComponent implements Validatable, NodeInfoProvider {
   private static final String IMPORTED = "fox:_imported";
   public static final String FOX_BASE_URI    = "http://www.og.dti.gov/fox";
   public static final String FOX_LOCAL_NO_NS_URI    = "http://www.og.dti.gov/fox";
@@ -1001,6 +1001,7 @@ extends FoxComponent implements Validatable {
   /**
    * retrieve the NodeInfo of an element by passing the method an absolute path of the node, null is returned when no value is found.
    */
+  @Override
   public NodeInfo getNodeInfo(String absolute) {
     return mAbsolutePathToNodeInfoMap.get(absolute);
   }
@@ -1008,6 +1009,7 @@ extends FoxComponent implements Validatable {
   /**
    * retrieve the NodeInfo of an element by passing the method the UElem, null is returned when no value is found.
    */
+  @Override
   public NodeInfo getNodeInfo(DOM findModelElement) {
     String abs = findModelElement.absolute();
     return mAbsolutePathToNodeInfoMap.get(abs);

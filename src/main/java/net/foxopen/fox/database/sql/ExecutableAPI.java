@@ -1,19 +1,18 @@
 package net.foxopen.fox.database.sql;
 
-import java.sql.CallableStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.parser.ParsedStatement;
 import net.foxopen.fox.database.sql.bind.BindObject;
 import net.foxopen.fox.database.sql.bind.BindObjectProvider;
 import net.foxopen.fox.database.sql.bind.BindSQLType;
 import net.foxopen.fox.track.Track;
+
+import java.sql.CallableStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -28,8 +27,7 @@ extends ExecutableStatement {
   private Map<Integer, BindSQLType> mOutBindIndexToBindTypeMap = null;
 
   public ExecutableAPI(ParsedStatement pParsedStatement, BindObjectProvider pBindProvider) {
-    super(pParsedStatement);
-    evaluateBinds(pBindProvider);
+    super(pParsedStatement, pBindProvider);
   }
 
   @Override

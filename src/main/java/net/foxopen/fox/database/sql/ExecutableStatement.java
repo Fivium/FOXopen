@@ -97,9 +97,24 @@ public abstract class ExecutableStatement {
 
   }
 
+  /**
+   * Constructor which does not evaluate binds.
+   * @param pParsedStatement Statement to be executed.
+   */
   protected ExecutableStatement(ParsedStatement pParsedStatement) {
     mParsedStatement = pParsedStatement;
     mBindObjectList = new ArrayList<>(mParsedStatement.getBindNameList().size());
+  }
+
+  /**
+   * Constructor which evaluates binds and applies templates for templated queries.
+   * @param pParsedStatement Statement to be executed. If this is a TemplatedParsedStatement, templates will be applied.
+   * @param pBindObjectProvider BindObjectProvider for binds and template variables.
+   */
+  protected ExecutableStatement(ParsedStatement pParsedStatement, BindObjectProvider pBindObjectProvider) {
+    mParsedStatement = pParsedStatement.applyTemplates(pBindObjectProvider);
+    mBindObjectList = new ArrayList<>(mParsedStatement.getBindNameList().size());
+    evaluateBinds(pBindObjectProvider);
   }
 
   protected final void evaluateBinds(BindObjectProvider pBindProvider) {

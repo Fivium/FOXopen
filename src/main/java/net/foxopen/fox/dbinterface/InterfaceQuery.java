@@ -155,7 +155,7 @@ extends InterfaceStatement {
    * @return
    */
   public ExecutableQuery createExecutableQuery(DOM pMatchedNode, ContextUElem pContextUElem) {
-    BindObjectProvider lBindProvider = new StatementBindProvider(pMatchedNode, pContextUElem);
+    BindObjectProvider lBindProvider = createBindProvider(pMatchedNode, pContextUElem);
     return getParsedStatement().createExecutableQuery(lBindProvider);
   }
 
