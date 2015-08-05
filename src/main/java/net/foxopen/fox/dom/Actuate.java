@@ -32,12 +32,6 @@ $Id$
 */
 package net.foxopen.fox.dom;
 
-import java.io.OutputStream;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.ex.ExBadPath;
 import net.foxopen.fox.ex.ExDOMName;
@@ -45,9 +39,13 @@ import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExTooFew;
 import net.foxopen.fox.ex.ExTooMany;
 import net.foxopen.fox.ex.ExValidation;
-
 import nu.xom.Document;
 import nu.xom.Node;
+
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 
 abstract class Actuate
@@ -67,7 +65,7 @@ abstract class Actuate
   public void throwAccessViolation(Node pNode)
   throws ExInternal
   {
-    throw new ExInternal("Access violation DOM: "+mAccessViolationInfo);
+    throw new ExInternal("Access violation DOM: "+mAccessViolationInfo + " for root element " + (pNode != null && pNode.getDocument() != null ? pNode.getDocument().getRootElement().getLocalName() : "UNKNOWN"));
   }
 
   public DOMList getCreateXPathUL(Node pNode, String pSimplePath) throws ExInternal, ExBadPath
