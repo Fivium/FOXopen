@@ -42,10 +42,10 @@ function FileUpload (container, urlBase, urlParams, fileList, widgetOptions) {
         FOXjs.setPageDisabled(false);
         $('.modalUploadBlocker').remove();
 
-        if (wasSuccess && this.widgetOptions.successAction !== null) {
+        if (wasSuccess && this.widgetOptions.successAction) {
           FOXjs.action(this.widgetOptions.successAction);
         }
-        else if (!wasSuccess && this.widgetOptions.failAction !== null) {
+        else if (!wasSuccess && this.widgetOptions.failAction) {
           FOXjs.action(this.widgetOptions.failAction);
         }
 
@@ -55,7 +55,7 @@ function FileUpload (container, urlBase, urlParams, fileList, widgetOptions) {
   }
 
   //Convert existing files into file objects
-  if(fileList !== null) {
+  if(fileList) {
     for(var i =0; i < fileList.length; i++) {
       this.addFileInfo(fileList[i]);
     }
@@ -90,7 +90,7 @@ function FileUpload (container, urlBase, urlParams, fileList, widgetOptions) {
 
   fileUpload.bind('fileuploaddone', function (e, data) {
     //Individual upload has completed - update the GUI item
-    if(data.result === null) {
+    if(!data.result) {
       //Interpret a null result as a failure (iframe aborted requests return null and do not call fail event)
       _this.handleFail(null, data.files[0]._foxFileInfo, SERVER_ERROR_RECEIVE);
     }
@@ -121,7 +121,7 @@ FileUpload.prototype = {
   pendingQueue: [],
 
   generateURL: function(action, params) {
-    return this.urlBase + "/" + action  + (params !== null ? "?" + $.param(params) : "");
+    return this.urlBase + "/" + action  + (params ? "?" + $.param(params) : "");
   },
 
   generateStartURL: function() {
@@ -276,7 +276,7 @@ FileUpload.prototype = {
   deleteFile: function(fileInfo, skipConfirm) {
 
     var confirmDelete = false;
-    if(this.widgetOptions.deleteConfirmText !== null && !skipConfirm) {
+    if(this.widgetOptions.deleteConfirmText && !skipConfirm) {
       confirmDelete = confirm(this.widgetOptions.deleteConfirmText);
     }
     else {
@@ -343,7 +343,7 @@ FileUpload.prototype = {
     //Checks that the files selected or dropped won't put us over the max file limit.
     //If they would, return false in the callback for submit to block the upload
     var _this = this;
-    var filesAllowed = _this.widgetOptions.maxFiles - $.grep(_this.fileList,function(file, index) { return file.fileId !== undefined; }).length;
+    var filesAllowed = _this.widgetOptions.maxFiles - $.grep(_this.fileList, function(file, index) { return (file.fileId); }).length;
 
     if(data.originalFiles.length > filesAllowed) {
       //This will fire once for each file. We only want to alert once, so do it for the first file
@@ -363,7 +363,7 @@ FileUpload.prototype = {
 $(document).ready(function() {
 
   //Don't bind drag and drop events if browser doesn't support HTML5 file API
-  if(window.FileReader === undefined) {
+  if(typeof window.FileReader === "undefined") {
     return;
   }
 
@@ -371,7 +371,7 @@ $(document).ready(function() {
     var dt = e.originalEvent.dataTransfer;
     // Check drag contains files
     // 'types' is an array in Chrome and a DOMStringList in IE and Firefox so need to use .indexOf for Chrome and .contains for IE and Fx
-    if(dt.types !== null && (dt.types.indexOf ? dt.types.indexOf('Files') !== -1 : dt.types.contains('application/x-moz-file') || dt.types.contains('Files'))) {
+    if(dt.types && (dt.types.indexOf ? dt.types.indexOf('Files') !== -1 : dt.types.contains('application/x-moz-file') || dt.types.contains('Files'))) {
       $('.dropzone').not('.disableUpload').show();
       $('.fileUploadLink').hide();
     }
@@ -445,10 +445,10 @@ FileInfo.prototype = {
     this.container.appendTo(this.owner.fileListContainer);
 
     //Error messages take precedence
-    if(this.errorMessage !== null) {
+    if(this.errorMessage) {
       this.displayErrorMessage();
     }
-    else if(this.fileId !== null) {
+    else if(this.fileId) {
       this.displayDownloadUrl();
     }
     else {
@@ -557,12 +557,12 @@ FileInfo.prototype = {
     //Error logic: errorMessage may have been set by either the response from the upload, or from a status poll.
     //In the event of a 500 error or upload abort, we may not have an error message, but serverError will be set - in this
     //case we need to go to the server again to ask for the error message.
-    if(this.errorMessage !== null) {
+    if(this.errorMessage) {
       this.handleError();
       //Tell the container that there was an error
       this.owner.uploadHadError();
     }
-    else if(result !== null && "serverError" in result) {
+    else if(result && "serverError" in result) {
       //Ask server for error message if an error occurred but we don't know what it was
       this.handleServerError();
       //Tell the container that there was an error
@@ -588,17 +588,17 @@ FileInfo.prototype = {
         url: _this.generateUploadInfoURL('status'),
         dataType: 'json'
       })
-          .done(function(data) {
-            //If we got an error message from the status poll, show it to the user
-            _this.errorMessage = data.errorMessage || defaultMsg;
-          })
-          .fail(function(){
-            //Catch-all if the final error status poll failed
-            _this.errorMessage = defaultMsg;
-          })
-          .always(function() {
-            _this.handleError();
-          });
+      .done(function(data) {
+        //If we got an error message from the status poll, show it to the user
+        _this.errorMessage = data.errorMessage || defaultMsg;
+      })
+      .fail(function(){
+        //Catch-all if the final error status poll failed
+        _this.errorMessage = defaultMsg;
+      })
+      .always(function() {
+        _this.handleError();
+      });
     }
     else {
       var message;
@@ -626,7 +626,7 @@ FileInfo.prototype = {
 
   addDeleteButton: function(parentElement) {
     //Only show the delete button if we have a valid DOM ref to delete
-    if(this.uploadDomRef !== null && !this.owner.widgetOptions.readOnly) {
+    if(this.uploadDomRef && !this.owner.widgetOptions.readOnly) {
       var deleteSpan = $('<span class="deleteUpload"><a href="#" class="icon-cross" title="Delete" aria-label="Delete ' + this.filename +'"></a></span>');
       deleteSpan.prependTo(parentElement);
       var _this = this;
@@ -696,7 +696,7 @@ FileInfo.prototype = {
 
   deleteFile: function() {
     //Check that the delete is OK - skip the confirm dialog for files with errors
-    var deleteAllowed = this.owner.deleteFile(this, this.errorMessage !== null);
+    var deleteAllowed = this.owner.deleteFile(this, this.errorMessage);
     if(deleteAllowed) {
       //Delete the LI from the DOM
       this.container.remove();
