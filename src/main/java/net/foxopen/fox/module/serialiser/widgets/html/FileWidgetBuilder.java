@@ -3,16 +3,17 @@ package net.foxopen.fox.module.serialiser.widgets.html;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.filetransfer.UploadServlet;
 import net.foxopen.fox.module.UploadedFileInfo;
-import net.foxopen.fox.module.fieldset.fieldmgr.FieldMgr;
-import net.foxopen.fox.module.fieldset.clientaction.DeleteUploadedFileClientAction;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfoFileItem;
 import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.datanode.NodeVisibility;
+import net.foxopen.fox.module.fieldset.clientaction.DeleteUploadedFileClientAction;
+import net.foxopen.fox.module.fieldset.fieldmgr.FieldMgr;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
+import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -71,10 +72,13 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
 
     pSerialiser.append("<div class=\"fileUploadInputContainer\">");
 
-    //TODO PN need to handle all attributes (like generic template vars for other widgets) e.g. tightField, fieldClass, etc
+    //TODO PN need to handle all attributes (like generic template vars for other widgets) e.g. tightField, etc
+
+    List<String> lClasses = pEvalNode.getStringAttributes(NodeAttribute.CLASS, NodeAttribute.FIELD_CLASS);
+    List<String> lDefaultStyles = pEvalNode.getStringAttributes(NodeAttribute.STYLE, NodeAttribute.FIELD_STYLE);
 
     if(lFieldMgr.getVisibility() == NodeVisibility.EDIT) {
-      pSerialiser.append("<label class=\"fileUploadLink\" for=\"file" + lFieldId + "\">" + pEvalNode.getUploadChoosePrompt() + "</label>");
+      pSerialiser.append("<label class=\"fileUploadLink " + StringUtils.join(lClasses, " ") + "\" for=\"file" + lFieldId + "\" style=\"" +  StringUtils.join(lDefaultStyles, " ") + "\">" + pEvalNode.getUploadChoosePrompt() + "</label>");
 
       pSerialiser.append("<input type=\"file\" " + (pEvalNode.getMaxFilesAllowed() > 1 ? "multiple" : "") + " name=\"file" + lFieldId + "\" " +
         "class=\"uploadControl fileUploadInput\" aria-label=\"" + pEvalNode.getPrompt().getString() + ": " + pEvalNode.getUploadChoosePrompt() +"\">");
