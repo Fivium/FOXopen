@@ -6,6 +6,7 @@ import com.google.common.collect.Multimap;
 import net.foxopen.fox.App;
 import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.XFUtil;
+import net.foxopen.fox.auth.AuthenticatedUser;
 import net.foxopen.fox.banghandler.InternalAuthLevel;
 import net.foxopen.fox.banghandler.InternalAuthentication;
 import net.foxopen.fox.command.XDoResult;
@@ -58,6 +59,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 
@@ -623,8 +625,8 @@ public class EvaluatedParseTree implements SerialisationContext {
     return lDisplayOut.toString();
   }
 
-  public String getAuthenticationSessionID () {
-    return mRequestContext.getAuthenticationContext().getSessionId();
+  public Optional<AuthenticatedUser> getAuthenticatedUser() {
+    return Optional.ofNullable(mRequestContext.getAuthenticationContext().getAuthenticatedUser());
   }
 
   /**

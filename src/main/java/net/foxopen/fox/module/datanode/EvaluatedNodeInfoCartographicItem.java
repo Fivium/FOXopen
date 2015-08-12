@@ -1,6 +1,7 @@
 package net.foxopen.fox.module.datanode;
 
 import net.foxopen.fox.XFUtil;
+import net.foxopen.fox.auth.AuthenticatedUser;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExApp;
 import net.foxopen.fox.ex.ExCardinality;
@@ -8,6 +9,8 @@ import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.GenericAttributesEvaluatedPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.GenericAttributesPresentationNode;
 import net.foxopen.fox.spatial.SpatialEngine;
+
+import java.util.Optional;
 
 /**
  * This is an Evaluated Node Info Item for items with widget set to cartographic
@@ -57,7 +60,7 @@ public class EvaluatedNodeInfoCartographicItem extends EvaluatedNodeInfoItem {
       pNodeEvaluationContext.getEvaluatedParseTree().getRequestContext()
       , lSpatialBootstrapDOM
       , pNodeEvaluationContext.getEvaluatedParseTree().getThreadInfoProvider().getCurrentCallId()
-      , XFUtil.nvl(pNodeEvaluationContext.getEvaluatedParseTree().getAuthenticationSessionID(), "0")
+      , pNodeEvaluationContext.getEvaluatedParseTree().getAuthenticatedUser().map(AuthenticatedUser::getAccountID).flatMap(Optional::ofNullable).orElse("0")
     );
 
     try {
