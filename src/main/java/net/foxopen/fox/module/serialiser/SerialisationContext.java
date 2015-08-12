@@ -2,6 +2,7 @@ package net.foxopen.fox.module.serialiser;
 
 import net.foxopen.fox.App;
 import net.foxopen.fox.ContextUElem;
+import net.foxopen.fox.auth.AuthenticatedUser;
 import net.foxopen.fox.banghandler.InternalAuthLevel;
 import net.foxopen.fox.command.XDoResult;
 import net.foxopen.fox.download.DownloadLinkXDoResult;
@@ -23,6 +24,7 @@ import net.foxopen.fox.thread.storage.TempResourceGenerator;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface SerialisationContext {
@@ -118,7 +120,7 @@ public interface SerialisationContext {
 
   InternalAuthLevel getInternalAuthLevel();
 
-  String getAuthenticationSessionID();
+  Optional<AuthenticatedUser> getAuthenticatedUser();
 
   List<EvaluatedDataDefinition> getEvaluatedDataDefinitions();
 }
