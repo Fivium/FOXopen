@@ -1,10 +1,9 @@
 package net.foxopen.fox.database.sql.bind;
 
-import java.sql.Timestamp;
-
-import java.util.Date;
-
 import net.foxopen.fox.database.UCon;
+
+import java.sql.Timestamp;
+import java.util.Date;
 
 
 /**
@@ -12,10 +11,10 @@ import net.foxopen.fox.database.UCon;
  */
 public class TimestampBindObject
 implements BindObject {
-  
+
   private final BindDirection mBindDirection;
   private final Timestamp mTimestamp; //Can be null
-  
+
   /**
    * Converts a java.util.Date into a SQL timestamp for binding as such.
    * @param pDate Date to convert.
@@ -24,7 +23,7 @@ implements BindObject {
     mBindDirection = BindDirection.IN;
     mTimestamp = new Timestamp(pDate.getTime());
   }
-  
+
   /**
    * Converts a java.util.Date into a SQL timestamp for binding as such.
    * @param pDate Date to convert.
@@ -53,7 +52,7 @@ implements BindObject {
   @Override
   public String getObjectDebugString() {
     return mTimestamp == null ? null : mTimestamp.toString();
-  }  
+  }
 
   @Override
   public BindSQLType getSQLType() {
@@ -64,5 +63,20 @@ implements BindObject {
   public BindDirection getDirection() {
     return mBindDirection;
   }
-  
+
+  public static class Builder extends BindObjectBuilder<TimestampBindObject> {
+
+    private final Timestamp mTimestamp;
+
+    public Builder(Timestamp pTimestamp, BindDirection pBindDirection) {
+      super(pBindDirection);
+      mTimestamp = pTimestamp;
+    }
+
+    @Override
+    public TimestampBindObject build() {
+      return new TimestampBindObject(mTimestamp, getBindDirection());
+    }
+  }
+
 }

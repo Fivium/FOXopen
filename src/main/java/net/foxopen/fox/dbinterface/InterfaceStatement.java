@@ -43,7 +43,8 @@ import net.foxopen.fox.database.sql.ResultDeliverer;
 import net.foxopen.fox.database.sql.bind.BindDirection;
 import net.foxopen.fox.database.sql.bind.BindObjectProvider;
 import net.foxopen.fox.database.sql.bind.DecoratingBindObjectProvider;
-import net.foxopen.fox.database.sql.bind.PreEvaluatedBindObjectProvider;
+import net.foxopen.fox.database.sql.bind.CachedBindObjectProvider;
+import net.foxopen.fox.database.sql.bind.template.MustacheVariableConverter;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.DOMList;
 import net.foxopen.fox.ex.ExBadPath;
@@ -279,7 +280,7 @@ public abstract class InterfaceStatement {
    */
   public final void executeStatement(ActionRequestContext pRequestContext, DOM pMatchedNode, UCon pUCon, ResultDeliverer<? extends ExecutableStatement> pDeliverer)
   throws ExDB {
-    executeStatement(pRequestContext, pMatchedNode, pUCon, null, pDeliverer);
+    executeStatement(pRequestContext, pMatchedNode, pUCon, new StatementExecutionBindOptions(){}, pDeliverer);
   }
 
   /**
@@ -290,21 +291,57 @@ public abstract class InterfaceStatement {
    * @param pOptionalBindProvider External bind provider for augmenting the default query binding mechanism. Can be null.
    * @param pDeliverer Destination for statement results.
    * @throws ExDB If statement execution or delivery fails.
+   * @return TODO
    */
-  public final void executeStatement(ActionRequestContext pRequestContext, DOM pMatchedNode, UCon pUCon, DecoratingBindObjectProvider pOptionalBindProvider,
-                                     ResultDeliverer<? extends ExecutableStatement> pDeliverer)
+  public final StatementExecutionResult executeStatement(ActionRequestContext pRequestContext, DOM pMatchedNode, UCon pUCon, DecoratingBindObjectProvider pOptionalBindProvider,
+                                                         ResultDeliverer<? extends ExecutableStatement> pDeliverer)
+  throws ExDB {
+    StatementExecutionBindOptions lBindOptions = new StatementExecutionBindOptions() {
+      @Override public DecoratingBindObjectProvider getDecoratingBindObjectProvider() { return pOptionalBindProvider; }
+    };
+
+    return executeStatement(pRequestContext, pMatchedNode, pUCon, lBindOptions, pDeliverer);
+  }
+
+  /**
+   * Executes this InterfaceStatement for the given match node, then delivers the results using the given ResultDeliverer.
+   * @param pRequestContext Current request context.
+   * @param pMatchedNode Relative node of the statement.
+   * @param pUCon Connection for statement execution.
+   * @param pBindOptions Parameter object to modify how binds are cached or decorated.
+   * @param pDeliverer Destination for statement results.
+   * @throws ExDB If statement execution or delivery fails.
+   * @return StatementExecutionResult which may contain cached bind variables, based on the BindOptions parameter.
+   */
+  public final StatementExecutionResult executeStatement(ActionRequestContext pRequestContext, DOM pMatchedNode, UCon pUCon, StatementExecutionBindOptions pBindOptions,
+                                                         ResultDeliverer<? extends ExecutableStatement> pDeliverer)
   throws ExDB {
 
+    //Validate params
+    if(pBindOptions.cacheBinds() && pBindOptions.getCachedBindObjectProvider() != null) {
+      throw new ExInternal("Cannot cache binds if cached binds are already provided for query " + getQualifiedName());
+    }
+
+    //Enable DBMS_OUTPUT if it's on in the dev toolbar
     boolean lEnableDBMSOutput = pRequestContext.getDevToolbarContext().isFlagOn(DevToolbarContext.Flag.DBMS_OUTPUT);
     if(lEnableDBMSOutput) {
       pUCon.executeAPI(ENABLE_DBMS_OUTPUT_STATEMENT);
     }
 
+    StatementBindProvider lOriginalStatementBindProvider = null;
     try {
-      //Create a bind provider for this statement and decorate using the external provider if necessary
-      BindObjectProvider lBindProvider = createBindProvider(pMatchedNode, pRequestContext.getContextUElem());
-      if(pOptionalBindProvider != null) {
-        lBindProvider = pOptionalBindProvider.decorate(lBindProvider);
+      //If the consumer has cached binds, use them, otherwise create a bind provider for this statement
+      BindObjectProvider lBindProvider = pBindOptions.getCachedBindObjectProvider();
+      if(lBindProvider == null) {
+        //We may need the provider to store the binds as it is executed if the consumer wants to receive the cached binds
+        lOriginalStatementBindProvider = createBindProvider(pMatchedNode, pRequestContext.getContextUElem(), pBindOptions.cacheBinds());
+        lBindProvider = lOriginalStatementBindProvider;
+      }
+
+      //Decorate the default bind provider if the consumer provided a decorator
+      DecoratingBindObjectProvider lDecoratingProvider = pBindOptions.getDecoratingBindObjectProvider();
+      if(lDecoratingProvider != null) {
+        lBindProvider = lDecoratingProvider.decorate(lBindProvider);
       }
 
       //Run the statement
@@ -319,6 +356,14 @@ public abstract class InterfaceStatement {
           DBMSOutputResult lDBMSOutputResult = new DBMSOutputResult(getQualifiedName(), pMatchedNode.getRef(), lOutputClobValue);
           pRequestContext.addXDoResult(lDBMSOutputResult);
         }
+      }
+
+      //If the consumer asked for the cached binds to be returned, retrieve them from the BindProvider
+      if(lOriginalStatementBindProvider != null && pBindOptions.cacheBinds()) {
+        return StatementExecutionResult.createCachedBindResult(lOriginalStatementBindProvider.createCachedBindObjectProvider());
+      }
+      else {
+        return StatementExecutionResult.defaultEmptyResult();
       }
     }
     finally {
@@ -335,17 +380,29 @@ public abstract class InterfaceStatement {
   }
 
   /**
-   * Pre-evaluates the binds for this interface statement and returns a {@link PreEvaluatedBindObjectProvider} containing them,
+   * Pre-evaluates the binds for this interface statement and returns a {@link CachedBindObjectProvider} containing them,
    * which can be used to execute this query at a later stage. The pre-evaluation process executes all bind variable XPaths
-   * and stores the typed results (i.e. String objects for string binds, DOM objects for XML binds). Care must be taken if
-   * the binds are cached for a long time as they may hold live references to DOM objects.
+   * and stores the typed results (i.e. String objects for string binds, DOM objects for XML binds). Bound XML values are
+   * duplicated to prevent memory leaks.
    *
    * @param pRequestContext For XPath evaluation.
    * @param pMatchNode Match node of the query
-   * @return BindObjectProvider containing binds which can be used to execute this query's ParsedStatement at a later stage.
+   * @return CachedBindObjectProvider which can be used to execute this query at a later stage. It is safe to serialise the provider.
    */
-  public BindObjectProvider preEvaluateBinds(ActionRequestContext pRequestContext, DOM pMatchNode) {
-    return PreEvaluatedBindObjectProvider.preEvaluateBinds(mNameToUsingParamMap.keySet(), createBindProvider(pMatchNode, pRequestContext.getContextUElem()));
+  public CachedBindObjectProvider preEvaluateBinds(ActionRequestContext pRequestContext, DOM pMatchNode) {
+
+    //Create a BindProvider which records all the variables it is asked for and can create a CachedBindObjectProvider
+    StatementBindProvider lStatementBindProvider = createBindProvider(pMatchNode, pRequestContext.getContextUElem(), true);
+
+    //Evalauate standard bind variables
+    for (String lBindName : mNameToUsingParamMap.keySet()) {
+      lStatementBindProvider.getBindObject(lBindName, -1);
+    }
+
+    //Evaluate template variables
+    mParsedStatement.getAllTemplateVariableNames().forEach(lStatementBindProvider::getObjectForTemplateVariable);
+
+    return lStatementBindProvider.createCachedBindObjectProvider();
   }
 
   /**
@@ -358,7 +415,13 @@ public abstract class InterfaceStatement {
   protected abstract void executeStatementInternal(UCon pUCon, BindObjectProvider pBindProvider, ResultDeliverer<? extends ExecutableStatement> pDeliverer)
   throws ExDB;
 
-  protected BindObjectProvider createBindProvider(DOM pRelativeNode, ContextUElem pContextUElem) {
-    return new StatementBindProvider(pRelativeNode, pContextUElem, this::getParamForBindNameOrNull, ModuleProxyNodeInfoProvider.create(mAppMnem, mModuleName), getQualifiedName());
+  protected StatementBindProvider createBindProvider(DOM pRelativeNode, ContextUElem pContextUElem, boolean pCacheBinds) {
+    //Log debug message so it's obvious in track that binds have been cached
+    if(pCacheBinds) {
+      Track.info("CacheBindsEnabled", "Query execution of " + getQualifiedName() + " will create cacheable bind provider");
+    }
+
+    return new StatementBindProvider(pRelativeNode, pContextUElem, this::getParamForBindNameOrNull, ModuleProxyNodeInfoProvider.create(mAppMnem, mModuleName),
+                                     getQualifiedName(), MustacheVariableConverter.INSTANCE, pCacheBinds);
   }
 }

@@ -13,7 +13,6 @@ import java.util.Set;
 class TemplateVariableObjectProviderMapAdaptor
 implements Map<String, Object> {
 
-  private final MustacheVariableConverter mVariableConverter = MustacheVariableConverter.INSTANCE;
   private final TemplateVariableObjectProvider mVariableProvider;
 
   TemplateVariableObjectProviderMapAdaptor(TemplateVariableObjectProvider pVariableProvider) {
@@ -51,8 +50,7 @@ implements Map<String, Object> {
       throw new ExInternal("Key cannot be null");
     }
 
-    //Note: converter could be converted to a strategy interface if required
-    return mVariableConverter.convertVariableObject(key.toString(), mVariableProvider.getXPathResultForTemplateVariable(key.toString()));
+    return mVariableProvider.getObjectForTemplateVariable(key.toString());
   }
 
   @Override

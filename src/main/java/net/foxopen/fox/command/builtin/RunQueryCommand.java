@@ -43,6 +43,8 @@ import net.foxopen.fox.database.sql.QueryResultDeliverer;
 import net.foxopen.fox.database.sql.bind.DecoratingBindObjectProvider;
 import net.foxopen.fox.dbinterface.InterfaceQuery;
 import net.foxopen.fox.dbinterface.QueryMode;
+import net.foxopen.fox.dbinterface.StatementExecutionBindOptions;
+import net.foxopen.fox.dbinterface.StatementExecutionResult;
 import net.foxopen.fox.dbinterface.deliverer.InterfaceQueryResultDeliverer;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.DOMList;
@@ -138,20 +140,37 @@ extends BuiltInCommand {
       //Loop through all matched nodes - execute the query and deliver to the match node
       for (DOM lMatchNode : lMatchList) {
         try {
-          //Establish a pager (and possibly bind provider for the pager) if there is a pager definition
+          //Establish a pager (and possibly cached binds from the pager) if there is a pager definition
           DatabasePager lPager = null;
-          DecoratingBindObjectProvider lBindProvider = null;
+          DecoratingBindObjectProvider lBindProvider;
+          boolean lCacheBinds;
           if(mPagerSetup != null) {
             lPager = pRequestContext.getModuleFacetProvider(PagerProvider.class).getOrCreateDatabasePager(mPagerSetup.evalute(pRequestContext, lMatchNode.getFoxId()), lInterfaceQuery);
             //The pager might need to provide additional bind details (this can be null)
             lBindProvider = lPager.getDecoratingBindProviderOrNull(lInterfaceQuery);
+            lCacheBinds = lPager.allowsCachedBindVariables();
+          }
+          else {
+            lBindProvider = null;
+            lCacheBinds = false;
           }
 
           //Construct a new deliverer based on the query mode (ADD-TO, PURGE-ALL, etc)
           QueryResultDeliverer lDeliverer = InterfaceQueryResultDeliverer.getDeliverer(pRequestContext, lInterfaceQuery, mQueryMode, lMatchNode, lPager);
 
+          //Create parameter object to tell statement executor if we want cached binds back
+          StatementExecutionBindOptions lBindOptions = new StatementExecutionBindOptions() {
+            @Override public DecoratingBindObjectProvider getDecoratingBindObjectProvider() { return lBindProvider; }
+            @Override public boolean cacheBinds() { return lCacheBinds; }
+          };
+
           //Run the statement into the deliverer
-          lInterfaceQuery.executeStatement(pRequestContext, lMatchNode, lUCon, lBindProvider, lDeliverer);
+          StatementExecutionResult lStatementExecutionResult = lInterfaceQuery.executeStatement(pRequestContext, lMatchNode, lUCon, lBindOptions, lDeliverer);
+
+          //Tell Top-N pagers about the bind variable so they can cache them
+          if(lPager != null && lPager.allowsCachedBindVariables()) {
+            lPager.setCachedBindVariables(pRequestContext.getPersistenceContext(), lStatementExecutionResult.getCachedBindObjectProvider());
+          }
         }
         catch (ExDB e) {
           throw new ExInternal("Failed to run query " + mQueryName, e);

@@ -1,21 +1,21 @@
 package net.foxopen.fox.database.sql.bind;
 
+import net.foxopen.fox.database.UCon;
+
 import java.sql.Clob;
 import java.sql.SQLException;
-
-import net.foxopen.fox.database.UCon;
 
 
 /**
  * BindObject for binding a Java String into an ExecutableStatement as a CLOB. A temporary clob is used to contain the
  * bound string and will be closed after the query is executed.
  */
-public class ClobStringBindObject 
+public class ClobStringBindObject
 extends StringBindObject
 implements CloseableBindObject {
-  
+
   private Clob mTempClob = null;
-  
+
   public ClobStringBindObject(String pEvaluatedString) {
     super(pEvaluatedString, BindDirection.IN);
   }
@@ -25,7 +25,7 @@ implements CloseableBindObject {
   }
 
   @Override
-  public Object getObject(UCon pUCon) 
+  public Object getObject(UCon pUCon)
   throws SQLException {
     //Create a tempoary CLOB and set its contents to the evaluated string
     mTempClob = pUCon.getTemporaryClob();
@@ -39,10 +39,25 @@ implements CloseableBindObject {
   }
 
   @Override
-  public void close() 
+  public void close()
   throws SQLException {
     if(mTempClob != null) {
       mTempClob.free();
+    }
+  }
+
+  public static class Builder extends BindObjectBuilder<ClobStringBindObject> {
+
+    private final String mBindString;
+
+    public Builder(String pBindString, BindDirection pBindDirection) {
+      super(pBindDirection);
+      mBindString = pBindString;
+    }
+
+    @Override
+    public ClobStringBindObject build() {
+      return new ClobStringBindObject(mBindString, getBindDirection());
     }
   }
 }

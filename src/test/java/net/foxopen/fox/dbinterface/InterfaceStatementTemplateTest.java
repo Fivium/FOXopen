@@ -3,6 +3,7 @@ package net.foxopen.fox.dbinterface;
 import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.database.parser.ParsedStatement;
 import net.foxopen.fox.database.parser.StatementParser;
+import net.foxopen.fox.database.sql.bind.template.MustacheVariableConverter;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.ex.ExParser;
@@ -10,10 +11,12 @@ import net.foxopen.fox.module.NodeInfoProvider;
 import net.foxopen.fox.module.datanode.NodeInfo;
 import org.junit.Test;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class InterfaceStatementTemplateTest {
 
@@ -81,7 +84,7 @@ public class InterfaceStatementTemplateTest {
     }
   }
 
-  private StatementBindProvider mBindProvider = new StatementBindProvider(mTestDOM, mContextUElem, new ParamProvider(), mNodeInfoProvider, "test");
+  private StatementBindProvider mBindProvider = new StatementBindProvider(mTestDOM, mContextUElem, new ParamProvider(), mNodeInfoProvider, "test", MustacheVariableConverter.INSTANCE, false);
 
   private String getParsedStatement(String pString)
   throws ExParser, ExActionFailed {
@@ -198,5 +201,30 @@ public class InterfaceStatementTemplateTest {
   public void testMalformedSyntaxNotConverted_unClosedTag()
   throws ExParser, ExActionFailed {
     getParsedStatement("SELECT {{string FROM table");
+  }
+
+  @Test
+  public void testTemplateVariableNames()
+  throws ExParser, ExActionFailed {
+    ParsedStatement lParsedStatement = StatementParser.parse("SELECT {{value}} FROM table {{#conditional}}WHERE 1=0{{/conditional}} {{^negated_conditional}}AND 1=1{{/negated_conditional}}", "Test", true, true);
+    Collection<String> lTemplateVariableNames = lParsedStatement.getAllTemplateVariableNames();
+
+    assertEquals("Top level variable names are correctly parsed", 3, lTemplateVariableNames.size());
+    assertTrue("Top level value variables are correctly parsed", lTemplateVariableNames.contains("value"));
+    assertTrue("Top level conditional variables are correctly parsed", lTemplateVariableNames.contains("conditional"));
+    assertTrue("Top level negated conditional variables are correctly parsed", lTemplateVariableNames.contains("negated_conditional"));
+
+    lParsedStatement = StatementParser.parse("SELECT {{#conditional}}{{value}}{{/conditional}} " +
+                                               "{{^negated_conditional}}{{negated_value}}{{/negated_conditional}} " +
+                                               "{{#conditional}}{{#nested_conditional}}some value{{/nested_conditional}} {{/conditional}} " +
+                                               "FROM table", "Test", true, true);
+
+    lTemplateVariableNames = lParsedStatement.getAllTemplateVariableNames();
+    assertEquals("Nested variable names are correctly parsed", 5, lTemplateVariableNames.size());
+    assertTrue("Top level conditional variables are correctly parsed", lTemplateVariableNames.contains("conditional"));
+    assertTrue("Top level negated conditional variables are correctly parsed", lTemplateVariableNames.contains("negated_conditional"));
+    assertTrue("Nested value variables are correctly parsed", lTemplateVariableNames.contains("value"));
+    assertTrue("Nested value variables are correctly parsed", lTemplateVariableNames.contains("negated_value"));
+    assertTrue("Nested conditional variables are correctly parsed", lTemplateVariableNames.contains("nested_conditional"));
   }
 }

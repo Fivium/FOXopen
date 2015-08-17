@@ -1,6 +1,7 @@
 package net.foxopen.fox.dom.paging;
 
 import net.foxopen.fox.XFUtil;
+import net.foxopen.fox.database.sql.bind.CachedBindObjectProvider;
 import net.foxopen.fox.database.sql.bind.DecoratingBindObjectProvider;
 import net.foxopen.fox.dbinterface.InterfaceQuery;
 import net.foxopen.fox.dbinterface.deliverer.InterfaceQueryResultDeliverer;
@@ -8,6 +9,7 @@ import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.thread.ActionRequestContext;
+import net.foxopen.fox.thread.persistence.PersistenceContext;
 import net.foxopen.fox.track.Track;
 
 /**
@@ -95,6 +97,25 @@ extends Pager {
     //Overload the post page action to update the sys dom
     updateSysDOM(pRequestContext);
     super.runPostPageAction(pRequestContext, pMatchDOM);
+  }
+
+  /**
+   * Tests if this pager allows bind variables to be cached on it.
+   * @return True if bind variable caching is allowed.
+   */
+  public boolean allowsCachedBindVariables() {
+    return false;
+  }
+
+  /**
+   * Sets a CachedBindObjectProvider for this pager, which can be used when the page is changed to re-run the query
+   * with the original bind variables. This method throws an exception if it is invoked when {@link #allowsCachedBindVariables}
+   * returns false.
+   * @param pPersistenceContext Required for marking the pager as modified.
+   * @param pCachedBindVariables Non-null CachedBindObjectProvider.
+   */
+  public void setCachedBindVariables(PersistenceContext pPersistenceContext, CachedBindObjectProvider pCachedBindVariables) {
+    throw new ExInternal("Cannot set cached bind variables on a " + getClass().getName());
   }
 
   private void updateSysDOM(ActionRequestContext pRequestContext) {

@@ -1,12 +1,12 @@
 package net.foxopen.fox.database.sql.bind;
 
-import java.sql.SQLException;
-import java.sql.SQLXML;
-
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.xml.SQLXMLWriter;
 import net.foxopen.fox.database.xml.XMLWriterStrategy;
 import net.foxopen.fox.dom.DOM;
+
+import java.sql.SQLException;
+import java.sql.SQLXML;
 
 
 /**
@@ -83,6 +83,21 @@ implements CloseableBindObject {
   public void close() throws SQLException {
     if (mSQLXML != null) {
       mSQLXML.free();
+    }
+  }
+
+  public static class Builder extends BindObjectBuilder<DOMBindObject> {
+
+    private final DOM mBindDOM;
+
+    public Builder(DOM pBindDOM, BindDirection pBindDirection) {
+      super(pBindDirection);
+      mBindDOM = pBindDOM;
+    }
+
+    @Override
+    public DOMBindObject build() {
+      return new DOMBindObject(mBindDOM, getBindDirection());
     }
   }
 }

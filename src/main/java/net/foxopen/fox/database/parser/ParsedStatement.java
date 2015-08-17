@@ -6,6 +6,7 @@ import net.foxopen.fox.database.sql.bind.BindObjectProvider;
 import net.foxopen.fox.plugin.api.database.parser.FxpParsedStatement;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -119,6 +120,16 @@ public class ParsedStatement implements FxpParsedStatement {
   public ParsedStatement applyTemplates(BindObjectProvider pBindProvider) {
     //Default implementation is to do nothing - allow TemplatedParsedStatement subclass to specialise
     return this;
+  }
+
+  /**
+   * Gets a set of all the template variable names which are used in this ParsedStatement. For normal ParsedStatements this
+   * will be empty. TemplateParsedStatements will return the variable names as reported by the templating implementation
+   * (i.e. Mustache).
+   * @return A set of template variable names in this ParsedStatement, which may be empty.
+   */
+  public Collection<String> getAllTemplateVariableNames() {
+    return Collections.emptySet();
   }
 
   protected boolean isBindNamesReplaced() {

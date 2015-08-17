@@ -1,14 +1,14 @@
 package net.foxopen.fox.database.sql.bind;
 
-import java.sql.SQLException;
-
 import net.foxopen.fox.database.UCon;
+
+import java.sql.SQLException;
 
 
 /**
  * Generic String BindObject for binding strings into statements.
  */
-public class StringBindObject 
+public class StringBindObject
 implements BindObject {
 
   private final BindDirection mBindDirection;
@@ -34,7 +34,7 @@ implements BindObject {
   public String getObjectDebugString() {
     return mEvaluatedString;
   }
-  
+
   protected String getEvaluatedString() {
     return mEvaluatedString;
   }
@@ -47,5 +47,20 @@ implements BindObject {
   @Override
   public BindDirection getDirection() {
     return mBindDirection;
+  }
+
+  public static class Builder extends BindObjectBuilder<StringBindObject> {
+
+    private final String mBindString;
+
+    public Builder(String pBindString, BindDirection pBindDirection) {
+      super(pBindDirection);
+      mBindString = pBindString;
+    }
+
+    @Override
+    public StringBindObject build() {
+      return new StringBindObject(mBindString, getBindDirection());
+    }
   }
 }

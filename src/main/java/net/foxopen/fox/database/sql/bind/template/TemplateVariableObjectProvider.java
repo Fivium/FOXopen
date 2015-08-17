@@ -1,14 +1,12 @@
 package net.foxopen.fox.database.sql.bind.template;
 
 import net.foxopen.fox.database.sql.bind.BindObjectProvider;
-import net.foxopen.fox.dom.xpath.XPathResult;
 
 import java.util.Map;
 
 /**
  * A specialised BindObjectProivder which can also be used to provide template variables. As opposed to returning BindObjects,
- * a template provider must provide XPathResults so the consuming template engine can convert the raw result to an appropriate
- * object for the template.
+ * a template provider must provide converted objects which are appropriate for applying to the destination template.
  */
 public interface TemplateVariableObjectProvider
 extends BindObjectProvider {
@@ -22,11 +20,12 @@ extends BindObjectProvider {
   boolean isTemplateVariableDefined(String pVariableName);
 
   /**
-   * Resolves an XPathResult for the given variable name. This method should return null if the variable is not defined.
+   * Resolves an object for the given variable name. The object type should be appropriate for the destination template.
+   * This method should return null if the variable is not defined.
    * @param pVariableName Variable to resolve.
-   * @return XPathResult for the value of the given variable, or null.
+   * @return Value of the given variable, or null.
    */
-  XPathResult getXPathResultForTemplateVariable(String pVariableName);
+  Object getObjectForTemplateVariable(String pVariableName);
 
   /**
    * Creates a wrapper for this provider, which exposes available variables via the Map interface. The Map should be treated

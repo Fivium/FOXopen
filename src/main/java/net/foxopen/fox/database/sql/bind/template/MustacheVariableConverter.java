@@ -12,7 +12,8 @@ import java.util.List;
 /**
  * Converts XPathResults into an appropriate format for a Mustache template.
  */
-class MustacheVariableConverter {
+public class MustacheVariableConverter
+implements TemplateVariableConverter {
 
   public static final MustacheVariableConverter INSTANCE = new MustacheVariableConverter();
 

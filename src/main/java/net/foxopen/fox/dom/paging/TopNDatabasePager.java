@@ -5,8 +5,10 @@ import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.parser.ParsedStatement;
 import net.foxopen.fox.database.parser.StatementParser;
 import net.foxopen.fox.database.sql.QueryResultDeliverer;
+import net.foxopen.fox.database.sql.bind.CachedBindObjectProvider;
 import net.foxopen.fox.database.sql.bind.DecoratingBindObjectProvider;
 import net.foxopen.fox.dbinterface.InterfaceQuery;
+import net.foxopen.fox.dbinterface.StatementExecutionBindOptions;
 import net.foxopen.fox.dbinterface.deliverer.InterfaceQueryResultDeliverer;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.paging.style.PageControlStyle;
@@ -15,6 +17,8 @@ import net.foxopen.fox.ex.ExDBFlashback;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.thread.ActionRequestContext;
+import net.foxopen.fox.thread.persistence.PersistenceContext;
+import net.foxopen.fox.thread.persistence.PersistenceMethod;
 import net.foxopen.fox.track.Track;
 
 /**
@@ -29,6 +33,11 @@ extends DatabasePager {
 
   private final String mInterfaceName;
   private final String mQueryName;
+
+  //TODO make configurable
+  private final boolean mCacheBinds = true;
+
+  private CachedBindObjectProvider mCachedBindObjectProvider = null;
 
   /** Will be true if the SCN needs to be bound in to the paged query. */
   private final boolean mSCNRequired;
@@ -95,9 +104,14 @@ extends DatabasePager {
   throws ExDB {
     //Set up result deliverer and bind provider
     QueryResultDeliverer lDeliverer = TopNPaginationResultDeliverer.createResultDeliverer(pRequestContext, pInterfaceQuery, pMatchNode, this, false);
-    DecoratingBindObjectProvider lBindProvider = getDecoratingBindProviderOrNull(pInterfaceQuery);
+
+    StatementExecutionBindOptions lBindOptions = new StatementExecutionBindOptions() {
+      @Override public CachedBindObjectProvider getCachedBindObjectProvider() { return mCachedBindObjectProvider; }
+      @Override public DecoratingBindObjectProvider getDecoratingBindObjectProvider() { return getDecoratingBindProviderOrNull(pInterfaceQuery); }
+    };
+
     //Run the query
-    pInterfaceQuery.executeStatement(pRequestContext, pMatchNode, pUCon, lBindProvider, lDeliverer);
+    pInterfaceQuery.executeStatement(pRequestContext, pMatchNode, pUCon, lBindOptions, lDeliverer);
   }
 
   @Override
@@ -112,6 +126,22 @@ extends DatabasePager {
   @Override
   public DecoratingBindObjectProvider getDecoratingBindProviderOrNull(InterfaceQuery pInterfaceQuery) {
     return new TopNPaginationBindProvider(pInterfaceQuery.getTopNPaginationConfig(), this);
+  }
+
+  @Override
+  public boolean allowsCachedBindVariables() {
+    return mCacheBinds;
+  }
+
+  @Override
+  public void setCachedBindVariables(PersistenceContext pPersistenceContext, CachedBindObjectProvider pCachedBindVariables) {
+    if(pCachedBindVariables == null) {
+      throw new ExInternal("Cannot set cached bind objects to a null value");
+    }
+
+    mCachedBindObjectProvider = pCachedBindVariables;
+
+    pPersistenceContext.requiresPersisting(this, PersistenceMethod.UPDATE);
   }
 
   public int getQueryBindRowStart() {

@@ -5,13 +5,16 @@ import net.foxopen.fox.FoxGbl;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.database.sql.bind.BindDirection;
 import net.foxopen.fox.database.sql.bind.BindObject;
+import net.foxopen.fox.database.sql.bind.BindObjectBuilder;
 import net.foxopen.fox.database.sql.bind.BindSQLType;
+import net.foxopen.fox.database.sql.bind.CachedBindObjectProvider;
 import net.foxopen.fox.database.sql.bind.ClobStringBindObject;
 import net.foxopen.fox.database.sql.bind.DOMBindObject;
 import net.foxopen.fox.database.sql.bind.DOMListBindObject;
 import net.foxopen.fox.database.sql.bind.StringBindObject;
-import net.foxopen.fox.database.sql.bind.template.TemplateVariableObjectProvider;
 import net.foxopen.fox.database.sql.bind.TimestampBindObject;
+import net.foxopen.fox.database.sql.bind.template.TemplateVariableConverter;
+import net.foxopen.fox.database.sql.bind.template.TemplateVariableObjectProvider;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.DOMList;
 import net.foxopen.fox.dom.xpath.XPathResult;
@@ -27,10 +30,14 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Bind provider logic for an InterfaceStatement.
+ * Bind provider logic for an InterfaceStatement. This is capable of producing a CachedBindObjectProvider so binds can be
+ * stored externally. In caching mode, bound DOM objects are cloned, which may result in a performance hit.
  */
 class StatementBindProvider
 implements TemplateVariableObjectProvider {
@@ -49,14 +56,21 @@ implements TemplateVariableObjectProvider {
   private final InterfaceParameterProvider mInterfaceParameterProvider;
   private final NodeInfoProvider mNodeInfoProvider;
   private final String mStatementQualifiedName;
+  private final TemplateVariableConverter mTemplateVariableConverter;
+  private final boolean mCacheBinds;
+  private final StatementBindObjectFactory mStatementBindObjectFactory;
 
   StatementBindProvider(DOM pRelativeNode, ContextUElem pContextUElem, InterfaceParameterProvider pInterfaceParameterProvider,
-                        NodeInfoProvider pNodeInfoProvider, String pStatementQualifiedName) {
+                        NodeInfoProvider pNodeInfoProvider, String pStatementQualifiedName, TemplateVariableConverter pTemplateVariableConverter,
+                        boolean pCacheBinds) {
     mRelativeNode = pRelativeNode;
     mContextUElem = pContextUElem;
     mInterfaceParameterProvider = pInterfaceParameterProvider;
     mNodeInfoProvider = pNodeInfoProvider;
     mStatementQualifiedName = pStatementQualifiedName;
+    mTemplateVariableConverter = pTemplateVariableConverter;
+    mCacheBinds = pCacheBinds;
+    mStatementBindObjectFactory = pCacheBinds ? new BuilderCachingBindObjectFactory() : new BasicBindObjectFactory();
   }
 
   @Override
@@ -93,13 +107,17 @@ implements TemplateVariableObjectProvider {
   }
 
   @Override
-  public XPathResult getXPathResultForTemplateVariable(String pVariableName) {
+  public Object getObjectForTemplateVariable(String pVariableName) {
+    return mStatementBindObjectFactory.createTemplateVariable(pVariableName);
+  }
+
+  private Object getObjectForTemplateVariableInternal(String pVariableName) {
     InterfaceParameter lParam = mInterfaceParameterProvider.getParamForBindNameOrNull(pVariableName);
     if(lParam == null) {
       return null;
     }
     else {
-      return getXPathResult(lParam);
+      return mTemplateVariableConverter.convertVariableObject(pVariableName, getXPathResult(lParam));
     }
   }
 
@@ -189,9 +207,8 @@ implements TemplateVariableObjectProvider {
 
     switch(lParamBindSQLType) {
       case STRING:
-        return new StringBindObject(pStringToBind, pParam.getBindDirection());
       case CLOB:
-        return new ClobStringBindObject(pStringToBind, pParam.getBindDirection());
+        return mStatementBindObjectFactory.createStringBindObject(pStringToBind, pParam, lParamBindSQLType == BindSQLType.CLOB);
       case TIMESTAMP:
         return createTimestampBindObject(pStringToBind, pParam);
       case XML: //Don't allow non-node results to be bound as XML - makes no sense
@@ -228,7 +245,7 @@ implements TemplateVariableObjectProvider {
    * @param pParam
    * @return
    */
-  private static BindObject createDOMBindObject(DOMList pSelectedNodes, InterfaceParameter pParam) {
+  private BindObject createDOMBindObject(DOMList pSelectedNodes, InterfaceParameter pParam) {
     //As an XMLType has been bound, assume the datadom type is DOM if not specified
     DOMDataType lDOMDataType = XFUtil.nvl(pParam.getDOMDataType(), DOMDataType.DOM);
 
@@ -246,15 +263,15 @@ implements TemplateVariableObjectProvider {
 
     if(lSelectedNodes.size() == 0) {
       Track.alert("NullXMLTypeBind", "XMLType bind was null for parameter " + pParam.getParamName() + " - binding workaround value instead");
-      return new DOMBindObject(DOM.createDocument("FOX_NULL_XML_BIND_WORKAROUND"), pParam.getBindDirection());
+      return mStatementBindObjectFactory.createDOMBindObject(DOM.createDocument("FOX_NULL_XML_BIND_WORKAROUND"), pParam);
     }
     else if(lSelectedNodes.size() == 1 && lSelectedNodes.get(0).isElement()) {
       //XPath selected a single element - create a simple DOMBindObject
-      return new DOMBindObject(lSelectedNodes.get(0), pParam.getBindDirection());
+      return mStatementBindObjectFactory.createDOMBindObject(lSelectedNodes.get(0), pParam);
     }
     else {
       //Multiple nodes or a single non-element node - use DOMListBindObject to handle binding fragments
-      return new DOMListBindObject(lSelectedNodes, pParam.getBindDirection());
+      return mStatementBindObjectFactory.createDOMListBindObject(lSelectedNodes, pParam);
     }
   }
 
@@ -301,19 +318,13 @@ implements TemplateVariableObjectProvider {
    * @param pIsClob
    * @return
    */
-  private static BindObject createCharacterBindObject(DOMList pSelectedNodes, InterfaceParameter pParam, boolean pIsClob) {
+  private BindObject createCharacterBindObject(DOMList pSelectedNodes, InterfaceParameter pParam, boolean pIsClob) {
 
     String lBindString = getBindString(pSelectedNodes, pParam);
-
-    if(pIsClob) {
-      return new ClobStringBindObject(lBindString, pParam.getBindDirection());
-    }
-    else {
-      return new StringBindObject(lBindString, pParam.getBindDirection());
-    }
+    return mStatementBindObjectFactory.createStringBindObject(lBindString, pParam, pIsClob);
   }
 
-  private static BindObject createTimestampBindObject(DOMList pSelectedNodes, InterfaceParameter pParam) {
+  private BindObject createTimestampBindObject(DOMList pSelectedNodes, InterfaceParameter pParam) {
     //Don't allow DOMs to be bound as a date - makes no sense
     if(pParam.getDOMDataType() == DOMDataType.DOM) {
       throw new ExInternal("Cannot bind DOM for bind " + pParam.getParamName() + " as a date");
@@ -331,13 +342,13 @@ implements TemplateVariableObjectProvider {
    * @param pParam
    * @return
    */
-  private static BindObject createTimestampBindObject(String pBindString, InterfaceParameter pParam) {
+  private BindObject createTimestampBindObject(String pBindString, InterfaceParameter pParam) {
 
-    DateFormat lDateFormat = null;
+    DateFormat lDateFormat;
     try {
       //Deal with nulls
       if(XFUtil.isNull(pBindString)) {
-        return new TimestampBindObject(null, pParam.getBindDirection());
+        return mStatementBindObjectFactory.createTimestampBindObject(null, pParam);
       }
 
       if (pBindString.length() > 11) {
@@ -350,10 +361,137 @@ implements TemplateVariableObjectProvider {
       }
       Date lDate = lDateFormat.parse(pBindString);
       Timestamp lTimeStamp = new Timestamp(lDate.getTime());
-      return new TimestampBindObject(lTimeStamp, pParam.getBindDirection());
+      return mStatementBindObjectFactory.createTimestampBindObject(lTimeStamp, pParam);
     }
     catch (ParseException e) {
       throw new ExInternal("Cannot convert FOX date to SQL timestamp: " + pBindString, e);
+    }
+  }
+
+  /**
+   * Creates a CachedBindObjectProvider containing BindObjectBuilders and template variables resolved by this provider.
+   * This must be called after all bind variables for the associated statement have been requested from this provider.
+   * If the provider was instantiated with the cached binds argument set to false, this method throws an exception.
+   * @return CachedBindObjectProvider containing evaluated binds and template variables.
+   */
+  CachedBindObjectProvider createCachedBindObjectProvider() {
+    if(!mCacheBinds) {
+      throw new ExInternal("This StatementBindProvider has not cached any binds");
+    }
+
+    return new StatementCachedBindProvider(new HashMap<>(mStatementBindObjectFactory.getBindObjectBuilderMap()), new HashMap<>(mStatementBindObjectFactory.getVariableObjectMap()));
+  }
+
+  /**
+   * Internal interface which will either directly created BindObjects or create and cache BindObjectBuilders for later
+   * retrieval as a CachedBindObjectProvider. Also caches template variables in the same way.
+   */
+  private interface StatementBindObjectFactory {
+
+    BindObject createStringBindObject(String pString, InterfaceParameter pParam, boolean pBindAsClob);
+
+    BindObject createTimestampBindObject(Timestamp pTimestamp, InterfaceParameter pParam);
+
+    BindObject createDOMBindObject(DOM pDOM, InterfaceParameter pParam);
+
+    BindObject createDOMListBindObject(DOMList pDOMList, InterfaceParameter pParam);
+
+    Object createTemplateVariable(String pVariableName);
+
+    Map<String, BindObjectBuilder> getBindObjectBuilderMap();
+
+    Map<String, Object> getVariableObjectMap();
+  }
+
+  /**
+   * Factory which creates BindObjects and does no caching.
+   */
+  private class BasicBindObjectFactory implements StatementBindObjectFactory {
+
+    @Override
+    public BindObject createStringBindObject(String pString, InterfaceParameter pParam, boolean pBindAsClob) {
+      return pBindAsClob ? new ClobStringBindObject(pString) : new StringBindObject(pString, pParam.getBindDirection());
+    }
+
+    @Override
+    public BindObject createTimestampBindObject(Timestamp pTimestamp, InterfaceParameter pParam) {
+      return new TimestampBindObject(pTimestamp, pParam.getBindDirection());
+    }
+
+    @Override
+    public BindObject createDOMBindObject(DOM pDOM, InterfaceParameter pParam) {
+      return new DOMBindObject(pDOM, pParam.getBindDirection());
+    }
+
+    @Override
+    public BindObject createDOMListBindObject(DOMList pDOMList, InterfaceParameter pParam) {
+      return new DOMListBindObject(pDOMList, pParam.getBindDirection());
+    }
+
+    @Override
+    public Object createTemplateVariable(String pVariableName) {
+      return getObjectForTemplateVariableInternal(pVariableName);
+    }
+
+    @Override
+    public Map<String, BindObjectBuilder> getBindObjectBuilderMap() {
+      return Collections.emptyMap();
+    }
+
+    @Override
+    public Map<String, Object> getVariableObjectMap() {
+      return Collections.emptyMap();
+    }
+  }
+
+  /**
+   * Factory which creates and caches BindObjectBuilders, using the builders to also instantiate BindObjects.
+   */
+  private class BuilderCachingBindObjectFactory implements StatementBindObjectFactory {
+
+    private final Map<String, BindObjectBuilder> mBuilderMap = new HashMap<>();
+    private final Map<String, Object> mTemplateVariableMap = new HashMap<>();
+
+    private BindObject addToMapAndBuild(BindObjectBuilder<?> pNewBuilder, InterfaceParameter pParam) {
+      mBuilderMap.put(pParam.getParamName(), pNewBuilder);
+      return pNewBuilder.build();
+    }
+
+    @Override
+    public BindObject createStringBindObject(String pString, InterfaceParameter pParam, boolean pBindAsClob) {
+      return addToMapAndBuild(pBindAsClob ? new ClobStringBindObject.Builder(pString, pParam.getBindDirection()) : new StringBindObject.Builder(pString, pParam.getBindDirection()), pParam);
+    }
+
+    @Override
+    public BindObject createTimestampBindObject(Timestamp pTimestamp, InterfaceParameter pParam) {
+      return addToMapAndBuild(new TimestampBindObject.Builder(pTimestamp, pParam.getBindDirection()), pParam);
+    }
+
+    @Override
+    public BindObject createDOMBindObject(DOM pDOM, InterfaceParameter pParam) {
+      return addToMapAndBuild(new DOMBindObject.Builder(pDOM.createDocument(), pParam.getBindDirection()), pParam);
+    }
+
+    @Override
+    public BindObject createDOMListBindObject(DOMList pDOMList, InterfaceParameter pParam) {
+      return addToMapAndBuild(new DOMListBindObject.Builder(pDOMList.cloneDocuments(), pParam.getBindDirection()), pParam);
+    }
+
+    @Override
+    public Object createTemplateVariable(String pVariableName) {
+      Object lVariableObject = getObjectForTemplateVariableInternal(pVariableName);
+      mTemplateVariableMap.put(pVariableName, lVariableObject);
+      return lVariableObject;
+    }
+
+    @Override
+    public Map<String, BindObjectBuilder> getBindObjectBuilderMap() {
+      return mBuilderMap;
+    }
+
+    @Override
+    public Map<String, Object> getVariableObjectMap() {
+      return mTemplateVariableMap;
     }
   }
 }
