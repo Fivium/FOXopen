@@ -982,6 +982,11 @@ Mapsets can have the following structures:
             <xs:attribute name="pagination-invoke-name" type="fm:entered-string" use="optional"/>
             <xs:attribute name="pagination-definition" type="fm:entered-string" use="optional"/>
             <xs:attribute name="page-size" type="fm:entered-string" use="optional"/>
+            <xs:attribute name="cache-binds" type="fm:entered-string" use="optional">
+              <xs:annotation>
+                <xs:documentation>For Top-N paginated queries, the default behaviour is to cache bind variable values at initial execution time and use the cached binds when the page is changed. If this attribute is defined and returns false when evaluated as an XPath, the caching behaviour will be disabled. You cannot define this attribute unless the query is a Top-N paginated query.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
         <xs:element name="run-query2">

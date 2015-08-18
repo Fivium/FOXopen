@@ -202,6 +202,11 @@ extends InterfaceStatement {
     return mKeyElementNames;
   }
 
+  /**
+   * Gets the optional Top-N pagination configuration options specified on this query definition. This may be null if
+   * no Top-N options are defined.
+   * @return TopNPaginationConfig, or null.
+   */
   public TopNPaginationConfig getTopNPaginationConfig() {
     return mTopNPaginationConfig;
   }

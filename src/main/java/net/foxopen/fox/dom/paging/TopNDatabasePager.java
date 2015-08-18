@@ -34,9 +34,6 @@ extends DatabasePager {
   private final String mInterfaceName;
   private final String mQueryName;
 
-  //TODO make configurable
-  private final boolean mCacheBinds = true;
-
   private CachedBindObjectProvider mCachedBindObjectProvider = null;
 
   /** Will be true if the SCN needs to be bound in to the paged query. */
@@ -130,7 +127,7 @@ extends DatabasePager {
 
   @Override
   public boolean allowsCachedBindVariables() {
-    return mCacheBinds;
+    return true;
   }
 
   @Override

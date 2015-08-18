@@ -74,6 +74,9 @@ extends BuiltInCommand {
   //Can be null if no pagination setup defined
   private final PagerSetup mPagerSetup;
 
+  //Can be null
+  private final String mCacheBindsXPath;
+
   // Parse command returning tokenised representation
   public RunQueryCommand(Mod pMod, DOM pParseUElem)
   throws ExDoSyntax {
@@ -112,6 +115,11 @@ extends BuiltInCommand {
     catch (ExModule e) {
       throw new ExInternal("Error in run-query definition for query " + mQueryName, e);
     }
+
+    mCacheBindsXPath = pParseUElem.getAttr("cache-binds");
+    if(!XFUtil.isNull(mCacheBindsXPath) && lInterfaceQuery.getTopNPaginationConfig() == null) {
+      throw new ExInternal("cache-binds XPath attribute is only applicable to Top-N queries at this time");
+    }
   }
 
   public XDoControlFlow run(ActionRequestContext pRequestContext) {
@@ -146,9 +154,11 @@ extends BuiltInCommand {
           boolean lCacheBinds;
           if(mPagerSetup != null) {
             lPager = pRequestContext.getModuleFacetProvider(PagerProvider.class).getOrCreateDatabasePager(mPagerSetup.evalute(pRequestContext, lMatchNode.getFoxId()), lInterfaceQuery);
+
             //The pager might need to provide additional bind details (this can be null)
             lBindProvider = lPager.getDecoratingBindProviderOrNull(lInterfaceQuery);
-            lCacheBinds = lPager.allowsCachedBindVariables();
+            //Evaluate the cache binds XPath if defined - developer may not want bind caching enabled for some reason
+            lCacheBinds = lPager.allowsCachedBindVariables() && cacheBindsXPath(lContextUElem);
           }
           else {
             lBindProvider = null;
@@ -168,7 +178,7 @@ extends BuiltInCommand {
           StatementExecutionResult lStatementExecutionResult = lInterfaceQuery.executeStatement(pRequestContext, lMatchNode, lUCon, lBindOptions, lDeliverer);
 
           //Tell Top-N pagers about the bind variable so they can cache them
-          if(lPager != null && lPager.allowsCachedBindVariables()) {
+          if(lPager != null && lCacheBinds) {
             lPager.setCachedBindVariables(pRequestContext.getPersistenceContext(), lStatementExecutionResult.getCachedBindObjectProvider());
           }
         }
@@ -182,6 +192,20 @@ extends BuiltInCommand {
     }
 
     return XDoControlFlowContinue.instance();
+  }
+
+  private boolean cacheBindsXPath(ContextUElem pContextUElem) {
+    if(!XFUtil.isNull(mCacheBindsXPath)) {
+      try {
+        return pContextUElem.extendedXPathBoolean(pContextUElem.attachDOM(), mCacheBindsXPath);
+      }
+      catch (ExActionFailed e) {
+        throw new ExInternal("Failed to run cache-binds XPath", e);
+      }
+    }
+    else {
+      return true;
+    }
   }
 
   public boolean isCallTransition() {
