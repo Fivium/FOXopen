@@ -1,5 +1,6 @@
 package net.foxopen.fox.entrypoint.servlets;
 
+import com.google.common.primitives.Ints;
 import net.foxopen.fox.ContextUCon;
 import net.foxopen.fox.FoxRequestHttp;
 import net.foxopen.fox.FoxResponse;
@@ -45,9 +46,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class FoxBootServlet
 extends HttpServlet {
@@ -56,6 +59,7 @@ extends HttpServlet {
 
   private final static String FOX_ENVIRONMENT_POOL_NAME = "fox-environment-connection";
   private final static String FOX_ENVIRONMENT_COL_NAME = "ENVIRONMENT_KEY";
+  private final static int TEST_CONNECTION_VALID_TIMEOUT_MILLIS = Ints.checkedCast(TimeUnit.SECONDS.toMillis(10));
 
   private static Throwable gLastBootError;
 
@@ -260,76 +264,42 @@ extends HttpServlet {
       new FoxResponseCHAR("text/plain", new StringBuffer("Engine initialised"), 0).respond(lFoxRequest);
     }
     else if(lCommand.equalsIgnoreCase("!TESTCONNECTION")) {
-      boolean lConnectionAndEnvironmentCheck = false;
-
-      JSONObject lJSONConnectionAndEnvironmentResult = new JSONObject();
+      boolean lIsConnectionSuccess = false;
 
       try {
-        String lDBURL = pRequest.getParameter("db_url");
-        String lDBUsername = pRequest.getParameter("db_user");
-        String lDBPassword = pRequest.getParameter("db_password"); // TODO - This should look up in existing config if 160's
+        OracleConnection lConnection = getDatabaseConnectionFromRequest(pRequest);
+        lConnection.close();
+        lIsConnectionSuccess = true;
+      }
+      catch (ExInternalConfiguration | SQLException e) {
+        createJsonError("Connection test failed: " + e.getMessage()).respond(lFoxRequest);
+      }
 
-        // Null check
-        if (XFUtil.isNull(lDBURL) || XFUtil.isNull(lDBUsername) || XFUtil.isNull(lDBPassword)) {
-          createJsonError("You must provide a database URL, username and password in order to check a connection.").respond(lFoxRequest);
+      JSONObject lJSONConnectionResult = new JSONObject();
+      lJSONConnectionResult.put("status", lIsConnectionSuccess ? "success" : "failure");
+      new FoxResponseCHAR("application/json", new StringBuffer(lJSONConnectionResult.toJSONString()), 0).respond(lFoxRequest);
+    }
+    else if (lCommand.equalsIgnoreCase("!GETFOXENVIRONMENTS")) {
+      JSONObject lJSONEnvironmentResult = new JSONObject();
+      boolean lIsSuccess = false;
+
+      try {
+        List<String> lFoxEnvironments = getFoxEnvironmentsFromRequest(pRequest);
+        if (!lFoxEnvironments.isEmpty()) {
+          lJSONEnvironmentResult.put("fox_environment_list", lFoxEnvironments);
         }
         else {
-          OracleDriver lDriver = new OracleDriver();
-
-          Properties lProperties = new Properties();
-          lProperties.setProperty("user", lDBUsername);
-          lProperties.setProperty("password", lDBPassword);
-
-          OracleConnection lTestConnection = (OracleConnection) lDriver.connect("jdbc:oracle:thin:@"+lDBURL, lProperties);
-
-          // Get the fox environments
-          ParsedStatement lFoxEnvironmentQuery = null;
-          try {
-            lFoxEnvironmentQuery = StatementParser.parse("SELECT fe.environment_key FROM " + lDBUsername + ".fox_environments fe", "Get Fox Connections");
-          }
-          catch (ExParser e) {
-            createJsonError("The query to get the fox environments on testing a connection failed. " + e.getMessage()).respond(lFoxRequest);
-          }
-
-          List<UConStatementResult> lQueryResult = null;
-          try {
-            UCon lUCon = UCon.createUCon(lTestConnection, "Test Main Fox Connection");
-            lQueryResult = lUCon.queryMultipleRows(lFoxEnvironmentQuery);
-          }
-          catch (ExDB e) {
-            createJsonError("Database error when trying to acquire the fox environments: " + e.getMessage()).respond(lFoxRequest);
-          }
-
-          // If there are 1 or more fox environments add the root element
-          // otherwise add the error message to message
-          List<String> lFoxEnvironmentList = new ArrayList<>();
-          if (lQueryResult != null && lQueryResult.size() >= 1) {
-            // Loop over fox environments and add them to xml
-            for (UConStatementResult lRow : lQueryResult) {
-              lFoxEnvironmentList.add(lRow.getString(FOX_ENVIRONMENT_COL_NAME));
-            }
-            // Add to JSON object
-            lJSONConnectionAndEnvironmentResult.put("fox_environment_list", lFoxEnvironmentList);
-          }
-          else {
-            createJsonError("No fox environments were returned from the query. Please check your fox environments table. Using database schema " + lDBUsername).respond(lFoxRequest);
-          }
-
-          // Close connection
-          ConnectionAgent.shutdownPoolIfExists(FOX_ENVIRONMENT_POOL_NAME);
-
-          // The pool is set to fail fast so if it gets here then the connection is alive and the environments have been acquired without error
-          lConnectionAndEnvironmentCheck = true;
+          throw new ExInternalConfiguration("No fox environments were returned from the query. Please check your fox environments table.");
         }
 
-        lJSONConnectionAndEnvironmentResult.put("status", lConnectionAndEnvironmentCheck ? "success" : "failure");
+        lIsSuccess = true;
       }
-      catch (Throwable e) {
-        createJsonError("Failed to connect. Please check the username / password / service combination is correct. " + e.getMessage() +
-                        (e.getCause() != null ? "\n\nCaused by: " + e.getCause().getMessage() : "")).respond(lFoxRequest);
+      catch (ExInternalConfiguration e) {
+        createJsonError("Failed to get fox environments: " + e.getMessage()).respond(lFoxRequest);
       }
 
-      new FoxResponseCHAR("application/json", new StringBuffer(lJSONConnectionAndEnvironmentResult.toJSONString()), 0).respond(lFoxRequest);
+      lJSONEnvironmentResult.put("status", lIsSuccess ? "success" : "failure");
+      new FoxResponseCHAR("application/json", new StringBuffer(lJSONEnvironmentResult.toJSONString()), 0).respond(lFoxRequest);
     }
     else {
       try {
@@ -338,6 +308,136 @@ extends HttpServlet {
       catch (ExFoxConfiguration | ExTooFew | ExTooMany e) {
         throw new ExInternalConfiguration("Could not process configure command.", e);
       }
+    }
+  }
+
+  private List<String> getFoxEnvironmentsFromRequest(HttpServletRequest pRequest) {
+    OracleConnection lConnection;
+    try {
+      lConnection = getDatabaseConnectionFromRequest(pRequest);
+    }
+    catch (ExInternalConfiguration e) {
+      throw new ExInternalConfiguration("Failed to connect to database while getting fox environments", e);
+    }
+
+    List<String> lFoxEnvironments;
+    try {
+      lFoxEnvironments = getFoxEnvironments(lConnection);
+    }
+    catch (ExInternalConfiguration e) {
+      throw new ExInternalConfiguration("Failed to get fox environments from database", e);
+    }
+    finally {
+      try {
+        lConnection.close();
+      }
+      catch (SQLException e) {
+        throw new ExInternalConfiguration("Failed to close fox environments database connection", e);
+      }
+    }
+
+    return lFoxEnvironments;
+  }
+
+  private List<String> getFoxEnvironments(OracleConnection pConnection) throws ExInternalConfiguration {
+    String lUsername;
+
+    try {
+      lUsername = pConnection.getUserName();
+    }
+    catch (SQLException e) {
+      throw new ExInternalConfiguration("Could not get username from connection", e);
+    }
+
+    try {
+      ParsedStatement lFoxEnvironmentQuery = StatementParser.parse("SELECT fe." + FOX_ENVIRONMENT_COL_NAME + " FROM " + lUsername + ".fox_environments fe", "Get Fox Environments");
+      UCon lUCon = UCon.createUCon(pConnection, "Get Fox Environments");
+      List<UConStatementResult> lQueryResult = lUCon.queryMultipleRows(lFoxEnvironmentQuery);
+
+      // Return the fox environments from the query result
+      return lQueryResult.stream()
+                         .map(pRow -> pRow.getString(FOX_ENVIRONMENT_COL_NAME))
+                         .collect(Collectors.toList());
+    }
+    catch (ExParser e) {
+      throw new ExInternalConfiguration("The query to get the fox environments failed", e);
+    }
+    catch (ExDB e) {
+      throw new ExInternalConfiguration("Database error when trying to acquire the fox environments", e);
+    }
+  }
+
+  private OracleConnection getDatabaseConnectionFromRequest(HttpServletRequest pRequest) throws ExInternalConfiguration {
+    String lDBURL = pRequest.getParameter("db_url");
+    String lDBUsername = pRequest.getParameter("db_user");
+
+    String lDBPassword = getUpdatedDatabaseUserPassword(lDBUsername, pRequest.getParameter("db_password"));
+    return getDatabaseConnection(lDBURL, lDBUsername, lDBPassword);
+  }
+
+  /**
+   * Returns the new password if the password is not obfuscated as a result of being loaded from config (i.e. the user
+   * has updated the password), or if the password is obfuscated, the password loaded from the config for the username
+   * @param pUsername The database username
+   * @param pNewPassword The password value on the form
+   * @return The updated password or the current password from config if not updated
+   */
+  private String getUpdatedDatabaseUserPassword(String pUsername, String pNewPassword) {
+    String lPassword;
+
+    if (XFUtil.isObfuscatedValue(pNewPassword)) {
+      try {
+        lPassword = FoxGlobals.getInstance().getFoxBootConfig().getDatabaseUserPassword(pUsername);
+      }
+      catch (ExFoxConfiguration e) {
+        throw new ExInternalConfiguration("Password for user '" + pUsername + "' was obfuscated, but could not be found in configuration", e);
+      }
+    }
+    else {
+      lPassword = pNewPassword;
+    }
+
+    return lPassword;
+  }
+
+  /**
+   * Returns an open and valid connection for the given database details. If the connection could not be opened an
+   * exception is raised. If the connection was opened but is not valid, the connection is closed and an exception is
+   * raised.
+   * @param pDBURL
+   * @param pDBUsername
+   * @param pDBPassword
+   * @return
+   */
+  private OracleConnection getDatabaseConnection(String pDBURL, String pDBUsername, String pDBPassword) throws ExInternalConfiguration {
+    if (XFUtil.isNull(pDBURL) || XFUtil.isNull(pDBUsername) || XFUtil.isNull(pDBPassword)) {
+      throw new ExInternalConfiguration("You must provide a database URL, username and password to connect.");
+    }
+
+    OracleDriver lDriver = new OracleDriver();
+    Properties lProperties = new Properties();
+    lProperties.setProperty("user", pDBUsername);
+    lProperties.setProperty("password", pDBPassword);
+
+    try {
+      OracleConnection lConnection = (OracleConnection) lDriver.connect("jdbc:oracle:thin:@" + pDBURL, lProperties);
+
+      if (lConnection == null) {
+        throw new ExInternalConfiguration("Connection could not be opened as the database driver cannot open the URL");
+      }
+
+      if (!lConnection.isValid(TEST_CONNECTION_VALID_TIMEOUT_MILLIS)) {
+        lConnection.close();
+        throw new ExInternalConfiguration("Connection opened but is not valid after "
+                                          + TimeUnit.MILLISECONDS.toSeconds(TEST_CONNECTION_VALID_TIMEOUT_MILLIS)
+                                          + " seconds");
+      }
+
+      return lConnection;
+    }
+    catch (SQLException e) {
+      throw new ExInternalConfiguration("Failed to connect. Please check the username / password / service combination is correct. " + e.getMessage() +
+                             (e.getCause() != null ? "\n\nCaused by: " + e.getCause().getMessage() : ""));
     }
   }
 

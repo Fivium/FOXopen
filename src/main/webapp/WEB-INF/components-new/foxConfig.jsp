@@ -82,7 +82,7 @@
           if (jsonData.status == 'true') {
             $("#generateSecurityKeyStatus").text("Success");
             $("#encryptionKey").val(jsonData['generated_key']);
-            $("#testConnection").prop('disabled', false);
+            $(".testConnection").prop('disabled', false);
           }
           else {
             $("#generateSecurityKeyStatus").text("Failure");
@@ -106,68 +106,167 @@
 
         function enableTestDBConnection() {
         if ($("#encryptionKey").val() != "") {
-          $("#testConnection").prop('disabled', false);
+          $(".testConnection").prop('disabled', false);
         }
         else {
-          $("#testConnection").prop('disabled', true);
+          $(".testConnection").prop('disabled', true);
         }
       }
 
-      function testDBConnection() {
-        $("#test_connection_status").text("");
+      function testFoxConnectionAndGetEnvironments() {
+        $("#getFoxConnectionStatus").text("");
         $("#fox_environment").text("");
 
-        $("#testConnection").addClass("icon-animated-spinner");
+        $("#getFoxConnection").addClass("icon-animated-spinner");
 
+        var dbURL = $("#db_url").val();
+        var dbUsername= $("#db_user").val();
+        var dbPassword = $("#db_password").val();
+
+        var gettingFoxEnvironments = false;
+
+        testDBConnection(dbURL, dbUsername, dbPassword,
+          function() {
+            gettingFoxEnvironments = true;
+            getFoxEnvironments(dbURL, dbUsername, dbPassword,
+              function(jsonData) {
+                if (jsonData.hasOwnProperty("fox_environment_list")) {
+                  $("#getFoxConnectionStatus").text("Success");
+                  var foxEnvironmentListSplit = jsonData['fox_environment_list'];
+
+                  $.each(foxEnvironmentListSplit, function (index, obj) {
+                    $("#fox_environment").append($("<option></option>").attr("value", foxEnvironmentListSplit[index]).text(foxEnvironmentListSplit[index]));
+                  });
+                }
+                else {
+                  $("#getFoxConnectionStatus").text("Failed");
+                  alert("Missing environment list in returned data, see console for more");
+                  console.error(jsonData);
+                }
+              },
+              function(jsonData) {
+                $("#getFoxConnectionStatus").text("Failed");
+
+                if (jsonData.hasOwnProperty("message")) {
+                  alert(jsonData.message);
+                }
+
+                console.error(jsonData);
+              },
+              function() {
+                $("#getFoxConnection").removeClass("icon-animated-spinner");
+              });
+          },
+          function(jsonData, errorMessage) {
+            $("#getFoxConnectionStatus").text("Failed");
+
+            if (errorMessage != null) {
+              alert(errorMessage);
+            }
+
+            console.error(jsonData);
+          },
+          function() {
+            // Remove the spinner if not getting fox environments (i.e. the connection test has failed), otherwise the
+            // spinner is removed after getting the fox environments
+            if (!gettingFoxEnvironments) {
+              $("#getFoxConnection").removeClass("icon-animated-spinner");
+            }
+          });
+      }
+
+      function testDBUserConnection(clickedTestButton) {
+        var dbUserDetails = $(clickedTestButton).closest(".dbUserDetails");
+
+        dbUserDetails.find(".testConnectionStatus").text("");
+        dbUserDetails.find(".testConnection").addClass("icon-animated-spinner");
+
+        var dbURL = $("#db_url").val();
+        var dbUsername= dbUserDetails.find(".db_user").val();
+        var dbPassword = dbUserDetails.find(".db_password").val();
+
+        testDBConnection(dbURL, dbUsername, dbPassword,
+          function(jsonData) {
+            dbUserDetails.find(".testConnectionStatus").text("Success");
+          },
+          function(jsonData, errorMessage) {
+            dbUserDetails.find(".testConnectionStatus").text("Failed");
+
+            if (errorMessage != null) {
+              alert(errorMessage);
+            }
+
+            console.error(jsonData);
+          },
+          function(jsonData) {
+            dbUserDetails.find(".testConnection").removeClass("icon-animated-spinner");
+          });
+      }
+
+      function testDBConnection(dbURL, dbUsername, dbPassword, onConnectionSuccess, onConnectionFailure, onRequestComplete) {
         $.ajaxSetup({
           data: {
-            'db_url': $("#db_url").val()
-          , 'db_user': $("#db_user").val()
-          , 'db_password': $("#db_password").val()
+            'db_url': dbURL,
+            'db_user': dbUsername,
+            'db_password': dbPassword
+          }
+        });
+
+        return $.ajax({
+          url: '<%= lURIBuilder.buildServletURI(FoxBootServlet.BOOT_SERVLET_PATH) %>/!TESTCONNECTION',
+          datatype: "json"
+        })
+        .done(function (jsonData) {
+          if (jsonData.status == 'success') {
+            onConnectionSuccess(jsonData);
+          }
+          else {
+            var errorMessage;
+
+            if (jsonData.hasOwnProperty("message")) {
+              errorMessage = jsonData.message;
+            }
+
+            onConnectionFailure(jsonData, errorMessage);
+          }
+        })
+        .fail(function(jqXHR) {
+          alert('Failed to test connection: ' + jqXHR.statusText);
+        })
+        .always(onRequestComplete);
+      }
+
+      function getFoxEnvironments(dbURL, dbUsername, dbPassword, onSuccess, onFailure, onRequestComplete) {
+        $.ajaxSetup({
+          data: {
+            'db_url': dbURL,
+            'db_user': dbUsername,
+            'db_password': dbPassword
           }
         });
 
         $.ajax({
-          url: '<%= lURIBuilder.buildServletURI(FoxBootServlet.BOOT_SERVLET_PATH) %>/!TESTCONNECTION',
+          url: '<%= lURIBuilder.buildServletURI(FoxBootServlet.BOOT_SERVLET_PATH) %>/!GETFOXENVIRONMENTS',
           datatype: "json"
-        }).done(function (jsonData) {
-
+        })
+        .done(function (jsonData) {
           if (jsonData.status == 'success') {
-            $("#testConnectionStatus").text("Success");
-            if (jsonData.hasOwnProperty("fox_environment_list")) {
-
-              var foxEnvironmentListSplit = jsonData['fox_environment_list'];
-
-              $.each(foxEnvironmentListSplit, function(index, obj) {
-                $("#fox_environment").append($("<option></option>").attr("value", foxEnvironmentListSplit[index]).text(foxEnvironmentListSplit[index]));
-              });
-            }
-            else {
-              $("#testConnectionStatus").text("Failed");
-              alert("Missing environment list in returned data, see console for more");
-              console.error(jsonData);
-            }
+            onSuccess(jsonData);
           }
           else {
-            $("#testConnectionStatus").text("Failed");
-            if (jsonData.hasOwnProperty("message")) {
-              alert(jsonData.message);
-            }
-            console.error(jsonData);
+            onFailure(jsonData);
           }
         })
-        .fail(function(jqXHR){
-          alert('Failed to test connection: ' + jqXHR.statusText);
+        .fail(function(jqXHR) {
+          alert('Failed to get fox environments: ' + jqXHR.statusText);
         })
-        .always(function(){
-          $("#testConnection").removeClass("icon-animated-spinner");
-        });
+        .always(onRequestComplete);
       }
 
       function addNewDbConnection() {
         var foxConnectionCount = parseInt($("#fox_connection_count").val());
 
-        $("#dbConnectionsContainer").append('<div class="row"><div class="two columns"><label id="pdb_username_' + foxConnectionCount + '" for="db_username_' + foxConnectionCount + '" class="prompt west">Username</label></div><div class="four columns"><input id="db_username_' + foxConnectionCount + '" name="db_username_' + foxConnectionCount + '" type="text" value="" /></div><div class="two columns"><label id="pdb_password_' + foxConnectionCount + '" for="db_password_' + foxConnectionCount + '" class="prompt west">Password</label></div><div class="four columns"><input id="db_password_' + foxConnectionCount + '" name="db_password_' + foxConnectionCount + '" type="password" value=""/></div></div>');
+        $("#dbConnectionsContainer").append('<div class="row dbUserDetails"><div class="two columns"><label id="pdb_username_' + foxConnectionCount + '" for="db_username_' + foxConnectionCount + '" class="prompt west">Username</label></div><div class="two columns"><input id="db_username_' + foxConnectionCount + '" name="db_username_' + foxConnectionCount + '" class="db_user" type="text" value="" /></div><div class="two columns"><label id="pdb_password_' + foxConnectionCount + '" for="db_password_' + foxConnectionCount + '" class="prompt west">Password</label></div><div class="two columns"><input id="db_password_' + foxConnectionCount + '" name="db_password_' + foxConnectionCount + '" class="db_password" type="password" value="" class="db_password"/></div><div class="two columns"><button type="button" disabled="disabled" class="testConnection" name="testConnection" onclick="javascript:testDBUserConnection(this);">Test Connection</button></div><div class="two columns"><span class="text-widget testConnectionStatus"></span></div></div>');
 
         foxConnectionCount = foxConnectionCount + 1;
 
@@ -230,8 +329,8 @@
           <div class="two columns">
           </div>
           <div class="ten columns">
-            <button type="button" disabled="disabled" id="testConnection" name="testConnection" onclick="javascript:testDBConnection();">Test Connection and Get Fox Environments</button>
-            <span id="testConnectionStatus"></span>
+            <button type="button" disabled="disabled" id="getFoxConnection" name="getFoxConnection" class="testConnection" onclick="javascript:testFoxConnectionAndGetEnvironments();">Test Connection and Get Fox Environments</button>
+            <span id="getFoxConnectionStatus"></span>
           </div>
         </div>
       </div>
@@ -257,18 +356,24 @@
     String lFoxUsername = lFoxDBUser.getKey();
     String lFoxDatabasePassword = lFoxDBUser.getValue();
 %>
-        <div class="row">
+        <div class="row dbUserDetails">
           <div class="two columns">
             <label id="pdb_username_<%= lFoxConnectionCount %>" for="db_username_<%= lFoxConnectionCount %>" class="prompt west">Username</label>
           </div>
-          <div class="four columns">
-            <input id="db_username_<%= lFoxConnectionCount %>" name="db_username_<%= lFoxConnectionCount %>" type="text" value="<%= lFoxUsername %>" />
+          <div class="two columns">
+            <input id="db_username_<%= lFoxConnectionCount %>" name="db_username_<%= lFoxConnectionCount %>" class="db_user" type="text" value="<%= lFoxUsername %>"/>
           </div>
           <div class="two columns">
             <label id="pdb_password_<%= lFoxConnectionCount %>" for="db_password_<%= lFoxConnectionCount %>" class="prompt west">Password</label>
           </div>
-          <div class="four columns">
-            <input id="db_password_<%= lFoxConnectionCount %>" name="db_password_<%= lFoxConnectionCount %>" type="password" value="<%= XFUtil.obfuscateValue(lFoxDatabasePassword) %>"/>
+          <div class="two columns">
+            <input id="db_password_<%= lFoxConnectionCount %>" name="db_password_<%= lFoxConnectionCount %>" class="db_password" type="password" value="<%= XFUtil.obfuscateValue(lFoxDatabasePassword) %>"/>
+          </div>
+          <div class="two columns">
+            <button type="button" disabled="disabled" class="testConnection" name="testConnection" onclick="javascript:testDBUserConnection(this);">Test Connection</button>
+          </div>
+          <div class="two columns">
+            <span class="text-widget testConnectionStatus"></span>
           </div>
         </div>
 <%

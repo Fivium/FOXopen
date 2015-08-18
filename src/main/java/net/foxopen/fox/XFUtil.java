@@ -105,6 +105,8 @@ public abstract class XFUtil {
   private static final long UNIQUE_CACHE_SIZE = 1000;
   static final long UNIQUE_RESET_BOUNDARY = Long.MAX_VALUE - Integer.MAX_VALUE;
 
+  private static final char OBFUSCATION_REPLACEMENT_CHARACTER = 160;
+
   // static fields used to generate unique keys across web servers
   // these are set in 'initialise' to avoid recursive init problems
   static char _gUniquePrefix;
@@ -382,7 +384,7 @@ public abstract class XFUtil {
   public static final StringBuffer pathPushHead(StringBuffer poPathStringBuffer, String pHeadWordString) {
     if(pHeadWordString!=null && pHeadWordString.length()!=0) {
       if(poPathStringBuffer.length()>0) {
-        poPathStringBuffer.insert(0,'/');
+        poPathStringBuffer.insert(0, '/');
       }
       poPathStringBuffer.insert(0, pHeadWordString);
     }
@@ -1328,7 +1330,7 @@ public abstract class XFUtil {
 
   public static int createBoxTextOutput(StringBuffer output, int pWidth) {
     StringTokenizer tokens = new StringTokenizer(output.toString(),"\n ",true);
-    output.delete(0,output.length());
+    output.delete(0, output.length());
     int lWidth = 0;
     int rows = 1;
     while(tokens.hasMoreTokens()) {
@@ -1536,8 +1538,20 @@ public abstract class XFUtil {
     }
   }
 
-  public static final String obfuscateValue(String str) {
-    return str.replaceAll(".", String.valueOf((char)160));
+  public static final String obfuscateValue(String pString) {
+    return pString.replaceAll(".", String.valueOf(OBFUSCATION_REPLACEMENT_CHARACTER));
+  }
+
+  /**
+   * Returns true if the provided string is possibly an obfuscated value. If the string contains only the character
+   * used during obfuscation (non-breaking space) true is returned. If there are any other characters other than the
+   * obfuscated character, false is returned. A null or empty string returns false.
+   * @param pString The string to test for obfuscation
+   * @return True if the provided string is possibly an obfuscated value.
+   * @see #obfuscateValue(String)
+   */
+  public static boolean isObfuscatedValue(String pString) {
+    return pString != null && pString.matches("^" + OBFUSCATION_REPLACEMENT_CHARACTER + "+$");
   }
 
   public static String md5 (String pString) {

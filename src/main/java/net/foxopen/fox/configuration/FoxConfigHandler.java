@@ -97,7 +97,7 @@ public class FoxConfigHandler {
     return null; // no response needed, a request has already been forwarded.
   }
 
-  public static final FoxResponse processConfigureHandleRequest (FoxRequest pFoxRequest)
+  public static FoxResponse processConfigureHandleRequest (FoxRequest pFoxRequest)
   throws ExInternal, ExFoxConfiguration, ExTooFew, ExTooMany, ExBadPath, ExServiceUnavailable {
 
     JSONObject lResponse = new JSONObject();
@@ -119,49 +119,23 @@ public class FoxConfigHandler {
     return new FoxResponseCHAR("application/json", new StringBuffer(lResponse.toJSONString()), 0);
   }
 
-  private static final FoxResponse checkSecurityFile(FoxRequest pFoxRequest) {
-    File lSecurityFile = new File(FoxGlobals.getInstance().getBootSecurityFilePath());
-    if(lSecurityFile.exists() && lSecurityFile.length() > 0){
-      StringBuffer lURLStringBuffer = pFoxRequest.getRequestURIStringBuffer();
-      String lSubCmd = lURLStringBuffer.substring(lURLStringBuffer.lastIndexOf("/")+1);
-      // If the command is trying to !GENERATE through JSON make sure to throw a JSON error.
-      if (lSubCmd.toUpperCase().endsWith("GENERATE")) {
-        JSONObject lJSONResponse = new JSONObject();
-        lJSONResponse.put("status", "false");
-        lJSONResponse.put("message", "A security file already exists. Please delete it manually.");
-        return new FoxResponseCHAR("application/json", new StringBuffer(lJSONResponse.toJSONString()), 0);
-      }
+  public static FoxResponse processSecurityHandleRequest(FoxRequest pFoxRequest) {
+    if("".equals(XFUtil.nvl(pFoxRequest.getHttpRequest().getParameter("decryptionKey"), ""))){
+      return new FoxResponseCHAR("text/plain", new StringBuffer("You have to enter the private part of a 2048bit RSA key"), 0);
     }
 
-    return null;
-  }
+    // Generate DOM to write out
+    String lMethod = pFoxRequest.getHttpRequest().getParameter("method");
+    String lDecryptionKey = pFoxRequest.getHttpRequest().getParameter("decryptionKey").replaceAll("(\r)*", "");
+    DOM lSecurityDOM = generateSecurityDOM(lMethod, lDecryptionKey);
 
-  public static final FoxResponse processSecurityHandleRequest(FoxRequest pFoxRequest) {
-    File lFoxFolder = new File(System.getProperty("user.home") + File.separatorChar + ".fox");
-    if (!lFoxFolder.exists()) {
-      lFoxFolder.mkdir();
+    try {
+      writePrivateSecurityKey(lSecurityDOM);
     }
-
-    FoxResponse lFoxResponse = checkSecurityFile(pFoxRequest);
-    if (lFoxResponse == null) {
-      if("".equals(XFUtil.nvl(pFoxRequest.getHttpRequest().getParameter("decryptionKey"), ""))){
-        return new FoxResponseCHAR("text/plain", new StringBuffer("You have to enter the private part of a 2048bit RSA key"), 0);
-      }
-
-      //Generate DOM to write out
-      DOM lSecurityDOM = DOM.createDocument("KEY");
-      lSecurityDOM.addElem("METHOD").setText(pFoxRequest.getHttpRequest().getParameter("method"));
-      lSecurityDOM.addElem("DECRYPTION_KEY").setText(pFoxRequest.getHttpRequest().getParameter("decryptionKey").replaceAll("(\r)*", ""));
-
-      try {
-        writePrivateSecurityKey(lSecurityDOM);
-      }
-      catch (Exception e) {
-        return new FoxResponseCHAR("text/html", new StringBuffer("Failed to save security file!<br />" + e.getMessage()), 0);
-      }
-      return new FoxResponseCHAR("text/html", new StringBuffer("Saved security file!"), 0);
+    catch (Exception e) {
+      return new FoxResponseCHAR("text/html", new StringBuffer("Failed to save security file!<br />" + e.getMessage()), 0);
     }
-    return lFoxResponse;
+    return new FoxResponseCHAR("text/html", new StringBuffer("Saved security file!"), 0);
   }
 
   /**
@@ -169,66 +143,68 @@ public class FoxConfigHandler {
    * @param pFoxRequest initiating FoxRequest
    * @return FoxResponse (Some text/html response)
    */
-  public static final FoxResponse processSecurityRequest(FoxRequest pFoxRequest)
+  public static FoxResponse processSecurityRequest(FoxRequest pFoxRequest)
     throws ExInternal {
+    StringBuffer lURLStringBuffer = pFoxRequest.getRequestURIStringBuffer();
+    String lSubCmd = lURLStringBuffer.substring(lURLStringBuffer.lastIndexOf("/") + 1);
 
-    FoxResponse lFoxResponse = checkSecurityFile(pFoxRequest);
-    if (lFoxResponse == null) {
-      StringBuffer lURLStringBuffer = pFoxRequest.getRequestURIStringBuffer();
-      String lSubCmd = lURLStringBuffer.substring(lURLStringBuffer.lastIndexOf("/")+1);
-
-      if("DEFAULT".equals(lSubCmd.toUpperCase())){
-        //!DEFAULT generates keys for you
-        KeyPair lKeys = XFUtil.generateRSAKeys();
-        return new FoxResponseCHAR("text/html", new StringBuffer(
-          "<html><body><form name='secure' method='post' action='../!HANDLESECURITY'>" +
-            "Method:<br /><select name='method'><option value='LITERAL'>Literal</option></select><br />" +
-            "Encryption Key<small>(public key)</small>: <small>(Save this for use with !CONFIGURE)</small><br /><textarea rows='6' cols='78' readonly='readonly' name='encryptionKey' >" + XFUtil.encodeBASE64(lKeys.getPublic().getEncoded()) + "</textarea><br />" +
-            "Decryption Key<small>(private key)</small>:<br /><textarea rows='7' cols='78' readonly='readonly' name='decryptionKey' >" + XFUtil.encodeBASE64(lKeys.getPrivate().getEncoded()) + "</textarea><br />" +
-            "<input type='hidden' name='xfsessionid' value='"+ pFoxRequest.getHttpRequest().getParameter("xfsessionid") + "'/>" +
-            "<input type='submit' name='save' value='Save' /></form></body></html>"), 0);
-      }
-      else if ("GENERATE".equals(lSubCmd.toUpperCase())) {
-        KeyPair lKeys = XFUtil.generateRSAKeys();
-
-        //Generate DOM to write out
-        DOM lSecurityDOM = DOM.createDocument("KEY");
-        lSecurityDOM.addElem("METHOD").setText("LITERAL");
-        lSecurityDOM.addElem("DECRYPTION_KEY").setText(XFUtil.encodeBASE64(lKeys.getPrivate().getEncoded()));
-
-        JSONObject lJSONEntryKey = new JSONObject();
-        try {
-          writePrivateSecurityKey(lSecurityDOM);
-          lJSONEntryKey.put("status","true");
-          lJSONEntryKey.put("generated_key", XFUtil.encodeBASE64(lKeys.getPublic().getEncoded()));
-        }
-        catch (ExFoxConfiguration e) {
-          lJSONEntryKey.put("status","false");
-          lJSONEntryKey.put("message","An error occured while trying to get the generated key: " + e.getMessage());
-          lJSONEntryKey.put("stack", XFUtil.getJavaStackTraceInfo(e));
-
-          return new FoxResponseCHAR("application/json", new StringBuffer(lJSONEntryKey.toJSONString()), 0);
-        }
-
-        return new FoxResponseCHAR("text/json", new StringBuffer(lJSONEntryKey.toJSONString()), 0);
-      }
-      else {
-        return new FoxResponseCHAR("text/html", new StringBuffer(
-          "<html><body><form name='secure' method='post' action='../!HANDLESECURITY'>" +
-            "Method:<br /><select name='method'><option value='LITERAL'>Literal</option></select><br />" +
-            "Decryption Key<small>(private key)</small>:<br /><textarea rows='7' cols='78' name='decryptionKey' ></textarea><br />" +
-            "<input type='hidden' name='xfsessionid' value='"+ pFoxRequest.getHttpRequest().getParameter("xfsessionid") + "'/>" +
-            " <input type='submit' name='save' value='Save' /></form></body></html>"), 0);
-      }
+    if ("DEFAULT".equals(lSubCmd.toUpperCase())){
+      // !DEFAULT generates keys for you
+      KeyPair lKeys = XFUtil.generateRSAKeys();
+      return new FoxResponseCHAR("text/html", new StringBuffer(
+        "<html><body><form name='secure' method='post' action='../!HANDLESECURITY'>" +
+          "Method:<br /><select name='method'><option value='LITERAL'>Literal</option></select><br />" +
+          "Encryption Key<small>(public key)</small>: <small>(Save this for use with !CONFIGURE)</small><br /><textarea rows='6' cols='78' readonly='readonly' name='encryptionKey' >" + XFUtil.encodeBASE64(lKeys.getPublic().getEncoded()) + "</textarea><br />" +
+          "Decryption Key<small>(private key)</small>:<br /><textarea rows='7' cols='78' readonly='readonly' name='decryptionKey' >" + XFUtil.encodeBASE64(lKeys.getPrivate().getEncoded()) + "</textarea><br />" +
+          "<input type='hidden' name='xfsessionid' value='"+ pFoxRequest.getHttpRequest().getParameter("xfsessionid") + "'/>" +
+          "<input type='submit' name='save' value='Save' /></form></body></html>"), 0);
     }
+    else if ("GENERATE".equals(lSubCmd.toUpperCase())) {
+      KeyPair lKeys = XFUtil.generateRSAKeys();
 
-    return lFoxResponse;
+      // Generate DOM to write out
+      DOM lSecurityDOM = generateSecurityDOM("LITERAL", XFUtil.encodeBASE64(lKeys.getPrivate().getEncoded()));
+
+      JSONObject lJSONEntryKey = new JSONObject();
+      try {
+        writePrivateSecurityKey(lSecurityDOM);
+        lJSONEntryKey.put("status","true");
+        lJSONEntryKey.put("generated_key", XFUtil.encodeBASE64(lKeys.getPublic().getEncoded()));
+      }
+      catch (ExFoxConfiguration e) {
+        lJSONEntryKey.put("status","false");
+        lJSONEntryKey.put("message","An error occured while trying to get the generated key: " + e.getMessage());
+        lJSONEntryKey.put("stack", XFUtil.getJavaStackTraceInfo(e));
+
+        return new FoxResponseCHAR("application/json", new StringBuffer(lJSONEntryKey.toJSONString()), 0);
+      }
+
+      return new FoxResponseCHAR("text/json", new StringBuffer(lJSONEntryKey.toJSONString()), 0);
+    }
+    else {
+      return new FoxResponseCHAR("text/html", new StringBuffer(
+        "<html><body><form name='secure' method='post' action='../!HANDLESECURITY'>" +
+          "Method:<br /><select name='method'><option value='LITERAL'>Literal</option></select><br />" +
+          "Decryption Key<small>(private key)</small>:<br /><textarea rows='7' cols='78' name='decryptionKey' ></textarea><br />" +
+          "<input type='hidden' name='xfsessionid' value='"+ pFoxRequest.getHttpRequest().getParameter("xfsessionid") + "'/>" +
+          " <input type='submit' name='save' value='Save' /></form></body></html>"), 0);
+    }
+  }
+
+  private static DOM generateSecurityDOM(String pMethod, String pDecryptionKey) {
+    DOM lSecurityDOM = DOM.createDocument("KEY");
+    lSecurityDOM.addElem("METHOD").setText(pMethod);
+    lSecurityDOM.addElem("DECRYPTION_KEY").setText(pDecryptionKey);
+
+    return lSecurityDOM;
   }
 
   private static void writePrivateSecurityKey(DOM pSecurityDOM) throws ExFoxConfiguration {
+    createFOXFolder();
+
     File lSecurityFile = new File(FoxGlobals.getInstance().getBootSecurityFilePath());
-    if(lSecurityFile.exists() && lSecurityFile.length() > 0){
-      throw new ExFoxConfiguration("Cannot overwrite security file, you must manually remove it from the server. Stored in ~/.fox");
+    if (lSecurityFile.exists() && lSecurityFile.length() > 0) {
+      throw new ExFoxConfiguration("Cannot overwrite security file '" + lSecurityFile.getAbsolutePath() + "', you must manually remove it from the server.");
     }
 
     // Attempt to lock file
@@ -240,7 +216,7 @@ public class FoxConfigHandler {
       lSecurityFileStream.close();
     }
     catch (IOException e) {
-      throw new ExFoxConfiguration("Cannot overwrite security file, you must manually remove it from the server. Stored in ~/.fox", e);
+      throw new ExFoxConfiguration("Cannot overwrite security file '" + lSecurityFile.getAbsolutePath() + "', you must manually remove it from the server.", e);
     }
 
     // Attempt to write dom to file and unlock, or just unlock if possible
@@ -266,6 +242,13 @@ public class FoxConfigHandler {
           lSecurityFileWriter.close();
         } catch (IOException e) {} // ignore
       }
+    }
+  }
+
+  private static void createFOXFolder() {
+    File lFoxFolder = new File(System.getProperty("user.home") + File.separatorChar + ".fox");
+    if (!lFoxFolder.exists()) {
+      lFoxFolder.mkdir();
     }
   }
 }
