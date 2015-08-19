@@ -35,7 +35,7 @@ implements InterfaceParameter {
 
   @Override
   public BindSQLType getBindSQLType(NodeInfo pOptionalNodeInfo) {
-    return null;
+    return BindSQLType.STRING;
   }
 
   @Override
