@@ -1,5 +1,6 @@
 package net.foxopen.fox.module.serialiser.components.html;
 
+import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.paging.Pager;
 import net.foxopen.fox.dom.paging.style.PageControlStyle;
 import net.foxopen.fox.module.fieldset.action.InternalActionContext;
@@ -42,14 +43,16 @@ extends ComponentBuilder<HTMLSerialiser, EvaluatedPagerControlPresentationNode> 
     PageControlAction lInternalAction = new PageControlAction(lPager.getPagerKey());
     InternalActionContext lActionContext = pSerialisationContext.getFieldSet().addInternalAction(lInternalAction);
 
-    pSerialiser.append("<ul class=\"pager\">");
+    String lPagerLabelId = "pager" + XFUtil.unique();
+    pSerialiser.append("<p id=\"" + lPagerLabelId + "\" class=\"screen-reader-only\">Pagination controls</p>");
+    pSerialiser.append("<ul class=\"pager\" role=\"navigation\" aria-labelledby=\"" + lPagerLabelId + "\">");
 
     if(lPageControlStyle.isFirstPageEnabled()) {
       if(lPager.getCurrentPage() > 1) {
         pSerialiser.append("<li class=\"page-skip first\">" + linkString(pSerialiser, lActionContext, 1, lPageControlStyle.getFirstPageLabel() ) + "</li>");
       }
       else {
-        pSerialiser.append("<li class=\"page-skip first disabled\">" + lPageControlStyle.getFirstPageLabel() + "</li>");
+        pSerialiser.append("<li class=\"page-skip first disabled\" aria-disabled=\"true\">" + lPageControlStyle.getFirstPageLabel() + "</li>");
       }
     }
 
@@ -58,7 +61,7 @@ extends ComponentBuilder<HTMLSerialiser, EvaluatedPagerControlPresentationNode> 
         pSerialiser.append("<li class=\"page-skip previous\">" + linkString(pSerialiser, lActionContext, lPager.getCurrentPage() - 1, lPageControlStyle.getPreviousPageLabel()) + "</li>");
       }
       else {
-        pSerialiser.append("<li class=\"page-skip previous disabled\">" + lPageControlStyle.getPreviousPageLabel() + "</li>");
+        pSerialiser.append("<li class=\"page-skip previous disabled\" aria-disabled=\"true\">" + lPageControlStyle.getPreviousPageLabel() + "</li>");
       }
     }
 
@@ -74,10 +77,10 @@ extends ComponentBuilder<HTMLSerialiser, EvaluatedPagerControlPresentationNode> 
       for(int lPageNo = lPageFrom; lPageNo <= lPageTo; lPageNo++) {
         String lPageText;
         if(lPageNo != lPager.getCurrentPage()) {
-          lPageText = "<li class=\"page-number\">" + linkString(pSerialiser, lActionContext, lPageNo, Integer.toString(lPageNo)) + "</li>";
+          lPageText = "<li class=\"page-number\">" + linkString(pSerialiser, lActionContext, lPageNo, "<span class=\"screen-reader-only\">Page </span>" + lPageNo) + "</li>";
         }
         else {
-          lPageText = "<li class=\"page-number current-page\">" + Integer.toString(lPageNo) + "</li>";
+          lPageText = "<li class=\"page-number current-page\"><span class=\"screen-reader-only\">You are on page </span>" + Integer.toString(lPageNo) + "</li>";
         }
 
         pSerialiser.append(lPageText);
@@ -96,7 +99,7 @@ extends ComponentBuilder<HTMLSerialiser, EvaluatedPagerControlPresentationNode> 
         pSerialiser.append("<li class=\"page-skip next\">" + linkString(pSerialiser, lActionContext, lPager.getCurrentPage() + 1, lPageControlStyle.getNextPageLabel() ) + "</li>");
       }
       else {
-        pSerialiser.append("<li class=\"page-skip next disabled\">" + lPageControlStyle.getNextPageLabel() + "</li>");
+        pSerialiser.append("<li class=\"page-skip next disabled\" aria-disabled=\"true\">" + lPageControlStyle.getNextPageLabel() + "</li>");
       }
     }
 
@@ -105,7 +108,7 @@ extends ComponentBuilder<HTMLSerialiser, EvaluatedPagerControlPresentationNode> 
         pSerialiser.append("<li class=\"page-skip last\">" + linkString(pSerialiser, lActionContext, lPager.getPageCount(), lPageControlStyle.getLastPageLabel() ) + "</li>");
       }
       else {
-        pSerialiser.append("<li class=\"page-skip last disabled\">" + lPageControlStyle.getLastPageLabel() + "</li>");
+        pSerialiser.append("<li class=\"page-skip last disabled\" aria-disabled=\"true\">" + lPageControlStyle.getLastPageLabel() + "</li>");
       }
     }
 
