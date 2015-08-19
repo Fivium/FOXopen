@@ -107,12 +107,11 @@ public class PageControlStyle {
   }
 
   public static PageControlStyle getDefault(Pager pPager) {
-    //TODO PN improve default logic
     if(pPager instanceof TopNDatabasePager) {
-      return getDefault(StyleType.SIMPLE);
+      return getDefault(StyleType.CREEPER);
     }
     else {
-      return getDefault(StyleType.FULL);
+      return getDefault(StyleType.STANDARD);
     }
   }
 
