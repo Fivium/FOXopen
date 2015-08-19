@@ -38,6 +38,8 @@ public class PageControlStyle {
 
   private int mPageDisplayScope = 0;
 
+  private boolean mHideForSinglePage = true;
+
   public static PageControlStyle createFromDOM(DOM pDefinitionDOM) throws ExModule {
     //Establish a default
 
@@ -64,6 +66,11 @@ public class PageControlStyle {
     String lCreeperScopeAttr = optionalElementWithAttribute(pDefinitionDOM, "fm:creeper", "page-scope");
     if(lCreeperScopeAttr != null) {
       lStyleDefn.mPageDisplayScope = Integer.parseInt(lCreeperScopeAttr);
+    }
+
+    String lHideForSinglePageAttr =  optionalElementWithAttribute(pDefinitionDOM, "fm:single-page", "hide-controls");
+    if(lHideForSinglePageAttr != null) {
+      lStyleDefn.mHideForSinglePage = Boolean.valueOf(lHideForSinglePageAttr);
     }
 
     return lStyleDefn;
@@ -176,5 +183,9 @@ public class PageControlStyle {
 
   public int getPageDisplayScope() {
     return mPageDisplayScope;
+  }
+
+  public boolean isHideForSinglePage() {
+    return mHideForSinglePage;
   }
 }

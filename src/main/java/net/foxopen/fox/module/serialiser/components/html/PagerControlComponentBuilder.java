@@ -31,8 +31,8 @@ extends ComponentBuilder<HTMLSerialiser, EvaluatedPagerControlPresentationNode> 
 
     Pager lPager = pEvalPagerControlNode.getPager();
 
-    //No page controls for unintialised/empty pagers
-    if(lPager.getRowCount() == 0) {
+    //No page controls for unintialised/empty pagers, or pagers with 1 page where single page hiding is enabled
+    if(lPager.getRowCount() == 0 || (pEvalPagerControlNode.getPageControlStyle().isHideForSinglePage() && lPager.getPageCount() <= 1)) {
       return;
     }
 

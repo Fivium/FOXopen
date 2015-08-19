@@ -711,8 +711,15 @@ The 'data' column may be a string or an XMLType. For XML, the content of the XML
               <xs:element name="pagination-definition" minOccurs="0" maxOccurs="unbounded">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="page-size"/>
+                    <xs:element name="page-size">
+                      <xs:annotation>
+                        <xs:documentation>The initial number of rows per page for this pager. The page size can be modified dynamically by the fm:go-to-page command.</xs:documentation>
+                      </xs:annotation>
+                    </xs:element>
                     <xs:element name="pre-page" minOccurs="0">
+                      <xs:annotation>
+                        <xs:documentation>Actions to run before the page is changed. If you specify a pre-page action on a database pager, you are responsible for removing the old page's data from the containing element if you require this behaviour. To prevent the page change action from completing, throw an ACTIONBREAK.</xs:documentation>
+                      </xs:annotation>
                       <xs:complexType>
                         <xs:sequence>
                           <xs:element name="do" type="fm:do-block-type"/>
@@ -720,6 +727,9 @@ The 'data' column may be a string or an XMLType. For XML, the content of the XML
                       </xs:complexType>
                     </xs:element>
                     <xs:element name="post-page" minOccurs="0">
+                      <xs:annotation>
+                        <xs:documentation>Actions to run after the page has changed and the new page data has been loaded into the DOM.</xs:documentation>
+                      </xs:annotation>
                       <xs:complexType>
                         <xs:sequence>
                           <xs:element name="do" type="fm:do-block-type"/>
@@ -727,24 +737,72 @@ The 'data' column may be a string or an XMLType. For XML, the content of the XML
                       </xs:complexType>
                     </xs:element>
                     <xs:element minOccurs="0" name="page-controls">
+                      <xs:annotation>
+                        <xs:documentation>Options for how the page controls are displayed for any pagers using this pagination definition.</xs:documentation>
+                      </xs:annotation>
                       <xs:complexType>
                         <xs:sequence>
-                          <xs:element name="first-page" minOccurs="0" type="fm:page-control-button-config"/>
-                          <xs:element name="previous-page" minOccurs="0" type="fm:page-control-button-config"/>
-                          <xs:element name="next-page" minOccurs="0" type="fm:page-control-button-config"/>
-                          <xs:element name="last-page" minOccurs="0" type="fm:page-control-button-config"/>
+                          <xs:element name="first-page" minOccurs="0" type="fm:page-control-button-config">
+                            <xs:annotation>
+                              <xs:documentation>Options for how the page controls display the "first page" button.</xs:documentation>
+                            </xs:annotation>
+                          </xs:element>
+                          <xs:element name="previous-page" minOccurs="0" type="fm:page-control-button-config">
+                            <xs:annotation>
+                              <xs:documentation>Options for how the page controls display the "previous page" button.</xs:documentation>
+                            </xs:annotation>
+                          </xs:element>
+                          <xs:element name="next-page" minOccurs="0" type="fm:page-control-button-config">
+                            <xs:annotation>
+                              <xs:documentation>Options for how the page controls display the "next page" button.</xs:documentation>
+                            </xs:annotation>
+                          </xs:element>
+                          <xs:element name="last-page" minOccurs="0" type="fm:page-control-button-config">
+                            <xs:annotation>
+                              <xs:documentation>Options for how the page controls display the "last page" button.</xs:documentation>
+                            </xs:annotation>
+                          </xs:element>
                           <xs:element minOccurs="0" name="page-count">
+                            <xs:annotation>
+                              <xs:documentation>Options for how the page count is displayed in the page controls.</xs:documentation>
+                            </xs:annotation>
                             <xs:complexType>
-                              <xs:attribute name="enabled" type="xs:boolean"/>
+                              <xs:attribute name="enabled" type="xs:boolean">
+                                <xs:annotation>
+                                  <xs:documentation>If true, the page count will be displayed. If false it is hidden. Default depends on the page control style.</xs:documentation>
+                                </xs:annotation>
+                              </xs:attribute>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="single-page">
+                            <xs:annotation>
+                              <xs:documentation>Options for how the pager handles the display of a single page.</xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                              <xs:attribute name="hide-controls" type="xs:boolean">
+                                <xs:annotation>
+                                  <xs:documentation>If true, controls will be hidden for a single page. If false, controls are always displayed. Default is true.</xs:documentation>
+                                </xs:annotation>
+                              </xs:attribute>
                             </xs:complexType>
                           </xs:element>
                           <xs:element minOccurs="0" name="creeper">
+                            <xs:annotation>
+                              <xs:documentation>Options specific to the "creeper" control style, used by Top-N pagination.</xs:documentation>
+                            </xs:annotation>
                             <xs:complexType>
-                              <xs:attribute name="page-scope" type="xs:integer" use="required"/>
+                              <xs:attribute name="page-scope" type="xs:integer" use="required">
+                                <xs:annotation>
+                                  <xs:documentation>How many page numbers to display before and after the currently selected page in the creeper. E.g. with a value of "2", on page 3 the display will be "1 2 [3] 4 5".</xs:documentation>
+                                </xs:annotation>
+                              </xs:attribute>
                             </xs:complexType>
                           </xs:element>
                         </xs:sequence>
                         <xs:attribute name="style" use="required">
+                          <xs:annotation>
+                            <xs:documentation>Choose a baseline style for the page controls which can then be customised by the child elements of fm:page-control.</xs:documentation>
+                          </xs:annotation>
                           <xs:simpleType>
                             <xs:restriction base="xs:string">
                               <xs:enumeration value="simple"/>
