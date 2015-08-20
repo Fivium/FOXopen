@@ -481,6 +481,9 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
       for (DOM lFileStorageLocationDOM : lFileStorageLocationDOMs) {
         try {
           FileStorageLocation lFileStorageLocation = new FileStorageLocation(this, lFileStorageLocationDOM);
+          if(mFileStorageLocations.containsKey(lFileStorageLocation.getName())) {
+            throw new ExModule("Duplicate file-storage-location defined with name " + lFileStorageLocation.getName());
+          }
           mFileStorageLocations.put(lFileStorageLocation.getName(), lFileStorageLocation);
         }
         catch (Throwable th) {
