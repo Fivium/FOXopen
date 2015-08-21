@@ -30,7 +30,8 @@ public class UnconfiguredFoxEnvironment implements FoxEnvironment {
 
   @Override
   public DatabaseProperties getDatabaseProperties() {
-    throw new ExInternal("Attempted to get DatabaseProperties from an unconfigured fox environment");
+    //Don't fail here - it's legitimate to ask for database properties for an unconfigured engine
+    return DatabaseProperties.defaultForUnconfiguredEngine();
   }
 
   @Override
