@@ -199,6 +199,9 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
           pSerialiser.append(lRowStyles);
           pSerialiser.append("\"");
         }
+
+        HTMLSerialiser.serialiseDataAttributes(pSerialiser, lRowNode);
+
         pSerialiser.append(">");
 
         Map<NodeInfo, EvaluatedNodeInfo> lColumns = lRowNode.getChildrenMap();
