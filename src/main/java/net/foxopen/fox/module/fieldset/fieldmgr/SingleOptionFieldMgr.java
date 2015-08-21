@@ -46,8 +46,8 @@ extends OptionFieldMgr {
   }
 
   @Override
-  public boolean isRecognisedOptionSelected() {
-    return !mIsUnrecognised;
+  public boolean isRecognisedNotNullOptionSelected() {
+    return !isNull() && !mIsUnrecognised;
   }
 
   protected String getSendingStringValue() {

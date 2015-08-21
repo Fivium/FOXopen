@@ -476,7 +476,7 @@ public class EvaluatedClientVisibilityRule {
       }
       else {
         //For null checks, see if something has been selected and invert
-        lResult = !pFieldMgr.isRecognisedOptionSelected();
+        lResult = !pFieldMgr.isRecognisedNotNullOptionSelected();
       }
 
       //Invert the result for a "not" type

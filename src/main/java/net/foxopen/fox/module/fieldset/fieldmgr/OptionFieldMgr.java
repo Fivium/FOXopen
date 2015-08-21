@@ -150,10 +150,10 @@ extends DataFieldMgr {
   }
 
   /**
-   * Tests if the user has selected at least 1 valid option for this field.
+   * Tests if the user has selected at least 1 valid non-null option for this field.
    * @return
    */
-  public abstract boolean isRecognisedOptionSelected();
+  public abstract boolean isRecognisedNotNullOptionSelected();
 
   protected abstract boolean isNull();
 

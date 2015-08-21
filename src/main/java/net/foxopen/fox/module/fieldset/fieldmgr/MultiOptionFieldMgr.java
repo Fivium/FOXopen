@@ -111,7 +111,7 @@ extends OptionFieldMgr {
   }
 
   @Override
-  public boolean isRecognisedOptionSelected() {
+  public boolean isRecognisedNotNullOptionSelected() {
     return mSelectedFVMOptionRefs.size() > 0;
   }
 
