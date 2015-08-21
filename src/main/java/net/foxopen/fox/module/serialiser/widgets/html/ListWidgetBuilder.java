@@ -187,7 +187,9 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
       ROW_LOOP:
       for (EvaluatedNodeInfo lRowNode : pEvalNode.getChildren()){
         pSerialiser.append("<tr");
-        String lRowClasses = Joiner.on(" ").join(lRowNode.getStringAttributes(NodeAttribute.CLASS, NodeAttribute.LIST_ROW_CLASS));
+        List<String> lRowClassList = lRowNode.getStringAttributes(NodeAttribute.CLASS, NodeAttribute.LIST_ROW_CLASS);
+        lRowClassList.addAll(lRowNode.getCellInternalClasses());
+        String lRowClasses = Joiner.on(" ").join(lRowClassList);
         if (!XFUtil.isNull(lRowClasses)) {
           pSerialiser.append(" class=\"");
           pSerialiser.append(lRowClasses);
