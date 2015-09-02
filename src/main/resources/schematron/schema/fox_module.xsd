@@ -3027,6 +3027,17 @@ Mapsets can have the following structures:
                         </xs:restriction>
                       </xs:simpleType>
                     </xs:attribute>
+                    <xs:attribute name="datadom-type" use="optional">
+                      <xs:annotation>
+                        <xs:documentation>Specifies how DOM nodes from the XPath are bound into the template. For 'string' the string value is used. For 'dom', node existence is bound as a boolean (i.e. 'true' if the node exists). Other item types are unaffected.</xs:documentation>
+                      </xs:annotation>
+                      <xs:simpleType>
+                        <xs:restriction base="fm:entered-string">
+                          <xs:enumeration value="string"></xs:enumeration>
+                          <xs:enumeration value="dom"></xs:enumeration>
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:attribute>
                   </xs:extension>
                 </xs:simpleContent>
               </xs:complexType>

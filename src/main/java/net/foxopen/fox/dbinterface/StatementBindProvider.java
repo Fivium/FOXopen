@@ -117,7 +117,15 @@ implements TemplateVariableObjectProvider {
       return null;
     }
     else {
-      return mTemplateVariableConverter.convertVariableObject(pVariableName, getXPathResult(lParam));
+      XPathResult lXPathResult = getXPathResult(lParam);
+
+      //Use bind markup to determine if this value should be bound as a string or XML (i.e. bind the node's content or a boolean representing node existence)
+      boolean lIsXMLBind = false;
+      if(lXPathResult.isValidDOMList()) {
+        lIsXMLBind = getBindSQLTypeForDOMBind(lXPathResult.asDOMList(), lParam) == BindSQLType.XML;
+      }
+
+      return mTemplateVariableConverter.convertVariableObject(pVariableName, lXPathResult, lIsXMLBind);
     }
   }
 
@@ -139,33 +147,7 @@ implements TemplateVariableObjectProvider {
    */
   private BindObject bindNodes(DOMList pNodesToBind, String pBindName, InterfaceParameter pParam) {
 
-    //Attempt to get a nodeinfo if we're binding a single node - this might be used to determine the bind sql type if the developer didn't declare it in the query definition
-    NodeInfo lNodeInfo = null;
-    if(pNodesToBind.size() == 1) {
-      //Exactly one node found - attempt to get a node info for it
-      lNodeInfo = mNodeInfoProvider.getNodeInfo(pNodesToBind.get(0));
-    }
-    else if(pParam.getBindDirection().isOutBind() || pNodesToBind.size() == 0) {
-      //If this is an out bind there might not be a target node yet - work out what the absoulte path WOULD be and use that to get the node info
-      //Likewise an in bind might be null but we still need to know what node info it WOULD have had for consistency when the query is run with an actual bind value
-
-      String lTargetNodeAbsolutePath;
-      try {
-        lTargetNodeAbsolutePath = mContextUElem.getAbsolutePathForCreateableXPath(mRelativeNode, pParam.getRelativeXPath());
-      }
-      catch (ExActionFailed | ExCardinality | ExDOMName e) {
-        //Ignore errors here; they can be dealth with by the deliverer if they're actually a problem
-        lTargetNodeAbsolutePath = null;
-      }
-
-      //A path could be determined - look up the NodeInfo
-      if(lTargetNodeAbsolutePath != null) {
-        lNodeInfo = mNodeInfoProvider.getNodeInfo(lTargetNodeAbsolutePath);
-      }
-    }
-
-    //Get the bind type for this parameter
-    BindSQLType lParamBindSQLType = pParam.getBindSQLType(lNodeInfo);
+    BindSQLType lParamBindSQLType = getBindSQLTypeForDOMBind(pNodesToBind, pParam);
 
     if(pParam.getBindDirection() == BindDirection.OUT) {
       //If this is outbound only, we don't need to bind an object in
@@ -186,6 +168,36 @@ implements TemplateVariableObjectProvider {
           throw new ExInternal("Failed to process bind '" + pBindName + "' in statement " +  mStatementQualifiedName + ": cannot bind to SQL Type " + lParamBindSQLType);
       }
     }
+  }
+
+  private BindSQLType getBindSQLTypeForDOMBind(DOMList pNodesToBind, InterfaceParameter pParamDefinition) {
+    //Attempt to get a nodeinfo if we're binding a single node - this might be used to determine the bind sql type if the developer didn't declare it in the query definition
+    NodeInfo lNodeInfo = null;
+    if(pNodesToBind.size() == 1) {
+      //Exactly one node found - attempt to get a node info for it
+      lNodeInfo = mNodeInfoProvider.getNodeInfo(pNodesToBind.get(0));
+    }
+    else if(pParamDefinition.getBindDirection().isOutBind() || pNodesToBind.size() == 0) {
+      //If this is an out bind there might not be a target node yet - work out what the absoulte path WOULD be and use that to get the node info
+      //Likewise an in bind might be null but we still need to know what node info it WOULD have had for consistency when the query is run with an actual bind value
+
+      String lTargetNodeAbsolutePath;
+      try {
+        lTargetNodeAbsolutePath = mContextUElem.getAbsolutePathForCreateableXPath(mRelativeNode, pParamDefinition.getRelativeXPath());
+      }
+      catch (ExActionFailed | ExCardinality | ExDOMName e) {
+        //Ignore errors here; they can be dealth with by the deliverer if they're actually a problem
+        lTargetNodeAbsolutePath = null;
+      }
+
+      //A path could be determined - look up the NodeInfo
+      if(lTargetNodeAbsolutePath != null) {
+        lNodeInfo = mNodeInfoProvider.getNodeInfo(lTargetNodeAbsolutePath);
+      }
+    }
+
+    //Get the bind type for this parameter
+    return pParamDefinition.getBindSQLType(lNodeInfo);
   }
 
   /**

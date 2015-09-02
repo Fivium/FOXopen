@@ -22,6 +22,7 @@ public class InterfaceStatementTemplateTest {
 
   private final DOM mTestDOM = DOM.createDocumentFromXMLString("<ROOT>\n" +
                                                                "  <STRING>string_bind</STRING>\n" +
+                                                               "  <WHITESPACE_STRING> </WHITESPACE_STRING>\n" +
                                                                "  <ESCAPED_CHARACTER_STRING>&quot;double quotes&quot; &apos;single quotes&apos; &amp; &lt; &gt; -</ESCAPED_CHARACTER_STRING>\n" +
                                                                "  <DATE>2015-01-01</DATE>\n" +
                                                                "  <EMPTY_NODE/>\n" +
@@ -58,24 +59,35 @@ public class InterfaceStatementTemplateTest {
     private final Map<String, InterfaceParameter> mParams = new HashMap<>();
 
     private ParamProvider() {
-      mParams.put("string", TemplateVariableInterfaceParameter.create("string", "./STRING"));
-      mParams.put("escaped_character_string", TemplateVariableInterfaceParameter.create("escaped_character_string", "./ESCAPED_CHARACTER_STRING"));
-      mParams.put("date_string", TemplateVariableInterfaceParameter.create("date_string", "./DATE"));
-      mParams.put("empty_node", TemplateVariableInterfaceParameter.create("empty_node", "./EMPTY_NODE"));
-      mParams.put("missing_node", TemplateVariableInterfaceParameter.create("missing_node", "./NOT_A_NODE"));
-      mParams.put("string_list", TemplateVariableInterfaceParameter.create("string_list", "./STRING_LIST/STRING"));
-      mParams.put("empty_string_list", TemplateVariableInterfaceParameter.create("empty_string_list", "./EMPTY_STRING_LIST/EMPTY_STRING"));
-      mParams.put("partial_empty_string_list", TemplateVariableInterfaceParameter.create("partial_empty_string_list", "./PARTIAL_EMPTY_STRING_LIST/*"));
-      mParams.put("xpath_string_list", TemplateVariableInterfaceParameter.create("string_list", "./STRING_LIST/STRING[2] | ./EMPTY_STRING_LIST/*"));
-      mParams.put("list_container", TemplateVariableInterfaceParameter.create("list_container", "./STRING_LIST"));
+      mParams.put("string", TemplateVariableInterfaceParameter.create("string", "./STRING", DOMDataType.STRING));
+      mParams.put("escaped_character_string", TemplateVariableInterfaceParameter.create("escaped_character_string", "./ESCAPED_CHARACTER_STRING", DOMDataType.STRING));
+      mParams.put("date_string", TemplateVariableInterfaceParameter.create("date_string", "./DATE", DOMDataType.STRING));
+      mParams.put("empty_node", TemplateVariableInterfaceParameter.create("empty_node", "./EMPTY_NODE", DOMDataType.STRING));
+      mParams.put("missing_node", TemplateVariableInterfaceParameter.create("missing_node", "./NOT_A_NODE", DOMDataType.STRING));
+      mParams.put("string_list", TemplateVariableInterfaceParameter.create("string_list", "./STRING_LIST/STRING", DOMDataType.STRING));
+      mParams.put("empty_string_list", TemplateVariableInterfaceParameter.create("empty_string_list", "./EMPTY_STRING_LIST/EMPTY_STRING", DOMDataType.STRING));
+      mParams.put("partial_empty_string_list", TemplateVariableInterfaceParameter.create("partial_empty_string_list", "./PARTIAL_EMPTY_STRING_LIST/*", DOMDataType.STRING));
+      mParams.put("xpath_string_list", TemplateVariableInterfaceParameter.create("string_list", "./STRING_LIST/STRING[2] | ./EMPTY_STRING_LIST/*", DOMDataType.STRING));
+      mParams.put("list_container", TemplateVariableInterfaceParameter.create("list_container", "./STRING_LIST", DOMDataType.STRING));
 
-      mParams.put("xpath_string", TemplateVariableInterfaceParameter.create("xpath_string", "'xpath_' || 'string'"));
-      mParams.put("boolean_true", TemplateVariableInterfaceParameter.create("boolean_true", "true()"));
-      mParams.put("boolean_false", TemplateVariableInterfaceParameter.create("boolean_false", "false()"));
-      mParams.put("boolean_true_list", TemplateVariableInterfaceParameter.create("boolean_true_list", "(true(), true(), true())"));
-      mParams.put("number_1", TemplateVariableInterfaceParameter.create("number_1", "1"));
-      mParams.put("integer_1", TemplateVariableInterfaceParameter.create("integer_1", "xs:integer(1)"));
-      mParams.put("date", TemplateVariableInterfaceParameter.create("date", "xs:date('2015-02-02')"));
+      mParams.put("xpath_string", TemplateVariableInterfaceParameter.create("xpath_string", "'xpath_' || 'string'", DOMDataType.STRING));
+      mParams.put("boolean_true", TemplateVariableInterfaceParameter.create("boolean_true", "true()", DOMDataType.STRING));
+      mParams.put("boolean_false", TemplateVariableInterfaceParameter.create("boolean_false", "false()", DOMDataType.STRING));
+      mParams.put("boolean_true_list", TemplateVariableInterfaceParameter.create("boolean_true_list", "(true(), true(), true())", DOMDataType.STRING));
+      mParams.put("number_1", TemplateVariableInterfaceParameter.create("number_1", "1", DOMDataType.STRING));
+      mParams.put("integer_1", TemplateVariableInterfaceParameter.create("integer_1", "xs:integer(1)", DOMDataType.STRING));
+      mParams.put("date", TemplateVariableInterfaceParameter.create("date", "xs:date('2015-02-02')", DOMDataType.STRING));
+
+      mParams.put("dom_string_element", TemplateVariableInterfaceParameter.create("dom_string_element", "./STRING", DOMDataType.DOM));
+      mParams.put("dom_text_node", TemplateVariableInterfaceParameter.create("dom_text_node", "./STRING/text()", DOMDataType.DOM));
+      mParams.put("dom_whitespace_text_node", TemplateVariableInterfaceParameter.create("dom_whitespace_text_node", "./WHITESPACE_STRING/text()", DOMDataType.DOM));
+      mParams.put("dom_empty_element", TemplateVariableInterfaceParameter.create("dom_empty_element", "./EMPTY_NODE", DOMDataType.DOM));
+      mParams.put("dom_list_container", TemplateVariableInterfaceParameter.create("dom_list_container", "./STRING_LIST", DOMDataType.DOM));
+      mParams.put("dom_string_list", TemplateVariableInterfaceParameter.create("dom_string_list", "./STRING_LIST/STRING", DOMDataType.DOM));
+      mParams.put("dom_missing_node", TemplateVariableInterfaceParameter.create("dom_missing_node", "./NOT_A_NODE", DOMDataType.DOM));
+      mParams.put("dom_string_value", TemplateVariableInterfaceParameter.create("dom_string_value", "'xpath_' || 'string'", DOMDataType.DOM));
+      mParams.put("dom_boolean_value_true", TemplateVariableInterfaceParameter.create("dom_boolean_value_true",  "true()", DOMDataType.DOM));
+      mParams.put("dom_boolean_value_false", TemplateVariableInterfaceParameter.create("dom_boolean_value_false",  "false()", DOMDataType.DOM));
     }
 
     @Override
@@ -161,6 +173,45 @@ public class InterfaceStatementTemplateTest {
   }
 
   @Test
+  public void testXPathResultHandling_DOMBinds()
+  throws ExParser, ExActionFailed {
+
+    //Tests where the bind type = "DOM" instead of "string" - nodes should be converted to true/false boolean values
+
+    String lStatement = getParsedStatement("SELECT {{#dom_string_element}}{{dom_string_element}}{{/dom_string_element}} FROM table");
+    assertEquals("String element variable in parsed statement converted correctly when bound as DOM", "SELECT true FROM table", lStatement);
+
+    lStatement = getParsedStatement("SELECT {{#dom_text_node}}{{dom_text_node}}{{/dom_text_node}} FROM table");
+    assertEquals("Text node variable in parsed statement converted correctly when bound as DOM", "SELECT true FROM table", lStatement);
+
+    lStatement = getParsedStatement("SELECT {{#dom_whitespace_text_node}}{{dom_whitespace_text_node}}{{/dom_whitespace_text_node}} FROM table");
+    assertEquals("All-whitespace text node variable in parsed statement converted correctly when bound as DOM", "SELECT true FROM table", lStatement);
+
+    lStatement = getParsedStatement("SELECT {{#dom_empty_element}}{{dom_empty_element}}{{/dom_empty_element}} FROM table");
+    assertEquals("Empty element variable in parsed statement converted correctly when bound as DOM", "SELECT true FROM table", lStatement);
+
+    lStatement = getParsedStatement("SELECT {{#dom_list_container}}{{dom_list_container}}{{/dom_list_container}} FROM table");
+    assertEquals("List container variable in parsed statement converted correctly when bound as DOM", "SELECT true FROM table", lStatement);
+
+    lStatement = getParsedStatement("SELECT {{#dom_string_list}}{{dom_string_list}}{{/dom_string_list}} FROM table");
+    assertEquals("String list variable in parsed statement converted correctly when bound as DOM", "SELECT true FROM table", lStatement);
+
+    lStatement = getParsedStatement("SELECT {{#dom_missing_node}}{{dom_missing_node}}{{/dom_missing_node}} FROM table");
+    assertEquals("Missing node variable in parsed statement converted correctly when bound as DOM", "SELECT  FROM table", lStatement);
+
+    lStatement = getParsedStatement("SELECT {{#dom_string_value}}{{dom_string_value}}{{/dom_string_value}} FROM table");
+    assertEquals("XPath string variable in parsed statement converted correctly when bound as DOM", "SELECT xpath_string FROM table", lStatement);
+
+    lStatement = getParsedStatement("SELECT {{#dom_boolean_value_true}}{{dom_boolean_value_true}}{{/dom_boolean_value_true}} FROM table");
+    assertEquals("XPath boolean true variable in parsed statement converted correctly when bound as DOM", "SELECT true FROM table", lStatement);
+
+    lStatement = getParsedStatement("SELECT {{#dom_boolean_value_false}}{{dom_boolean_value_false}}{{/dom_boolean_value_false}} FROM table");
+    assertEquals("XPath boolean false variable in parsed statement converted correctly when bound as DOM", "SELECT  FROM table", lStatement);
+
+  }
+
+
+  @Test
   public void testCharacterEscaping()
   throws ExParser, ExActionFailed {
 
@@ -203,8 +254,11 @@ public class InterfaceStatementTemplateTest {
     getParsedStatement("SELECT {{string FROM table");
   }
 
+  /**
+   * Tests that Mustache can report names of variables used within a template.
+   */
   @Test
-  public void testTemplateVariableNames()
+  public void testMustacheTemplateVariableNames()
   throws ExParser, ExActionFailed {
     ParsedStatement lParsedStatement = StatementParser.parse("SELECT {{value}} FROM table {{#conditional}}WHERE 1=0{{/conditional}} {{^negated_conditional}}AND 1=1{{/negated_conditional}}", "Test", true, true);
     Collection<String> lTemplateVariableNames = lParsedStatement.getAllTemplateVariableNames();

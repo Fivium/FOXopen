@@ -12,20 +12,23 @@ implements InterfaceParameter {
 
   private final String mParamName;
   private final String mRelativeXPath;
+  private final DOMDataType mDOMDataType;
 
-  private TemplateVariableInterfaceParameter(String pParamName, String pRelativeXPath) {
+  private TemplateVariableInterfaceParameter(String pParamName, String pRelativeXPath, DOMDataType pDOMDataType) {
     mParamName = pParamName;
     mRelativeXPath = pRelativeXPath;
+    mDOMDataType = pDOMDataType;
   }
 
   /**
    * Creates a new TemplateVariableInterfaceParameter for the given parameter name.
    * @param pParamName Bind variable name.
    * @param pRelativeXPath XPath to be used to resolve the variable.
+   * @param pDOMDataType
    * @return New TemplateVariableInterfaceParameter.
    */
-  static InterfaceParameter create(String pParamName, String pRelativeXPath) {
-    return new TemplateVariableInterfaceParameter(pParamName, pRelativeXPath);
+  static InterfaceParameter create(String pParamName, String pRelativeXPath, DOMDataType pDOMDataType) {
+    return new TemplateVariableInterfaceParameter(pParamName, pRelativeXPath, pDOMDataType);
   }
 
   @Override
@@ -35,12 +38,24 @@ implements InterfaceParameter {
 
   @Override
   public BindSQLType getBindSQLType(NodeInfo pOptionalNodeInfo) {
-    return BindSQLType.STRING;
+
+    if(mDOMDataType != null) {
+      //User explicitly declared a data DOM type, use that to determine the SQL type
+      return InterfaceParameter.getBindSQLTypeForDOMDataType(mDOMDataType);
+    }
+    else if (pOptionalNodeInfo != null && !pOptionalNodeInfo.getIsItem()) {
+      //Not an item (a collection or list - default to DOM)
+      return BindSQLType.XML;
+    }
+    else {
+      //In all other cases treat the template variable as a string
+      return BindSQLType.STRING;
+    }
   }
 
   @Override
   public DOMDataType getDOMDataType() {
-    return null;
+    return mDOMDataType;
   }
 
   @Override

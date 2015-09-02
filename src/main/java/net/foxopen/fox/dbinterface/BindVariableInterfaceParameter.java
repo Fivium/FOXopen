@@ -35,7 +35,6 @@ package net.foxopen.fox.dbinterface;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.database.sql.bind.BindDirection;
 import net.foxopen.fox.database.sql.bind.BindSQLType;
-import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.module.datanode.NodeInfo;
 
@@ -83,7 +82,7 @@ implements InterfaceParameter {
 
   private final boolean mPurgeDOMContents;
 
-  static InterfaceParameter create(String pParamName, String pSqlDataType, String pDOMDataType, String pBindDirection, String pRelativeXPath, String pDOMMergeMode, BindDirection pDefaultDirection)
+  static InterfaceParameter create(String pParamName, String pSqlDataType, DOMDataType pDOMDataType, String pBindDirection, String pRelativeXPath, String pDOMMergeMode, BindDirection pDefaultDirection)
   throws ExModule {
 
     //Validate pParamName
@@ -98,16 +97,6 @@ implements InterfaceParameter {
       //Check external string was specified correctly
       if (lBindSqlType == null) {
         throw new ExModule("Unknown SQL data type '" + pSqlDataType + "'");
-      }
-    }
-
-    //If a DOM type was specified, look it up in the map (otherwise keep it null and let the binding process work it out later)
-    DOMDataType lBindDOMType = null;
-    if (!XFUtil.isNull(pDOMDataType)) {
-      lBindDOMType = DOMDataType.fromExternalString(pDOMDataType);
-      //Check external string was specified correctly
-      if (lBindDOMType == null) {
-        throw new ExModule("Unknown DOM data type '" + pDOMDataType + "'");
       }
     }
 
@@ -146,7 +135,7 @@ implements InterfaceParameter {
       lPurgeDOMContents = false;
     }
 
-    return new BindVariableInterfaceParameter(pParamName, lBindSqlType, lBindDOMType, lBindDirection, lRelativeXPath, lPurgeDOMContents);
+    return new BindVariableInterfaceParameter(pParamName, lBindSqlType, pDOMDataType, lBindDirection, lRelativeXPath, lPurgeDOMContents);
   }
 
   private BindVariableInterfaceParameter(String pParamName, BindSQLType pSqlDataType, DOMDataType pDOMDataType, BindDirection pBindDirection, String pRelativeXpath, boolean pPurgeDOMContents) {
@@ -156,36 +145,6 @@ implements InterfaceParameter {
     mDOMDataType = pDOMDataType;
     mRelativeXPath = pRelativeXpath;
     mPurgeDOMContents = pPurgeDOMContents;
-  }
-
-  /**
-   * Get default BindSQLType given a FOX datadom-type. Defaults are as follows:
-   * <ul>
-   * <li>STRING/null -> STRING</lI>
-   * <li>DOM -> XML</lI>
-   * <li>DATE/DATETIME -> TIMESTAMP</lI>
-   * </ul>
-   *
-   * @param pDOMDataType The input FOX Datatype
-   */
-  private static BindSQLType getBindSQLTypeForDOMDataType(DOMDataType pDOMDataType) {
-
-    if (pDOMDataType == null) {
-      return BindSQLType.STRING; // If FOX type is null default to String
-    }
-
-    switch(pDOMDataType) {
-      case STRING:
-        return BindSQLType.STRING;
-      case DOM:
-        return BindSQLType.XML;
-      case DATE:
-      case DATETIME:
-      case TIME:
-        return BindSQLType.TIMESTAMP;
-      default:
-        throw new ExInternal("Can't map " + pDOMDataType + " to a BindSQLType");
-    }
   }
 
   @Override
@@ -202,7 +161,7 @@ implements InterfaceParameter {
     }
     else if(mDOMDataType != null) {
       //User explicitly declared a data DOM type, use that to determine the SQL type
-      return getBindSQLTypeForDOMDataType(mDOMDataType);
+      return InterfaceParameter.getBindSQLTypeForDOMDataType(mDOMDataType);
     }
     else {
 
@@ -215,7 +174,7 @@ implements InterfaceParameter {
           //If we have an item node info we can use that to determine the DOMDataType and subsequently the SQL Type.
           //Otherwise rely on the default SQL type (xs:string) by leaving lDOMDataType null
           DOMDataType lDOMDataType = DOMDataType.fromExternalString(pOptionalNodeInfo.getDataType());
-          return getBindSQLTypeForDOMDataType(lDOMDataType);
+          return InterfaceParameter.getBindSQLTypeForDOMDataType(lDOMDataType);
         }
       }
       else {

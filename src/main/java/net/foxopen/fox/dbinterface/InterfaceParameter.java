@@ -2,12 +2,43 @@ package net.foxopen.fox.dbinterface;
 
 import net.foxopen.fox.database.sql.bind.BindDirection;
 import net.foxopen.fox.database.sql.bind.BindSQLType;
+import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.datanode.NodeInfo;
 
 /**
  * Encapsulation of fm:using, fm:template-variable and fm:into definition markup in query and API definitions.
  */
 public interface InterfaceParameter {
+
+  /**
+   * Get default BindSQLType given a FOX datadom-type. Defaults are as follows:
+   * <ul>
+   * <li>STRING/null -> STRING</lI>
+   * <li>DOM -> XML</lI>
+   * <li>DATE/DATETIME -> TIMESTAMP</lI>
+   * </ul>
+   *
+   * @param pDOMDataType The input FOX Datatype
+   */
+  static BindSQLType getBindSQLTypeForDOMDataType(DOMDataType pDOMDataType) {
+
+    if (pDOMDataType == null) {
+      return BindSQLType.STRING; // If FOX type is null default to String
+    }
+
+    switch(pDOMDataType) {
+      case STRING:
+        return BindSQLType.STRING;
+      case DOM:
+        return BindSQLType.XML;
+      case DATE:
+      case DATETIME:
+      case TIME:
+        return BindSQLType.TIMESTAMP;
+      default:
+        throw new ExInternal("Can't map " + pDOMDataType + " to a BindSQLType");
+    }
+  }
 
   /**
    * Return the bind name as a String, excluding the colon prefix.

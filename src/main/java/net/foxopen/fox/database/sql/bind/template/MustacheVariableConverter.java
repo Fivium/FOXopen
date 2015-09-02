@@ -24,31 +24,39 @@ implements TemplateVariableConverter {
    * <ul>
    *   <li>If the result is a sequence, only the first item is used</li>
    *   <li>If the item is a boolean it is returned as is</li>
-   *   <li>If the item is a node, the shallow string value of the node is returned if the trimmed value is not null</li>
+   *   <li>If the item is a node, either the shallow string value of the node is returned (if the trimmed value is not null), or a boolean</li>
    *   <li>For other item types the item's string value is returned</li>
    * </ul>
    * @param pVariableName Name of variable being converted, for debug purposes.
    * @param pXPathResult Result to convert.
+   * @param pIsXMLBind If true, nodes are converted into a boolean representing node existence. Otherwise the node's text value is used as described above.
    * @return An object which can be applied to a Mustache template, or null.
    */
-  public Object convertVariableObject(String pVariableName, XPathResult pXPathResult) {
+  public Object convertVariableObject(String pVariableName, XPathResult pXPathResult, boolean pIsXMLBind) {
 
-    Object pObject = pXPathResult.asObject();
-
-    //For lists only take the first item
-    if(pObject instanceof List) {
-      List lResultObjectAsList = (List) pObject;
-      if (lResultObjectAsList.size() > 1) {
-        Track.alert("MustacheTemplateVariable", "Bind '" + pVariableName + "' resulted in a many-item sequence, taking first item only");
-      }
-      else if (lResultObjectAsList.size() == 0) {
-        return null;
-      }
-
-      return convert(lResultObjectAsList.get(0));
+    if(pIsXMLBind && pXPathResult.isValidDOMList()) {
+      //If we're treating the result as XML and it is a valid DOM list, return true if we have any nodes
+      return pXPathResult.asDOMList().size() > 0;
     }
     else {
-      return convert(pObject);
+      Object pObject = pXPathResult.asObject();
+
+      //For lists only take the first item
+      if (pObject instanceof List) {
+        List lResultObjectAsList = (List) pObject;
+        if (lResultObjectAsList.size() > 1) {
+          Track.alert("MustacheTemplateVariable", "Bind '" + pVariableName + "' resulted in a many-item sequence, taking first item only");
+        }
+        else if (lResultObjectAsList.size() == 0) {
+          return null;
+        }
+
+        return convert(lResultObjectAsList.get(0));
+      }
+      else {
+        return convert(pObject);
+      }
+
     }
   }
 

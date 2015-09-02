@@ -186,7 +186,7 @@ public abstract class InterfaceStatement {
       }
       else {
         String lSqlDataType = lParamDOM.getAttrOrNull("sql-type");
-        String lDOMDataType = lParamDOM.getAttrOrNull("datadom-type");
+        String lDOMDataTypeAttr = lParamDOM.getAttrOrNull("datadom-type");
         String lRelativeXPath = lParamDOM.getAttrOrNull("datadom-location");
         String lDirection = lParamDOM.getAttrOrNull("direction");
         String lDOMMergeMode = lParamDOM.getAttrOrNull("dom-merge-mode");
@@ -197,13 +197,23 @@ public abstract class InterfaceStatement {
           lRelativeXPath = lParamDOM.value();
         }
 
+        //If a DOM type was specified, look it up in the map (otherwise keep it null and let the binding process work it out later)
+        DOMDataType lDOMDataType = null;
+        if (!XFUtil.isNull(lDOMDataTypeAttr)) {
+          lDOMDataType = DOMDataType.fromExternalString(lDOMDataTypeAttr);
+          //Check external string was specified correctly
+          if (lDOMDataType == null) {
+            throw new ExModule("Unknown DOM data type '" + lDOMDataTypeAttr + "' in bind " + lBindName);
+          }
+        }
+
         InterfaceParameter lParam;
         try {
           //Determine type of parameter to create
           if("template-variable".equals(lParamDOM.getLocalName())) {
             //Only create template variable params if this is a templated query
             if(!TEMPLATE_TYPE_NONE.equals(mTemplateType)) {
-              lParam = TemplateVariableInterfaceParameter.create(lBindName, lRelativeXPath);
+              lParam = TemplateVariableInterfaceParameter.create(lBindName, lRelativeXPath, lDOMDataType);
             }
             else {
               throw new ExModule("fm:template-variable binds should only be specified on queries where a template-type is specified");
