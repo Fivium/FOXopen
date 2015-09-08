@@ -851,7 +851,9 @@ public class ValidateCommand
             if (parentNodes.getLength() == 0)
             {
                // create parent nodes as well
-               pErrorCtx.mCurrentAttach.create1E(pNodeToCheck.absolute());
+              //PN removed: legacy code which would have never worked - the node already exists, otherwise we wouldn't be checking it now
+              //This also failed because pErrorCtx.mCurrentAttach is always state attach but we may not be validating on that - so nodes were being created in the wrong document
+               //pErrorCtx.mCurrentAttach.create1E(pNodeToCheck.absolute());
             }
             for (int loop = 0; loop < parentNodes.getLength(); loop++)
             {
