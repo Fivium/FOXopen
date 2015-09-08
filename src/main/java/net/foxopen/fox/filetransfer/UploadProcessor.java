@@ -201,6 +201,9 @@ public class UploadProcessor {
         setUploadStatusAndFireEvent(UploadStatus.SIGNATURE_VERIFY, lUCon, lWorkingSL, lWorkDoc);
         setUploadStatusAndFireEvent(UploadStatus.STORING, lUCon, lWorkingSL, lWorkDoc);
 
+        //Grab a reference to the Blob so we can use it after the WorkDoc is closed
+        Blob lBlobRef = lWorkDoc.getLOB();
+
         Track.pushInfo("WorkDocClose");
         try {
           // Reload evaluated bind variables in the FileWSL to populate the correct metadata (for update statement in close)
@@ -213,8 +216,8 @@ public class UploadProcessor {
           Track.pop("WorkDocClose");
         }
 
-        //Fire completion event
-        setUploadStatusAndFireEvent(UploadStatus.COMPLETE, lUCon, lWorkingSL, lWorkDoc);
+        //Fire completion event - use a 'dummy' WorkDoc to return the Blob reference because the actual WorkDoc has nulled out its reference
+        setUploadStatusAndFireEvent(UploadStatus.COMPLETE, lUCon, lWorkingSL, (pUCon, pBindTypeRequired) -> lBlobRef);
 
         //Write the completed metadata to the DOM and commit
         lUploadedFileInfo = retrieveDOMWriteMetadataAndCommit(pRequestContext, false, lWorkingSL);
