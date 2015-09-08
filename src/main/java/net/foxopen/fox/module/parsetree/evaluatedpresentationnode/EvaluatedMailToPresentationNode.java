@@ -57,7 +57,7 @@ public class EvaluatedMailToPresentationNode extends EvaluatedPresentationNode<P
       }
     }
     catch (ExActionFailed e) {
-      e.toUnexpected();
+      throw e.toUnexpected();
     }
 
     mEmailAddress = lEmailAddress;
