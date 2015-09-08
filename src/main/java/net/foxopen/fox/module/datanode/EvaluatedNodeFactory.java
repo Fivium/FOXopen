@@ -1,7 +1,7 @@
 package net.foxopen.fox.module.datanode;
 
 import net.foxopen.fox.ex.ExInternal;
-import net.foxopen.fox.module.ActionDefinition;
+import net.foxopen.fox.module.ActionIdentifier;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.GenericAttributesEvaluatedPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.GenericAttributesPresentationNode;
 import net.foxopen.fox.track.Track;
@@ -56,14 +56,14 @@ public class EvaluatedNodeFactory {
    * @return
    */
   public static EvaluatedNodeAction createEvaluatedNodeAction(GenericAttributesEvaluatedPresentationNode<? extends GenericAttributesPresentationNode> pEvaluatedPresentationNode,
-                                                              NodeEvaluationContext pNodeEvaluationContext, ActionDefinition pActionDefinition) {
+                                                              NodeEvaluationContext pNodeEvaluationContext, ActionIdentifier pActionIdentifier) {
     NodeVisibility lVisibility = getMaxVisibility(pNodeEvaluationContext, NodeType.ACTION);
 
     if (lVisibility == NodeVisibility.DENIED) {
       return null;
     }
     else {
-      return new EvaluatedNodeAction(pEvaluatedPresentationNode, pNodeEvaluationContext, lVisibility, pActionDefinition);
+      return new EvaluatedNodeAction(pEvaluatedPresentationNode, pNodeEvaluationContext, lVisibility, pActionIdentifier);
     }
   }
 

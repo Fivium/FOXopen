@@ -21,6 +21,7 @@ public class ActionDefinition
 implements Validatable {
 
   private final String mActionName;
+  private final String mStateName;
   private final XDoCommandList mXDoCommandList;
   private final NamespaceAttributeTable mNamespaceAttributes;
   private final AutoActionType mAutoActionType; //Can be null
@@ -33,7 +34,7 @@ implements Validatable {
     return createActionDefinition(pDefinitionElement, pModule, "");
   }
 
-  public static ActionDefinition createActionDefinition(DOM pDefinitionElement, Mod pModule, String pActionPurposePrefix)
+  public static ActionDefinition createActionDefinition(DOM pDefinitionElement, Mod pModule, String pStateName)
   throws ExModule, ExDoSyntax {
 
     String lActionName = pDefinitionElement.getAttr("name");
@@ -42,8 +43,8 @@ implements Validatable {
     }
 
     String lPurpose = lActionName;
-    if(!XFUtil.isNull(pActionPurposePrefix)) {
-      lPurpose  =  pActionPurposePrefix + "/" + lActionName;
+    if(!XFUtil.isNull(pStateName)) {
+      lPurpose  =  pStateName + "/" + lActionName;
     }
 
     DOM lDoElem;
@@ -83,13 +84,14 @@ implements Validatable {
       }
     }
 
-    return new ActionDefinition(lActionName, lXDoCommandList, pDefinitionElement.getNamespaceAttributeTable(), lAutoActionType,
+    return new ActionDefinition(lActionName, pStateName, lXDoCommandList, pDefinitionElement.getNamespaceAttributeTable(), lAutoActionType,
                                 lApplyFlag, Collections.unmodifiableCollection(lInvokePreconditions));
   }
 
-  private ActionDefinition(String pActionName, XDoCommandList pXDoCommandList, NamespaceAttributeTable pNamespaceAttributes, AutoActionType pAutoActionType,
+  private ActionDefinition(String pActionName, String pStateName, XDoCommandList pXDoCommandList, NamespaceAttributeTable pNamespaceAttributes, AutoActionType pAutoActionType,
                            boolean pApplyFlag, Collection<InvokePrecondition> pInvokePreconditions) {
     mActionName = pActionName;
+    mStateName = pStateName;
     mXDoCommandList = pXDoCommandList;
     mNamespaceAttributes = pNamespaceAttributes;
     mAutoActionType = pAutoActionType;
@@ -99,6 +101,16 @@ implements Validatable {
 
   public String getActionName() {
     return mActionName;
+  }
+
+  /**
+   * Creates an ActionIdentifer which can be used to identify and run this ActionDefintion.
+   * @param pIncludeStateName If true, the state name will be included in the identifier. This should be true for actions
+   *                          which are not in the current state.
+   * @return New ActionIdentifier for this action.
+   */
+  public ActionIdentifier createActionIdentifier(boolean pIncludeStateName) {
+    return new ActionIdentifier(pIncludeStateName ? mStateName : null, mActionName);
   }
 
   public XDoCommandList checkPreconditionsAndGetCommandList(ActionRequestContext pRequestContext) {

@@ -3,10 +3,10 @@ package net.foxopen.fox.module.datanode;
 
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.ex.ExInternal;
-import net.foxopen.fox.module.ActionDefinition;
-import net.foxopen.fox.module.fieldset.fieldmgr.FieldMgr;
+import net.foxopen.fox.module.ActionIdentifier;
 import net.foxopen.fox.module.evaluatedattributeresult.FixedStringAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
+import net.foxopen.fox.module.fieldset.fieldmgr.FieldMgr;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.GenericAttributesEvaluatedPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.GenericAttributesPresentationNode;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
@@ -14,13 +14,13 @@ import net.foxopen.fox.module.serialiser.widgets.WidgetType;
 
 
 public class EvaluatedNodeAction extends EvaluatedNode {
-  private final String mActionName;
+  private final ActionIdentifier mActionIdentifier;
   private final FieldMgr mFieldMgr;
 
   public EvaluatedNodeAction(GenericAttributesEvaluatedPresentationNode<? extends GenericAttributesPresentationNode> pEvaluatedPresentationNode,
-                             NodeEvaluationContext pNodeEvaluationContext, NodeVisibility pNodeVisibility, ActionDefinition pActionDefinition) {
+                             NodeEvaluationContext pNodeEvaluationContext, NodeVisibility pNodeVisibility, ActionIdentifier pActionIdentifier) {
     super(null, pEvaluatedPresentationNode, pNodeEvaluationContext, pNodeVisibility);
-    mActionName = pActionDefinition.getActionName();
+    mActionIdentifier = pActionIdentifier;
     mFieldMgr = pNodeEvaluationContext.getEvaluatedParseTree().getFieldSet().createFieldMgr(this);
 
     //ENAs are always visible, so widget must be implicated
@@ -69,12 +69,9 @@ public class EvaluatedNodeAction extends EvaluatedNode {
 
   @Override
   public String getPromptInternal() {
-    if (XFUtil.exists(mActionName)) {
-      int pos = mActionName.indexOf("/");
-      if (pos != -1) {
-        return XFUtil.initCap(mActionName.substring(pos + 1));
-      }
-      return XFUtil.initCap(mActionName);
+    String lActionName = mActionIdentifier.getActionName();
+    if (XFUtil.exists(lActionName)) {
+      return XFUtil.initCap(lActionName);
     }
     return null;
   }
@@ -101,7 +98,7 @@ public class EvaluatedNodeAction extends EvaluatedNode {
 
   @Override
   public String getActionName() {
-    return mActionName;
+    return mActionIdentifier.getIdentifier();
   }
 
   @Override

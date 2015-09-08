@@ -67,7 +67,7 @@ extends EvaluatedNodeInfoItem
       MODE_LOOP: for (String lMode : lPhantomMenuModeList) {
         if (lAction.getNamespaceAttributeTable().containsNamespace(lMode)) {
           NodeEvaluationContext lActionNodeEvaluationContext = NodeEvaluationContext.createNodeInfoEvaluationContext(getEvaluatedParseTree(), getEvaluatedPresentationNode(), getEvaluateContextRuleItem(), getEvaluateContextRuleItem(), lActionContextDOM, lAction.getNamespaceAttributeTable(), null);
-          EvaluatedNodeAction lEvaluatedAction = EvaluatedNodeFactory.createEvaluatedNodeAction(getEvaluatedPresentationNode(), lActionNodeEvaluationContext, lAction);
+          EvaluatedNodeAction lEvaluatedAction = EvaluatedNodeFactory.createEvaluatedNodeAction(getEvaluatedPresentationNode(), lActionNodeEvaluationContext, lAction.createActionIdentifier(false));
           if (lEvaluatedAction != null && (lEvaluatedAction.isRunnable() || lEvaluatedAction.getVisibility() != NodeVisibility.DENIED)) {
             mEvaluatedNodeActionList.add(lEvaluatedAction);
             break MODE_LOOP;

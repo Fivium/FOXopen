@@ -75,7 +75,7 @@ implements MenuOutActionProvider {
       MODE_LOOP: for (String lMode : mNodeEvaluationContext.getModeList()) {
         if (lAction.getNamespaceAttributeTable().containsNamespace(lMode)) {
           NodeEvaluationContext lActionNodeEvaluationContext = NodeEvaluationContext.createNodeInfoEvaluationContext(pEvaluatedParseTree, this, pEvalContext, pEvalContext, lActionContextDOM, lAction.getNamespaceAttributeTable(), null, mNodeEvaluationContext);
-          EvaluatedNodeAction lEvaluatedNodeAction = EvaluatedNodeFactory.createEvaluatedNodeAction(this, lActionNodeEvaluationContext, lAction);
+          EvaluatedNodeAction lEvaluatedNodeAction = EvaluatedNodeFactory.createEvaluatedNodeAction(this, lActionNodeEvaluationContext, lAction.createActionIdentifier(false));
           if (lEvaluatedNodeAction != null && (lEvaluatedNodeAction.isRunnable() || lEvaluatedNodeAction.getVisibility() != NodeVisibility.DENIED)) {
             mEvaluatedNodeActionList.add(lEvaluatedNodeAction);
             break MODE_LOOP;

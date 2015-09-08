@@ -20,13 +20,15 @@ public class EvaluatedActionOutPresentationNode
 extends GenericAttributesEvaluatedPresentationNode<ActionOutPresentationNode> {
   private EvaluatedNodeAction mEvaluatedNodeAction;
 
-  public EvaluatedActionOutPresentationNode(EvaluatedPresentationNode<? extends PresentationNode> pParent, ActionOutPresentationNode pOriginalPresentationNode, EvaluatedParseTree pEvaluatedParseTree, DOM pEvalContext) {
+  public EvaluatedActionOutPresentationNode(EvaluatedPresentationNode<? extends PresentationNode> pParent,
+                                            ActionOutPresentationNode pOriginalPresentationNode, EvaluatedParseTree pEvaluatedParseTree, DOM pEvalContext) {
     super(pParent, pOriginalPresentationNode, pEvalContext);
 
     String lActionName = pOriginalPresentationNode.getActionName();
     ActionDefinition lAction = pEvaluatedParseTree.getState().getActionByName(lActionName);
     if (lAction == null) {
-      throw new ExInternal("The action-out has an invalid action [" + lActionName + "] in the state [" + pEvaluatedParseTree.getState().getName() + "]\n The action can not be found in the state or gobal action-list\n\n");
+      throw new ExInternal("The action-out has an invalid action [" + lActionName + "] in the state [" + pEvaluatedParseTree.getState().getName() + "]\n " +
+                             "The action can not be found in the state or gobal action-list\n\n");
     }
 
     DOM lActionContextDOM = pEvalContext;
@@ -35,17 +37,16 @@ extends GenericAttributesEvaluatedPresentationNode<ActionOutPresentationNode> {
       try {
         lActionContextDOM = pEvaluatedParseTree.getContextUElem().extendedXPath1E(getEvalContext(), lActionContextXPath, false);
       }
-      catch (ExCardinality e) {
-        throw new ExInternal("Invalid action-context XPath in action-out: " + lActionContextXPath);
-      }
-      catch (ExActionFailed e) {
+      catch (ExCardinality | ExActionFailed e) {
         throw new ExInternal("Invalid action-context XPath in action-out: " + lActionContextXPath);
       }
     }
 
     // Get node
-    NodeEvaluationContext lNodeEvaluationContext = NodeEvaluationContext.createNodeInfoEvaluationContext(pEvaluatedParseTree, this, pEvalContext, pEvalContext, lActionContextDOM, lAction.getNamespaceAttributeTable(), null);
-    mEvaluatedNodeAction = EvaluatedNodeFactory.createEvaluatedNodeAction(this, lNodeEvaluationContext, lAction);
+    NodeEvaluationContext lNodeEvaluationContext = NodeEvaluationContext.createNodeInfoEvaluationContext(pEvaluatedParseTree, this, pEvalContext, pEvalContext,
+                                                                                                         lActionContextDOM, lAction.getNamespaceAttributeTable(), null);
+    //Include the state name in the ActionIdentifier if the action-out is targeting an action in a different state
+    mEvaluatedNodeAction = EvaluatedNodeFactory.createEvaluatedNodeAction(this, lNodeEvaluationContext, lAction.createActionIdentifier(lActionName.contains("/")));
   }
 
   @Override
