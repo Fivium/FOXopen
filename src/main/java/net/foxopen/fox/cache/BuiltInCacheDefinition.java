@@ -27,10 +27,13 @@ public enum BuiltInCacheDefinition {
   }),
   STATEFUL_XTHREADS("STATEFUL_XTHREADS", new CacheBuilderFactory() {
     public FoxCacheBuilder createCacheBuilder() throws ExFoxConfiguration {
-      FoxLRUCacheBuilder lCacheBuilder = new FoxLRUCacheBuilder();
+      FoxTTLCacheBuilder lCacheBuilder = new FoxTTLCacheBuilder();
       lCacheBuilder.setPurpose("XThreads");
       lCacheBuilder.setMaxCapacity(300);
       lCacheBuilder.setConcurrencyLevel(5);
+      //Clean up threads after 2 days because that's when they're deleted by the PL/SQL job (by default)
+      //TODO link this timeout to the PL/SQL job timeout
+      lCacheBuilder.setTimeToLiveMs((int) TimeUnit.DAYS.toMillis(2));
       return lCacheBuilder;
     }
   }),
