@@ -310,7 +310,7 @@ implements Deserialiser {
 
     String lFacetType = pFacetType.toString();
 
-    Track.pushInfo("SelectFacets", "Select pagers for module call " + pModuleCallId + ", type " + lFacetType);
+    Track.pushInfo("SelectFacets", "Select facets for module call " + pModuleCallId + ", type " + lFacetType);
     try {
       Kryo lKryo = KryoManager.getKryoInstance();
 
