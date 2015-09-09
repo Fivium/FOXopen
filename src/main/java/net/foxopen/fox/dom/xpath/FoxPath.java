@@ -52,8 +52,9 @@ public interface FoxPath {
   public XPathResult execute(DOM pContextNode, ContextUElem pContextUElem, FoxXPathResultType pResultType, XPathWrapper pXPathWrapper);
 
   /**
-   * Get the original path used to construct this FoxPath, as specified by the application developer.
-   * @return The original path String.
+   * Get the original path used to construct this FoxPath, as specified by the application developer. This may contain
+   * additional debug information and is not guaranteed to be a valid path.
+   * @return The original path String, for debug and error reporting.
    */
   public String getOriginalPath();
 

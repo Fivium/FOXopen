@@ -118,23 +118,23 @@ public class FoxXPathEvaluator {
 
   /**
    * Gets a FoxPath from the cache, or compiles one if it is not cached.
-   * @param pPath The Path String.
+   * @param pPathString The Path String.
    * @param pOptionalContextNode The Context node of the path expression. Used for determining if namespace aware processing
    * is required. Can be null.
    * @return The compiled or cached FoxPath.
    * @throws ExBadPath If the path String is invalid.
    */
-  public FoxPath getOrCompilePath(String pPath, DOM pOptionalContextNode)
+  public FoxPath getOrCompilePath(String pPathString, DOM pOptionalContextNode)
   throws ExBadPath {
 
-    if(pPath == null){
-      throw new ExInternal("pPath cannot be null.");
+    if(pPathString == null){
+      throw new ExInternal("pPathString cannot be null.");
     }
 
-    pPath = pPath.trim();
+    pPathString = pPathString.trim();
 
-    if(pPath.length() == 0){
-      throw new ExBadPath("pPath cannot be empty or all whitespace.");
+    if(pPathString.length() == 0){
+      throw new ExBadPath("pPathString cannot be empty or all whitespace.");
     }
 
     //PN TODO benchmark performance of caching Simple Paths, or looking up in cache before doing constant/simple path check
@@ -142,35 +142,42 @@ public class FoxXPathEvaluator {
     FoxPath lPath;
 
     //First, see if this is a constant value (i.e. a number) - this method will return null if not
-    lPath = FoxConstantPath.getFoxConstantPathOrNull(pPath);
+    lPath = FoxConstantPath.getFoxConstantPathOrNull(pPathString);
     if(lPath != null){
       return lPath;
     }
 
+    XPathDefinition lXPathDefinition;
+
     //Do a quick check for stored XPath references which should be translated if any are found
-    if(StoredXPathTranslator.instance().containsStoredXPathReference(pPath)) {
-      pPath = StoredXPathTranslator.instance().translateXPathReferences(pPath);
+    if(StoredXPathTranslator.instance().containsStoredXPathReference(pPathString)) {
+      //Replace original XPathDefinition with translation result
+      lXPathDefinition = StoredXPathTranslator.instance().translateXPathReferences(pPathString);
+    }
+    else {
+      lXPathDefinition = XPathDefinition.forUnmodifiedXPath(pPathString);
     }
 
     //Now, try this as a simple path - this method will return null if it's not simple
-    lPath = FoxSimplePath.getFoxSimplePathOrNull(pPath);
+    lPath = FoxSimplePath.getFoxSimplePathOrNull(lXPathDefinition);
     if(lPath != null){
       return lPath;
     }
 
     //Finally, must be a full XPath - look in the cache first
-    lPath = (FoxPath) CacheManager.getCache(BuiltInCacheDefinition.FOX_XPATH_EVALUATORS).get(pPath);
+    //Note: XPathDefinition is used as a cache key to avoid clashes in the case that different combinations of template variables result in the same XPath
+    lPath = (FoxPath) CacheManager.getCache(BuiltInCacheDefinition.FOX_XPATH_EVALUATORS).get(lXPathDefinition);
     if (lPath == null){
       //Not a constant or simple path so invoke full Saxon XPath processing.
       //If the Context Document is namespace aware, we need to use a special XPath constructor to resolve the namespaces
       if(pOptionalContextNode != null && pOptionalContextNode.getDocControl().isNamespaceAware()){
-        lPath = new FoxXPath(pPath, mUseXPathBackwardsCompatibility, new DynamicNamespaceContext(pOptionalContextNode.getRootElement()));
+        lPath = new FoxXPath(lXPathDefinition, mUseXPathBackwardsCompatibility, new DynamicNamespaceContext(pOptionalContextNode.getRootElement()));
       }
       else {
         //The majority of XPaths will use the standard namespace resolver
-        lPath = new FoxXPath(pPath, mUseXPathBackwardsCompatibility, null);
+        lPath = new FoxXPath(lXPathDefinition, mUseXPathBackwardsCompatibility, null);
         //Cache the compiled XPath for future executions (only cache non-namespace aware XPaths to avoid potential namespace conflicts)
-        CacheManager.getCache(BuiltInCacheDefinition.FOX_XPATH_EVALUATORS).put(pPath, (FoxXPath) lPath);
+        CacheManager.getCache(BuiltInCacheDefinition.FOX_XPATH_EVALUATORS).put(lXPathDefinition, lPath);
       }
     }
 
@@ -199,7 +206,7 @@ public class FoxXPathEvaluator {
 
     //Shortcut self-expression to save time
     if(".".equals(pXPath)){
-      return new XPathResult(pContextNode, FoxSimplePath.getFoxSimplePathOrNull("."));
+      return new XPathResult(pContextNode, FoxSimplePath.getFoxSimplePathOrNull(XPathDefinition.forUnmodifiedXPath(".")));
     }
 
     FoxPath lXPath = getOrCompilePath(pXPath, pContextNode);

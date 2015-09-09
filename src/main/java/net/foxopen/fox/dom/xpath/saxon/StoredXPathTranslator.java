@@ -1,6 +1,7 @@
 package net.foxopen.fox.dom.xpath.saxon;
 
 import net.foxopen.fox.XFUtil;
+import net.foxopen.fox.dom.xpath.XPathDefinition;
 import net.foxopen.fox.ex.ExInternal;
 
 import java.util.Collection;
@@ -49,10 +50,10 @@ public class StoredXPathTranslator {
    * SaxonEnvironment ThreadLocalRequestContext to provide a StoredXPathResolver.
    *
    * @param pXPath XPath potentially containing references to translate.
-   * @return Given XPath with any stored XPath references translated.
+   * @return XPathDefinition containing the translated XPath and the original path string used to construct it.
    */
-  public String translateXPathReferences(String pXPath) {
-    return translateXPathReferences(SaxonEnvironment.getThreadLocalRequestContext().getStoredXPathResolver(), pXPath);
+  public XPathDefinition translateXPathReferences(String pXPath) {
+    return XPathDefinition.forRewrittenXPath(pXPath, translateXPathReferences(SaxonEnvironment.getThreadLocalRequestContext().getStoredXPathResolver(), pXPath));
   }
 
   /**

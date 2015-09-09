@@ -45,6 +45,7 @@ import net.foxopen.fox.dom.xpath.FoxXPath;
 import net.foxopen.fox.dom.xpath.FoxXPathEvaluator;
 import net.foxopen.fox.dom.xpath.FoxXPathEvaluatorFactory;
 import net.foxopen.fox.dom.xpath.FoxXPathResultType;
+import net.foxopen.fox.dom.xpath.XPathDefinition;
 import net.foxopen.fox.dom.xpath.XPathResult;
 import net.foxopen.fox.dom.xpath.saxon.SaxonEnvironment;
 import net.foxopen.fox.ex.ExActionFailed;
@@ -380,19 +381,19 @@ public class ContextUElemTest {
   @Test
   public void testSimpleXPathRewriting(){
     String lString;
-    lString = FoxSimplePath.getFoxSimplePathOrNull(":{root}/ELEMENT/ELEMENT").getProcessedPath();
+    lString = FoxSimplePath.getFoxSimplePathOrNull(XPathDefinition.forUnmodifiedXPath(":{root}/ELEMENT/ELEMENT")).getProcessedPath();
     assertEquals("Simple path which starts with context is rewritten", "./ELEMENT/ELEMENT", lString);
 
-    lString = FoxSimplePath.getFoxSimplePathOrNull("string(:{root}/ELEMENT/ELEMENT)").getProcessedPath();
+    lString = FoxSimplePath.getFoxSimplePathOrNull(XPathDefinition.forUnmodifiedXPath("string(:{root}/ELEMENT/ELEMENT)")).getProcessedPath();
     assertEquals("Simple path which starts with context is rewritten when nested in string function", "./ELEMENT/ELEMENT", lString);
 
-    lString = FoxSimplePath.getFoxSimplePathOrNull(":{root}/ELEMENT/ELEMENT/text()").getProcessedPath();
+    lString = FoxSimplePath.getFoxSimplePathOrNull(XPathDefinition.forUnmodifiedXPath(":{root}/ELEMENT/ELEMENT/text()")).getProcessedPath();
     assertEquals("Simple path which starts with context is rewritten when text node is requested", "./ELEMENT/ELEMENT", lString);
 
-    assertEquals("Non-simple path is not rewritten", null, FoxSimplePath.getFoxSimplePathOrNull(":{root}/ELEMENT/ELEMENT//text()"));
-    assertEquals("Non-simple path is not rewritten", null, FoxSimplePath.getFoxSimplePathOrNull(":{root}/ELEMENT/ELEMENT[attr = :{theme}/X2]"));
+    assertEquals("Non-simple path is not rewritten", null, FoxSimplePath.getFoxSimplePathOrNull(XPathDefinition.forUnmodifiedXPath(":{root}/ELEMENT/ELEMENT//text()")));
+    assertEquals("Non-simple path is not rewritten", null, FoxSimplePath.getFoxSimplePathOrNull(XPathDefinition.forUnmodifiedXPath(":{root}/ELEMENT/ELEMENT[attr = :{theme}/X2]")));
 
-    assertEquals("Invalid path with multiple contexts is not rewritten", null, FoxSimplePath.getFoxSimplePathOrNull(":{root}/ELEMENT/ELEMENT/:{theme}/X2"));
+    assertEquals("Invalid path with multiple contexts is not rewritten", null, FoxSimplePath.getFoxSimplePathOrNull(XPathDefinition.forUnmodifiedXPath(":{root}/ELEMENT/ELEMENT/:{theme}/X2")));
   }
 
   @Test

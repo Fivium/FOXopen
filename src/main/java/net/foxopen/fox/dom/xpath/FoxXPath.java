@@ -61,10 +61,10 @@ public class FoxXPath
 implements FoxPath {
 
   /**
-   * The 'external' (i.e. FOX developer) representation of the XPath.
-   * I.e. :{theme}/ELEMENT_NAME[@X = :{root}/ELEMENT_2]
+   * The 'external' (i.e. FOX developer) representation of the XPath, i.e. :{theme}/ELEMENT_NAME[@X = :{root}/ELEMENT_2]
+   * This may have originally contained stored XPath markup so the XPathDefinition is used to report the original path to the user
    */
-  private final String mExternalXPathString;
+  private final XPathDefinition mXPathDefinition;
 
   /**
    * The internally rewritten XPath to be executed by Saxon.
@@ -109,18 +109,18 @@ implements FoxPath {
 
   /**
    * Constuct a new FoxXPath for the given XPath string.
-   * @param pExternalXPathString A Fox-compliant XPath string, possibly containing :{contexts} and/or custom FOX functions.
+   * @param pXPathDefinition XPath definition containing a FOX-compliant executable XPath string, possibly containing :{contexts} and/or custom FOX functions.
    * @param pUseXPathBackwardsCompatibility If true, switches XPath 1.0 backwards compatibility mode on.
    * @param pNamespaceMap Optional map for namespace-aware XPath processing.
    * @throws ExBadPath If the XPath cannot be compiled for any reason.
    */
-  FoxXPath(String pExternalXPathString, boolean pUseXPathBackwardsCompatibility, DynamicNamespaceContext pNamespaceMap)
+  FoxXPath(XPathDefinition pXPathDefinition, boolean pUseXPathBackwardsCompatibility, DynamicNamespaceContext pNamespaceMap)
   throws ExBadPath {
 
     long lStartTime = System.currentTimeMillis();
-    mExternalXPathString = pExternalXPathString;
+    mXPathDefinition = pXPathDefinition;
     mLabelSet = new LinkedHashSet<>();
-    mInternalXPathString = SaxonEnvironment.replaceFoxMarkup(mExternalXPathString, mLabelSet);
+    mInternalXPathString = SaxonEnvironment.replaceFoxMarkup(pXPathDefinition.getExecutableXPath(), mLabelSet);
 
     //If there are no labels, clear away the set object as it's no longer needed
     if(mLabelSet.size() == 0){
@@ -134,8 +134,8 @@ implements FoxPath {
       mXPathExpression = lXPathEvaluator.compile(mInternalXPathString);
     }
     catch (XPathExpressionException e) {
-      throw new ExBadPath("Bad XPath for original extended XPath: '" + mExternalXPathString +  "'. " +
-        (mExternalXPathString.equals(mInternalXPathString) ? "\nThe expression was not rewritten" : "\nNote: the expression was internally rewritten to: '" + mInternalXPathString + "'"), e);
+      throw new ExBadPath("Bad XPath for original extended XPath: '" + mXPathDefinition.getPathForDebug() +  "'. " +
+        (mXPathDefinition.getExecutableXPath().equals(mInternalXPathString) ? "" : "\nNote: FOX markup in the XPath was rewritten to: '" + mInternalXPathString + "'"), e);
     }
 
     //Establish dependencies - Saxon gives us a bitmap which we AND against the relevant constants
@@ -174,8 +174,8 @@ implements FoxPath {
 
     }
     catch (Throwable th) {
-      throw new ExPathInternal("Error evaluating extended XPath: '" + mExternalXPathString +  "'. " +
-       (mExternalXPathString.equals(mInternalXPathString) ? "\nThe expression was not rewritten" : "\nNote: the expression was internally rewritten to: '" + mInternalXPathString + "'"), th);
+      throw new ExPathInternal("Error evaluating extended XPath: '" + mXPathDefinition.getPathForDebug() +  "'. " +
+       (mXPathDefinition.getExecutableXPath().equals(mInternalXPathString) ? "" : "\nNote: FOX markup in the XPath was rewritten to: '" + mInternalXPathString + "'"), th);
     }
     finally {
       if(pContextUElem != null){
@@ -189,7 +189,7 @@ implements FoxPath {
    * Returns the original XPath string used for this XPath expression.
    */
   public String getOriginalPath() {
-    return mExternalXPathString;
+    return mXPathDefinition.getPathForDebug();
   }
 
   /**

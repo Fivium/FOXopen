@@ -23,7 +23,7 @@ implements StatusProvider {
     lTable.setRowProvider(new StatusTable.RowProvider() {
       @Override
       public void generateRows(StatusTable.RowDestination pRowDestination) {
-        FoxCache<String, FoxXPath> lSortedFoxList = CacheManager.getCache(BuiltInCacheDefinition.FOX_XPATH_EVALUATORS);
+        FoxCache<XPathDefinition, FoxXPath> lSortedFoxList = CacheManager.getCache(BuiltInCacheDefinition.FOX_XPATH_EVALUATORS);
         List<FoxXPath> lSortedList = new ArrayList<FoxXPath>(lSortedFoxList.values());
 
         //TODO restore ordering functionality
@@ -56,7 +56,7 @@ implements StatusProvider {
 
         for(FoxXPath lXPath : lSortedList) {
           pRowDestination.addRow()
-            .setColumn(lXPath.getOriginalPath())
+            .setColumn(lXPath.getProcessedPath())
             .setColumn(Long.toString(lXPath.getCompileTime()))
             .setColumn(Integer.toString(lXPath.getUsageCount()))
             .setColumn(Double.toString(lXPath.getUsageCount() > 0 ? lXPath.getCumulativExecTimeMS() / lXPath.getUsageCount() : 0))

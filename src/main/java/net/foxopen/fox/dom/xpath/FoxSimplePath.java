@@ -72,7 +72,7 @@ import java.util.regex.Pattern;
 public class FoxSimplePath
 implements FoxPath {
 
-  private final String mOriginalPathString;
+  private final XPathDefinition mXPathDefinition;
   private final String mProcessedPathString;
   private final boolean mIsStringExpression;
   private final boolean mIsTextNodeExpression;
@@ -194,12 +194,12 @@ implements FoxPath {
    * </ol>
    * If the path is a supported simple path, this method returns a path object representing it.
    * Otherwise it returns null.
-   * @param pPathString The path to process.
+   * @param pXPathDefinition The path to process.
    * @return A new FoxSimplePath object if the path string is compatible, or null.
    */
-  public static FoxSimplePath getFoxSimplePathOrNull(String pPathString){
+  public static FoxSimplePath getFoxSimplePathOrNull(XPathDefinition pXPathDefinition){
 
-    String lSimplePath = pPathString.trim();
+    String lSimplePath = pXPathDefinition.getExecutableXPath().trim();
     boolean lStringExpression = false;
     boolean lTextNodeExpression = false;
 
@@ -229,7 +229,7 @@ implements FoxPath {
     }
 
     if(isSimplePathInternal(lSimplePath)){
-      return new FoxSimplePath(pPathString, lSimplePath, lStringExpression, lTextNodeExpression, lContextItemLabel);
+      return new FoxSimplePath(pXPathDefinition, lSimplePath, lStringExpression, lTextNodeExpression, lContextItemLabel);
     }
     else {
       return null;
@@ -237,8 +237,8 @@ implements FoxPath {
   }
 
 
-  private FoxSimplePath(String pOriginalPath, String pSimplifiedPath, boolean pIsStringExpression, boolean pIsTextNodeExpression, String pContextItemLabel){
-    mOriginalPathString = pOriginalPath;
+  private FoxSimplePath(XPathDefinition pXPathDefinition, String pSimplifiedPath, boolean pIsStringExpression, boolean pIsTextNodeExpression, String pContextItemLabel){
+    mXPathDefinition = pXPathDefinition;
     mProcessedPathString = pSimplifiedPath;
     mIsStringExpression = pIsStringExpression;
     mIsTextNodeExpression = pIsTextNodeExpression;
@@ -331,7 +331,7 @@ implements FoxPath {
         if(mIsTextNodeExpression && lResult != null){
           List<DOM> lTextList = ((DOM) lResult).childTextNodesAsDOMList(false);
           if(lTextList.size() > 1){
-            throw new ExPathInternal("Error evaluating simple path '" + mOriginalPathString + "'. Expected at most 1 node, got " + lTextList.size());
+            throw new ExPathInternal("Error evaluating simple path '" + getOriginalPath() + "'. Expected at most 1 node, got " + lTextList.size());
           }
           else if (lTextList.size() == 1){
             lResult = lTextList.get(0);
@@ -348,17 +348,17 @@ implements FoxPath {
 
     //PN TODO this is probably redundant
     if(!(lResult instanceof String) && (pResultType == FoxXPathResultType.STRING || pResultType == FoxXPathResultType.NUMBER)){
-      throw new ExInternal("FoxSimplePath '" + mOriginalPathString + "' did not return a String despite String or Number ResultType being specified. Instead returned a " + lResult.getClass().getName());
+      throw new ExInternal("FoxSimplePath '" + getOriginalPath() + "' did not return a String despite String or Number ResultType being specified. Instead returned a " + lResult.getClass().getName());
     }
 
     //Belt and braces null test (XPathResult cannot be constructed with a null result object)
     if(lResult == null){
       if(pResultType == FoxXPathResultType.DOM_NODE){
-        throw new ExPathInternal("Path '" + mOriginalPathString + "' resolved no nodes but single node result is required in this context.");
+        throw new ExPathInternal("Path '" + getOriginalPath() + "' resolved no nodes but single node result is required in this context.");
       }
       else {
         //This shouldn't happen as we should have arrived at least with an empty string or empty list the processing above
-        throw new ExInternal("Unexpected state evaluating path '" + mOriginalPathString + "': null result object");
+        throw new ExInternal("Unexpected state evaluating path '" + getOriginalPath() + "': null result object");
       }
     }
 
@@ -366,7 +366,7 @@ implements FoxPath {
   }
 
   public String getOriginalPath(){
-    return mOriginalPathString;
+    return mXPathDefinition.getPathForDebug();
   }
 
   public String getProcessedPath(){
