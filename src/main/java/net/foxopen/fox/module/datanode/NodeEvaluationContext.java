@@ -4,6 +4,7 @@ package net.foxopen.fox.module.datanode;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Table;
+import net.foxopen.fox.ContextLabel;
 import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.StringUtil;
 import net.foxopen.fox.XFUtil;
@@ -86,16 +87,25 @@ public class NodeEvaluationContext {
     mEvaluateContextRuleItem = pEvaluateContextRuleItem;
     mNodeAttributes = pNodeAttributes;
 
-    // Generate an ordered list of namespaces with the most important first and least important last
-    if (pParentNamespacePrecedenceList != null) {
-      mNamespacePrecedenceList = Collections.unmodifiableList(mergeNamespacePrecedenceList(pPresentationNodeAttributes, pParentNamespacePrecedenceList));
-    }
-    else {
-      mNamespacePrecedenceList = Collections.unmodifiableList(createNamespacePrecedenceList(pPresentationNodeAttributes));
-    }
+    mContextUElem.localise("NodeEvaluationContextConstructor");
+    try {
+      //Set :{item} to the item node (or parent node/state attach for phantoms, actions etc)
+      mContextUElem.setUElem(ContextLabel.ITEM, mDataItem);
 
-    // Pre-cache the attributes, evaluating where needed
-    preCacheAttributes(pDataItem, pPresentationNodeAttributes);
+      // Generate an ordered list of namespaces with the most important first and least important last
+      if (pParentNamespacePrecedenceList != null) {
+        mNamespacePrecedenceList = Collections.unmodifiableList(mergeNamespacePrecedenceList(pPresentationNodeAttributes, pParentNamespacePrecedenceList));
+      }
+      else {
+        mNamespacePrecedenceList = Collections.unmodifiableList(createNamespacePrecedenceList(pPresentationNodeAttributes));
+      }
+
+      // Pre-cache the attributes, evaluating where needed
+      preCacheAttributes(pDataItem, pPresentationNodeAttributes);
+    }
+    finally {
+      mContextUElem.delocalise("NodeEvaluationContextConstructor");
+    }
 
     if (pActionContextItem != null) {
       mActionContextItem = pActionContextItem;
