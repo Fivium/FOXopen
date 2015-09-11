@@ -32,8 +32,11 @@ $Id$
 */
 package net.foxopen.fox.io;
 
+import com.google.common.base.CharMatcher;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.track.Track;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 import javax.naming.Context;
 import javax.naming.NamingEnumeration;
@@ -91,7 +94,7 @@ public class LDAP {
           NamingEnumeration lAttributes2 = lAttr.getAll();
           while (lAttributes2.hasMore()) {
             try {
-              lListDOM.addElem(lAttr.getID(), (String)lAttributes2.next());
+              lListDOM.addElem(lAttr.getID(), sanitiseLDAPAttributeValueForXML(lAttr.getID(), (String)lAttributes2.next()));
             } catch (ClassCastException e) {
               // Should we raise error
             }
@@ -99,7 +102,7 @@ public class LDAP {
         }
         else {
           try {
-            lAttributeDOM.addElem(lAttr.getID(), (String)lAttr.get());
+            lAttributeDOM.addElem(lAttr.getID(), sanitiseLDAPAttributeValueForXML(lAttr.getID(), (String)lAttr.get()));
           } catch (ClassCastException e) {
             // Should we raise error
           }
@@ -113,69 +116,25 @@ public class LDAP {
   }
 
   /**
-   * Get a XML DOM of attributes back for a given DN <br />
-   * If pAttributes is null then it will return all attributes associated with pDN
+   * Make sure no control characters are getting in to the LDAP attribute values
    *
-   * @param pDN DN of entry
-   * @param pAttributes String array of attributes to return, or null for all
-   * @return XML DOM of attributes specified, or all if pAttributes is null
+   * @param lAttributeID ID of the attribute for track purposes
+   * @param lAttributeValue RawAttribute value
+   * @return Safer attribute value for XML
    */
-  public DOM getAttributesXMLFromDNNoEx (String pDN, String[] pAttributes) {
-    try {
-      return getAttributesXMLFromDN(pDN, pAttributes);
+  private String sanitiseLDAPAttributeValueForXML(String lAttributeID, String lAttributeValue) {
+    String lControlStrippedValue = CharMatcher.JAVA_ISO_CONTROL.removeFrom(lAttributeValue);
+    if (!lAttributeValue.equals(lControlStrippedValue)) {
+      Track.pushAlert("ControlCharactersInLDAPAttribute", "Key: " + lAttributeID);
+      try {
+        Track.debug("OriginalValue", StringEscapeUtils.escapeJava(lAttributeValue));
+        Track.debug("SanitisedValue", lControlStrippedValue);
+      }
+      finally {
+        Track.pop("ControlCharactersInLDAPAttribute");
+      }
     }
-    catch (ExInternal e) {
-      return DOM.createDocument("LDAP_RESULTS");
-    }
-  }
 
-  /**
-   * Get a XML DOM of attributes back for a given DN <br />
-   * If pAttributes is null then it will return all attributes associated with pDN
-   *
-   * @param pDN DN of entry
-   * @param pAttributes String array of attributes to return, or null for all
-   * @return XML DOM of attributes specified, or all if pAttributes is null
-   */
-  public DOM getAttributesXMLFromDNOrNull (String pDN, String[] pAttributes) {
-    try {
-      return getAttributesXMLFromDN(pDN, pAttributes);
-    }
-    catch (ExInternal e) {
-      return null;
-    }
+    return lControlStrippedValue;
   }
-
-  /**
-   * Get attributes in a Naming Enumeration for custom parsing
-   *
-   * @param pDN DN of entry
-   * @param pAttributes String array of attributes to return, or null for all
-   * @return NamingEnumeration os returned attributes
-   */
-  public NamingEnumeration getAttributesFromDN (String pDN, String[] pAttributes) {
-    try {
-      return mServerContext.getAttributes(pDN, pAttributes).getAll();
-    }
-    catch (NamingException e) {
-      throw new ExInternal("No data found", e);
-    }
-  }
-
-  /**
-   * Get attributes in a Naming Enumeration for custom parsing
-   *
-   * @param pDN DN of entry
-   * @param pAttributes String array of attributes to return, or null for all
-   * @return NamingEnumeration os returned attributes
-   */
-  public NamingEnumeration getAttributesFromDNOrNull (String pDN, String[] pAttributes) {
-    try {
-      return mServerContext.getAttributes(pDN, pAttributes).getAll();
-    }
-    catch (NamingException e) {
-      return null;
-    }
-  }
-
 }
