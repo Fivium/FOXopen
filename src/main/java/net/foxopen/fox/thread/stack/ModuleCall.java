@@ -581,7 +581,9 @@ implements Persistable {
     public Builder setParamsDOM(DOM pParamsDOM){
       mParamsDOM = pParamsDOM;
       //Ensure root element has correct name
-      mParamsDOM.rename(ContextLabel.PARAMS.asString());
+      if (!ContextLabel.PARAMS.asString().equals(mParamsDOM.getName())) {
+        mParamsDOM.rename(ContextLabel.PARAMS.asString());
+      }
       return this;
     }
 
@@ -594,7 +596,9 @@ implements Persistable {
     public Builder setEnvironmentDOM(DOM pEnvironmentDOM){
       mEnvironmentDOM = pEnvironmentDOM;
       //Ensure root element has correct name
-      mEnvironmentDOM.rename(ContextLabel.ENV.asString());
+      if (!ContextLabel.ENV.asString().equals(mEnvironmentDOM.getName())) {
+        mEnvironmentDOM.rename(ContextLabel.ENV.asString());
+      }
       return this;
     }
 
