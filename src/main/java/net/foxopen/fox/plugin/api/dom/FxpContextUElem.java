@@ -1,6 +1,7 @@
 package net.foxopen.fox.plugin.api.dom;
 
 import net.foxopen.fox.ContextUElem;
+import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.xpath.XPathResult;
 import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.ex.ExDOMName;
@@ -8,37 +9,8 @@ import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExTooFew;
 import net.foxopen.fox.ex.ExTooMany;
 
-import java.util.Collection;
-
 
 public interface FxpContextUElem<D extends FxpDOM, DL extends FxpDOMList> {
-//  /**
-//   * Clears all mappings from this ContextUElem.
-//   */
-//  void clearAll();
-//
-//  /**
-//   * Clears all contextual labels from this ContextUElem (i.e. non-document labels).
-//   */
-//  void clearContextualLabels();
-//
-//  /**
-//   * Deserialises a set of serialised contextual labels from the given collection back into this ContextUElem.
-//   */
-//  void deserialiseContextualLabels(Collection<ContextUElem.SerialisedLabel> pSerialisedLabels);
-//
-//  /**
-//   * Gets the current set of contextual labels (i.e. non-document labels) as SerialisedLabels, for external serialisation/storage
-//   * The label's containing document must have been loaded into this ContextUElem for the serialisation process to work.
-//   */
-//  Collection<ContextUElem.SerialisedLabel> getSerialisedContextualLabels();
-
-  /**
-   * Tests if the given document label has been loaded from its DOMHandler by this ContextUElem.
-   * @param pLabel
-   * @return
-   */
-  boolean isLabelLoaded(String pLabel);
 
   /**
    * Get the DOM node referenced by the given context label. If pLabel is null, the ATTACH label is retrieved by default.
@@ -48,30 +20,11 @@ public interface FxpContextUElem<D extends FxpDOM, DL extends FxpDOMList> {
   D getUElemOrNull(String pLabel);
 
   /**
-   * Gets a set of all the label names which correspond to document labels held by this ContextUElem.
-   * @return Set of document labels.
+   * Get the DOM node referenced by the given context label. If null, retrieves the "attach" label by default.
+   * @param pLabel Context label (optional).
+   * @return DOM resolved by pLabel.
    */
-  Collection<String> getDocumentLabels();
-
-  /**
-   * Gets a set of all the label names which correspond to contextual labels (i.e. non-document labels) held by this ContextUElem.
-   * @return Set of contextual (state, localised, etc) labels.
-   */
-  Collection<String> getContextualLabels();
-
-//  /**
-//   * Gets the DOMHandler corresponding to the given label, or null if no mapping exists.
-//   * @param pLabel Label to get DOMHandler for.
-//   * @return The label's DOMHandler.
-//   */
-//  DOMHandler getDOMHandlerForLabel(String pLabel);
-
-//  /**
-//   * Get the DOM node referenced by the given context label. If null, retrieves the "attach" label by default.
-//   * @param pLabel Context label (optional).
-//   * @return DOM resolved by pLabel.
-//   */
-//  DOM getUElem(ContextLabel pLabel);
+  DOM getUElem(FxpContextLabel pLabel);
 
   /**
    * Get the DOM node referenced by the given context label. If pLabel is null, retrieves the "attach" label by default.
@@ -80,12 +33,6 @@ public interface FxpContextUElem<D extends FxpDOM, DL extends FxpDOMList> {
    * @throws ExInternal If the context label is not defined.
    */
   D getUElem(String pLabel) throws ExInternal;
-
-  /**
-   * Forces the document resolved by or containing pLabel to be loaded into this ContextUElem.
-   * @param pLabel Label to load document for.
-   */
-  void loadUElem(String pLabel);
 
   /**
    * Removes the label mapping for the given label from this ContextUElem. The DOM itself is not affected.
@@ -100,17 +47,6 @@ public interface FxpContextUElem<D extends FxpDOM, DL extends FxpDOMList> {
    */
   D attachDOM();
 
-//  void registerDOMHandler(DOMHandler pDOMHandler);
-//
-//  void openDOMHandlers(StatefulRequestContext pRequestContext);
-//
-//  void closeDOMHandlers(StatefulRequestContext pRequestContext);
-
-  /**
-//   * Aborts any abortable DOMHandlers on this ContextUElem. Any exceptions from the abort call are suppressed.
-//   */
-//  void abortDOMHandlers();
-
   /**
    * "Localises" this ContextUElem to allow the definition of additional labels in a localised manner without affecting its
    * overall state. After calling this method, defining additional labels and executing XPaths, you should return it to
@@ -119,7 +55,7 @@ public interface FxpContextUElem<D extends FxpDOM, DL extends FxpDOMList> {
    * @param pPurpose Purpose of the localisation, used for debugging.
    * @return Self reference.
    */
-  FxpContextUElem localise(String pPurpose);
+  FxpContextUElem<D, DL> localise(String pPurpose);
 
   /**
    * Delocalises this ContextUlem, removing any label mappings which were defined since {@link #localise}was called.
@@ -127,76 +63,26 @@ public interface FxpContextUElem<D extends FxpDOM, DL extends FxpDOMList> {
    * occur. The strings used must match exactly.
    * @return Self reference.
    */
-  FxpContextUElem delocalise(String pPurpose);
+  FxpContextUElem<D, DL> delocalise(String pPurpose);
 
   boolean isLocalised();
 
   String getLocalisedPurpose();
 
-//  /**
-//   * Gets the context label corresponding to the document which pNode is in.
-//   * @param pNode Node to examine.
-//   * @return pNode's document label.
-//   */
-//  String getDocumentLabelForNode(DOM pNode);
+  /**
+   * Sets a built-in context label on this ContextUElem. Note that you cannot set document level contexts (e.g. root, theme).
+   * @param pLabel                The ContextLabel to set.
+   * @param pUElem                The DOM node to map to the label.
+   */
+  void setUElem(FxpContextLabel pLabel, D pUElem);
 
   /**
-//   * Defines a label to UElem mapping. This method is designed for internal use when initialising a ContextUElem and
-//   * does not validate if the requested label is setable.
-//   * @param pLabel The ContextLabel to set.
-//   * @param pUElem The DOM node to map to the label.
-//   */
-//  void defineUElem(ContextLabel pLabel, DOM pUElem);
-//
-//  /**
-//   * Defines a label to UElem mapping. This method is designed for internal use when initialising a ContextUElem and
-//   * does not validate if the requested label is setable. Use this variant when initialising a ContextUElem and the
-//   * document where the label is defined is known.
-//   * @param pLabel The ContextLabel to set.
-//   * @param pUElem The DOM node to map to the label.
-//   * @param pDocumentContextLabel The ContextLabel of the document which the target element exists on.
-//   */
-//  void defineUElem(ContextLabel pLabel, DOM pUElem, ContextLabel pDocumentContextLabel);
-
-//  /**
-//   * Sets a label to UElem mapping. If the mapping already exists it is repointed. This method is designed for internal
-//   * use within the FOX engine.
-//   * For programmatically setting a label according to user input, use {@link #setUElem(String,ContextualityLevel,DOM)}.
-//   * @param pLabel The ContextLabel to set.
-//   * @param pUElem The DOM node to map to the label.
-//   */
-//  void setUElem(ContextLabel pLabel, D pUElem);
-
-//  /**
-//   * Sets a label to UElem mapping. If the mapping already exists it is repointed. This method is designed for internal
-//   * use within the FOX engine. Use this variant when initialising a ContextUElem and the document where the label is defined
-//   * is known.
-//   * For programmatically setting a label according to user input, use {@link #setUElem(String,ContextualityLevel,DOM)}.
-//   * @param pLabel The ContextLabel to set.
-//   * @param pUElem The DOM node to map to the label.
-//   * @param pDocumentContextLabel The context label of the document which the target element exists on.
-//   */
-//  void setUElem(ContextLabel pLabel, D pUElem, String pDocumentContextLabel);
-
-//  /**
-//   * Sets a label to UElem mapping. If the mapping already exists it is repointed. The proposed label name is validated
-//   * to ensure it is allowed to be set.
-//   * @param pLabel The label String to set.
-//   * @param pContextualityLevel The ContextualityLevel of this label definition. See {@link ContextualityLevel}.
-//   * @param pUElem The DOM node to map to the label.
-//   */
-//  void setUElem(String pLabel, ContextualityLevel pContextualityLevel, D pUElem);
-
-//  /**
-//   * Get the ContextualityLevel for the label specified by pLabel. If a custom label has been defined or the ContextualityLevel
-//   * of a built-in label has been overriden, the custom value is returned. Otherwise if the label is built-in it is used
-//   * to look up the default.
-//   * @param pLabel Label name to get the ContextualityLevel for.
-//   * @return The label's ContextualityLevel.
-//   * @throws ExInternal If the ContextualityLevel cannot be determined.
-//   * @see ContextualityLevel
-//   */
-//  ContextualityLevel getLabelContextualityLevel(String pLabel) throws ExInternal;
+   * Sets an arbitrary context label on this ContextUElem. For setting built-in labels such as :{action}, use
+   * {@link #setUElem(FxpContextLabel, FxpDOM)}.
+   * @param pLabelName Name to use to refer to the label. E.g. "label" would be referenced as <tt>:{label}</tt>.
+   * @param pUElem The DOM node to map to the label.
+   */
+  void setUElem(String pLabelName, D pUElem);
 
   /**
    * Executes a FOX XPath which returns a single element.
@@ -227,20 +113,6 @@ public interface FxpContextUElem<D extends FxpDOM, DL extends FxpDOMList> {
    * @throws ExActionFailed If the XPath returns the wrong cardinality or if the XPath cannot be executed.
    */
   D extendedXPath1E(String pFoxExtendedXpath, boolean pCreateMissingNodesOption) throws ExActionFailed, ExTooMany, ExTooFew;
-
-//  /**
-//   * Reassign the given context label based on the result of an XPath expression. If the context label does not already
-//   * exist an exception is raised.
-//   * @param pLabel The label to reassign.
-//   * @param pContextualityLevel The ContextualityLevel of the reassigned label.
-//   * @param pFoxExtendedXpath The XPath which resolves a single element to be used for the new context label.
-//   * @param pCreateMissingNodesOption If true, creates elements along the path if they are not found. See
-//   * {@link DOM#getCreate1E}for more information.
-//   * @return The element resolved by the XPath.
-//   * @throws ExInternal If the specified context label is not already defined.
-//   * @throws ExActionFailed If the XPath returns the wrong cardinality or if the XPath cannot be executed.
-//   */
-//  D repositionExtendedXPath(String pLabel, ContextualityLevel pContextualityLevel, String pFoxExtendedXpath, boolean pCreateMissingNodesOption) throws ExInternal, ExActionFailed, ExTooMany, ExTooFew;
 
   /**
    * Executes a FOX XPath which returns a single element. An ExTooFew exception is thrown if no matching elements are found.
@@ -338,29 +210,6 @@ public interface FxpContextUElem<D extends FxpDOM, DL extends FxpDOMList> {
    */
   boolean existsContext(String pLabel);
 
-//  /**
-//   * Get a raw XPathResult from an XPath expression. By default, Saxon will evaluate the XPath and expect a
-//   * nodelist as a result. Therefore if  you need a non-nodelist result, i.e. a String, you should use the specific
-//   * methods provided by ContextUElem for this, or provide a FoxXPathResultType to the other signature of this method.
-//   * @param pRelativeDOM The relative DOM node.
-//   * @param pFoxExtendedXpath The Fox Extended XPath to evaluate.
-//   * @return The wrapper for the XPath result.
-//   * @throws ExActionFailed If XPath evaluation fails.
-//   */
-//  XPathResult extendedXPathResult(final D pRelativeDOM, final String pFoxExtendedXpath) throws ExActionFailed;
-//
-//  /**
-//   * Get a raw XPathResult from an XPath expression. Saxon will evaluate the XPath and expect to return a result of a
-//   * type specified by pResultType.
-//   * This should be used to optimise the XPath evaluation.
-//   * @param pRelativeDOM The relative DOM node.
-//   * @param pFoxExtendedXpath The Fox Extended XPath to evaluate.
-//   * @param pResultType
-//   * @return The wrapper for the XPath result.
-//   * @throws ExActionFailed If XPath evaluation fails.
-//   */
-//  XPathResult extendedXPathResult(final D pRelativeDOM, final String pFoxExtendedXpath, FoxXPathResultType pResultType) throws ExActionFailed;
-
   /**
    * Evaluate an XPath expression as a String, or return a constant String.
    * <br/><br/>
@@ -418,13 +267,6 @@ public interface FxpContextUElem<D extends FxpDOM, DL extends FxpDOMList> {
    * @exception ExActionFailed If the XPath cannot be executed.
    */
   DL getCreateXPathUL(String pFoxExtendedXPath, String pDefaultContextLabelOptional) throws ExActionFailed;
-
-//  /**
-//   * Gets a set of all DocControls implicated by the labels in the given list.
-//   * @param pLabelList List of labels to use to retrieve DocControls.
-//   * @return Set of implicated DocControls.
-//   */
-//  Set<DocControl> labelListToDocControlSet(java.util.List<String> pLabelList);
 
   /**
    * Searches for an element with the given FOXID in all the implicated documents of this ContextUElem. If no match is

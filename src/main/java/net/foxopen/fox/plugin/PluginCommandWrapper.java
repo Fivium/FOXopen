@@ -56,10 +56,20 @@ implements Command {
     if(lTargetFactory != null) {
       // Get the command plugin context
       PluginManagerContext lLoadedPlugin =  PluginManager.instance().getLoadedPluginManagerContext(mPluginName);
+
+      //Store current localisation purpose so it can be validated below
+      String lContextUElemPurposeBefore = pRequestContext.getContextUElem().getLocalisedPurpose();
+
       //Create a new command context from the current request context so the command has access to ContextUElem, ContextUCon etc
       FxpCommandContext lRequestContextWrapper = new PluginCommandRequestContextWrapper(pRequestContext, lLoadedPlugin);
       //Create and run the command
       lTargetFactory.create(mCommandMarkup).run(lRequestContextWrapper);
+
+      //Validate that the plugin hasn't permanently altered the state of the ContextUElem
+      if(!lContextUElemPurposeBefore.equals(pRequestContext.getContextUElem().getLocalisedPurpose())) {
+        throw new ExInternal("Plugin command " + lCommandName + " failed to delocalise ContextUElem from purpose " + pRequestContext.getContextUElem().getLocalisedPurpose());
+      }
+
       //TODO PN - should the plugin command be able to override this?
       return XDoControlFlowContinue.instance();
     }

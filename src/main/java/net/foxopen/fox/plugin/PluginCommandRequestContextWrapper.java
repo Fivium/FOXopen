@@ -52,7 +52,8 @@ implements FxpCommandContext {
 
   @Override
   public FxpContextUElem getContextUElem() {
-    return mRequestContext.getContextUElem();
+    //Wrap the current ContextUElem to avoid directly exposing it
+    return new PluginCommandContextUElemWrapper(mRequestContext.getContextUElem());
   }
 
   @Override

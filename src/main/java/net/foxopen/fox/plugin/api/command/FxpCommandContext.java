@@ -6,6 +6,7 @@ import net.foxopen.fox.plugin.api.command.util.FxpGenerator;
 import net.foxopen.fox.plugin.api.database.FxpContextUCon;
 import net.foxopen.fox.plugin.api.dom.FxpContextUElem;
 import net.foxopen.fox.plugin.api.dom.FxpDOM;
+import net.foxopen.fox.plugin.api.dom.FxpDOMList;
 
 public interface FxpCommandContext {
 
@@ -13,7 +14,7 @@ public interface FxpCommandContext {
    * Gets a ContextUElem containing all the DOMs and labels currently available in the churn.
    * @return
    */
-  FxpContextUElem getContextUElem();
+  FxpContextUElem<FxpDOM, FxpDOMList> getContextUElem();
 
   /**
    * Gets a ContextUCon for the excecution of arbitrary queries.

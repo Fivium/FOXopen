@@ -17,7 +17,6 @@ import net.foxopen.fox.ex.ExDOMName;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExTooFew;
 import net.foxopen.fox.ex.ExTooMany;
-import net.foxopen.fox.plugin.api.dom.FxpContextUElem;
 import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.track.Track;
 
@@ -61,7 +60,7 @@ import java.util.TreeSet;
  * executing XPaths. {@link #delocalise}should then be called to return the ContextUElem to its original state (typically
  * in a finally block).<br/><br/>
  */
-public class ContextUElem implements FxpContextUElem<DOM, DOMList> {
+public class ContextUElem {
 
   /**
    * Shortcut for getting the "attach" label name.
