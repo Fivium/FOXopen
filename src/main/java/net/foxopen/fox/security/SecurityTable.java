@@ -32,18 +32,19 @@ $Id$
 */
 package net.foxopen.fox.security;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import net.foxopen.fox.module.Validatable;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.DOMList;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExSecurity;
 import net.foxopen.fox.module.Mod;
+import net.foxopen.fox.module.Validatable;
 import net.foxopen.fox.thread.ActionRequestContext;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -74,26 +75,19 @@ public class SecurityTable implements Validatable
    }
 
    /**
-    * Constructs a SecurityTable from the specified XML element.
-    */
-   public SecurityTable(DOMList tableEntries)
-   {
-      setEntries(tableEntries);
-   }
-
-   /**
     * Sets the entries in the table from the corresponding XML elements.
     *
-    * @param tableEntries the XML security entries.
+    * @param pTableEntries the XML security entries.
+    * @param pNamespaceGroups the module's map of namespace groups for lookup if necessary.
     */
-   public void setEntries(DOMList tableEntries)
+   public void setEntries(DOMList pTableEntries, Map<String, Set<String>> pNamespaceGroups)
    {
       entries.clear();
-      for (int n=0; n < tableEntries.getLength(); n++)
+      for (int n=0; n < pTableEntries.getLength(); n++)
       {
-         DOM entry = tableEntries.item(n);
+         DOM entry = pTableEntries.item(n);
 
-         SecurityTableEntry tableEntry = new SecurityTableEntry(entry);
+         SecurityTableEntry tableEntry = new SecurityTableEntry(entry, pNamespaceGroups);
          entries.add(tableEntry);
       }
    }

@@ -15,6 +15,8 @@
   <sch:let name="element-attrs" value="$fox-attrs-doc/xs:schema/xs:attributeGroup[@name = 'zzz-schema-element-attr-grp']/xs:attribute/@ref"/>
   <!-- attribute node-set within fox attributes document -->
   <sch:let name="fox-attrs" value="$fox-attrs-doc/xs:schema/xs:attribute"/>
+  <!-- fox namespace uri -->
+  <sch:let name="fox_ns" value="'http://www.og.dti.gov/fox(_global)?/'"/>
   <!-- asserts load of fox attributes document -->
   <sch:pattern id="document-load">
     <sch:rule context="xs:schema">
@@ -93,11 +95,26 @@
     </sch:rule>
   </sch:pattern>
   <sch:pattern id="namespace_declarations">
-    <sch:title>Fox namespaces are correctly formed</sch:title>
-    <sch:let name="fox_ns" value="'http://www.og.dti.gov/fox(_global)?/'"/>
+    <sch:title>Fox namespaces are correctly formed</sch:title>  
     <sch:rule context="xs:schema">
       <sch:report test="namespace::*[ matches( . ,$fox_ns) and not(matches(.,concat($fox_ns,local-name(.),'$' ) )) ]">
         Namespace does not match prefix: <sch:value-of select="namespace::*[ matches( . ,$fox_ns) and not(matches(.,concat($fox_ns,local-name(.),'$' ) )) ]"/>
+      </sch:report>
+    </sch:rule>
+  </sch:pattern>
+  <sch:pattern id="namespace_group_declarations">
+    <sch:title>Fox namespace groups contain valid namespace prefixes</sch:title>
+    <sch:rule context="fm:namespace">
+      <sch:report test="not(text() = /xs:schema/namespace::*[ matches( . ,$fox_ns)]/local-name(.))">
+        Namespace '<sch:value-of select="text()"/>' has not been declared in this module, but is referenced in the namespace-group '<sch:value-of select="ancestor::fm:namespace-group/@name"/>'. Please add a fox or fox_global namespace declaration to the xs:schema element.
+      </sch:report>
+    </sch:rule>
+  </sch:pattern>
+  <sch:pattern id="mode_view_rule_namespace_or_namespace_group">
+    <sch:title>Fox fm:mode-rule or fm:view-rule elements must each specify the 'namespace' attribute, 'namespace-groups' attribute, or both.</sch:title>
+    <sch:rule context="fm:mode-rule|fm:view-rule">
+      <sch:report test="not(@namespace or @namespace-groups)">
+        One or both of the 'namespace' and 'namespace-groups' attributes must be specified in each <sch:name/>.
       </sch:report>
     </sch:rule>
   </sch:pattern>

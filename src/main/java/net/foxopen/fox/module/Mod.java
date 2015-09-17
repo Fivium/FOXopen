@@ -97,6 +97,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 
 
 public class Mod
@@ -149,6 +150,9 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
 
   /** Module Header Information */
   private Map<String, String> mHashHeader;
+
+  /** Namespace groups for use and re-use in security rules */
+  private Map<String, Set<String>> mNamespaceGroups = new HashMap<>();
 
   /** The modes security table module entry. */
   private SecurityTable mModesSecurityTable = new SecurityTable();
@@ -325,6 +329,26 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
         throw new ExModule("Module not located in XML", x);
       }
 
+      //Parse the namespace groups and store as a map of group name -> set of namespace strings
+      DOMList lNamespaceGroups = lModuleDOM.getUL("fm:namespace-group-list/fm:namespace-group");
+
+      //Get a map of namespace groups name <-> to their respective DOM
+      Map<String, DOM> lNamespaceGroupsMap = lNamespaceGroups
+        .stream()
+        .filter(e -> e.hasAttr("name"))
+        .collect(Collectors.toMap(e -> e.getAttr("name"), e -> e));
+
+      //Iterate through the groups and recursively resolve any group extensions
+      for (DOM lNamespaceGroup : lNamespaceGroups) {
+        //Every namespace group must have a name
+        String lGroupName = lNamespaceGroup.getAttr("name");
+        if (XFUtil.isNull(lGroupName)) {
+          throw new ExModule("fm:namespace-group found without a 'name' attribute specified.");
+        }
+        Set lNamespaceStrings = resolveNamespaceGroupRecursive(lNamespaceGroup, lNamespaceGroupsMap);
+        mNamespaceGroups.put(lGroupName, lNamespaceStrings);
+      }
+
       // Build the modes/views security policy tables
       DOMList securityRuleEntries = lModuleDOM.getUL("fm:security-list/fm:security-rule");
       Map<String, DOM> ruleNameTopRuleDOMMap = new HashMap<>();
@@ -338,12 +362,12 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
 
       DOMList securityTableEntries = lModuleDOM.getUL("fm:security-list/fm:mode-rule");
       expandSecurityRuleReferences(ruleNameTopRuleDOMMap, securityTableEntries);
-      mModesSecurityTable.setEntries(securityTableEntries);
+      mModesSecurityTable.setEntries(securityTableEntries, mNamespaceGroups);
 
       // Build the modes/views security policy tables
       securityTableEntries = lModuleDOM.getUL("fm:security-list/fm:view-rule");
       expandSecurityRuleReferences(ruleNameTopRuleDOMMap, securityTableEntries);
-      mViewsSecurityTable.setEntries(securityTableEntries);
+      mViewsSecurityTable.setEntries(securityTableEntries, mNamespaceGroups);
 
       // Build list of valid module level action names (for cross reference)
       mValidActionNames = new HashSet<>();
@@ -1387,6 +1411,13 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
     , pLocaliseAttrNSpaceSuffix
     );
 
+    //Rewrite namespace group references to namespaces with the relevant localisation suffix (global or lib)
+    //This is important otherwise the group and associated security rules won't match up to the way the
+    //namespaces were rewritten in the schema
+    lSchemaDOM.getUL("xs:annotation/xs:appinfo/fm:module/fm:namespace-group-list/fm:namespace-group/fm:namespace").forEach(
+      e -> e.setText(updateNamespaceReference(e.value(), e, pLocaliseAttrNSpaceSuffix))
+    );
+
     //Clean up temporary namespace definitions before they are propogated
     if(pIsInitialModule){
       int i = 0;
@@ -1742,6 +1773,7 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
       || lMergeChildNameIntern=="fm:security-rule"
       || lMergeChildNameIntern=="fm:pagination-definition"
       || lMergeChildNameIntern=="fm:client-visibility-rule"
+      || lMergeChildNameIntern=="fm:namespace-group"
       ) {
 
         if(!pEnableModuleMetaMerging) {
@@ -1884,6 +1916,7 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
       || lMergeChildNameIntern=="fm:client-visibility-rule-list"
       || lMergeChildNameIntern=="fm:css-list"
       || lMergeChildNameIntern=="fm:xpath-list"
+      || lMergeChildNameIntern=="fm:namespace-group-list"
       ) {
 
         if(!pEnableModuleMetaMerging) {
@@ -2956,5 +2989,46 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
 
   public String getBulkModuleWarningMessages() {
     return mBulkModuleWarningMessages;
+  }
+
+  private Set<String> resolveNamespaceGroupRecursive(DOM pNamespaceGroup, Map<String, DOM> pNamespaceGroupsMap)
+  throws ExModule {
+    Set<String> lGroupNamesAlreadyProcessed = new HashSet<>();
+    return resolveNamespaceGroupRecursive(pNamespaceGroup, pNamespaceGroupsMap, lGroupNamesAlreadyProcessed);
+  }
+
+  private Set<String> resolveNamespaceGroupRecursive(DOM pNamespaceGroup, Map<String, DOM> pNamespaceGroupsMap, Set<String> pGroupNamesAlreadyProcessed)
+  throws ExModule {
+    //Groups can optionally extend other groups
+    String lName = pNamespaceGroup.getAttr("name").trim();
+    String lExtends = pNamespaceGroup.getAttr("extends").trim();
+    Set<String> lNamespaceStrings = new HashSet<>();
+
+    // Keep a set of groups hit during recursion so we don't end up in a loop somewhere
+    if (pGroupNamesAlreadyProcessed.contains(lName)) {
+      throw new ExModule("Recursive extension of fm:namespace group found, group '" + lName + "' was processed more than once");
+    }
+
+    pGroupNamesAlreadyProcessed.add(lName);
+
+    //Recurse into group that this group extends and add all of its namespaces to the set
+    if (XFUtil.exists(lExtends)){
+      DOM lNamespaceGroup = pNamespaceGroupsMap.get(lExtends);
+      if (lNamespaceGroup != null) {
+        lNamespaceStrings.addAll(resolveNamespaceGroupRecursive(lNamespaceGroup, pNamespaceGroupsMap));
+      }
+      else {
+        throw new ExModule("fm:namespace-group '" + lName + "' extends group '" + lExtends + "', but a group with that name is not defined");
+      }
+    }
+
+    //Add own direct namespaces to the set
+    DOMList lNamespaces = pNamespaceGroup.getUL("fm:namespace");
+    lNamespaceStrings.addAll(lNamespaces
+      .stream()
+      .map(DOM::value)
+      .collect(Collectors.toSet()));
+
+    return lNamespaceStrings;
   }
 }

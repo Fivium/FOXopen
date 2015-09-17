@@ -32,18 +32,21 @@ $Id$
 */
 package net.foxopen.fox.security;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import net.foxopen.fox.ContextUElem;
-import net.foxopen.fox.module.Validatable;
 import net.foxopen.fox.StringUtil;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.module.Mod;
+import net.foxopen.fox.module.Validatable;
 import net.foxopen.fox.thread.ActionRequestContext;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -90,12 +93,15 @@ public class SecurityTableEntry implements Validatable
     *
     * @param entryElement
     */
-   public SecurityTableEntry(DOM entryElement)
+   public SecurityTableEntry(DOM entryElement, Map<String, Set<String>> pNamespaceGroups)
    {
-      tableXMLElement = tableXMLElement;
-      setNamespaces(entryElement.getAttr("namespace"));
-      setOperation(entryElement.getAttr("operation"));
+      setNamespaces(
+        entryElement.getAttr("namespace")
+      , getSpecifiedAttributeOrNull(entryElement, "namespace-groups")
+      , pNamespaceGroups
+      );
 
+      setOperation(entryElement.getAttr("operation"));
       setPrivileges(XFUtil.nvl(getSpecifiedAttributeOrNull(entryElement, "privilege"), ""));
       setThemes(XFUtil.nvl(getSpecifiedAttributeOrNull(entryElement, "theme"), ""));
       setStates(XFUtil.nvl(getSpecifiedAttributeOrNull(entryElement, "state"), ""));
@@ -124,10 +130,23 @@ public class SecurityTableEntry implements Validatable
    {
       return namespaces;
    }
-   public void setNamespaces(String newValue)
+
+   public void setNamespaces(String pNamespacesCSV, String pNamespaceGroupsCSV, Map<String, Set<String>> pNamespaceGroups)
    {
-      namespaces.clear();
-      namespaces.addAll(StringUtil.commaDelimitedListToSet(newValue));
+     //Add all namespaces from element definition to the namespace set
+     namespaces.clear();
+     namespaces.addAll(StringUtil.commaDelimitedListToSet(pNamespacesCSV));
+     //Add all namespaces in each referenced namespace group to the namespace set (expanding the group for this security entry)
+     if (XFUtil.exists(pNamespaceGroupsCSV)) {
+       StringUtil.commaDelimitedListToSet(pNamespaceGroupsCSV)
+         .stream()
+         .forEach(s -> {
+           if (!pNamespaceGroups.containsKey(s)) {
+             throw new ExInternal("Referenced namespace-group '" + s + "' is not defined");
+           }
+           namespaces.addAll(pNamespaceGroups.get(s));
+         });
+     }
    }
 
    public String getOperation()
@@ -232,10 +251,10 @@ public class SecurityTableEntry implements Validatable
    */
    public void validate(Mod module) throws ExInternal
    {
-      if (tableXMLElement.getAttr("namespace") == null)
+      if (tableXMLElement.getAttr("namespace") == null && tableXMLElement.getAttr("namespace-groups") == null)
       {
          throw new ExInternal("Error parsing mode or view security-list table in module, "+module.getName()+
-                              " - there are one or more entries with no \"namespace\" attribute definition!");
+                              " - there are one or more entries with no \"namespace\" attribute or \"namespace-groups\" definition!");
       }
 
       if (tableXMLElement.getAttr("operation") == null)
