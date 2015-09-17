@@ -14,7 +14,7 @@ import net.foxopen.fox.module.serialiser.widgets.WidgetType;
  */
 public class EvaluatedNodeInfoStub extends EvaluatedNodeInfo {
 
-  protected EvaluatedNodeInfoStub(EvaluatedNode pParent, GenericAttributesEvaluatedPresentationNode<? extends GenericAttributesPresentationNode> pEvaluatedPresentationNode, NodeEvaluationContext pNodeEvaluationContext, NodeVisibility pNodeVisibility, NodeInfo pNodeInfo) {
+  protected EvaluatedNodeInfoStub(EvaluatedNodeInfoList pParent, GenericAttributesEvaluatedPresentationNode<? extends GenericAttributesPresentationNode> pEvaluatedPresentationNode, NodeEvaluationContext pNodeEvaluationContext, NodeVisibility pNodeVisibility, NodeInfo pNodeInfo) {
     super(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, pNodeVisibility, pNodeInfo);
 
     // If the widget is for an action but it's not runnable while not being a plus widget, knock it to denied visibility
@@ -23,12 +23,9 @@ public class EvaluatedNodeInfoStub extends EvaluatedNodeInfo {
     }
 
     // If this item is in a list, check it for content and mark the column up as containing content on the list
-    if (getParent() instanceof EvaluatedNodeInfoCollection && getParent().getParent() instanceof EvaluatedNodeInfoList) {
-      EvaluatedNodeInfoList lListContainer = (EvaluatedNodeInfoList)getParent().getParent();
-      if ((isAttributeDefined(NodeAttribute.HAS_CONTENT) && getBooleanAttribute(NodeAttribute.HAS_CONTENT, false))
-        || (!isAttributeDefined(NodeAttribute.HAS_CONTENT) && XFUtil.exists(pNodeEvaluationContext.getDataItem().value(true)))) {
-        lListContainer.registerNonCollapsibleColumn(pNodeInfo);
-      }
+    if ((isAttributeDefined(NodeAttribute.HAS_CONTENT) && getBooleanAttribute(NodeAttribute.HAS_CONTENT, false))
+      || (!isAttributeDefined(NodeAttribute.HAS_CONTENT) && XFUtil.exists(pNodeEvaluationContext.getDataItem().value(true)))) {
+      pParent.registerNonCollapsibleColumn(pNodeInfo);
     }
   }
 
