@@ -136,6 +136,7 @@ public enum NodeAttribute {
   RADIO_GROUP("radio-group", ValueType.CONSTANT, ResultType.STRING),
   RADIO_OWNER("radio-owner", ValueType.CONSTANT, ResultType.STRING),
   RESPONSIVE_LIST("responsiveList", ValueType.EVALUATABLE_XPATH, ResultType.BOOLEAN),
+  REVERSE_BOOLEAN_ORDER("reverseBooleanOrder", ValueType.EVALUATABLE_XPATH, ResultType.BOOLEAN),
   ROW_BREAK("rowBreak", ValueType.CONSTANT, ResultType.STRING),
   ROW_BREAK_BEFORE("rowBreakBefore", ValueType.EVALUATABLE_XPATH, ResultType.BOOLEAN),
   ROW_BREAK_AFTER("rowBreakAfter", ValueType.EVALUATABLE_XPATH, ResultType.BOOLEAN),

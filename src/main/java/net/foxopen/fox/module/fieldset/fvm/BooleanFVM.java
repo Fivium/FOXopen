@@ -9,6 +9,7 @@ import net.foxopen.fox.module.fieldset.fieldmgr.OptionFieldMgr;
 import net.foxopen.fox.thread.ActionRequestContext;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -65,6 +66,12 @@ extends FieldValueMapping {
       lOptionList.add(new BasicSelectOption(lEvaluatedNodeInfo.getStringAttribute(NodeAttribute.KEY_FALSE, "No"), FALSE_VALUE.equals(lSelectedRef), pFieldMgr.getExternalValueForOptionRef(FALSE_VALUE)));
     }
 
+    //If the element has markup to reverse the order then reverse it here
+    //NB: "None" options are added elsewhere and will still be ordered first, but at that point
+    //the developer should probably make their own enumeration / map-set with ordering.
+    if (lEvaluatedNodeInfo.getBooleanAttribute(NodeAttribute.REVERSE_BOOLEAN_ORDER, false)) {
+      Collections.reverse(lOptionList);
+    }
     return lOptionList;
   }
 
