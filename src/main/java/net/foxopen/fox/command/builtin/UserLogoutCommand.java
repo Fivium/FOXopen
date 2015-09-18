@@ -32,12 +32,7 @@ $Id$
 */
 package net.foxopen.fox.command.builtin;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
-import java.util.Collection;
-import java.util.Collections;
-
+import net.foxopen.fox.auth.AuthUtil;
 import net.foxopen.fox.command.Command;
 import net.foxopen.fox.command.CommandFactory;
 import net.foxopen.fox.command.flow.XDoControlFlow;
@@ -46,6 +41,9 @@ import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExDoSyntax;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.thread.ActionRequestContext;
+
+import java.util.Collection;
+import java.util.Collections;
 
 
 public class UserLogoutCommand
@@ -66,16 +64,7 @@ extends BuiltInCommand {
   }
 
   public XDoControlFlow run(ActionRequestContext pRequestContext) {
-
-    String lClientInfo;
-    try {
-      lClientInfo = "IP="+InetAddress.getLocalHost().getHostAddress()+", REMOTE-ADDR="+pRequestContext.getFoxRequest().getHttpRequest().getRemoteAddr();
-    }
-    catch (UnknownHostException e) {
-      lClientInfo = "IP=unknown, REMOTE-ADDR="+pRequestContext.getFoxRequest().getHttpRequest().getRemoteAddr();
-    }
-
-    pRequestContext.getAuthenticationContext().logout(pRequestContext, lClientInfo);
+    pRequestContext.getAuthenticationContext().logout(pRequestContext, AuthUtil.getClientInfoNVP(pRequestContext.getFoxRequest()));
 
     return XDoControlFlowContinue.instance();
   }

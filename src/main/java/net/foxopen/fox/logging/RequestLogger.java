@@ -1,6 +1,7 @@
 package net.foxopen.fox.logging;
 
 import net.foxopen.fox.XFUtil;
+import net.foxopen.fox.auth.AuthUtil;
 import net.foxopen.fox.database.ConnectionAgent;
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.UConBindMap;
@@ -61,7 +62,7 @@ public class RequestLogger {
     final String lQueryString = lQS.substring(0, Math.min(lQS.length(), 4000));
     final String lUserAgent = pHttpRequest.getHeader("User-Agent");
     final String lRemotAddr = pHttpRequest.getRemoteAddr();
-    final String lForwardedFor = pHttpRequest.getHeader("X-Forwarded-For");
+    final String lForwardedFor = pHttpRequest.getHeader(AuthUtil.X_FORWARDED_FOR_HEADER_NAME);
     final String lSessionId = CookieBasedFoxSession.getSessionIdFromRequest(pHttpRequest);
 
     mLogWriterJobPool.submitTask(new FoxJobTask() {
