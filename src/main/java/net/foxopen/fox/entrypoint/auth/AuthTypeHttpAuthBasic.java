@@ -1,12 +1,12 @@
 package net.foxopen.fox.entrypoint.auth;
 
-import net.foxopen.fox.auth.ParsedAuthHeader;
+import net.foxopen.fox.auth.AuthUtil;
 import net.foxopen.fox.auth.AuthenticationContext;
 import net.foxopen.fox.auth.AuthenticationResult;
+import net.foxopen.fox.auth.ParsedAuthHeader;
 import net.foxopen.fox.auth.StandardAuthenticationContext;
 import net.foxopen.fox.auth.loginbehaviours.LoginBehaviour;
 import net.foxopen.fox.auth.loginbehaviours.StandardLoginBehaviour;
-import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.entrypoint.auth.http.BasicHttpAuthenticator;
 import net.foxopen.fox.entrypoint.auth.http.HttpAuthenticationValidator;
 import net.foxopen.fox.thread.RequestContext;
@@ -47,7 +47,7 @@ public class AuthTypeHttpAuthBasic implements AuthType {
         }
 
         if (lSAC.getSessionId() == null) {
-          LoginBehaviour lLoginBehaviour = new StandardLoginBehaviour(pParsedAuthHeader.mUsername, pParsedAuthHeader.mPassword, "IP=" + FoxGlobals.getInstance().getServerIP() + ", REMOTE-ADDR=" + pRequestContext.getFoxRequest().getHttpRequest().getRemoteAddr());
+          LoginBehaviour lLoginBehaviour = new StandardLoginBehaviour(pParsedAuthHeader.mUsername, pParsedAuthHeader.mPassword, AuthUtil.getClientInfoNVP(pRequestContext.getFoxRequest()));
           AuthenticationResult lAuthResult = lSAC.login(pRequestContext, lLoginBehaviour);
 
           boolean lValid = lAuthResult.getCode() == AuthenticationResult.Code.VALID;

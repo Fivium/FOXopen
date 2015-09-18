@@ -6,6 +6,7 @@ import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.FoxResponse;
 import net.foxopen.fox.FoxResponseCHAR;
 import net.foxopen.fox.XFUtil;
+import net.foxopen.fox.auth.AuthUtil;
 import net.foxopen.fox.auth.AuthenticationContext;
 import net.foxopen.fox.auth.AuthenticationResult;
 import net.foxopen.fox.auth.StandardAuthenticationContext;
@@ -33,7 +34,6 @@ import net.foxopen.fox.track.Track;
 import net.foxopen.fox.track.TrackProperty;
 
 import javax.servlet.http.HttpServletRequest;
-import java.net.InetAddress;
 
 // TODO - Guest access returns VALID result, needs better test to stop AuthRequired modules (should also enum that up)
 public class FoxMainServlet
@@ -132,7 +132,7 @@ extends EntryPointServlet {
 
     FoxResponse lFoxResponse;
     try {
-      String lClientInfo = "IP="+InetAddress.getLocalHost().getHostAddress()+", REMOTE-ADDR="+lFoxRequest.getHttpRequest().getRemoteAddr();
+      String lClientInfo = AuthUtil.getClientInfoNVP(pRequestContext.getFoxRequest());
 
       if(XFUtil.isNull(lThreadId)){
         //No ID provided - create a new thread (avoid the locking mechanism - new threads don't need to be locked)

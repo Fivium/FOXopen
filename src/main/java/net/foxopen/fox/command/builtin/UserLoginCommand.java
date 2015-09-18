@@ -35,6 +35,7 @@ package net.foxopen.fox.command.builtin;
 
 import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.XFUtil;
+import net.foxopen.fox.auth.AuthUtil;
 import net.foxopen.fox.auth.AuthenticationResult;
 import net.foxopen.fox.auth.loginbehaviours.LDAPLoginBehaviour;
 import net.foxopen.fox.auth.loginbehaviours.LoginBehaviour;
@@ -192,7 +193,7 @@ extends BuiltInCommand {
       String lUsername = lContextUElem.extendedXPathResult(lContextUElem.attachDOM(), mWuaLoginIdExpr).asString();
       String lPassword = lContextUElem.extendedXPathResult(lContextUElem.attachDOM(), mPasswordExpr).asString();
 
-      String lClientInfo = "IP=" + XFUtil.getHostIP() + ", REMOTE-ADDR=" + pRequestContext.getFoxRequest().getHttpRequest().getRemoteAddr();
+      String lClientInfo = AuthUtil.getClientInfoNVP(pRequestContext.getFoxRequest());
 
       LoginBehaviour lLoginBehaviour;
       if (LDAPLoginBehaviour.getLoginBehaviourName().equals(lAuthMethod)) {
