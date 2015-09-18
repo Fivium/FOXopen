@@ -116,11 +116,11 @@ extends BuiltInCommand {
         //Execute the API once for every matched node
         for(DOM lMatchedNode : lMatchedNodes) {
 
-          //Legacy behaviour: purge-all mode removed child elements of the matched DOM
           //TODO look up mode on api definition if null here
-          if (mMode == QueryMode.PURGE_ALL) {
-            lMatchedNode.removeAllChildren();
-          }
+
+          //If mode is PURGE-ALL, we need to tell the deliverer to remove match children (legacy behaviour)
+          //We can't remove the match chilren here as they may be required for bind evaluation
+          boolean lPurgeMatchChildren = mMode == QueryMode.PURGE_ALL;
 
           //In we're in dev mode and in a transaction we're not allowed to commit, take the transaction ID now so we can check this API doesn't commit internally
           boolean lDoTransactionCheck = FoxGlobals.getInstance().isDevelopment() && !lContextUCon.isTransactionControlAllowed();
@@ -130,7 +130,7 @@ extends BuiltInCommand {
           }
 
           //Run the API and deliver the results to the target DOM
-          lInterfaceAPI.executeStatement(pRequestContext, lMatchedNode, lUCon, new InterfaceAPIResultDeliverer(pRequestContext, lInterfaceAPI, lMatchedNode));
+          lInterfaceAPI.executeStatement(pRequestContext, lMatchedNode, lUCon, new InterfaceAPIResultDeliverer(pRequestContext, lInterfaceAPI, lMatchedNode, lPurgeMatchChildren));
 
           try {
             //We're only concerned about the API changing (i.e. committing/rolling back) an existing transaction - starting a new transaction is OK

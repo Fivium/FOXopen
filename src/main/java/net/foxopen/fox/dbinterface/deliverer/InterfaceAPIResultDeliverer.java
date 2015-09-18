@@ -1,8 +1,5 @@
 package net.foxopen.fox.dbinterface.deliverer;
 
-import java.sql.CallableStatement;
-import java.sql.SQLException;
-
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.database.sql.APIResultDeliverer;
 import net.foxopen.fox.database.sql.ExecutableAPI;
@@ -14,6 +11,9 @@ import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.thread.ActionRequestContext;
 
+import java.sql.CallableStatement;
+import java.sql.SQLException;
+
 
 /**
  * Deliverer for populating the matched node of an fm:run-api command with any output parameters (i.e OUT or IN_OUT).
@@ -24,15 +24,22 @@ implements APIResultDeliverer {
   private final ActionRequestContext mRequestContext;
   private final InterfaceAPI mInterfaceAPI;
   private final DOM mMatchNode;
+  private final boolean mPurgeMatchChildren;
 
-  public InterfaceAPIResultDeliverer(ActionRequestContext pRequestContext, InterfaceAPI pInterfaceAPI, DOM pMatchNode) {
+  public InterfaceAPIResultDeliverer(ActionRequestContext pRequestContext, InterfaceAPI pInterfaceAPI, DOM pMatchNode, boolean pPurgeMatchChildren) {
     mRequestContext = pRequestContext;
     mInterfaceAPI = pInterfaceAPI;
     mMatchNode = pMatchNode;
+    mPurgeMatchChildren = pPurgeMatchChildren;
   }
 
   @Override
   public void deliver(ExecutableAPI pAPI) {
+
+    //Legacy behaviour: purge-all mode removed child elements of the matched DOM
+    if (mPurgeMatchChildren) {
+      mMatchNode.removeAllChildren();
+    }
 
     try {
       CallableStatement lCallableStatement = pAPI.getCallableStatement();
