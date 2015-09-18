@@ -20,6 +20,6 @@ public class HintOutComponentBuilder extends ComponentBuilder<HTMLSerialiser, Ev
   @Override
   public void buildComponent(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedPresentationNode pEvalNode) {
     EvaluatedHintOutPresentationNode lHintOutNode = (EvaluatedHintOutPresentationNode)pEvalNode;
-    pSerialiser.addHint(lHintOutNode.getHint());
+    pSerialiser.addHint(pSerialisationContext, lHintOutNode.getHint());
   }
 }

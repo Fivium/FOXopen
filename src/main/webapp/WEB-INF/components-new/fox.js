@@ -120,15 +120,7 @@ var FOXjs = {
     // Add tooltipster hooks to elements with hints/tooltips
     $(".hint, .tooltip").each(
         function() {
-          if ($(this).attr("title").indexOf("href") >= 0) {
-            $(this).tooltipster({interactive: true});
-          }
-          else {
-            $(this).tooltipster();
-          }
-          if ($(this).attr("data-tooltip-title") !== undefined) {
-            $(this).tooltipster("content", "<h4>" + $(this).attr("data-tooltip-title") + "</h4>" + $(this).tooltipster("content"));
-          }
+          FOXjs.addHintToTarget(this);
         }
     );
 
@@ -179,6 +171,35 @@ var FOXjs = {
     else {
       this.erroneousNavigation();
     }
+  },
+
+  /**
+   * Add tooltip hint to a target element
+   *
+   * @param {object} targetElement Element to trigger the tooltip off
+   * @param {string} hintContentID Optionally set the ID of the hint content element to make sure it's set on the target
+   * @static
+   */
+  addHintToTarget: function(targetElement, hintContentID) {
+    targetElement = $(targetElement);
+    if (hintContentID) {
+      // make sure the target element has an aria tag pointing to the content
+      targetElement.attr('aria-describedby', hintContentID);
+    }
+
+    var hintContentElement = $('#' + targetElement.attr("aria-describedby"));
+    targetElement.tooltipster({
+      functionInit: function(){
+        return hintContentElement.html();
+      },
+      functionReady: function(){
+        hintContentElement.attr('aria-hidden', false);
+      },
+      functionAfter: function(){
+        hintContentElement.attr('aria-hidden', true);
+      },
+      interactive: (hintContentElement.find('a').length > 0)
+    });
   },
 
   /**

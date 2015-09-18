@@ -1,1 +1,2 @@
-<label id="p{{FieldName}}" for="{{FieldName}}"{{> ClassAttribute}}{{> StyleAttribute}}>{{{PromptText}}}{{> MandatoryOptional}}</label>
+{{#PromptText}}<label id="p{{FieldName}}" for="{{FieldName}}"{{> ClassAttribute}}{{> StyleAttribute}}>{{{PromptText}}}{{> MandatoryOptional}}</label>{{/PromptText}}
+{{#PromptBuffer}}<span id="p{{FieldName}}" {{> ClassAttribute}}{{> StyleAttribute}}>{{{PromptBuffer}}}{{> MandatoryOptional}}</span>{{/PromptBuffer}}

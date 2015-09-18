@@ -28,6 +28,7 @@ extends EvaluatedNodeInfoItem {
   private final UploadWidgetOptions mUploadWidgetOptions;
 
   private final String mDefaultHint;
+  private final String mDefaultDescription;
 
   /** Cached JIT to avoid multiple XPath evaluation */
   private Integer mMaxFilesAllowed = null;
@@ -61,13 +62,14 @@ extends EvaluatedNodeInfoItem {
     boolean lDescriptionDefined = isAttributeDefined(NodeAttribute.DESCRIPTION);
     boolean lHintDefined = isAttributeDefined(NodeAttribute.HINT);
     String lDefaultHint = null;
+    String lDefaultDescription = null;
 
     if(!lDescriptionDefined || !lHintDefined) {
       FileUploadType lFileUploadType = getEvaluatedParseTree().getApp().getFileUploadType(getStringAttribute(NodeAttribute.UPLOAD_FILE_TYPE));
 
       //Establish the default description attribute if not override by user
       if(!lDescriptionDefined) {
-        setDescription(lFileUploadType.getReadableSummaryDescription());
+        lDefaultDescription = lFileUploadType.getReadableSummaryDescription();
       }
 
       if(!lHintDefined) {
@@ -76,6 +78,7 @@ extends EvaluatedNodeInfoItem {
     }
 
     mDefaultHint = lDefaultHint;
+    mDefaultDescription = lDefaultDescription;
 
     mUploadWidgetOptions = new UploadWidgetOptions();
   }
@@ -210,5 +213,12 @@ extends EvaluatedNodeInfoItem {
       return new FixedStringAttributeResult(mDefaultHint);
     }
     return super.getDefaultHint();
+  }
+
+  protected StringAttributeResult getDefaultDescription() {
+    if(mDefaultDescription != null) {
+      return new FixedStringAttributeResult(mDefaultDescription);
+    }
+    return super.getDefaultDescription();
   }
 }

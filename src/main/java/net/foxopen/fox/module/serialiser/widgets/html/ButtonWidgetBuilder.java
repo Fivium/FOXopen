@@ -32,7 +32,7 @@ public class ButtonWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNo
   }
 
   @Override
-  public void buildPrompt(HTMLSerialiser pSerialiser, EvaluatedNode pEvalNode) {
+  public void buildPrompt(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNode pEvalNode) {
   }
 
   @Override
@@ -64,6 +64,6 @@ public class ButtonWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNo
     }
 
     MustacheFragmentBuilder.applyMapToTemplate(MUSTACHE_TEMPLATE, lTemplateVars, pSerialiser.getWriter());
-    pSerialiser.addHint(pEvalNode.getHint(), pEvalNode.getFieldMgr().getExternalFieldName(), false);
+    pSerialiser.addHint(pSerialisationContext, pEvalNode.getHint(), pEvalNode.getFieldMgr().getExternalFieldName(), false);
   }
 }

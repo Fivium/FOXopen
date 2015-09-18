@@ -52,10 +52,15 @@
     <xs:attribute ref="hint"/>
     <xs:attribute ref="linkHint"/>
     <xs:attribute ref="hintTitle"/>
+    <xs:attribute ref="hint-url"/>
+    <xs:attribute ref="hint-buffer"/>
+    <xs:attribute ref="hint-buffer-attach"/>
     <xs:attribute ref="default-item-widget"/>
     <xs:attribute ref="default-date-widget"/>
     <xs:attribute ref="default-selector-widget"/>
     <xs:attribute ref="prompt"/>
+    <xs:attribute ref="prompt-buffer"/>
+    <xs:attribute ref="prompt-buffer-attach"/>
     <xs:attribute ref="widget"/>
     <xs:attribute ref="placeholder"/>
     <xs:attribute ref="searchDisplayHierarchy"/>
@@ -121,10 +126,17 @@
   <xs:attributeGroup name="zzz-action-out-attr-grp">
     <xs:attribute ref="widget"/>
     <xs:attribute ref="prompt"/>
+    <xs:attribute ref="prompt-buffer"/>
+    <xs:attribute ref="prompt-buffer-attach"/>
+    <xs:attribute ref="prompt-short"/>
+    <xs:attribute ref="prompt-short-buffer"/>
+    <xs:attribute ref="prompt-short-buffer-attach"/>
     <xs:attribute ref="hint"/>
     <xs:attribute ref="linkHint"/>
     <xs:attribute ref="hintTitle"/>
     <xs:attribute ref="hint-url"/>
+    <xs:attribute ref="hint-buffer"/>
+    <xs:attribute ref="hint-buffer-attach"/>
     <xs:attribute ref="promptClass"/>
     <xs:attribute ref="promptStyle"/>
     <xs:attribute ref="actionClass"/>
@@ -136,7 +148,6 @@
     <xs:attribute ref="image"/>
     <xs:attribute ref="image-xpath"/>
     <xs:attribute ref="imageUrl"/>
-    <xs:attribute ref="prompt-short"/>
     <xs:attribute ref="run"/>
     <xs:attribute ref="mode"/>
     <xs:attribute ref="subject"/>
@@ -169,7 +180,11 @@
     <xs:attribute ref="displayBefore"/>
     <xs:attribute ref="displayAfter"/>
     <xs:attribute ref="prompt"/>
+    <xs:attribute ref="prompt-buffer"/>
+    <xs:attribute ref="prompt-buffer-attach"/>
     <xs:attribute ref="prompt-short"/>
+    <xs:attribute ref="prompt-short-buffer"/>
+    <xs:attribute ref="prompt-short-buffer-attach"/>
     <xs:attribute ref="image"/>
     <xs:attribute ref="image-xpath"/>
     <xs:attribute ref="imageUrl"/>
@@ -184,6 +199,8 @@
     <xs:attribute ref="linkTitle"/>
     <xs:attribute ref="hintTitle"/>
     <xs:attribute ref="hint-url"/>
+    <xs:attribute ref="hint-buffer"/>
+    <xs:attribute ref="hint-buffer-attach"/>
     <xs:attribute ref="init-db-interface"/>
     <xs:attribute ref="init-query"/>
     <xs:attribute ref="init-xpath"/>
@@ -374,6 +391,8 @@
     <xs:attribute ref="description"/>
     <xs:attribute ref="descriptionDisplay"/>
     <xs:attribute ref="descriptionLayout"/>
+    <xs:attribute ref="description-buffer"/>
+    <xs:attribute ref="description-buffer-attach"/>
     <xs:attribute ref="downloadAsAttachment"/>
     <xs:attribute ref="actionType"/>
     <xs:attribute ref="downloadFileName"/>
@@ -382,6 +401,8 @@
   <xs:attributeGroup name="zzz-cellmate-attr-grp">
     <xs:attribute ref="cellmateKey"/>
     <xs:attribute ref="prompt"/>
+    <xs:attribute ref="prompt-buffer"/>
+    <xs:attribute ref="prompt-buffer-attach"/>
     <xs:attribute ref="fieldSpan"/>
     <xs:attribute ref="promptSpan"/>
     <xs:attribute ref="offsetSpan"/>
@@ -515,14 +536,69 @@
       <xs:documentation>XPath bool for disabling the search (type/show prediction) functionality of the search-selector and disables the "x" (remove) button when in single selection mode. This allows us to reuse the nicer (HTML) output functionality of the widget while preserving legacy drop-down behaviour (such as having fox:key-null). This will become unnecessary when all browsers we aim to support can cope with native placeholder text.</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-  <xs:attribute name="hint"/>
+  <xs:attribute name="hint" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Value to use as the hint for this field in form set-out</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
   <xs:attribute name="linkHint"/>
-  <xs:attribute name="linkTitle" type="entered-string"/>
-  <xs:attribute name="hintTitle"/>
+  <xs:attribute name="linkTitle" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Value to use as the title attribute for the link</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="hintTitle" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Value to use as the hint title for this field in form set-out</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="hint-url" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>URL to use if you want the hint icon itself to be clickable</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="hint-buffer" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Buffer name to use for hint content</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="hint-buffer-attach" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Attach point to use when evaluating the hint-buffer</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
   <xs:attribute name="error-url" type="fox-xpath-type"/>
   <xs:attribute name="error-url-prompt" type="fox-xpath-type"/>
-  <xs:attribute name="hint-url"/>
-  <xs:attribute name="prompt"/>
+  <xs:attribute name="prompt" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Value to use as the prompt for this field in form set-out</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="prompt-buffer" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Buffer name to use in place of prompt</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="prompt-buffer-attach" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Attach point to use when evaluating the prompt-buffer</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="prompt-short">
+    <xs:annotation>
+      <xs:documentation>Value to use in column headers when this field is in a list set-out or as a backup when prompt is not defined for regular fields</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="prompt-short-buffer">
+    <xs:annotation>
+      <xs:documentation>Buffer name to use in place of prompt-short</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="prompt-short-buffer-attach" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Attach point to use when evaluating the prompt-short-buffer</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
   <xs:attribute name="promptLayout">
     <xs:simpleType>
       <xs:restriction base="xs:string">
@@ -635,11 +711,6 @@
   <xs:attribute name="selector" type="fox-xpath-type">
     <xs:annotation>
       <xs:documentation>XPath targeting one nested node which specifies cardinality generator for multi-select map-set widgets.</xs:documentation>
-    </xs:annotation>
-  </xs:attribute>
-  <xs:attribute name="prompt-short">
-    <xs:annotation>
-      <xs:documentation>A constant prompt, contains no xpaths</xs:documentation>
     </xs:annotation>
   </xs:attribute>
   <xs:attribute name="radio-owner" type="fox-xpath-type">
@@ -1150,6 +1221,16 @@
   <xs:attribute name="description" type="fox-xpath-type">
     <xs:annotation>
       <xs:documentation>Description for the field, typically a short piece of guidance which can be expanded on using a hint if necessary.</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="description-buffer" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Buffer name to use for description content</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="description-buffer-attach" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Attach point to use when evaluating the description-buffer</xs:documentation>
     </xs:annotation>
   </xs:attribute>
   <xs:attribute name="descriptionDisplay" default="inline">

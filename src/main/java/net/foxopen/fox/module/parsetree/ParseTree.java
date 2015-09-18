@@ -22,6 +22,7 @@ import net.foxopen.fox.module.parsetree.presentationnode.IfPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.IncludeHeaderResourcesPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.IncludePresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.InfoBoxPresentationNode;
+import net.foxopen.fox.module.parsetree.presentationnode.LabelPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.MailToPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.MenuOutPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.PagerControlPresentationNode;
@@ -126,6 +127,8 @@ public class ParseTree {
           return new TabGroupPresentationNode(pNode);
         case "fm:tab-prompt-link":
           return new TabGroupPresentationNode.TabPromptPresentationNode(pNode);
+        case "fm:label":
+          return new LabelPresentationNode(pNode);
         default:
           if (pNode.getName().startsWith("fm:")) {
             // Non-handled fm-prefixed elements throw an unhandled error

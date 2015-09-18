@@ -3829,6 +3829,19 @@ If the fm:default element is reached, then its contents are evaluated.
           <xs:attribute name="text" type="fm:entered-string" use="required"/>
         </xs:complexType>
       </xs:element>
+      <xs:element name="label">
+        <xs:complexType>
+          <xs:complexContent>
+            <xs:extension base="html-or-fox-html-tags-type">
+              <xs:attribute name="for-target" type="fm:fox-xpath-type" use="optional">
+                <xs:annotation>
+                  <xs:documentation>XPath pointing to an element which, if set-out, this label should send focus to when clicked</xs:documentation>
+                </xs:annotation>
+              </xs:attribute>
+            </xs:extension>
+          </xs:complexContent>
+        </xs:complexType>
+      </xs:element>
     </xs:choice>
   </xs:group>
   <xs:group name="set-buffer-grp">

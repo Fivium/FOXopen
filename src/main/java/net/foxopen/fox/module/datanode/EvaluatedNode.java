@@ -9,18 +9,22 @@ import net.foxopen.fox.module.DisplayOrderSortable;
 import net.foxopen.fox.module.HelpDisplayOption;
 import net.foxopen.fox.module.LayoutDirection;
 import net.foxopen.fox.module.MandatoryDisplayOption;
+import net.foxopen.fox.module.OutputDescription;
 import net.foxopen.fox.module.OutputError;
 import net.foxopen.fox.module.OutputHint;
 import net.foxopen.fox.module.evaluatedattributeresult.BooleanAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.DOMAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.DOMListAttributeResult;
+import net.foxopen.fox.module.evaluatedattributeresult.EvaluatedBufferAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.FixedStringAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
 import net.foxopen.fox.module.fieldset.fieldmgr.FieldMgr;
 import net.foxopen.fox.module.parsetree.EvaluatedParseTree;
+import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedPresentationNode;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.GenericAttributesEvaluatedPresentationNode;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.behaviour.EvaluatedPresentationNodeBehaviour;
 import net.foxopen.fox.module.parsetree.presentationnode.GenericAttributesPresentationNode;
+import net.foxopen.fox.module.parsetree.presentationnode.PresentationNode;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 import net.foxopen.fox.module.serialiser.widgets.WidgetType;
 import net.foxopen.fox.track.Track;
@@ -43,9 +47,9 @@ implements DisplayOrderSortable {
   // Variables to cache possible work JIT
   private OutputHint mHint;
   private OutputError mError;
+  private OutputDescription mDescription;
   private WidgetBuilderType mWidgetType;
   private StringAttributeResult mPrompt;
-  private StringAttributeResult mDescription;
   private Boolean mIsRunnable;
 
   protected EvaluatedNode(EvaluatedNode pParent, GenericAttributesEvaluatedPresentationNode<? extends GenericAttributesPresentationNode> pEvaluatedPresentationNode,
@@ -227,6 +231,16 @@ implements DisplayOrderSortable {
   }
 
   /**
+   * Get EvaluiatedBuffer for an attribute, evaluated if the NodeAttribute defines it as evaluatable
+   *
+   * @param pAttr
+   * @return null if no attribute defined
+   */
+  public EvaluatedBufferAttributeResult getEvaluatedBufferAttributeOrNull(NodeAttribute pAttr) {
+    return mNodeEvaluationContext.getEvaluatedBufferAttributeOrNull(pAttr);
+  }
+
+  /**
    * Get a summary prompt, for use in list column headings, using prompt-short or falling back
    *
    * @return Summary Prompt
@@ -322,6 +336,42 @@ implements DisplayOrderSortable {
    */
   public boolean hasPrompt() {
     return (getPrompt()!= null && !XFUtil.isNull(getPrompt().getString()));
+  }
+
+  /**
+   * Get the Evaluated Presentation Node for a prompt-buffer if ones exists or fall back to the prompt-short-buffer
+   * in the same way that getPrompt will fall back to prompt-short by default
+   *
+   * @return EvaluatedPresentationNode of the buffer to serialise for a prompt
+   */
+  public EvaluatedPresentationNode<? extends PresentationNode> getPromptBuffer() {
+    EvaluatedBufferAttributeResult lEvaluatedBufferAttributeResult = getEvaluatedBufferAttributeOrNull(NodeAttribute.PROMPT_BUFFER);
+    if (lEvaluatedBufferAttributeResult == null) {
+      lEvaluatedBufferAttributeResult = getEvaluatedBufferAttributeOrNull(NodeAttribute.PROMPT_SHORT_BUFFER);
+    }
+
+    if (lEvaluatedBufferAttributeResult != null) {
+      return lEvaluatedBufferAttributeResult.getEvaluatedBuffer();
+    }
+    return null;
+  }
+
+  /**
+   * Get the Evaluated Presentation Node for a prompt-short-buffer if ones exists or fall back to the prompt-buffer
+   * in the same way that getSummaryPrompt will fall back to prompt by default
+   *
+   * @return EvaluatedPresentationNode of the buffer to serialise for a prompt summary (column header)
+   */
+  public EvaluatedPresentationNode<? extends PresentationNode> getPromptSummaryBuffer() {
+    EvaluatedBufferAttributeResult lEvaluatedBufferAttributeResult = getEvaluatedBufferAttributeOrNull(NodeAttribute.PROMPT_SHORT_BUFFER);
+    if (lEvaluatedBufferAttributeResult == null) {
+      lEvaluatedBufferAttributeResult = getEvaluatedBufferAttributeOrNull(NodeAttribute.PROMPT_BUFFER);
+    }
+
+    if (lEvaluatedBufferAttributeResult != null) {
+      return lEvaluatedBufferAttributeResult.getEvaluatedBuffer();
+    }
+    return null;
   }
 
   /**
@@ -451,14 +501,21 @@ implements DisplayOrderSortable {
     }
 
     StringAttributeResult lHintText = getDefaultHint();
-    StringAttributeResult lDescription = null;
-
-    //If a description is defined and is set to ICON display mode, it should be concatenated in front of the hint
-    if(HelpDisplayOption.fromExternalString(getStringAttribute(NodeAttribute.DESCRIPTION_DISPLAY)) == HelpDisplayOption.ICON) {
-      lDescription = getDescriptionInternal();
+    EvaluatedBufferAttributeResult lEvaluatedBufferAttributeOrNull = getEvaluatedBufferAttributeOrNull(NodeAttribute.HINT_BUFFER);
+    EvaluatedPresentationNode<? extends PresentationNode> lEvaluatedBuffer = null;
+    if (lEvaluatedBufferAttributeOrNull != null) {
+      lEvaluatedBuffer = lEvaluatedBufferAttributeOrNull.getEvaluatedBuffer();
     }
 
-    if (lHintText != null && XFUtil.exists(lHintText.getString())) {
+
+
+    //If a description is defined and is set to ICON display mode, it should be concatenated in front of the hint
+    OutputDescription lDescription = null;
+    if(HelpDisplayOption.fromExternalString(getStringAttribute(NodeAttribute.DESCRIPTION_DISPLAY)) == HelpDisplayOption.ICON) {
+      lDescription = getDescription();
+    }
+
+    if ((lHintText != null && XFUtil.exists(lHintText.getString())) || lEvaluatedBuffer != null) {
       StringAttributeResult lHintTitle = getStringAttributeResultOrNull(NodeAttribute.HINT_TITLE);
 
       // If it's an action type widget, no NodeAttribute.HINT_TITLE was defined and it has a prompt, use that for the hint title
@@ -467,7 +524,7 @@ implements DisplayOrderSortable {
       }
 
       String lHintID = "hint" + mNodeEvaluationContext.getEvaluatedParseTree().getFieldSet().getNextFieldSequence();
-      mHint = new OutputHint(lHintID, lHintTitle, lHintText, lDescription, getStringAttribute(NodeAttribute.HINT_URL));
+      mHint = new OutputHint(lHintID, lHintTitle, lHintText, lEvaluatedBuffer, lDescription, getStringAttribute(NodeAttribute.HINT_URL));
     }
 
     return mHint;
@@ -477,25 +534,33 @@ implements DisplayOrderSortable {
     return (getHint() != null);
   }
 
-  private StringAttributeResult getDescriptionInternal() {
-    if(mDescription == null) {
-      mDescription = getStringAttributeResultOrNull(NodeAttribute.DESCRIPTION);
+  protected StringAttributeResult getDefaultDescription() {
+    return getStringAttributeResultOrNull(NodeAttribute.DESCRIPTION);
+  }
+
+  public OutputDescription getDescription() {
+    if (mDescription != null) {
+      return mDescription;
+    }
+
+    StringAttributeResult lDescriptionContent = getDefaultDescription();
+    EvaluatedBufferAttributeResult lEvaluatedBufferAttributeOrNull = getEvaluatedBufferAttributeOrNull(NodeAttribute.DESCRIPTION_BUFFER);
+    EvaluatedPresentationNode<? extends PresentationNode> lEvaluatedBuffer = null;
+    if (lEvaluatedBufferAttributeOrNull != null) {
+      lEvaluatedBuffer = lEvaluatedBufferAttributeOrNull.getEvaluatedBuffer();
+    }
+
+
+    if((lDescriptionContent != null && XFUtil.exists(lDescriptionContent.getString())) || lEvaluatedBuffer != null) {
+      mDescription = new OutputDescription(getDefaultDescription(), lEvaluatedBuffer);
     }
 
     return mDescription;
   }
 
-  public StringAttributeResult getDescription() {
-    if(HelpDisplayOption.fromExternalString(getStringAttribute(NodeAttribute.DESCRIPTION_DISPLAY, HelpDisplayOption.INLINE.getExternalString())) == HelpDisplayOption.INLINE) {
-      return getDescriptionInternal();
-    }
-    else {
-      return null;
-    }
-  }
-
   public boolean hasDescription() {
-    return (getDescription() != null);
+    boolean lShowDescriptionInline = HelpDisplayOption.fromExternalString(getStringAttribute(NodeAttribute.DESCRIPTION_DISPLAY, HelpDisplayOption.INLINE.getExternalString())) == HelpDisplayOption.INLINE;
+    return (getDescription() != null && lShowDescriptionInline);
   }
 
   /**
@@ -711,19 +776,6 @@ implements DisplayOrderSortable {
   public abstract String getExternalFieldName();
 
   public abstract int getSelectorMaxCardinality();
-
-  /**
-   * Set the description text using a plain unescaped String instead of looking it up and evaluating it later from the
-   * EvaluatedNode's description attribute.
-   *
-   * <strong>Warning:</strong> The text defined here will be used as the EvaluatedNode's description unescaped. This
-   * method should not be called passing in user-settable data.
-   *
-   * @param pDescription Unescaped string to use as the description field
-   */
-  protected void setDescription(String pDescription) {
-    mDescription = new FixedStringAttributeResult(pDescription);
-  }
 
   @Override
   public String getDisplayBeforeAttribute() {

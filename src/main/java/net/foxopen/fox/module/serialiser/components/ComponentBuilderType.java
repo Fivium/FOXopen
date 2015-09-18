@@ -26,4 +26,5 @@ public enum ComponentBuilderType {
 , NODE_CONTAINER
 , WIDGET_OUT
 , PAGER_CONTROL
+, LABEL
 }

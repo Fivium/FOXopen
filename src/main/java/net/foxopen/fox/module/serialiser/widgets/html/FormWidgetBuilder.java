@@ -162,7 +162,7 @@ public class FormWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
 
             if (!lColumnItem.isFiller()) {
               if (lColumnItem.isPrompt()) {
-                lColumnItem.getWidgetBuilder().buildPrompt(pSerialiser, lColumnItem.getItemNode());
+                lColumnItem.getWidgetBuilder().buildPrompt(pSerialisationContext, pSerialiser, lColumnItem.getItemNode());
               }
               else {
                 if (lColumnItem.getItemNode().hasHint() && lColumnItem.getItemNode().getWidgetBuilderType() != WidgetBuilderType.BUTTON) {
@@ -170,13 +170,13 @@ public class FormWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
                 }
 
                 if(lColumnItem.getItemNode().hasDescription() && LayoutDirection.NORTH == lColumnItem.getItemNode().getDescriptionLayout()) {
-                  pSerialiser.addDescription(lColumnItem.getItemNode());
+                  pSerialiser.addDescription(pSerialisationContext, lColumnItem.getItemNode());
                 }
 
                 lColumnItem.getWidgetBuilder().buildWidget(pSerialisationContext, pSerialiser, lColumnItem.getItemNode());
 
                 if(lColumnItem.getItemNode().hasDescription() && LayoutDirection.SOUTH == lColumnItem.getItemNode().getDescriptionLayout()) {
-                  pSerialiser.addDescription(lColumnItem.getItemNode());
+                  pSerialiser.addDescription(pSerialisationContext, lColumnItem.getItemNode());
                 }
 
                 if (lColumnItem.getItemNode().hasError()) {
@@ -196,7 +196,7 @@ public class FormWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
                 if (lColumnItem.getItemNode().hasHint() && lColumnItem.getItemNode().getWidgetBuilderType() != WidgetBuilderType.BUTTON) {
                   pSerialiser.append("</div>");
                   pSerialiser.append("<div class=\"input-group-addon hint-addon\">");
-                  pSerialiser.addHint(lColumnItem.getItemNode().getHint());
+                  pSerialiser.addHint(pSerialisationContext, lColumnItem.getItemNode().getHint());
                   pSerialiser.append("</div>");
                 }
               }

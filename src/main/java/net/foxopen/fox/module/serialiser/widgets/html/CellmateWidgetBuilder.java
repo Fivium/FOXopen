@@ -38,7 +38,7 @@ public class CellmateWidgetBuilder extends WidgetBuilderHTMLSerialiser<Evaluated
   }
 
   @Override
-  public void buildPrompt(HTMLSerialiser pSerialiser, EvaluatedNodeInfo pEvalNode) {
+  public void buildPrompt(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNodeInfo pEvalNode) {
     if (hasPrompt(pEvalNode)) {
       Map<String, Object> lTemplateVars = new HashMap<>();
       lTemplateVars.put("FieldName", pEvalNode.getFieldMgr().getExternalFieldName());
@@ -173,7 +173,7 @@ public class CellmateWidgetBuilder extends WidgetBuilderHTMLSerialiser<Evaluated
 
           if (!lColumnItem.isFiller()) {
             if (lColumnItem.isPrompt()) {
-              lColumnItem.getWidgetBuilder().buildPrompt(pSerialiser, lColumnItem.getItemNode());
+              lColumnItem.getWidgetBuilder().buildPrompt(pSerialisationContext, pSerialiser, lColumnItem.getItemNode());
             }
             else {
               if (lColumnItem.getItemNode().hasHint() && lColumnItem.getItemNode().getWidgetBuilderType() != WidgetBuilderType.BUTTON) {
@@ -184,7 +184,7 @@ public class CellmateWidgetBuilder extends WidgetBuilderHTMLSerialiser<Evaluated
 
               if(lColumnItem.getItemNode().getWidgetBuilderType() != WidgetBuilderType.FORM && lColumnItem.getItemNode().getWidgetBuilderType() != WidgetBuilderType.LIST) {
                 //TODO PN hack - this method requires a FieldMgr, nested forms/lists don't have one (yet)
-                pSerialiser.addDescription(lColumnItem.getItemNode());  //TODO add ENI.hasDescription (like hasHint)
+                pSerialiser.addDescription(pSerialisationContext, lColumnItem.getItemNode());  //TODO add ENI.hasDescription (like hasHint)
               }
 
               if (lColumnItem.getItemNode().hasError()) {
@@ -204,7 +204,7 @@ public class CellmateWidgetBuilder extends WidgetBuilderHTMLSerialiser<Evaluated
               if (lColumnItem.getItemNode().hasHint() && lColumnItem.getItemNode().getWidgetBuilderType() != WidgetBuilderType.BUTTON) {
                 pSerialiser.append("</div>");
                 pSerialiser.append("<div class=\"input-group-addon hint-addon\">");
-                pSerialiser.addHint(lColumnItem.getItemNode().getHint());
+                pSerialiser.addHint(pSerialisationContext, lColumnItem.getItemNode().getHint());
                 pSerialiser.append("</div>");
               }
             }

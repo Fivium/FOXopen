@@ -13,7 +13,7 @@ public class UnimplementedWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eval
   }
 
   @Override
-  public void buildPrompt(HTMLSerialiser pSerialiser, EvaluatedNode pEvalNode) {
+  public void buildPrompt(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNode pEvalNode) {
     if (pEvalNode.hasPrompt()) {
       pSerialiser.append("UNIMPLEMENTED-PROMPT " + pEvalNode);
     }

@@ -46,20 +46,22 @@ public interface OutputSerialiser {
    * Add hint features for a given Evaluated Node Info. In a HTML Serialiser this might be an image with a tooltip, in a
    * PDF serialiser it might be inline text and a CSV serialiser could do nothing.
    *
+   * @param pSerialisationContext
    * @param pHint
    * @param pTargetID
    * @param pAddIcon
    */
-  public void addHint(OutputHint pHint, String pTargetID, boolean pAddIcon);
+  public void addHint(SerialisationContext pSerialisationContext, OutputHint pHint, String pTargetID, boolean pAddIcon);
 
-  public void addHint(OutputHint pHint);
+  public void addHint(SerialisationContext pSerialisationContext, OutputHint pHint);
 
   /**
    * Appends description text into the serialiser for the given node. This may not append anything if the node has no
    * description or if it does not think one should be displayed.
+   * @param pSerialisationContext
    * @param pEvaluatedNode
    */
-  public void addDescription(EvaluatedNode pEvaluatedNode);
+  public void addDescription(SerialisationContext pSerialisationContext, EvaluatedNode pEvaluatedNode);
 
   /**
    * Gets the Javascript function call string for the given internal action.

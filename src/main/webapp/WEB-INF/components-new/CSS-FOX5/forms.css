@@ -22,6 +22,10 @@ label {
   padding-left: 0.3em;
 }
 
+.promptbuffer > label {
+  padding: 0em;
+}
+
 .radio-label {
   font-weight: inherit;
   display: inline;
@@ -299,6 +303,10 @@ input[type='checkbox'] {
 
 .hint:hover {
   cursor: default;
+}
+
+.hint-content {
+  display: none;
 }
 
 .individual-input {

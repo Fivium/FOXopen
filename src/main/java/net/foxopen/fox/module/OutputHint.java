@@ -1,18 +1,24 @@
 package net.foxopen.fox.module;
 
 import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
+import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedPresentationNode;
+import net.foxopen.fox.module.parsetree.presentationnode.PresentationNode;
 
 public class OutputHint {
   private final String mHintID;
   private final StringAttributeResult mTitle;
   private final StringAttributeResult mContent;
-  private final StringAttributeResult mDescription;
+  private final EvaluatedPresentationNode<? extends PresentationNode> mHintBufferContent;
+  private final OutputDescription mDescription;
   private final String mHintURL;
 
-  public OutputHint(String pHintID, StringAttributeResult pTitle, StringAttributeResult pContent, StringAttributeResult pDescription, String pHintURL) {
+  public OutputHint(String pHintID, StringAttributeResult pTitle, StringAttributeResult pContent
+    , EvaluatedPresentationNode<? extends PresentationNode> pHintBufferContent, OutputDescription pDescription
+    , String pHintURL) {
     mHintID = pHintID;
     mTitle = pTitle;
     mContent = pContent;
+    mHintBufferContent = pHintBufferContent;
     mDescription = pDescription;
     mHintURL = pHintURL;
   }
@@ -29,11 +35,15 @@ public class OutputHint {
     return mContent;
   }
 
-  public StringAttributeResult getDescription() {
+  public OutputDescription getDescription() {
     return mDescription;
   }
 
   public String getHintURL() {
     return mHintURL;
+  }
+
+  public EvaluatedPresentationNode<? extends PresentationNode> getHintBufferContent() {
+    return mHintBufferContent;
   }
 }

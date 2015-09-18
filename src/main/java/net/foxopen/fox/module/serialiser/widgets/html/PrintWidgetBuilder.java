@@ -30,7 +30,7 @@ public class PrintWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNod
   }
 
   @Override
-  public void buildPrompt(HTMLSerialiser pSerialiser, EvaluatedNode pEvalNode) {
+  public void buildPrompt(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNode pEvalNode) {
   }
 
   @Override
@@ -61,6 +61,6 @@ public class PrintWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNod
     }
 
     MustacheFragmentBuilder.applyMapToTemplate(MUSTACHE_TEMPLATE, lTemplateVars, pSerialiser.getWriter());
-    pSerialiser.addHint(pEvalNode.getHint(), pEvalNode.getFieldMgr().getExternalFieldName(), false);
+    pSerialiser.addHint(pSerialisationContext, pEvalNode.getHint(), pEvalNode.getFieldMgr().getExternalFieldName(), false);
   }
 }

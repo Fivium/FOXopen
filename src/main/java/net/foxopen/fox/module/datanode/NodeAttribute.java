@@ -34,6 +34,8 @@ public enum NodeAttribute {
   CONFIRM("confirm", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   DEFAULT_ACTION("defaultAction", ValueType.EVALUATABLE_XPATH, ResultType.BOOLEAN),
   DESCRIPTION("description", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
+  DESCRIPTION_BUFFER("description-buffer", ValueType.EVALUATABLE_XPATH, ResultType.BUFFER),
+  DESCRIPTION_BUFFER_ATTACH_DOM("description-buffer-attach", ValueType.EVALUATABLE_XPATH, ResultType.DOM_OPTIONAL),
   DESCRIPTION_DISPLAY("descriptionDisplay", ValueType.CONSTANT, ResultType.STRING),
   DESCRIPTION_LAYOUT("descriptionLayout", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   DISPLAY_AFTER("displayAfter", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
@@ -74,6 +76,8 @@ public enum NodeAttribute {
   FORMAT_DATE("formatDate", ValueType.CONSTANT, ResultType.STRING),
   HAS_CONTENT("hasContent", ValueType.EVALUATABLE_XPATH, ResultType.BOOLEAN),
   HINT("hint", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
+  HINT_BUFFER("hint-buffer", ValueType.EVALUATABLE_XPATH, ResultType.BUFFER),
+  HINT_BUFFER_ATTACH_DOM("hint-buffer-attach", ValueType.EVALUATABLE_XPATH, ResultType.DOM_OPTIONAL),
   HINT_URL("hint-url", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   HINT_TITLE("hintTitle", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   HREF("href", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
@@ -127,7 +131,11 @@ public enum NodeAttribute {
   PHANTOM_MENU_MODE("phantom-menu-mode", ValueType.EVALUATABLE_XPATH, ResultType.BOOLEAN),
   PLACEHOLDER("placeholder", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   PROMPT("prompt", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
+  PROMPT_BUFFER("prompt-buffer", ValueType.EVALUATABLE_XPATH, ResultType.BUFFER),
+  PROMPT_BUFFER_ATTACH_DOM("prompt-buffer-attach", ValueType.EVALUATABLE_XPATH, ResultType.DOM_OPTIONAL),
   PROMPT_SHORT("prompt-short", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
+  PROMPT_SHORT_BUFFER("prompt-short-buffer", ValueType.EVALUATABLE_XPATH, ResultType.BUFFER),
+  PROMPT_SHORT_BUFFER_ATTACH_DOM("prompt-short-buffer-attach", ValueType.EVALUATABLE_XPATH, ResultType.DOM_OPTIONAL),
   PROMPT_SPAN("promptSpan", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   PROMPT_LAYOUT("promptLayout", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   PROMPT_WIDTH("promptWidth", ValueType.CONSTANT, ResultType.STRING),
@@ -182,7 +190,8 @@ public enum NodeAttribute {
     BOOLEAN,
     DOM, // 1 element only
     DOM_OPTIONAL, // 0 or 1 elements
-    DOM_LIST // 0 or more elements
+    DOM_LIST, // 0 or more elements
+    BUFFER
   }
 
   private static Map<String, NodeAttribute> NODE_ATTRIBUTE_LOOKUP_MAP = new HashMap<>(NodeAttribute.values().length);

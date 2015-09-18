@@ -52,10 +52,12 @@ import net.foxopen.fox.track.Track;
 import net.foxopen.fox.util.RandomString;
 import org.json.simple.JSONArray;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -134,9 +136,10 @@ public class EvaluatedParseTree implements SerialisationContext {
   /** Used to validate uniqueness of certain facets (i.e. tab groups) within a parse tree evaluation cycle */
   private Set<String> mUniqueFacetKeys = new HashSet<>();
 
+  /** Deque of DOM nodes used for context when evaluating buffers dynamically so fm:label can target the prompt-buffer caller */
+  private Deque<DOM> mCurrentBufferContextNode = new ArrayDeque<>();
+
   public EvaluatedParseTree(ActionRequestContext pRequestContext, FieldSet pFieldSet, List<EvaluatedDataDefinition> pEvaluatedDataDefinitions, ThreadInfoProvider pThreadInfoProvider) {
-
-
     mRequestContext = pRequestContext;
     mState = pRequestContext.getCurrentState();
     mStateAttributes = PresentationAttribute.convertAttributeMap(mState.getStateAttributes(), null, false);
@@ -654,5 +657,36 @@ public class EvaluatedParseTree implements SerialisationContext {
 
   public List<EvaluatedDataDefinition> getEvaluatedDataDefinitions() {
     return mEvaluatedDataDefinitions;
+  }
+
+  /**
+   * When going to evaluate sub-buffers push a label target element so that fm:label elements in those sub-buffers can
+   * target the calling nodes
+   *
+   * @param pCurrentTargetElement Data item for the current element which an fm:label should target
+   */
+  public void pushCurrentBufferLabelTargetElement(DOM pCurrentTargetElement) {
+    mCurrentBufferContextNode.push(pCurrentTargetElement);
+  }
+
+  /**
+   * Pop off the current label target element once evaluation of sub-buffer is done
+   *
+   * @param pCurrentTargetElement Data item for the current element which an fm:label should no longer be targeted
+   */
+  public void popCurrentBufferLabelTargetElement(DOM pCurrentTargetElement) {
+    DOM lPoppedTargetElement = mCurrentBufferContextNode.pop();
+    if (lPoppedTargetElement != pCurrentTargetElement) {
+      throw new ExInternal("Popped Target Element from the current buffer label target element stack on evaluated parse tree but it did not match the expected value to be popped: Expected " + pCurrentTargetElement.absolute() + "\r\nPopped: " + lPoppedTargetElement.absolute());
+    }
+  }
+
+  /**
+   * Get the current target element for labels to use if one was set
+   *
+   * @return DOM node for current data item or null if none pushed
+   */
+  public DOM getCurrentBufferLabelTargetElement() {
+    return mCurrentBufferContextNode.peek();
   }
 }

@@ -4,13 +4,16 @@ import com.google.common.base.Joiner;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.module.MandatoryDisplayOption;
 import net.foxopen.fox.module.OutputError;
-import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfo;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfoList;
 import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.datanode.NodeInfo;
 import net.foxopen.fox.module.datanode.NodeVisibility;
+import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
+import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedPresentationNode;
+import net.foxopen.fox.module.parsetree.presentationnode.PresentationNode;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
+import net.foxopen.fox.module.serialiser.TempSerialiser;
 import net.foxopen.fox.module.serialiser.fragmentbuilder.MustacheFragmentBuilder;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
@@ -90,7 +93,19 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
       if (!pEvalNode.isNestedList()) {
         // Generate a prompt for the entire list if one is specified
         StringAttributeResult lListPrompt = pEvalNode.getPrompt();
-        if (!XFUtil.isNull(lListPrompt.getString())) {
+        EvaluatedPresentationNode<? extends PresentationNode> lPromptBuffer = pEvalNode.getPromptBuffer();
+
+        String lListPromptValue = null;
+        if (lPromptBuffer != null) {
+          TempSerialiser lTempSerialiser = pSerialiser.getTempSerialiser();
+          lPromptBuffer.render(pSerialisationContext, lTempSerialiser);
+          lListPromptValue = lTempSerialiser.getOutput();
+        }
+        else if (lListPrompt != null && !XFUtil.isNull(lListPrompt.getString())) {
+          lListPromptValue = pSerialiser.getSafeStringAttribute(lListPrompt);
+        }
+
+        if (lListPromptValue != null) {
           pSerialiser.append("<th colspan=\"");
           if (lCollapseColumns) {
             pSerialiser.append(String.valueOf(pEvalNode.getNonCollapsibleColumnCount()));
@@ -113,7 +128,8 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
           }
           pSerialiser.append("\">");
 
-          pSerialiser.append(pSerialiser.getSafeStringAttribute(lListPrompt));
+          pSerialiser.append(lListPromptValue);
+
           pSerialiser.append("</th></tr><tr>");
         }
       }
@@ -156,7 +172,15 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
           pSerialiser.addDebugInformation(lItemDebugInfo.toString());
         }
 
-        pSerialiser.append(XFUtil.nvl(pSerialiser.getSafeStringAttribute(lTitleNode.getSummaryPrompt()), ""));
+        EvaluatedPresentationNode<? extends PresentationNode> lPromptSummaryBuffer = lTitleNode.getPromptSummaryBuffer();
+        if (lPromptSummaryBuffer != null) {
+          TempSerialiser lTempSerialiser = pSerialiser.getTempSerialiser();
+          lPromptSummaryBuffer.render(pSerialisationContext, lTempSerialiser);
+          pSerialiser.append(lTempSerialiser.getOutput());
+        }
+        else {
+          pSerialiser.append(XFUtil.nvl(pSerialiser.getSafeStringAttribute(lTitleNode.getSummaryPrompt()), ""));
+        }
 
         // Mandatory/Optional display
         Map<String, Object> lMandatoryOptionalTemplateVars = new HashMap<>();
@@ -174,7 +198,7 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
 
         // Hint display
         if (lTitleNode.hasHint() && lTitleNode.getWidgetBuilderType() != WidgetBuilderType.BUTTON) {
-          pSerialiser.addHint(lTitleNode.getHint());
+          pSerialiser.addHint(pSerialisationContext, lTitleNode.getHint());
         }
 
         pSerialiser.append("</th>");

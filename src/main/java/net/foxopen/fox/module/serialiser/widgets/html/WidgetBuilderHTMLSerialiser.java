@@ -12,7 +12,10 @@ import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.datanode.NodeVisibility;
 import net.foxopen.fox.module.fieldset.fieldmgr.FieldMgr;
+import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedPresentationNode;
+import net.foxopen.fox.module.parsetree.presentationnode.PresentationNode;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
+import net.foxopen.fox.module.serialiser.TempSerialiser;
 import net.foxopen.fox.module.serialiser.fragmentbuilder.MustacheFragmentBuilder;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
@@ -20,6 +23,7 @@ import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.simple.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,13 +34,24 @@ extends WidgetBuilder<HTMLSerialiser, EN>  {
 
   protected WidgetBuilderHTMLSerialiser() {}
 
+
+
   @Override
-  public void buildPrompt(HTMLSerialiser pSerialiser, EN pEvalNode) {
+  public void buildPrompt(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EN pEvalNode) {
     if (hasPrompt(pEvalNode)) {
       Map<String, Object> lTemplateVars = new HashMap<>();
       lTemplateVars.put("FieldName", pEvalNode.getExternalFieldName());
-      lTemplateVars.put("PromptText", pSerialiser.getSafeStringAttribute(pEvalNode.getPrompt()));
-      lTemplateVars.put("Class", "prompt " + pEvalNode.getStringAttribute(NodeAttribute.PROMPT_LAYOUT, "west"));
+
+      setPromptOrPromptBufferTemplateVariable(pSerialisationContext, pSerialiser, pEvalNode, lTemplateVars);
+
+      List<String> lDefaultClasses = new ArrayList<>();
+      lDefaultClasses.add("prompt");
+      lDefaultClasses.add(pEvalNode.getStringAttribute(NodeAttribute.PROMPT_LAYOUT, "west"));
+      if (lTemplateVars.get("PromptBuffer") != null) {
+        lDefaultClasses.add("promptbuffer");
+      }
+
+      lTemplateVars.put("Class", Joiner.on(" ").skipNulls().join(lDefaultClasses));
       lTemplateVars.put("MandatoryClass", pEvalNode.getStringAttribute(NodeAttribute.MANDATORY_CLASS));
       lTemplateVars.put("MandatoryStyle", pEvalNode.getStringAttribute(NodeAttribute.MANDATORY_STYLE));
       if (pEvalNode.isMandatory() && !(MandatoryDisplayOption.OPTIONAL == pEvalNode.getMandatoryDisplay() || MandatoryDisplayOption.NONE == pEvalNode.getMandatoryDisplay())) {
@@ -117,7 +132,8 @@ extends WidgetBuilder<HTMLSerialiser, EN>  {
    * Get the generic template vars that most mustache templates for widgets have such as:
    * <ul>
    *   <li>FieldName - external field name/ID</li>
-   *   <li>PromptText - Simple prompt text</li>
+   *   <li>PromptBuffer - Raw HTML from an evaluated buffer</li>
+   *   <li>PromptText - Prompt text</li>
    *   <li>AccessiblePromptText - Prompt text for aria tags</li>
    *   <li>Class - CSS Classes</li>
    *   <li>Style - Styles on the element</li>
@@ -140,7 +156,9 @@ extends WidgetBuilder<HTMLSerialiser, EN>  {
 
     Map<String, Object> lTemplateVars = new HashMap<>();
     lTemplateVars.put("FieldName", lFieldMgr.getExternalFieldName());
-    lTemplateVars.put("PromptText", pSerialiser.getSafeStringAttribute(pEvalNode.getPrompt()));
+
+    setPromptOrPromptBufferTemplateVariable(pSerialisationContext, pSerialiser, pEvalNode, lTemplateVars);
+
     lTemplateVars.put("AccessiblePromptText", pEvalNode.getStringAttribute(NodeAttribute.ACCESSIBLE_PROMPT));
     lTemplateVars.put("PlaceholderText", pEvalNode.getStringAttribute(NodeAttribute.PLACEHOLDER));
 
@@ -160,8 +178,11 @@ extends WidgetBuilder<HTMLSerialiser, EN>  {
         }
       }
     }
-    if (lTemplateVars.get("PromptText") == null) {
+    if (lTemplateVars.get("PromptText") == null && lTemplateVars.get("PromptBuffer") == null) {
       lDefaultClasses.add("has-blank-prompt");
+    }
+    if (lTemplateVars.get("PromptBuffer") != null) {
+      lDefaultClasses.add("promptbuffer");
     }
     if (pEvalNode.getWidgetBuilderType().isAction()) {
       lDefaultClasses.add(pEvalNode.getStringAttribute(NodeAttribute.ACTION_CLASS));
@@ -188,5 +209,25 @@ extends WidgetBuilder<HTMLSerialiser, EN>  {
     }
 
     return lTemplateVars;
+  }
+
+  /**
+   * Add PromptBuffer or PromptText value to the pTemplateVars map
+   *
+   * @param pSerialisationContext
+   * @param pSerialiser
+   * @param pEvalNode
+   * @param pTemplateVars
+   */
+  private void setPromptOrPromptBufferTemplateVariable(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EN pEvalNode, Map<String, Object> pTemplateVars) {
+    EvaluatedPresentationNode<? extends PresentationNode> lEvaluatedPresentationNode = pEvalNode.getPromptBuffer();
+    if (lEvaluatedPresentationNode != null) {
+      TempSerialiser lTempSerialiser = pSerialiser.getTempSerialiser();
+      lEvaluatedPresentationNode.render(pSerialisationContext, lTempSerialiser);
+      pTemplateVars.put("PromptBuffer", lTempSerialiser.getOutput());
+    }
+    else {
+      pTemplateVars.put("PromptText", pSerialiser.getSafeStringAttribute(pEvalNode.getPrompt()));
+    }
   }
 }

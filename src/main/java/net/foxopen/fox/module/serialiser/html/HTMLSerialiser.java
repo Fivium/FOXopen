@@ -6,6 +6,7 @@ import net.foxopen.fox.entrypoint.servlets.ErrorServlet;
 import net.foxopen.fox.entrypoint.uri.RequestURIBuilder;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.LayoutDirection;
+import net.foxopen.fox.module.OutputDescription;
 import net.foxopen.fox.module.OutputHint;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.NodeVisibility;
@@ -14,6 +15,7 @@ import net.foxopen.fox.module.fieldset.action.InternalActionContext;
 import net.foxopen.fox.module.parsetree.EvaluatedParseTree;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedPresentationNode;
 import net.foxopen.fox.module.serialiser.HtmlDoctype;
+import net.foxopen.fox.module.serialiser.SerialisationContext;
 import net.foxopen.fox.module.serialiser.TempSerialiser;
 import net.foxopen.fox.module.serialiser.WriterOutputSerialiser;
 import net.foxopen.fox.module.serialiser.components.ComponentBuilder;
@@ -32,6 +34,7 @@ import net.foxopen.fox.module.serialiser.components.html.HeaderResourcesComponen
 import net.foxopen.fox.module.serialiser.components.html.HeadingComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.html.HintOutComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.html.InfoBoxComponentBuilder;
+import net.foxopen.fox.module.serialiser.components.html.LabelComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.html.MailToComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.html.MenuOutComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.html.PagerControlComponentBuilder;
@@ -91,8 +94,8 @@ import java.util.Map;
 public class HTMLSerialiser
 extends WriterOutputSerialiser {
 
-  static private final Map<WidgetBuilderType, WidgetBuilder<HTMLSerialiser, ? extends EvaluatedNode>> HTML_WIDGET_MAP = new EnumMap<>(WidgetBuilderType.class);
-  static private final Map<ComponentBuilderType, ComponentBuilder<HTMLSerialiser, ? extends EvaluatedPresentationNode>> HTML_PAGE_COMPONENT_MAP = new EnumMap<>(ComponentBuilderType.class);
+  private static final Map<WidgetBuilderType, WidgetBuilder<HTMLSerialiser, ? extends EvaluatedNode>> HTML_WIDGET_MAP = new EnumMap<>(WidgetBuilderType.class);
+  private static final Map<ComponentBuilderType, ComponentBuilder<HTMLSerialiser, ? extends EvaluatedPresentationNode>> HTML_PAGE_COMPONENT_MAP = new EnumMap<>(ComponentBuilderType.class);
   static {
     HTML_WIDGET_MAP.put(WidgetBuilderType.FORM, FormWidgetBuilder.getInstance());
     HTML_WIDGET_MAP.put(WidgetBuilderType.LIST, ListWidgetBuilder.getInstance());
@@ -147,6 +150,7 @@ extends WriterOutputSerialiser {
     HTML_PAGE_COMPONENT_MAP.put(ComponentBuilderType.PAGER_CONTROL, PagerControlComponentBuilder.getInstance());
     HTML_PAGE_COMPONENT_MAP.put(ComponentBuilderType.TAB_GROUP, TabGroupComponentBuilder.getGroupBuilderInstance());
     HTML_PAGE_COMPONENT_MAP.put(ComponentBuilderType.TAB_PROMPT, TabGroupComponentBuilder.getPromptBuilderInstance());
+    HTML_PAGE_COMPONENT_MAP.put(ComponentBuilderType.LABEL, LabelComponentBuilder.getInstance());
   }
 
   private static final HtmlDoctype DEFAULT_DOCTYPE = HtmlDoctype.HTML5;
@@ -204,15 +208,33 @@ extends WriterOutputSerialiser {
   }
 
   @Override
-  public void addHint(OutputHint pHint, String pTargetID, boolean pAddIcon) {
+  public void addHint(SerialisationContext pSerialisationContext, OutputHint pHint, String pTargetID, boolean pAddIcon) {
     if (pHint != null) {
-      String lHintContent = getSafeStringAttribute(pHint.getContent());
-      String lHintDescription = getSafeStringAttribute(pHint.getDescription());
-      if (!XFUtil.isNull(lHintDescription)) {
-        // TODO - NP/PN - Add in the hint/description concatenator again possibly? Though this perhaps is best left handled by the hint-code
-        lHintContent += "<br/><br/>" + lHintDescription;
-      }
+
       String lHintTitle = getSafeStringAttribute(pHint.getTitle());
+
+      append("<div id=\"");
+      append(pHint.getHintID());
+      append("-content\" role=\"tooltip\" class=\"hint-content\">");
+      if (!XFUtil.isNull(lHintTitle)) {
+        append("<h4>");
+        append(escapeNewlines(lHintTitle));
+        append("</h4>");
+      }
+      if (pHint.getHintBufferContent() != null) {
+        TempSerialiser lTempSerialiser = this.getTempSerialiser();
+        pHint.getHintBufferContent().render(pSerialisationContext, lTempSerialiser);
+        append(lTempSerialiser.getOutput());
+      }
+      else {
+        append(escapeNewlines(getSafeStringAttribute(pHint.getContent())));
+      }
+
+      if (pHint.getDescription() != null) {
+        // TODO - NP/PN - Add in the hint/description concatenator again possibly? Though this perhaps is best left handled by the hint-code
+        append("<br/><br/>" + getDescriptionText(pSerialisationContext, pHint.getDescription()));
+      }
+      append("</div>");
 
       if (pAddIcon) {
         if (XFUtil.exists(pHint.getHintURL())) {
@@ -221,45 +243,37 @@ extends WriterOutputSerialiser {
           append("\">");
         }
 
-        append("<div  id=\"");
+        append("<div id=\"");
         append(pHint.getHintID());
-        append("\" title=\"");
-        append(StringEscapeUtils.escapeHtml4(escapeNewlines(lHintContent)));
-        append("\" aria-label=\"");
-        append(StringEscapeUtils.escapeHtml4(escapeNewlines(lHintContent)));
-        if (!XFUtil.isNull(lHintTitle)) {
-          append("\" data-tooltip-title=\"");
-          append(StringEscapeUtils.escapeHtml4(escapeNewlines(lHintTitle)));
-        }
-        append("\" class=\"hint icon-info\"></div>");
+        append("\" aria-describedby=\"");
+        append(pHint.getHintID());
+        append("-content\" class=\"hint icon-info\"></div>");
 
         if (XFUtil.exists(pHint.getHintURL())) {
           append("</a>");
         }
       }
       else {
-        JSONObject lTooltipJSON = new JSONObject();
-        if (!XFUtil.isNull(lHintTitle)) {
-          lTooltipJSON.put("content", "<h4>" + escapeNewlines(lHintTitle) + "</h4>" + escapeNewlines(lHintContent));
-        }
-        else {
-          lTooltipJSON.put("content", lHintContent);
-        }
-        mEvalParseTree.addConditionalLoadJavascript("$('#" + pTargetID + "').tooltipster(" + lTooltipJSON.toJSONString() + ");");
+        mEvalParseTree.addConditionalLoadJavascript("FOXjs.addHintToTarget($('#" + pTargetID + "'), '" + pHint.getHintID() + "-content');");
       }
     }
   }
 
   @Override
-  public void addHint(OutputHint pHint) {
-    addHint(pHint, null, true);
+  public void addHint(SerialisationContext pSerialisationContext, OutputHint pHint) {
+    addHint(pSerialisationContext, pHint, null, true);
   }
 
   @Override
-  public void addDescription(EvaluatedNode pEvaluatedNode) {
+  public void addDescription(SerialisationContext pSerialisationContext, EvaluatedNode pEvaluatedNode) {
     if(pEvaluatedNode.getWidgetBuilderType() != WidgetBuilderType.FORM && pEvaluatedNode.getWidgetBuilderType() != WidgetBuilderType.LIST
-    && pEvaluatedNode.getFieldMgr().getVisibility().asInt() >= NodeVisibility.VIEW.asInt() && pEvaluatedNode.hasDescription()) {
-      String lDescription = getSafeStringAttribute(pEvaluatedNode.getDescription());
+      && pEvaluatedNode.getFieldMgr().getVisibility().asInt() >= NodeVisibility.VIEW.asInt()
+      && pEvaluatedNode.hasDescription()) {
+
+      OutputDescription lDescription = pEvaluatedNode.getDescription();
+
+      String lDescriptionText = getDescriptionText(pSerialisationContext, lDescription);
+
       if(!XFUtil.isNull(lDescription)) {
         append("<div class=\"fieldDescription");
         if (LayoutDirection.NORTH == pEvaluatedNode.getDescriptionLayout()) {
@@ -267,9 +281,20 @@ extends WriterOutputSerialiser {
           append(" north");
         }
         append("\">");
-        append(lDescription);
+        append(lDescriptionText);
         append("</div>");
       }
+    }
+  }
+
+  private String getDescriptionText(SerialisationContext pSerialisationContext, OutputDescription pDescription) {
+    if (pDescription.getDescriptionBufferContent() != null) {
+      TempSerialiser lTempSerialiser = this.getTempSerialiser();
+      pDescription.getDescriptionBufferContent().render(pSerialisationContext, lTempSerialiser);
+      return lTempSerialiser.getOutput();
+    }
+    else {
+      return escapeNewlines(getSafeStringAttribute(pDescription.getDescriptionText()));
     }
   }
 

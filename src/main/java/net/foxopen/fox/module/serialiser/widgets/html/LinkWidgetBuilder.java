@@ -29,7 +29,7 @@ public class LinkWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
   }
 
   @Override
-  public void buildPrompt(HTMLSerialiser pSerialiser, EvaluatedNode pEvalNodeInfo) {
+  public void buildPrompt(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNode pEvalNodeInfo) {
   }
 
   @Override
@@ -52,6 +52,6 @@ public class LinkWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
 
     MustacheFragmentBuilder.applyMapToTemplate(MUSTACHE_TEMPLATE, lTemplateVars, pSerialiser.getWriter());
 
-    pSerialiser.addHint(pEvalNode.getHint(), pEvalNode.getFieldMgr().getExternalFieldName(), false);
+    pSerialiser.addHint(pSerialisationContext, pEvalNode.getHint(), pEvalNode.getFieldMgr().getExternalFieldName(), false);
   }
 }

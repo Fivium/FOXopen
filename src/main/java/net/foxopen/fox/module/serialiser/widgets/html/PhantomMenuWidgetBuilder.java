@@ -25,7 +25,7 @@ public class PhantomMenuWidgetBuilder extends WidgetBuilderHTMLSerialiser<Evalua
   }
 
   @Override
-  public void buildPrompt(HTMLSerialiser pSerialiser, EvaluatedNodeInfo pEvalNode) {
+  public void buildPrompt(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNodeInfo pEvalNode) {
   }
 
   @Override

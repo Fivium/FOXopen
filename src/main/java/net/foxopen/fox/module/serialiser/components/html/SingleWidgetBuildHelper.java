@@ -1,6 +1,7 @@
 package net.foxopen.fox.module.serialiser.components.html;
 
 import net.foxopen.fox.XFUtil;
+import net.foxopen.fox.module.LayoutDirection;
 import net.foxopen.fox.module.OutputError;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
@@ -40,7 +41,7 @@ public class SingleWidgetBuildHelper {
       WidgetBuilderType lWidgetBuilder = pEvalNode.getWidgetBuilderType();
 
       if (pShowPrompt) {
-        pSerialiser.getWidgetBuilder(lWidgetBuilder).buildPrompt(pSerialiser, pEvalNode);
+        pSerialiser.getWidgetBuilder(lWidgetBuilder).buildPrompt(pSerialisationContext, pSerialiser, pEvalNode);
       }
 
       if (pShowWidget || pShowError || pShowHint || pShowDescription) {
@@ -60,13 +61,17 @@ public class SingleWidgetBuildHelper {
           pSerialiser.append("<div class=\"eleven-column-input\">");
         }
 
+
+        if(pShowDescription && pEvalNode.hasDescription() && LayoutDirection.NORTH == pEvalNode.getDescriptionLayout()) {
+          pSerialiser.addDescription(pSerialisationContext, pEvalNode);
+        }
+
         if (pShowWidget) {
           pSerialiser.getWidgetBuilder(lWidgetBuilder).buildWidget(pSerialisationContext, pSerialiser, pEvalNode);
         }
 
-        //TODO PN hack - this method requires a FieldMgr, nested forms/lists don't have one (yet)
-        if(pShowDescription && pEvalNode.getWidgetBuilderType() != WidgetBuilderType.FORM && pEvalNode.getWidgetBuilderType() != WidgetBuilderType.LIST) {
-          pSerialiser.addDescription(pEvalNode);  //TODO add ENI.hasDescription (like hasHint)
+        if(pShowDescription && pEvalNode.hasDescription() && LayoutDirection.SOUTH == pEvalNode.getDescriptionLayout()) {
+          pSerialiser.addDescription(pSerialisationContext, pEvalNode);
         }
 
         if (pShowError && pEvalNode.hasError()) {
@@ -88,7 +93,7 @@ public class SingleWidgetBuildHelper {
             pSerialiser.append("</div>");
             pSerialiser.append("<div class=\"input-group-addon hint-addon\">");
           }
-          pSerialiser.addHint(pEvalNode.getHint());
+          pSerialiser.addHint(pSerialisationContext, pEvalNode.getHint());
           if (pShowWidget) {
             pSerialiser.append("</div>");
           }

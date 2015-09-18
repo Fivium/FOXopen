@@ -29,7 +29,7 @@ public class URLWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode>
   }
 
   @Override
-  public void buildPrompt(HTMLSerialiser pSerialiser, EvaluatedNode pEvalNode) {
+  public void buildPrompt(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNode pEvalNode) {
   }
 
   @Override

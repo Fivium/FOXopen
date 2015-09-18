@@ -1,6 +1,7 @@
 package net.foxopen.fox.module.datanode;
 
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Table;
@@ -22,6 +23,7 @@ import net.foxopen.fox.module.evaluatedattributeresult.BooleanAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.DOMAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.DOMListAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.EvaluatedAttributeResult;
+import net.foxopen.fox.module.evaluatedattributeresult.EvaluatedBufferAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.FixedStringAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.PresentationStringAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
@@ -32,12 +34,16 @@ import net.foxopen.fox.security.SecurityManager;
 import net.foxopen.fox.xhtml.NameValuePair;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * The NodeEvaluationContext class holds information about which attributes are to be used for given data items based on
@@ -78,7 +84,7 @@ public class NodeEvaluationContext {
     return  lEvalContext;
   }
 
-  private NodeEvaluationContext(List<String> pModeList, List<String> pViewList, EvaluatedParseTree pEvalParseTree, DOM pDataItem, DOM pEvaluateContextRuleItem, DOM pActionContextItem, Table<String, String, PresentationAttribute> pPresentationNodeAttributes, NamespaceAttributeTable pNodeAttributes, List<String> pParentNamespacePrecedenceList) {
+  private NodeEvaluationContext(List<String> pModeList, List<String> pViewList, EvaluatedParseTree pEvalParseTree, DOM pDataItem, DOM pEvaluateContextRuleItem, DOM pActionContextItem, GenericAttributesEvaluatedPresentationNode<? extends GenericAttributesPresentationNode> pEvaluatedPresentationNode, NamespaceAttributeTable pNodeAttributes, List<String> pParentNamespacePrecedenceList) {
     mModeList = Collections.unmodifiableList(pModeList);
     mViewList = Collections.unmodifiableList(pViewList);
     mEvaluatedParseTree = pEvalParseTree;
@@ -87,6 +93,8 @@ public class NodeEvaluationContext {
     mEvaluateContextRuleItem = pEvaluateContextRuleItem;
     mNodeAttributes = pNodeAttributes;
 
+    Table<String, String, PresentationAttribute> lNamespaceAttributes = pEvaluatedPresentationNode.getNamespaceAttributes();
+
     mContextUElem.localise("NodeEvaluationContextConstructor");
     try {
       //Set :{item} to the item node (or parent node/state attach for phantoms, actions etc)
@@ -94,14 +102,14 @@ public class NodeEvaluationContext {
 
       // Generate an ordered list of namespaces with the most important first and least important last
       if (pParentNamespacePrecedenceList != null) {
-        mNamespacePrecedenceList = Collections.unmodifiableList(mergeNamespacePrecedenceList(pPresentationNodeAttributes, pParentNamespacePrecedenceList));
+        mNamespacePrecedenceList = Collections.unmodifiableList(mergeNamespacePrecedenceList(lNamespaceAttributes, pParentNamespacePrecedenceList));
       }
       else {
-        mNamespacePrecedenceList = Collections.unmodifiableList(createNamespacePrecedenceList(pPresentationNodeAttributes));
+        mNamespacePrecedenceList = Collections.unmodifiableList(createNamespacePrecedenceList(lNamespaceAttributes));
       }
 
       // Pre-cache the attributes, evaluating where needed
-      preCacheAttributes(pDataItem, pPresentationNodeAttributes);
+      preCacheAttributes(pDataItem, lNamespaceAttributes, pEvaluatedPresentationNode);
     }
     finally {
       mContextUElem.delocalise("NodeEvaluationContextConstructor");
@@ -122,14 +130,53 @@ public class NodeEvaluationContext {
    *
    * @param pDataItem
    * @param pPresentationNodeAttributes
+   * @param pEvaluatedPresentationNode
    */
-  private void preCacheAttributes(DOM pDataItem, Table<String, String, PresentationAttribute> pPresentationNodeAttributes) {
+  private void preCacheAttributes(DOM pDataItem, Table<String, String, PresentationAttribute> pPresentationNodeAttributes, GenericAttributesEvaluatedPresentationNode<? extends GenericAttributesPresentationNode> pEvaluatedPresentationNode) {
     // Get cut down list of attributes filtered by which namespaces are on and by their precedence
     final Map<String, PresentationAttribute> lNamespaceFilteredAttributes = getNamespacePrecedenceFilteredAttributes(pPresentationNodeAttributes);
 
+    Set<Map.Entry<String, PresentationAttribute>> lNamespaceFilteredAttributeEntrySet = lNamespaceFilteredAttributes.entrySet();
+
+    // We only want to pre-cache attributes which are defined in the NodeAttribute enum, remove any that aren't
+    lNamespaceFilteredAttributeEntrySet.removeIf(n -> NodeAttribute.fromString(n.getKey()) == null);
+
+    // Check there are no mutually exclusive attributes clashing
+    Set<String> lAttributeIntersection;
+    for (Map.Entry<String, Collection<String>> lMutuallyExclusiveEntry : NodeAttributeAssociations.MUTUALLY_EXCLUSIVE_ATTRIBUTES.entrySet()) {
+      // For each mutually exclusive attribute group refresh the intersection set with all the attribute names on this node
+      lAttributeIntersection = new HashSet<>(lNamespaceFilteredAttributes.keySet());
+      // Retain only the attributes that are in the current mutually exclusive group
+      lAttributeIntersection.retainAll(lMutuallyExclusiveEntry.getValue());
+      // If more than 1 attribute was retained there was a clash
+      if (lAttributeIntersection.size() > 1) {
+        throw new ExInternal("Found clashing attributes that should be mutually exclusive on element '" + mDataItem.absolute() + "': " + lMutuallyExclusiveEntry.getKey() + ": " + Joiner.on(", ").join(lAttributeIntersection));
+      }
+    }
+
+    // Add the cut down attribute entries to a TreeSet which will sort them so that any associated attributes which will
+    //   be relied upon will be pre-cached first.
+    TreeSet<Map.Entry<String, PresentationAttribute>> lSortedNamespaceFilteredAttributeEntrySet = new TreeSet<>((o1, o2) -> {
+      NodeAttribute lNodeAttribute1 = NodeAttribute.fromString(o1.getKey());
+      NodeAttribute lNodeAttribute2 = NodeAttribute.fromString(o2.getKey());
+
+      boolean lIsAttribute1ReliedUpon = NodeAttributeAssociations.ASSOCIATED_ATTRIBUTES.values().contains(lNodeAttribute1);
+      boolean lIsAttribute2ReliedUpon = NodeAttributeAssociations.ASSOCIATED_ATTRIBUTES.values().contains(lNodeAttribute2);
+
+      if (lIsAttribute1ReliedUpon && !lIsAttribute2ReliedUpon) {
+        return -1;
+      }
+      else if (!lIsAttribute1ReliedUpon && lIsAttribute2ReliedUpon) {
+        return 1;
+      }
+
+      return lNodeAttribute1.ordinal() - lNodeAttribute2.ordinal();
+    });
+    lSortedNamespaceFilteredAttributeEntrySet.addAll(lNamespaceFilteredAttributeEntrySet);
+
     // Pre-cache attributes (potential future optimisation to only pre-evaluate the local-context paths)
     PRECACHE_NAMEPSACE_ATTRIBUTES_LOOP:
-    for (Map.Entry<String, PresentationAttribute> lEntry : lNamespaceFilteredAttributes.entrySet()) {
+    for (Map.Entry<String, PresentationAttribute> lEntry : lSortedNamespaceFilteredAttributeEntrySet) {
       NodeAttribute lNodeAttribute = NodeAttribute.fromString(lEntry.getKey());
       PresentationAttribute lPresentationAttribute = lEntry.getValue();
       if (lNodeAttribute == null) {
@@ -190,6 +237,12 @@ public class NodeEvaluationContext {
               throw new ExInternal("Failed to evaluate DOM attribute '" + lNodeAttribute.getResultType() + "' for attribute '" + lNodeAttribute.getExternalString() + "' on element '" + pDataItem.getName() + "'", e);
             }
             break;
+          case BUFFER:
+            // Eval to buffer
+            EvaluatedBufferAttributeResult lEvaluatedBufferAttributeResult = new EvaluatedBufferAttributeResult(lNodeAttribute, lPresentationAttribute, pEvaluatedPresentationNode, this);
+
+            mPreCachedNamespaceFilteredAttributes.put(lNodeAttribute, lEvaluatedBufferAttributeResult);
+            break;
           default:
             throw new ExInternal("Attempting to pre-evaluate attributes but found unknown type '" + lNodeAttribute.getResultType() + "' for attribute '" + lNodeAttribute.getExternalString() + "' on element '" + pDataItem.getName() + "'");
         }
@@ -207,9 +260,8 @@ public class NodeEvaluationContext {
           case DOM_OPTIONAL:
           case DOM_LIST:
             throw new ExInternal("Found attribute '" + lNodeAttribute.getExternalString() + "' on element '" + pDataItem.getName() + "' marked up as DOM type but marked as non-evaluatable in NodeAttribute class?");
-            //break;
           default:
-            throw new ExInternal("Attempting to pre-cache attributes but found unknown type '" + lNodeAttribute.getResultType() + "' for attribute '" + lNodeAttribute.getExternalString() + "' on element '" + pDataItem.getName() + "'");
+            throw new ExInternal("Attempting to pre-cache non-evaluatable attributes but found unknown type '" + lNodeAttribute.getResultType() + "' for attribute '" + lNodeAttribute.getExternalString() + "' on element '" + pDataItem.getName() + "'");
         }
       }
     } // end PRECACHE_NAMEPSACE_ATTRIBUTES_LOOP
@@ -243,7 +295,7 @@ public class NodeEvaluationContext {
                                       pDataItem,
                                       pEvaluateContextRuleItem,
                                       pActionContextItem,
-                                      pEvaluatedPresentationNode.getNamespaceAttributes(),
+                                      pEvaluatedPresentationNode,
                                       pNodeAttributes,
                                       pParentNamespacePrecedenceList);
   }
@@ -287,7 +339,7 @@ public class NodeEvaluationContext {
       throw ex.toUnexpected();
     }
 
-    return new NodeEvaluationContext(modeList, viewList, pEvalParseTree, pDataItem, pEvaluateContextRuleItem, pActionContextItem, pEvaluatedPresentationNode.getNamespaceAttributes(), pNodeAttributes, pParentNamespacePrecedenceList);
+    return new NodeEvaluationContext(modeList, viewList, pEvalParseTree, pDataItem, pEvaluateContextRuleItem, pActionContextItem, pEvaluatedPresentationNode, pNodeAttributes, pParentNamespacePrecedenceList);
   }
 
   /**
@@ -322,7 +374,7 @@ public class NodeEvaluationContext {
       throw ex.toUnexpected();
     }
 
-    return new NodeEvaluationContext(modeList, viewList, pEvalParseTree, pDataItem, pEvaluateContextRuleItem, null, pEvaluatedPresentationNode.getNamespaceAttributes(), null, null);
+    return new NodeEvaluationContext(modeList, viewList, pEvalParseTree, pDataItem, pEvaluateContextRuleItem, null, pEvaluatedPresentationNode, null, null);
   }
 
   /**
@@ -827,9 +879,23 @@ public class NodeEvaluationContext {
   }
 
   /**
+   * Gets the EvaluatedBuffer value for an attribute, evaluated if the NodeAttribute defines it as evaluatable
+   *
+   * @param pAttr
+   * @return EvaluatedBufferAttributeResult instance containing a EvaluatedPresentationNode, or null if no attribute defined.
+   */
+  public EvaluatedBufferAttributeResult getEvaluatedBufferAttributeOrNull(NodeAttribute pAttr) {
+    if (pAttr.getResultType() != NodeAttribute.ResultType.BUFFER) {
+      throw new ExInternal("Asked for a EvaluatedBuffer attribute result from '" + pAttr.getExternalString() + "' which is marked as type '" + pAttr.getResultType() + "'");
+    }
+
+    return safeCast(EvaluatedBufferAttributeResult.class, mPreCachedNamespaceFilteredAttributes.get(pAttr));
+  }
+
+  /**
    * Enum used when pre-caching namespace function attributes
    */
-  public static enum NamespaceListType {
+  public enum NamespaceListType {
     MODE,
     VIEW
   }

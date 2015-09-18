@@ -40,7 +40,7 @@ public class ErrorRefWidgetBuilder extends WidgetBuilderHTMLSerialiser<Evaluated
   }
 
   @Override
-  public void buildPrompt(HTMLSerialiser pSerialiser, EvaluatedNode pEvalNode) {
+  public void buildPrompt(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNode pEvalNode) {
   }
 
   @Override

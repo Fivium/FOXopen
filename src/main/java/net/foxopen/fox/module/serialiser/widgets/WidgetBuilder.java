@@ -22,7 +22,7 @@ public abstract class WidgetBuilder<OS extends OutputSerialiser, EN extends Eval
    * @param pSerialiser
    * @param pEvalNode
    */
-  public abstract void buildPrompt(OS pSerialiser, EN pEvalNode);
+  public abstract void buildPrompt(SerialisationContext pSerialisationContext, OS pSerialiser, EN pEvalNode);
 
   /**
    * Actually set out a widget to pSerialiser based off information on pEvalNodeInfo
