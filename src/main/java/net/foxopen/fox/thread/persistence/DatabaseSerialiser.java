@@ -63,6 +63,7 @@ implements Serialiser {
 
   //Use the engine's default writer strategy to write internal DOMs (underlying storage is binary but standard writer may be more efficient)
   private final XMLWriterStrategy mInternalDOMWriterStrategy = XMLWriterStrategy.engineDefaultInstance();
+
   DatabaseSerialiser(PersistenceContext pPersistenceContext, UCon pUCon) {
     mPersistenceContext = pPersistenceContext;
     mUCon = pUCon;
