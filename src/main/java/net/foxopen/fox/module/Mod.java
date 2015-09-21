@@ -751,14 +751,15 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
           Set<String> ruleConditionAtts = new HashSet<>(securityTableEntry.getAttributeMap().keySet());
           ruleConditionAtts.retainAll(SECURITY_RULE_CONDITION_ATTRS_SET); // Retain condition attributes only
 
-          if (ruleConditionAtts.size() > 0) {
-            throw new ExModule("A mode-rule in module, "+mModuleName+", refers to security-rule, \""+ruleRefName+
-                               "\", but the mode-rule has condition attributes of its own - this is not allowed. Only "+
-                               "condition attributes on the security-rule referred to are allowed.");
-          }
-
           for (String lConditionAttribute : SECURITY_RULE_CONDITION_ATTRS) {
             String lRuleAttVal = referencedRule.getAttrOrNull(lConditionAttribute);
+            //Error if attempting to overload an attribute
+            //NB: Specifically checking for null here as the rule could define an attribute as an empty string, which is still an attempt to overload
+            if (lRuleAttVal != null && securityTableEntry.getAttrOrNull(lConditionAttribute) != null) {
+              throw new ExModule("A mode-rule in module, "+mModuleName+", refers to security-rule, \""+ruleRefName+
+                                   "\", but the mode-rule attempts to overload the condition \""+lConditionAttribute+"\" - this is not allowed.");
+            }
+            //If the local rule doesn't have a value for this attribute, inherit
             if (lRuleAttVal != null) {
               securityTableEntry.setAttr(lConditionAttribute, lRuleAttVal);
             }
