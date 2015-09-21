@@ -12,7 +12,6 @@ import net.foxopen.fox.database.UConStatementResult;
 import net.foxopen.fox.database.sql.bind.BindDirection;
 import net.foxopen.fox.database.sql.bind.BindSQLType;
 import net.foxopen.fox.database.sql.bind.DOMBindObject;
-import net.foxopen.fox.database.xml.BinaryXMLWriter;
 import net.foxopen.fox.database.xml.XMLWriterStrategy;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.xpath.saxon.XPathVariableManager;
@@ -62,8 +61,9 @@ implements Serialiser {
     return pModuleFacet.getFacetType().toString();
   }
 
-  //TODO PN this might need to be configurable, and needs to be thoroughly tested
-  private final XMLWriterStrategy mInternalDOMWriterStrategy = BinaryXMLWriter.instance();
+  //Use the engine's default writer strategy to write internal DOMs (underlying storage is binary but standard writer may be more efficient)
+  private final XMLWriterStrategy mInternalDOMWriterStrategy = XMLWriterStrategy.engineDefaultInstance();
+
   DatabaseSerialiser(PersistenceContext pPersistenceContext, UCon pUCon) {
     mPersistenceContext = pPersistenceContext;
     mUCon = pUCon;

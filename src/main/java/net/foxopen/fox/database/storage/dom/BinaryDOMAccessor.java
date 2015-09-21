@@ -3,8 +3,8 @@ package net.foxopen.fox.database.storage.dom;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.sql.bind.BindSQLType;
-import net.foxopen.fox.database.xml.BinaryXMLWriter;
 import net.foxopen.fox.database.xml.OracleBinaryXMLReader;
+import net.foxopen.fox.database.xml.XMLWriterStrategy;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.track.Track;
@@ -97,10 +97,11 @@ implements XMLWorkDocDOMAccessor {
       throw new ExInternal("Binary XML WorkDoc can only bind XMLTYPEs (cannot bind " + pBindTypeRequired + ")");
     }
 
-    //Create a new XMLType using a BinaryXMLWriter
+    //Create a new XMLType using the engine's configured writer strategy (binary or SQLXML)
     Track.pushInfo("WriteDOMToBinXML");
     try {
-      return BinaryXMLWriter.instance().writeToObject(pUCon, pDOM);
+      //Note: this was hardcoded to binary XML, made configurable to test performance
+      return XMLWriterStrategy.engineDefaultInstance().writeToObject(pUCon, pDOM);
     }
     catch (SQLException e) {
       throw new ExInternal("Failed to bind as binary XML", e);
