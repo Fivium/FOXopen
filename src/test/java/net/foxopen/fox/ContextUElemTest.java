@@ -359,6 +359,18 @@ public class ContextUElemTest {
     assertEquals("Gets list without creating new element", 2, lResult.getLength());
   }
 
+  @Test (expected =  ExActionFailed.class)
+  public void testGetCreateUL_FailsOnTooManyDocuments()
+  throws ExActionFailed, ExTooFew, ExTooMany {
+    mContextUElem.getCreateXPathUL("(:{root}/NOT_AN_ELEMENT | :{theme}/NOT_AN_ELEMENT)[1]");
+  }
+
+  @Test (expected =  ExActionFailed.class)
+  public void testGetCreateUL_FailsOnNoDocuments()
+  throws ExActionFailed, ExTooFew, ExTooMany {
+    mContextUElem.getCreateXPathUL("string('x')[false()]");
+  }
+
   @Test
   public void testGetCreateXPath1E()
   throws ExActionFailed, ExTooFew, ExTooMany {
@@ -376,6 +388,18 @@ public class ContextUElemTest {
   public void testGetCreateXPath1E_FailsWhenNotMatchedAndPredicateInPath()
   throws ExActionFailed, ExTooFew, ExTooMany {
     DOM lResult = mContextUElem.getCreateXPath1E(":{root}/RESULT_LIST/RESULT[failed_predicate]/NEW_ELEMENT");
+  }
+
+  @Test (expected = ExActionFailed.class)
+  public void testGetCreateXPath1E_FailsOnManyDocuments()
+  throws ExActionFailed, ExTooMany, ExTooFew {
+    mContextUElem.getCreateXPath1E("(:{root}/NOT_AN_ELEMENT | :{theme}/NOT_AN_ELEMENT)[1]");
+  }
+
+  @Test (expected = ExActionFailed.class)
+  public void  testGetCreateXPath1E_FailsOnNoDocuments()
+  throws ExActionFailed, ExTooMany, ExTooFew {
+    mContextUElem.getCreateXPath1E("string('x')[false()]");
   }
 
   @Test
@@ -1002,6 +1026,37 @@ public class ContextUElemTest {
     lNewContextUElem.getElemByRefOrNull(lConfigDOM.getRef());
   }
 
+
+  @Test
+  public void testGetAbsolutePathForCreatableXPath()
+  throws ExActionFailed, ExTooFew, ExTooMany {
+
+    String lXPath = mContextUElem.getAbsolutePathForCreateableXPath(mRootDOM, ":{root}/RESULT_LIST");
+    assertEquals("Absolute path can be constructed when node exists", "/root/RESULT_LIST", lXPath);
+
+    lXPath = mContextUElem.getAbsolutePathForCreateableXPath(mRootDOM, ":{root}/RESULT_LIST/RESULT[1]/NEW_ELEMENT");
+    assertEquals("Absolute path removes predicate when matched", "/root/RESULT_LIST/RESULT/NEW_ELEMENT", lXPath);
+  }
+
+  @Test(expected =  ExDOMName.class)
+  public void testGetAbsolutePathForCreatableXPath_FailsWhenNoMatch()
+  throws ExActionFailed, ExTooFew, ExTooMany {
+    //Should fail because NON_EXISTENT_NODE is not in DOM or schema and cannot create an element called "NON_EXISTENT_NODE[1]"
+    mContextUElem.getAbsolutePathForCreateableXPath(mRootDOM, ":{root}/NON_EXISTENT_NODE[1]");
+  }
+
+  @Test(expected =  ExActionFailed.class)
+  public void testGetAbsolutePathForCreatableXPath_FailsWhenNoDocumentImplicated()
+  throws ExActionFailed, ExTooFew, ExTooMany {
+    //No documents implicated so XPath cannot be created
+    mContextUElem.getAbsolutePathForCreateableXPath(mRootDOM, "string('x')[false()]");
+  }
+
+  @Test(expected =  ExActionFailed.class)
+  public void testGetAbsolutePathForCreatableXPath_FailsWhenManyDocumentsImplicated()
+  throws ExActionFailed, ExTooFew, ExTooMany {
+    mContextUElem.getAbsolutePathForCreateableXPath(mRootDOM, "(:{root}/NOTHING | :{theme}/NOTHING)[1]");
+  }
 
 }
 

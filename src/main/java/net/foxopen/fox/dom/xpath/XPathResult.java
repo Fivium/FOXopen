@@ -205,10 +205,11 @@ public class XPathResult {
   }
 
   /**
-   * Get the relative DOM for this XPath, provided it only implicates exactly one Document. Otherwise, returns null.<br/><br/>
+   * Get the relative DOM for this XPath, provided it only implicates exactly one Document (see {@link #getNumberOfImplicatedDocuments}).
+   * Otherwise, returns null.<br/><br/>
    * Note: the DOM returned is only used for discerning the relevant Document for this XPath and is not guaranteed to point directly to
    * the context node of the expression.
-   * @return The DOM providing a reference to the XPath's Document.
+   * @return The DOM providing a reference to the XPath's Document, or null if not exactly 1 document was implicated.
    */
   public DOM getRelativeDOM(){
     return mRelativeDOM;

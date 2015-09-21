@@ -1062,8 +1062,8 @@ public class ContextUElem {
     }
 
     // When missing validation
-    if(lXPathResult.getNumberOfImplicatedDocuments() > 1) {
-      throw new ExActionFailed("BADPATH", "Unable to create from XPath when more than one document involved for XPath: " + pFoxExtendedXpath);
+    if(lXPathResult.getNumberOfImplicatedDocuments() != 1) {
+      throw new ExActionFailed("BADPATH", "XPath must have exactly 1 implicated document (had " + lXPathResult.getNumberOfImplicatedDocuments() +  ") to be used to create nodes: " + pFoxExtendedXpath);
     }
 
     // Create elements using XPath expression
@@ -1104,8 +1104,8 @@ public class ContextUElem {
     }
 
     // As for create, don't allow multiple DOMs to have creation operations run on them
-    if(lXPathResult.getNumberOfImplicatedDocuments() > 1) {
-      throw new ExActionFailed("BADPATH", "Unable to create from XPath when more than one document involved for XPath: " + pFoxExtendedXpath);
+    if(lXPathResult.getNumberOfImplicatedDocuments() != 1) {
+      throw new ExActionFailed("BADPATH", "XPath must have exactly 1 implicated document (had " + lXPathResult.getNumberOfImplicatedDocuments() +  ") to be used to create nodes: " + pFoxExtendedXpath);
     }
 
     //No node found and a single DOM implicated - establish what the absolute path would be.
@@ -1427,8 +1427,8 @@ public class ContextUElem {
     }
 
     // When missing validation
-    if(xpathResult.getNumberOfImplicatedDocuments() > 1) {
-      throw new ExActionFailed("BADPATH", "Unable to create xpath when more than one document involved: "+pFoxExtendedXPath);
+    if(xpathResult.getNumberOfImplicatedDocuments() != 1) {
+      throw new ExActionFailed("BADPATH", "XPath must have exactly 1 implicated document (had " + xpathResult.getNumberOfImplicatedDocuments() +  ") to be used to create nodes: " + pFoxExtendedXPath);
     }
 
     // Create elements using XPATH expression
