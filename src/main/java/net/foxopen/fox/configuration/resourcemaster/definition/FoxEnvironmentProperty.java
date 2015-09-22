@@ -7,6 +7,7 @@ public enum FoxEnvironmentProperty {
   DEFAULT_APPLICATION("/*/default-application", false),
   DATABASE_BINARY_XML_READER_STRATEGY("/*/database/binary-xml-reader-strategy", false, false, DatabaseProperties.XML_STRATEGY_BINARY),
   DATABASE_BINARY_XML_WRITER_STRATEGY("/*/database/binary-xml-writer-strategy", false, false, DatabaseProperties.XML_STRATEGY_BINARY),
+  DATABASE_STANDARD_XML_WRITER_METHOD("/*/database/standard-xml-writer-method", false, false, DatabaseProperties.STANDARD_XML_WRITER_METHOD_BYTES),
   ENV_DISPLAY_ATTR_LIST ("/*/env-display-attribute-list", true, false),
   AUTHENTICATION_PROPERTIES("/*/authentication-properties", true, false),
   COOKIE_DOMAIN_METHOD("/*/cookie-domain-method", false, false, "FULL"),
