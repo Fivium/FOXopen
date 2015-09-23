@@ -8,10 +8,12 @@ import java.util.concurrent.TimeUnit;
 public enum BuiltInCacheDefinition {
   XML_WORKDOCS("XML_WORKDOC", new CacheBuilderFactory() {
     public FoxCacheBuilder createCacheBuilder() throws ExFoxConfiguration {
-      FoxLRUCacheBuilder lCacheBuilder = new FoxLRUCacheBuilder();
+      FoxTTLCacheBuilder lCacheBuilder = new FoxTTLCacheBuilder();
       lCacheBuilder.setPurpose("XML WorkDocs");
       lCacheBuilder.setMaxCapacity(500);
       lCacheBuilder.setConcurrencyLevel(5);
+      //TTL matches XThread cache as most data will be common to both
+      lCacheBuilder.setTimeToLiveMs((int) TimeUnit.DAYS.toMillis(2));
       return lCacheBuilder;
     }
   }),
