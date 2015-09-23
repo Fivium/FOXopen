@@ -37,6 +37,7 @@ public enum NodeAttribute {
   DESCRIPTION_BUFFER("description-buffer", ValueType.EVALUATABLE_XPATH, ResultType.BUFFER),
   DESCRIPTION_BUFFER_ATTACH_DOM("description-buffer-attach", ValueType.EVALUATABLE_XPATH, ResultType.DOM_OPTIONAL),
   DESCRIPTION_DISPLAY("descriptionDisplay", ValueType.CONSTANT, ResultType.STRING),
+  DESCRIPTION_DISPLAY_MODE("descriptionDisplayMode", ValueType.CONSTANT, ResultType.STRING), // ENUM of DisplayMode
   DESCRIPTION_LAYOUT("descriptionLayout", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   DISPLAY_AFTER("displayAfter", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   DISPLAY_BEFORE("displayBefore", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
@@ -78,6 +79,7 @@ public enum NodeAttribute {
   HINT("hint", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   HINT_BUFFER("hint-buffer", ValueType.EVALUATABLE_XPATH, ResultType.BUFFER),
   HINT_BUFFER_ATTACH_DOM("hint-buffer-attach", ValueType.EVALUATABLE_XPATH, ResultType.DOM_OPTIONAL),
+  HINT_DISPLAY_MODE("hintDisplayMode", ValueType.CONSTANT, ResultType.STRING), // ENUM of DisplayMode
   HINT_URL("hint-url", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   HINT_TITLE("hintTitle", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   HREF("href", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
@@ -108,6 +110,7 @@ public enum NodeAttribute {
   MAND("mand", ValueType.EVALUATABLE_XPATH, ResultType.BOOLEAN),
   MANDATORY("mandatory", ValueType.EVALUATABLE_XPATH, ResultType.BOOLEAN),
   MANDATORY_DISPLAY("mandatoryDisplay", ValueType.CONSTANT, ResultType.STRING), // ENUM of MandatoryDisplayOption
+  MANDATORY_DISPLAY_MODE("mandatoryDisplayMode", ValueType.CONSTANT, ResultType.STRING), // ENUM of DisplayMode
   MANDATORY_TEXT("mandatoryText", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   MANDATORY_CLASS("mandatoryClass", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   MANDATORY_STYLE("mandatoryStyle", ValueType.EVALUATABLE_XPATH, ResultType.STRING),

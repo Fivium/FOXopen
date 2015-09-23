@@ -20,4 +20,12 @@
       <xs:enumeration value="N"/>
     </xs:restriction>
   </xs:simpleType>
+  <xs:simpleType name="display-mode-enum">
+    <xs:restriction base="entered-string">
+        <xs:enumeration value="always"/>
+        <xs:enumeration value="edit"/>
+        <xs:enumeration value="ro"/>
+        <xs:enumeration value="never"/>
+    </xs:restriction>
+  </xs:simpleType>
 </xs:schema>

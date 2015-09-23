@@ -105,6 +105,9 @@
     <xs:attribute ref="descriptionLayout"/>
     <xs:attribute ref="downloadAsAttachment"/>
     <xs:attribute ref="namespacePreference"/>
+    <xs:attribute ref="descriptionDisplayMode"/>
+    <xs:attribute ref="hintDisplayMode"/>
+    <xs:attribute ref="mandatoryDisplayMode"/>
   </xs:attributeGroup>
   <xs:attributeGroup name="zzz-set-menu-attr-group">
     <xs:attribute ref="mode" use="optional"/>
@@ -395,6 +398,9 @@
     <xs:attribute ref="actionType"/>
     <xs:attribute ref="downloadFileName"/>
     <xs:attribute ref="reverseBooleanOrder"/>
+    <xs:attribute ref="descriptionDisplayMode"/>
+    <xs:attribute ref="hintDisplayMode"/>
+    <xs:attribute ref="mandatoryDisplayMode"/>
   </xs:attributeGroup>
   <xs:attributeGroup name="zzz-cellmate-attr-grp">
     <xs:attribute ref="cellmateKey"/>
@@ -413,6 +419,9 @@
     <xs:attribute ref="promptClass"/>
     <xs:attribute ref="promptStyle"/>
     <xs:attribute ref="hasContent"/>
+    <xs:attribute ref="descriptionDisplayMode"/>
+    <xs:attribute ref="hintDisplayMode"/>
+    <xs:attribute ref="mandatoryDisplayMode"/>
   </xs:attributeGroup>
   <!--ITEM GROUP SELECTION LEVELS-->
   <xs:attribute name="view"/>
@@ -1276,6 +1285,21 @@
   <xs:attribute name="reverseBooleanOrder" type="fox-xpath-type">
     <xs:annotation>
       <xs:documentation>Controls whether the true/false values should be reversed for display of a xs:boolean field - i.e. false before true (the default is always true before false). Must be an XPath that resolves to true (i.e. "true()" or ".").</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="descriptionDisplayMode" type="display-mode-enum">
+    <xs:annotation>
+      <xs:documentation>Control when to show the description based on the element's visibility level (ro/edit)</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="hintDisplayMode" type="display-mode-enum">
+    <xs:annotation>
+      <xs:documentation>Control when to show the hint based on the element's visibility level (ro/edit)</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="mandatoryDisplayMode" type="display-mode-enum">
+    <xs:annotation>
+      <xs:documentation>Control when to show the mandatory display based on the element's visibility level (ro/edit)</xs:documentation>
     </xs:annotation>
   </xs:attribute>
 </xs:schema>

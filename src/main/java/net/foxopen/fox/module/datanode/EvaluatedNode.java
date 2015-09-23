@@ -5,6 +5,7 @@ import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.DOMList;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.module.DisplayMode;
 import net.foxopen.fox.module.DisplayOrderSortable;
 import net.foxopen.fox.module.HelpDisplayOption;
 import net.foxopen.fox.module.LayoutDirection;
@@ -531,7 +532,7 @@ implements DisplayOrderSortable {
   }
 
   public boolean hasHint() {
-    return (getHint() != null);
+    return (getHint() != null && DisplayMode.isDisplayAllowed(this, NodeAttribute.HINT_DISPLAY_MODE));
   }
 
   protected StringAttributeResult getDefaultDescription() {
@@ -560,7 +561,7 @@ implements DisplayOrderSortable {
 
   public boolean hasDescription() {
     boolean lShowDescriptionInline = HelpDisplayOption.fromExternalString(getStringAttribute(NodeAttribute.DESCRIPTION_DISPLAY, HelpDisplayOption.INLINE.getExternalString())) == HelpDisplayOption.INLINE;
-    return (getDescription() != null && lShowDescriptionInline);
+    return (getDescription() != null && lShowDescriptionInline && DisplayMode.isDisplayAllowed(this, NodeAttribute.DESCRIPTION_DISPLAY_MODE));
   }
 
   /**
@@ -627,7 +628,17 @@ implements DisplayOrderSortable {
     return false;
   }
 
+  /**
+   * Get an enum value from MandatoryDisplayOption defining what to show for mandatoryness. Potentially pulled down to
+   * NONE if the display of mandatoryness is not allowed by NodeAttribute.MANDATORY_DISPLAY_MODE
+   *
+   * @return MandatoryDisplayOption defining what to show based on fields mandatoryness
+   */
   public MandatoryDisplayOption getMandatoryDisplay() {
+    if (!DisplayMode.isDisplayAllowed(this, NodeAttribute.MANDATORY_DISPLAY_MODE, DisplayMode.EDIT)) {
+      return MandatoryDisplayOption.NONE;
+    }
+
     return MandatoryDisplayOption.fromString(getStringAttribute(NodeAttribute.MANDATORY_DISPLAY, "mandatory"));
   }
 
