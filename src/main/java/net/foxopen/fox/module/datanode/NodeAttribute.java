@@ -124,6 +124,8 @@ public enum NodeAttribute {
   NESTED_STYLE("nestedStyle", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   NESTED_FORM_CLASS("nestedFormClass", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   NESTED_FORM_STYLE("nestedFormStyle", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
+  NESTED_LIST_CLASS("nestedListClass", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
+  NESTED_LIST_STYLE("nestedListStyle", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   NESTED_TABLE_CLASS("nestedTableClass", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   NESTED_TABLE_STYLE("nestedTableStyle", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   OFFSET_SPAN("offsetSpan", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
