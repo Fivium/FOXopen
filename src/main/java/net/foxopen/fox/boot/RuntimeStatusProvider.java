@@ -40,6 +40,7 @@ implements StatusProvider {
     pDestination.addDetailMessage("JVM Arguments", new JVMArgDetailProvider());
     pDestination.addDetailMessage("GC Info", new GCDetailProvider());
     pDestination.addMessage("Servlet last reloaded", EngineStatus.formatDate(mUpSince));
+    pDestination.addMessage("Server version", FoxGlobals.getInstance().getServletContext().getServerInfo());
 
   }
 
