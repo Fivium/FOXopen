@@ -73,6 +73,8 @@ public class KryoManager {
 
       //Restrict the InputStream to be read to the length of the serialised DOM, so the DOM constructor doesn't deplete the raw Kryo InputStream
       BoundedInputStream lBoundedInputStream = new BoundedInputStream(input, lDOMLength);
+      //Don't allow close calls from the XML deserialiser to propogate to the wrapped InputStream
+      lBoundedInputStream.setPropagateClose(false);
 
       return DOM.createDocument(lBoundedInputStream, false);
     }
