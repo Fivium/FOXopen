@@ -2,6 +2,7 @@ package net.foxopen.fox.module.datanode;
 
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.ActionIdentifier;
+import net.foxopen.fox.module.evaluatedattributeresult.BooleanAttributeResult;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.GenericAttributesEvaluatedPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.GenericAttributesPresentationNode;
 import net.foxopen.fox.track.Track;
@@ -26,6 +27,19 @@ public class EvaluatedNodeFactory {
       return null;
     }
     else {
+      /**
+       * In FOX4 a schema element could be complex but still set out as an individual element if it had a widget defined
+       * that was enabled.
+       * FOX5 relied on the schema driving the type of EvaluatedNodeInfo to create, but we have implemented this attribute
+       * so that FOX4 migration is made easier and less code has to be re-written initially.
+       */
+      BooleanAttributeResult llDisplayFormAsItemBooleanAttribute = pNodeEvaluationContext.getBooleanAttributeOrNull(NodeAttribute.DISPLAY_FORM_AS_ITEM);
+      boolean lDisplayFormAsItem = false;
+      if (llDisplayFormAsItemBooleanAttribute != null && llDisplayFormAsItemBooleanAttribute.getBoolean()) {
+        lDisplayFormAsItem = true;
+        Track.info(NodeAttribute.DISPLAY_FORM_AS_ITEM.getExternalString(), "Found use of " + NodeAttribute.DISPLAY_FORM_AS_ITEM + ", this code should be refactored", TrackFlag.BAD_MARKUP);
+      }
+
       if (pNodeInfo.getNodeType() == NodeType.LIST) {
         // Node is a list, but it is not necessarily a list of complex types - it could be a multi selector or multi upload container, in which case we need an Item node info
         if(pNodeInfo.isMultiOptionItem()) {
@@ -36,10 +50,10 @@ public class EvaluatedNodeFactory {
           return EvaluatedNodeInfoList.getListOrEmptyBuffer(new EvaluatedNodeInfoList(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, lVisibility, pNodeInfo));
         }
       }
-      else if (pNodeInfo.getNodeType() == NodeType.COLLECTION) {
+      else if (pNodeInfo.getNodeType() == NodeType.COLLECTION && !lDisplayFormAsItem) {
         return new EvaluatedNodeInfoCollection(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, lVisibility, pNodeInfo);
       }
-      else if (pNodeInfo.getNodeType() == NodeType.ITEM) {
+      else if (pNodeInfo.getNodeType() == NodeType.ITEM || lDisplayFormAsItem) {
         return EvaluatedNodeInfoItem.getEvaluatedNode(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, lVisibility, pNodeInfo);
       }
       else {

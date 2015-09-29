@@ -41,6 +41,7 @@ public enum NodeAttribute {
   DESCRIPTION_LAYOUT("descriptionLayout", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   DISPLAY_AFTER("displayAfter", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   DISPLAY_BEFORE("displayBefore", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
+  DISPLAY_FORM_AS_ITEM("displayFormAsItem", ValueType.EVALUATABLE_XPATH, ResultType.BOOLEAN),
   DISPLAY_ORDER("displayOrder", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   DOWNLOAD_AS_ATTACHMENT("downloadAsAttachment", ValueType.EVALUATABLE_XPATH, ResultType.BOOLEAN),
   DOWNLOAD_FILENAME("downloadFileName", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
