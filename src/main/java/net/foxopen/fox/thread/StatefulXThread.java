@@ -377,7 +377,7 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
 
       //Generate a response
       if(pGenerateResponse) {
-        lFoxResponse = establishResponse(pRequestContext);
+        lFoxResponse = establishResponse(pRequestContext, true);
       }
       else {
         lFoxResponse = null;
@@ -567,7 +567,7 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
 
       finaliseBeforeResponse(pRequestContext);
 
-      FoxResponse lFoxResponse = establishResponse(lActionRequestContext);
+      FoxResponse lFoxResponse = establishResponse(lActionRequestContext, false);
 
       mPersistenceContext.requiresPersisting(this, PersistenceMethod.UPDATE);
 
@@ -693,11 +693,11 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
   implements ThreadActionResultGenerator<FoxResponse> {
     @Override
     public FoxResponse establishResult(ActionRequestContext pRequestContext) {
-      return establishResponse(pRequestContext);
+      return establishResponse(pRequestContext, false);
     }
   }
 
-  private FoxResponse establishResponse(ActionRequestContext pRequestContext) {
+  private FoxResponse establishResponse(ActionRequestContext pRequestContext, boolean pIsNewThread) {
     //Check for a pre-cached response, i.e. if this is a modeless resume
     FoxResponse lCachedResponse = getAndClearCachedResponse();
     if(lCachedResponse != null){
@@ -718,7 +718,7 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     }
     else {
       Track.setProperty(TrackProperty.RESPONSE_TYPE, "HTML");
-      lResultResponse = generateHTMLResponse(pRequestContext);
+      lResultResponse = generateHTMLResponse(pRequestContext, pIsNewThread);
     }
 
     return lResultResponse;
@@ -895,7 +895,7 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
   }
 
   //TODO refactor into "ThreadOutputGenerator" strategy
-  private FoxResponse generateHTMLResponse(ActionRequestContext pRequestContext) {
+  private FoxResponse generateHTMLResponse(ActionRequestContext pRequestContext, boolean pForceBufferedOutput) {
 
     //If the thread has been restored from the database and an action hasn't been invoked, the top ModuleCall's DOMs may not
     //have been loaded. This call ensures DOMs are loaded and labels are set before attempting HTML generation.
@@ -928,7 +928,10 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
         FieldSetCookieManager lFieldSetCookieManager = mFieldSetOut.createCookieManager(pRequestContext.getFoxRequest(), mThreadId);
 
         // TODO - Add in method to switch between streamed and regular response
-        ResponseMethod lResponseMethod = pRequestContext.getRequestApp().getResponseMethod();
+
+        //We need to force buffered output on a new thread so user can't churn the page before thread is initially committed -
+        //otherwise the thread locker fails on the 2nd churn as it is unable to find the thread row.
+        ResponseMethod lResponseMethod = pForceBufferedOutput ? ResponseMethod.BUFFERED : pRequestContext.getRequestApp().getResponseMethod();
         if (lResponseMethod == ResponseMethod.STREAMING) {
 
           //Set a ResponseErrorHandler on the request for the streaming response
