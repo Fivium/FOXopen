@@ -110,6 +110,13 @@ extends HttpServlet {
     return TrackUtils.createDefaultTrackLogger(pRequestContext);
   }
 
+  /**
+   * Processing that should happen at the very start of a request, immediately after the FoxRequest has been constructed.
+   * @param pFoxRequest New FoxRequest.
+   */
+  protected void beforeRequest(FoxRequest pFoxRequest) {
+  }
+
   private interface RequestProcessor {
     void processRequest(RequestContext pRequestContext);
   }
@@ -135,6 +142,8 @@ extends HttpServlet {
 
     //Construct new FoxRequest
     FoxRequest lFoxRequest = new FoxRequestHttp(pRequest, pResponse, (String) pRequest.getAttribute(RequestLogFilter.REQUEST_ATTRIBUTE_LOG_ID), lUseSecureCookies);
+
+    beforeRequest(lFoxRequest);
 
     //Creates a new RequestContext - note this pushes a new connection onto the ContextUCon, which we pop off at the end
     String lConnectionPoolName = XFUtil.nvl(getConnectionPoolName(lFoxRequest), lApp.getConnectionPoolName());

@@ -5,7 +5,6 @@ import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.FoxResponse;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.banghandler.InternalAuthentication;
-import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.enginestatus.EngineStatus;
 import net.foxopen.fox.enginestatus.StatusDestination;
 import net.foxopen.fox.enginestatus.StatusProvider;
@@ -14,15 +13,12 @@ import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.entrypoint.FoxSession;
 import net.foxopen.fox.entrypoint.engine.EngineWebServiceCategory;
 import net.foxopen.fox.entrypoint.servlets.EntryPointServlet;
-import net.foxopen.fox.ex.ExAlreadyHandled;
+import net.foxopen.fox.entrypoint.servlets.ErrorServlet;
 import net.foxopen.fox.ex.ExInternal;
-import net.foxopen.fox.logging.ErrorLogger;
 import net.foxopen.fox.thread.RequestContext;
 import net.foxopen.fox.track.Track;
-import org.json.simple.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -41,6 +37,7 @@ public class WebServiceServlet
 extends EntryPointServlet {
 
   public static final String RESPONSE_TYPE_PARAM_NAME = "responseType";
+  private static final WebServiceResponse.Type DEFAULT_RESPONSE_TYPE = WebServiceResponse.Type.JSON;
 
   public static final String SERVLET_PATH = "ws";
   public static final String SERVICE_TYPE_REST = "rest";
@@ -256,40 +253,33 @@ extends EntryPointServlet {
     return lParamMap;
   }
 
-  private WebServiceResponse generateErrorResponse(long pErrorRef, WebServiceResponse.Type pResponseType, Throwable pError) {
+  private WebServiceResponse.Type getResponseType(HttpServletRequest pHttpRequest) {
+    String lResponseTypeParam = pHttpRequest.getParameter(RESPONSE_TYPE_PARAM_NAME);
 
-    //Suppress stack traces on production
-    //TODO PN only for external requests, internal/token should be ok to serve out the stack
-    String lStackTrace;
-    if(FoxGlobals.getInstance().canShowStackTracesOnError()) {
-      lStackTrace = XFUtil.getJavaStackTraceInfo(pError);
+    WebServiceResponse.Type pResponseType;
+    if(!XFUtil.isNull(lResponseTypeParam)) {
+      pResponseType = WebServiceResponse.Type.fromParamString(lResponseTypeParam);
     }
     else {
-      lStackTrace = "Not available";
+      pResponseType = DEFAULT_RESPONSE_TYPE;
     }
 
-    if(pResponseType == WebServiceResponse.Type.JSON) {
-      JSONObject lErrorDetails = new JSONObject();
-      lErrorDetails.put("message", pError.getMessage());
-      lErrorDetails.put("stackTrace", lStackTrace);
-      lErrorDetails.put("reference", pErrorRef);
+    return pResponseType;
+  }
 
-      JSONObject lJSONContainer = new JSONObject();
-      lJSONContainer.put("status", "error");
-      lJSONContainer.put("errorDetails", lErrorDetails);
+  @Override
+  protected void beforeRequest(FoxRequest pFoxRequest) {
 
-      return new JSONWebServiceResponse(lJSONContainer, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    //Attempt to read the responseType parameter now, so any errors are reported with the correct type
+    WebServiceResponse.Type lResponseType = DEFAULT_RESPONSE_TYPE;
+    try {
+      lResponseType = getResponseType(pFoxRequest.getHttpRequest());
     }
-    else {
-      DOM lErrorXML = DOM.createDocument("web-service-response");
-      lErrorXML.addElem("status", "error");
-      lErrorXML.addElem("error-details")
-        .addElem("message", pError.getMessage()).getParentOrNull()
-        .addElem("stack-trace", lStackTrace)
-        .addElem("reference", Long.toString(pErrorRef));
-
-      return new XMLWebServiceResponse(lErrorXML, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    catch (Throwable th) {
+      //Ignore any errors from the attempt to establish a response type - we will set an handler now and wait for the error to occur again
     }
+
+    ErrorServlet.setResponseErrorHandlerForRequest(pFoxRequest, new WebServiceResponseErrorHandler(lResponseType));
   }
 
   public final void processHttpRequest(RequestContext pRequestContext) {
@@ -299,13 +289,13 @@ extends EntryPointServlet {
 
     FoxResponse lFoxResponse;
     //Default response type is JSON
-    WebServiceResponse.Type lResponseType = WebServiceResponse.Type.JSON;
+    WebServiceResponse.Type lResponseType = DEFAULT_RESPONSE_TYPE;
     try {
       //First thing we do as any error should be sent as the correct type
-      String lResponseTypeParam = lHttpRequest.getParameter(RESPONSE_TYPE_PARAM_NAME);
-      if(!XFUtil.isNull(lResponseTypeParam)) {
-        lResponseType = WebServiceResponse.Type.fromParamString(lResponseTypeParam);
-      }
+      lResponseType = getResponseType(lHttpRequest);
+
+      //Reset the error handler now we know the response type
+      ErrorServlet.setResponseErrorHandlerForRequest(lFoxRequest, new WebServiceResponseErrorHandler(lResponseType));
 
       StringBuilder lUriPath = new StringBuilder(lHttpRequest.getPathInfo());
 
@@ -360,21 +350,11 @@ extends EntryPointServlet {
       }
       else {
         //TODO improved auth failure handling
-        throw new ExInternal("Failed to authenticate");
+        throw new ExInternal("Failed to authenticate using Auth Descriptor " + lWebService.getAuthDescriptor());
       }
     }
     catch (Throwable th) {
-      //Manually log the error here - ExAlreadyHandled errors are assumed to have already been logged
-      long lErrorRef = ErrorLogger.instance().logError(th, ErrorLogger.ErrorType.FATAL, pRequestContext.getFoxRequest().getRequestLogId());
-
-      lFoxResponse = generateErrorResponse(lErrorRef, lResponseType, th).generateResponse(lFoxRequest, lResponseType);
-      //TODO NP/PN - correct error codes etc
-      if(!lFoxRequest.getHttpResponse().isCommitted()) {
-        lFoxResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-      }
-      lFoxResponse.respond(lFoxRequest);
-      //Ensure the upstream filters see this error (e.g. so it is set on track, etc)
-      throw new ExAlreadyHandled("Error in WebService (reported to client)", th);
+      throw new ExInternal("Error handling WebService request", th);
     }
   }
 
