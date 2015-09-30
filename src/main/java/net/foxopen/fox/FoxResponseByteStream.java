@@ -65,6 +65,10 @@ extends FoxResponse {
   }
 
   public OutputStream getHttpServletOutputStream() {
+
+    //Any BeforeResponseActions may require additional headers to be set
+    runBeforeResponseActions();
+
     setResponseHttpHeaders(mHttpServletResponse);
     try {
       return mHttpServletResponse.getOutputStream();

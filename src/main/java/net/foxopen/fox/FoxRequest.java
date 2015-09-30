@@ -78,20 +78,6 @@ public abstract class FoxRequest {
 
   public abstract String getCookieValue (String pCookieName);
 
-  /**
-   * Sets the JSON field set cookie for the given thread, so the UI JavaScript can see if the page is expired or not.
-   * @param pThreadId Thread ID of the XThread to set the FieldSet value for.
-   * @param pFieldSetLabel Label of the current FieldSet.
-   */
-  public abstract void setCurrentFieldSet(String pThreadId, String pFieldSetLabel);
-
-  /**
-   * Removes the JSON field set cookie entry for the given thread. This should be used to clear up the cookie and prevent
-   * it from overflowing with expired thread references.
-   * @param pThreadId
-   */
-  public abstract void clearCurrentFieldSet(String pThreadId);
-
   public abstract HttpServletRequest getHttpRequest ();
 
   public abstract HttpServletResponse getHttpResponse ();

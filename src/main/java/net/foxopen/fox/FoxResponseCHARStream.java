@@ -74,6 +74,9 @@ extends FoxResponse {
   }
 
   public Writer getWriter() {
+    //Any BeforeResponseActions may require additional headers to be set
+    runBeforeResponseActions();
+
     setResponseHttpHeaders(mHttpServletResponse);
     try {
       return mHttpServletResponse.getWriter();

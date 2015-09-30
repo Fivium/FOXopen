@@ -24,19 +24,20 @@ import net.foxopen.fox.dom.xpath.saxon.SaxonEnvironment;
 import net.foxopen.fox.download.DownloadManager;
 import net.foxopen.fox.download.ThreadDownloadManager;
 import net.foxopen.fox.entrypoint.ComponentManager;
+import net.foxopen.fox.entrypoint.ResponseErrorHandler;
+import net.foxopen.fox.entrypoint.servlets.ErrorServlet;
 import net.foxopen.fox.entrypoint.servlets.FoxMainServlet;
 import net.foxopen.fox.entrypoint.uri.RequestURIBuilder;
-import net.foxopen.fox.ex.ExAlreadyHandled;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExInvalidThreadId;
 import net.foxopen.fox.ex.ExUserRequest;
-import net.foxopen.fox.logging.ErrorLogger;
 import net.foxopen.fox.module.ActionDefinition;
 import net.foxopen.fox.module.AutoActionType;
 import net.foxopen.fox.module.datadefinition.DataDefinition;
 import net.foxopen.fox.module.datadefinition.EvaluatedDataDefinition;
 import net.foxopen.fox.module.datadefinition.ImplicatedDataDefinition;
 import net.foxopen.fox.module.fieldset.FieldSet;
+import net.foxopen.fox.module.fieldset.FieldSetCookieManager;
 import net.foxopen.fox.module.fieldset.action.InternalAction;
 import net.foxopen.fox.module.parsetree.EvaluatedParseTree;
 import net.foxopen.fox.module.serialiser.ThreadInfoProvider;
@@ -64,6 +65,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -902,9 +904,6 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     //Always create a new FieldSet - existing one should not be reused
     mFieldSetOut = FieldSet.createNewFieldSet(pRequestContext);
 
-    //TODO PN awful - shouldn't be talking to foxrequest here (move to SRC?)
-    pRequestContext.getFoxRequest().setCurrentFieldSet(getThreadId(), mFieldSetOut.getOutwardFieldSetLabel());
-
     Track.pushInfo("HTMLGenerator");
     Track.timerStart(TrackTimer.OUTPUT_GENERATION);
     try {
@@ -925,29 +924,31 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
 
         long lBrowserCacheTimeMS = establishResponseCacheTimeMS(pRequestContext);
 
+        //Create a CookieManager for JIT setting of the FieldSet cookie before the response is sent
+        FieldSetCookieManager lFieldSetCookieManager = mFieldSetOut.createCookieManager(pRequestContext.getFoxRequest(), mThreadId);
+
         // TODO - Add in method to switch between streamed and regular response
         ResponseMethod lResponseMethod = pRequestContext.getRequestApp().getResponseMethod();
         if (lResponseMethod == ResponseMethod.STREAMING) {
+
+          //Set a ResponseErrorHandler on the request for the streaming response
+          //This will inject a JS redirect into the stream in the event of an error after the stream has started (see ErrorServlet)
+          ResponseErrorHandler lResponseErrorHandler = ThreadStreamingResponseErrorHandler.createForRequest(getThreadId(), Track.currentTrackId(), getFieldSetIn(), lOutputSerialiser);
+          ErrorServlet.setResponseErrorHandlerForRequest(pRequestContext.getFoxRequest(), lResponseErrorHandler);
+
           // Streaming output mode
           try {
             lFoxResponse = new FoxResponseCHARStream("text/html; charset=UTF-8", pRequestContext.getFoxRequest(), lBrowserCacheTimeMS);
             lFoxResponse.setHttpHeader("Cache-Control", "private");
+            //Set the FieldSet cookie as a ResponseAction - this will be run immediately before the stream starts
+            lFoxResponse.addBeforeResponseAction(lFieldSetCookieManager);
             Writer lWriter = ((FoxResponseCHARStream) lFoxResponse).getWriter();
             lOutputSerialiser.serialise(lWriter);
             //Immediately flush the writer so user sees the generated page as soon as possible
             lWriter.flush();
           }
-          catch (Throwable th) {
-            // TODO - NP - The streaming error handling should be handled by the error filter, checking the response method and using an output serialiser set...somewhere
-            // Handle streaming error
-            long lErrorRef = ErrorLogger.instance().logError(th, ErrorLogger.ErrorType.FATAL, pRequestContext.getFoxRequest().getRequestLogId());
-            String lPreviousFieldSetLabel = null;
-            if (mFieldSetIn != null) {
-              lPreviousFieldSetLabel = mFieldSetIn.getOutwardFieldSetLabel();
-            }
-            lOutputSerialiser.handleStreamingError(th, lErrorRef, getThreadId(), lPreviousFieldSetLabel);
-
-            throw new ExAlreadyHandled("Error occurred during streaming HTML Generation and has been handled by StatefulXThread.generateHTMLResponse()", th);
+          catch (IOException e) {
+            throw new ExInternal("Failed to write streaming response", e);
           }
         }
         else if (lResponseMethod == ResponseMethod.BUFFERED) {
@@ -956,6 +957,8 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
           lOutputSerialiser.serialise(lSB);
           lFoxResponse = new FoxResponseCHAR("text/html; charset=UTF-8", lSB.getBuffer(), lBrowserCacheTimeMS);
           lFoxResponse.setHttpHeader("Cache-Control", "private");
+          //Set the FieldSet cookie as a ResponseAction - this prevents it being set if the buffered output mode encounters an error after generating
+          lFoxResponse.addBeforeResponseAction(lFieldSetCookieManager);
         }
         else {
           throw new ExInternal("Don't know how to respond with ResponseMethod: " + lResponseMethod);
@@ -1088,7 +1091,7 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
       lThreadBuilder.setUserThreadSession(pExistingThread.mUserThreadSession);
     }
 
-    StatefulXThread lNewThread = lThreadBuilder.createXThread(pMainThreadRequestContext); //StatefulXThread.createNewXThread(pMainThreadRequestContext, lNewModuleApp.getMnemonicName(), pExistingThread.getAuthenticationContext(), true, lSessionForNewThread);
+    StatefulXThread lNewThread = lThreadBuilder.createXThread(pMainThreadRequestContext);
 
     //Construct a new RequestContext for the entry theme of the new thread
     XThreadActionRequestContext lNewThreadRequestContext = new XThreadActionRequestContext(pMainThreadRequestContext, lNewThread);

@@ -1,4 +1,4 @@
-package net.foxopen.fox;
+package net.foxopen.fox.module.fieldset;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -14,8 +14,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 
-public class FoxRequestHttpTest {
-  public FoxRequestHttpTest() {
+public class FieldSetCookieManagerTest {
+  public FieldSetCookieManagerTest() {
   }
 
   private static final String JSON_STRING = "[{\"t\" : \"111\", \"f\" : \"aaa\"}, {\"t\" : \"222\", \"f\" : \"bbb\"}, {\"t\" : \"333\", \"f\" : \"ccc\"}]";
@@ -24,7 +24,7 @@ public class FoxRequestHttpTest {
   @Test
   public void testJSONCookieSerialiser() throws UnsupportedEncodingException {
     JSONArray lJSONArray = (JSONArray) JSONValue.parse(JSON_STRING);
-    String lCookieString = FoxRequestHttp.serialiseJSONArrayToCookieString(lJSONArray, 1000);
+    String lCookieString = FieldSetCookieManager.serialiseJSONArrayToCookieString(lJSONArray, 1000);
 
     assertTrue("Full JSON array is serialised to under 1000 characters", lCookieString.length() < 1000);
 
@@ -46,7 +46,7 @@ public class FoxRequestHttpTest {
     JSONArray lJSONArray = (JSONArray) JSONValue.parse(JSON_STRING);
 
     // Test first item (thread 111) gets trimmed when the size limit is exceeded when serialising
-    String lCookieString = FoxRequestHttp.serialiseJSONArrayToCookieString(lJSONArray, 150);
+    String lCookieString = FieldSetCookieManager.serialiseJSONArrayToCookieString(lJSONArray, 150);
     Set<String> lFoundThreads = new HashSet<>();
     JSONArray lParsedResult = (JSONArray)JSONValue.parse(URLDecoder.decode(lCookieString, "UTF-8"));
     for (Object lItem : lParsedResult) {
@@ -59,7 +59,7 @@ public class FoxRequestHttpTest {
 
     //the length of the 3 items is 103 chars
     // Test first two items (thread 111 and 222) get trimmed when the size limit is exceeded when serialising
-    lCookieString = FoxRequestHttp.serialiseJSONArrayToCookieString(lJSONArray, 102);
+    lCookieString = FieldSetCookieManager.serialiseJSONArrayToCookieString(lJSONArray, 102);
     lFoundThreads.clear();
     lParsedResult = (JSONArray)JSONValue.parse(URLDecoder.decode(lCookieString, "UTF-8"));
     for (Object lItem : lParsedResult) {
@@ -73,7 +73,7 @@ public class FoxRequestHttpTest {
   @Test
   public void testJSONCookieSerialiser_EmptyJSONArray() {
     JSONArray lJSONArray = new JSONArray();
-    String lCookieString = FoxRequestHttp.serialiseJSONArrayToCookieString(lJSONArray, 100);
+    String lCookieString = FieldSetCookieManager.serialiseJSONArrayToCookieString(lJSONArray, 100);
     assertEquals("Empty array is serialised", "%5B%5D", lCookieString);
   }
 }

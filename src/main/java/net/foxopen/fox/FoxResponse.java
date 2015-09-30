@@ -40,6 +40,8 @@ import java.util.List;
 
 public abstract class FoxResponse {
   private final List<Header> mHttpHeaderList = new ArrayList<>();
+  private final List<BeforeResponseAction> mBeforeResponseActions = new ArrayList<>();
+
   protected int mStatusCode = HttpServletResponse.SC_OK;
 
   /**
@@ -74,4 +76,27 @@ public abstract class FoxResponse {
   }
 
   public abstract void respond(FoxRequest pRequest);
+
+  /**
+   * Registers a BeforeResponseAction which will be invoked before this response is sent.
+   * @param pAction Action to register.
+   */
+  public void addBeforeResponseAction(BeforeResponseAction pAction) {
+    mBeforeResponseActions.add(pAction);
+  }
+
+  /**
+   * Executes all BeforeResponseActions registered on this FoxResponse in the order they were added. Consumers MUST
+   * call this before any response is sent.
+   */
+  protected void runBeforeResponseActions() {
+    mBeforeResponseActions.forEach(e -> e.beforeResponse(this));
+  }
+
+  /**
+   * Actions which should be performed before a response starts to be sent to the user, i.e. JIT setting of headers.
+   */
+  public interface BeforeResponseAction {
+    void beforeResponse(FoxResponse pFoxResponse);
+  }
 }

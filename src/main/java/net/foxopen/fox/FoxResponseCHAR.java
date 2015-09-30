@@ -66,6 +66,9 @@ extends FoxResponse {
     pRequest.getHttpResponse().setContentType(mContentType);
     pRequest.getHttpResponse().setDateHeader("Expires", mBrowserCacheMilliSec > 0 ? mBrowserCacheMilliSec + System.currentTimeMillis() : 0); // No cache
 
+    //Other BeforeResponseActions may require additional headers to be set
+    runBeforeResponseActions();
+
     setResponseHttpHeaders(pRequest.getHttpResponse());
 
     // TODO - Is this really the best way to convert the stringbuffer to UTF8? What about other charsets

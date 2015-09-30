@@ -62,6 +62,9 @@ extends FoxResponse {
   {
      HttpServletResponse lHttpServletResponse = pRequest.getHttpResponse();
 
+    //Any BeforeResponseActions may require additional headers to be set
+    runBeforeResponseActions();
+
     // TODO - NP - Not sure about this, why no content-type/length set when other headers set? Could check for collisions?
     // Fox header processing
     if(this.getHttpHeaderList() == null || this.getHttpHeaderList().size() == 0) {

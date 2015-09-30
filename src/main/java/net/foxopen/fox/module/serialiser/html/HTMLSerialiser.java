@@ -387,18 +387,18 @@ extends WriterOutputSerialiser {
     }
   }
 
-  public void handleStreamingError(Throwable pThrowable, long pErrorRef, String pThreadID, String pPreviousFieldSetLabel) {
+  public void handleStreamingError(Throwable pThrowable, String pErrorRef, String pThreadID, String pTrackId, String pPreviousFieldSetLabel) {
 
     RequestURIBuilder lURIBuilder = mEvalParseTree.createURIBuilder();
 
     lURIBuilder
-      .setParam(ErrorServlet.ERROR_REF_ATTRIBUTE, Long.toString(pErrorRef))
+      .setParam(ErrorServlet.ERROR_REF_ATTRIBUTE, pErrorRef)
       .setParam(ErrorServlet.THREAD_ID_ATTRIBUTE, pThreadID)
       .setParam(ErrorServlet.FIELDSET_ID_ATTRIBUTE, pPreviousFieldSetLabel);
 
     if(FoxGlobals.getInstance().canShowStackTracesOnError()) {
       // No need to add Track ID unless they can see track on the error page
-      lURIBuilder.setParam(ErrorServlet.TRACK_ID_ATTRIBUTE, Track.currentTrackId());
+      lURIBuilder.setParam(ErrorServlet.TRACK_ID_ATTRIBUTE, pTrackId);
     }
 
     String lErrorURL = lURIBuilder.buildServletURI(ErrorServlet.SERVLET_PATH);

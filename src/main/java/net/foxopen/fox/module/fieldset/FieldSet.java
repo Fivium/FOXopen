@@ -4,6 +4,7 @@ package net.foxopen.fox.module.fieldset;
 import com.thoughtworks.xstream.XStream;
 import net.foxopen.fox.ContextLabel;
 import net.foxopen.fox.ContextUElem;
+import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.command.XDoCommandList;
 import net.foxopen.fox.command.XDoRunner;
@@ -425,5 +426,15 @@ public class FieldSet {
     if(mFoxIdToExternalFoxId != null) {
       mFoxIdToExternalFoxId.clear();
     }
+  }
+
+  /**
+   * Creates a FieldSetCookieManager for this FieldSet, which can be used to set the FieldSet cookie for one churn.
+   * @param pFoxRequest Request being processed.
+   * @param pThreadId ID of the FieldSet's owning thread.
+   * @return New FieldSetCookieManager for use in a single churn.
+   */
+  public FieldSetCookieManager createCookieManager(FoxRequest pFoxRequest, String pThreadId) {
+    return new FieldSetCookieManager(pFoxRequest, pThreadId, mOutwardFieldSetLabel);
   }
 }

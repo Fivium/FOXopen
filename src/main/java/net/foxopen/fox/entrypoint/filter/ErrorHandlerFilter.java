@@ -2,8 +2,6 @@ package net.foxopen.fox.entrypoint.filter;
 
 import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.FoxRequestHttp;
-import net.foxopen.fox.XFUtil;
-import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.entrypoint.servlets.ErrorServlet;
 import net.foxopen.fox.logging.ErrorLogger;
 import net.foxopen.fox.logging.FoxLogger;
@@ -43,19 +41,26 @@ public class ErrorHandlerFilter implements Filter {
         long lErrorRef = ErrorLogger.instance().logError(th, ErrorLogger.ErrorType.FATAL, lRequestLogId);
         FoxRequest lFoxRequest = new FoxRequestHttp((HttpServletRequest) request, (HttpServletResponse) response);
 
-        ErrorServlet.respondWithErrorPage(lFoxRequest, String.valueOf(lErrorRef), (String)request.getAttribute(RequestLogFilter.REQUEST_ATTRIBUTE_TRACK_ID), XFUtil.getJavaStackTraceInfo(lThrowable));
+        ErrorServlet.respondWithErrorResponse(lFoxRequest, lThrowable, String.valueOf(lErrorRef), (String) request.getAttribute(RequestLogFilter.REQUEST_ATTRIBUTE_TRACK_ID));
 
         return;
       }
       catch (Throwable fatality) {
         FoxLogger.getLogger().error("Error caught while attempting to redirect error response", fatality);
+
+        //Attempt to log this fatal error too
+        try {
+          ErrorLogger.instance().logError(fatality, ErrorLogger.ErrorType.FATAL, lRequestLogId);
+        }
+        catch (Throwable logError) {
+          FoxLogger.getLogger().error("Additional error caught while attempting to log fatal error", logError);
+        }
+
         lThrowable = fatality;
       }
 
-      //Final catch all error throw if something went disastrously wrong
-      if (FoxGlobals.getInstance().canShowStackTracesOnError()) {
-        throw new ServletException("Caught fatal error in ErrorHandler", lThrowable);
-      }
+      //Final catch all error throw if something went disastrously wrong - let Tomcat show an error screen
+      throw new ServletException("Caught fatal error in ErrorHandler", lThrowable);
     }
   }
 
