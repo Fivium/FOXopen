@@ -72,8 +72,13 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
 
       // If pEvalNode is nested in another table/form it should add the nested class, if one is specified
       if (pEvalNode.checkAncestry(WidgetBuilderType.FORM, WidgetBuilderType.LIST)) {
-        lClasses.add(pEvalNode.getStringAttribute(NodeAttribute.NESTED_TABLE_CLASS, NESTED_LIST_CLASS_NAME));
-        lClasses.add(pEvalNode.getStringAttribute(NodeAttribute.NESTED_LIST_CLASS));
+        List<String> lNestedClassAttributes = pEvalNode.getStringAttributes(NodeAttribute.NESTED_TABLE_CLASS, NodeAttribute.NESTED_LIST_CLASS);
+        if (lNestedClassAttributes.size() > 0) {
+          lClasses.addAll(lNestedClassAttributes);
+        }
+        else {
+          lClasses.add(NESTED_LIST_CLASS_NAME);
+        }
 
         lStyles.addAll(pEvalNode.getStringAttributes(NodeAttribute.NESTED_TABLE_STYLE, NodeAttribute.NESTED_LIST_STYLE));
       }
