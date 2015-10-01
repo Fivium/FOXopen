@@ -767,11 +767,16 @@ public class ContextUElem {
     //IMPORTANT: only abort handlers which this ContextUElem has successfully opened! Otherwise we may interfere with another thread.
     for (DOMHandler lHandler : getDOMHandlers()) {
       if (lHandler instanceof AbortableDOMHandler && mOpenDOMHandlers.contains(lHandler)) {
+
+        Track.pushInfo("DOMHandlerAbort", lHandler.getContextLabel());
         try {
           ((AbortableDOMHandler) lHandler).abort();
         }
         catch (Throwable th) {
           Track.recordSuppressedException("Caught during DOMHandler abort for " + lHandler.getContextLabel(), th);
+        }
+        finally {
+          Track.pop("DOMHandlerAbort");
         }
       }
     }

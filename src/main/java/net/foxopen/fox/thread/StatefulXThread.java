@@ -405,20 +405,27 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
    * Should not throw exceptions.
    */
   private void abort() {
-    //Abort DOM Handlers
-    try {
-      getTopModuleCall().getContextUElem().abortDOMHandlers();
-    }
-    catch(Throwable th){
-      Track.recordSuppressedException("Thread DOMHandler Abort", th);
-    }
 
-    //Clean up the Saxon environment
+    Track.pushInfo("ThreadAbort");
     try {
-      SaxonEnvironment.clearThreadLocalRequestContext();
+      //Abort DOM Handlers
+      try {
+        getTopModuleCall().getContextUElem().abortDOMHandlers();
+      }
+      catch (Throwable th) {
+        Track.recordSuppressedException("Thread DOMHandler Abort", th);
+      }
+
+      //Clean up the Saxon environment
+      try {
+        SaxonEnvironment.clearThreadLocalRequestContext();
+      }
+      catch (Throwable th) {
+        Track.recordSuppressedException("Thread Abort clearRequestContext", th);
+      }
     }
-    catch(Throwable th){
-      Track.recordSuppressedException("Thread Abort clearRequestContext", th);
+    finally {
+      Track.pop("ThreadAbort");
     }
   }
 
