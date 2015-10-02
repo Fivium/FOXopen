@@ -1,9 +1,7 @@
 package net.foxopen.fox.module.serialiser.components.html;
 
 
-import net.foxopen.fox.banghandler.InternalAuthLevel;
 import net.foxopen.fox.download.DownloadLinkXDoResult;
-import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.entrypoint.servlets.FoxMainServlet;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.datadefinition.EvaluatedDataDefinition;
@@ -19,6 +17,7 @@ import net.foxopen.fox.module.serialiser.widgets.html.FileWidgetBuilder;
 import net.foxopen.fox.thread.AlertMessage;
 import net.foxopen.fox.thread.FocusResult;
 import net.foxopen.fox.thread.PopupXDoResult;
+import net.foxopen.fox.thread.devtoolbar.DevToolbarUtils;
 import net.foxopen.fox.thread.stack.transform.ModelessCall.ModelessPopup;
 import net.foxopen.fox.track.Track;
 import net.foxopen.fox.track.TrackFlag;
@@ -109,7 +108,7 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
       pSerialiser.setInBody(true);
 
       // Include the dev toolbar for dev/support users
-      if(FoxGlobals.getInstance().isDevelopment() || pSerialisationContext.getInternalAuthLevel().intValue() >= InternalAuthLevel.INTERNAL_SUPPORT.intValue()) {
+      if(DevToolbarUtils.isDevToolbarEnabled(pSerialisationContext)) {
         pSerialiser.getComponentBuilder(ComponentBuilderType.DEV_TOOLBAR).buildComponent(pSerialisationContext, pSerialiser, null);
       }
 
@@ -147,6 +146,9 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
     }
     else if ("body".equals(lTagName)) {
       pSerialiser.append("</form>");
+
+      //JS files etc which go at the bottom of the page to speed up rendering
+      pSerialiser.getComponentBuilder(ComponentBuilderType.FOOTER_RESOURCES).buildComponent(pSerialisationContext, pSerialiser, pEvalNode);
 
       // Add JS, process onload, alerts, downloads, modals...
       insertJavascript(pSerialiser, pSerialisationContext);

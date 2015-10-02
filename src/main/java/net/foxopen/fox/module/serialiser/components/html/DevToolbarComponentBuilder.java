@@ -242,10 +242,6 @@ public class DevToolbarComponentBuilder extends ComponentBuilder<HTMLSerialiser,
 
       //Append devtoolbar JS
       pSerialiser.append("<script type=\"text/javascript\" src=\"");
-      pSerialiser.append(pSerialisationContext.getStaticResourceURI("js/jquery-hotkeys.js"));
-      pSerialiser.append("\"></script>");
-
-      pSerialiser.append("<script type=\"text/javascript\" src=\"");
       pSerialiser.append(pSerialisationContext.getStaticResourceURI("js/dev-toolbar.js"));
       pSerialiser.append("\"></script>");
 

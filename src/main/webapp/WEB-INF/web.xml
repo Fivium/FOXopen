@@ -5,6 +5,12 @@
   <display-name>FOXopen</display-name>
   <description>FOXopen web configuration</description>
   <filter>
+    <description>Modifies Tomcat's default header values for files in the webapp's context root directory</description>
+    <display-name>DefaultServlet Cache Filter</display-name>
+    <filter-name>DefaultServletCacheFilter</filter-name>
+    <filter-class>net.foxopen.fox.entrypoint.filter.DefaultServletCacheFilter</filter-class>
+  </filter>
+  <filter>
     <description>Handle errors with a filter as a last resort catch-all</description>
     <display-name>Error Handler Filter</display-name>
     <filter-name>ErrorHandlerFilter</filter-name>
@@ -33,6 +39,11 @@
     <filter-name>AddHeadersFilter</filter-name>
     <filter-class>net.foxopen.fox.entrypoint.filter.SecurityHeadersFilter</filter-class>
   </filter>
+  <filter-mapping>
+    <filter-name>DefaultServletCacheFilter</filter-name>
+    <!-- url-pattern of "/" should match to the default servlet, but this doesn't work in Tomcat 7+ -->
+    <servlet-name>default</servlet-name>
+  </filter-mapping>
   <filter-mapping>
     <filter-name>RequestLogFilter</filter-name>
     <url-pattern>/*</url-pattern>

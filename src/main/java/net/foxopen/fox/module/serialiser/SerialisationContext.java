@@ -123,4 +123,9 @@ public interface SerialisationContext {
   Optional<AuthenticatedUser> getAuthenticatedUser();
 
   List<EvaluatedDataDefinition> getEvaluatedDataDefinitions();
+
+  /**
+   * @return Gets the number of client visibility rules which have been evaluated by this SerialisationContext.
+   */
+  int getClientVisibilityRuleCount();
 }

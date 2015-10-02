@@ -5,6 +5,7 @@ public enum ComponentBuilderType {
   DEV_TOOLBAR
 , SKIP_LINKS
 , HEADER_RESOURCES
+, FOOTER_RESOURCES
 , HEADING
 , GRID
 , GRID_ROW

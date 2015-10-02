@@ -26,6 +26,7 @@ import net.foxopen.fox.module.serialiser.components.html.ContainerComponentBuild
 import net.foxopen.fox.module.serialiser.components.html.DevToolbarComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.html.ExprOutComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.html.ExternalURLComponentBuilder;
+import net.foxopen.fox.module.serialiser.components.html.FooterResourcesComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.html.GridCellComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.html.GridComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.html.GridRowComponentBuilder;
@@ -129,6 +130,7 @@ extends WriterOutputSerialiser {
     HTML_PAGE_COMPONENT_MAP.put(ComponentBuilderType.DEV_TOOLBAR, DevToolbarComponentBuilder.getInstance());
     HTML_PAGE_COMPONENT_MAP.put(ComponentBuilderType.SKIP_LINKS, SkipLinksComponentBuilder.getInstance());
     HTML_PAGE_COMPONENT_MAP.put(ComponentBuilderType.HEADER_RESOURCES, HeaderResourcesComponentBuilder.getInstance());
+    HTML_PAGE_COMPONENT_MAP.put(ComponentBuilderType.FOOTER_RESOURCES, FooterResourcesComponentBuilder.getInstance());
     HTML_PAGE_COMPONENT_MAP.put(ComponentBuilderType.HTML_TAG, HTMLComponentBuilder.getInstance());
     HTML_PAGE_COMPONENT_MAP.put(ComponentBuilderType.TEXT, TextComponentBuilder.getInstance());
     HTML_PAGE_COMPONENT_MAP.put(ComponentBuilderType.COMMENT, TextComponentBuilder.getInstance());

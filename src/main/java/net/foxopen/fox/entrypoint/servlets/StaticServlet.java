@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 
 public class StaticServlet
@@ -23,6 +24,13 @@ extends HttpServlet {
   }
 
   public static final String SERVLET_PATH = "static";
+
+  /**
+   * @return Gets the expiry time in milliseconds for any static resource which is unlikely to be modified.
+   */
+  public static long staticResourceExpiryTimeMS() {
+    return System.currentTimeMillis() + TimeUnit.DAYS.toMillis(365);
+  }
 
   /**
    * Gets the entry URI for the static servlet including the app mnem. This does not modify the builder.

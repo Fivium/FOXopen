@@ -501,7 +501,9 @@ public class EvaluatedParseTree implements SerialisationContext {
       lMainObj.add(lEvalCVR.getJSON(mFieldSet));
     }
 
-    addUnconditionalLoadJavascript("registerClientVisibility(" + lMainObj.toJSONString() + "); setupClientVisibility();");
+    if(mEvaluatedClientVisibilityRules.size() > 0) {
+      addUnconditionalLoadJavascript("registerClientVisibility(" + lMainObj.toJSONString() + "); setupClientVisibility();");
+    }
   }
 
   /**
@@ -679,6 +681,11 @@ public class EvaluatedParseTree implements SerialisationContext {
     if (lPoppedTargetElement != pCurrentTargetElement) {
       throw new ExInternal("Popped Target Element from the current buffer label target element stack on evaluated parse tree but it did not match the expected value to be popped: Expected " + pCurrentTargetElement.absolute() + "\r\nPopped: " + lPoppedTargetElement.absolute());
     }
+  }
+
+  @Override
+  public int getClientVisibilityRuleCount() {
+    return mEvaluatedClientVisibilityRules.size();
   }
 
   /**

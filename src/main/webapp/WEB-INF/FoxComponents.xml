@@ -1,17 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <COMPONENTS_LIST>
-  <!-- NEW COMPONENTS -->
-  <COMPONENT>
-    <NAME>js/fox.js</NAME>
-    <TYPE>text/javascript</TYPE>
-    <FILE_PATH>\WEB-INF\components-new\fox.js</FILE_PATH>
-    <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>TRUE</OVERLOADABLE>
-  </COMPONENT>
+
   <MULTI_PART_COMPONENT>
     <NAME>css/fox.css</NAME>
     <TYPE>text/css</TYPE>
     <FILE_PATH_LIST>
+      <FILE_PATH>\WEB-INF\components-new\jquery\jquery-ui-1.11.1.min.css</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\jquery\calendar.css</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\jquery\tooltipster.css</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\clientVisibility.css</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\reset.css</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\typography.css</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\components.css</FILE_PATH>
@@ -24,57 +21,48 @@
     <FILE_FORMAT>CHAR</FILE_FORMAT>
     <OVERLOADABLE>TRUE</OVERLOADABLE>
   </MULTI_PART_COMPONENT>
+
   <MULTI_PART_COMPONENT>
-    <NAME>js/jquery.js</NAME>
+    <NAME>js/boomerang.js</NAME>
+    <TYPE>text/javascript</TYPE>
+    <FILE_PATH_LIST>
+      <FILE_PATH>\WEB-INF\components-new\boomerang\boomerang.js</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\boomerang\plugins\rt.js</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\boomerang\plugins\navtiming.js</FILE_PATH>
+    </FILE_PATH_LIST>
+    <FILE_FORMAT>CHAR</FILE_FORMAT>
+    <OVERLOADABLE>FALSE</OVERLOADABLE>
+  </MULTI_PART_COMPONENT>
+
+  <MULTI_PART_COMPONENT>
+    <NAME>js/core-header.js</NAME>
     <TYPE>text/javascript</TYPE>
     <FILE_PATH_LIST>
       <FILE_PATH>\WEB-INF\components-new\jquery\jquery-1.11.1.min.js</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\jquery\jquery-ui-1.11.1.min.js</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\html5shiv.js</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\json2.js</FILE_PATH>
     </FILE_PATH_LIST>
     <FILE_FORMAT>CHAR</FILE_FORMAT>
     <OVERLOADABLE>FALSE</OVERLOADABLE>
   </MULTI_PART_COMPONENT>
+
   <MULTI_PART_COMPONENT>
-    <NAME>css/jquery-ui.css</NAME>
-    <TYPE>text/css</TYPE>
-    <FILE_PATH_LIST>
-      <FILE_PATH>\WEB-INF\components-new\jquery\jquery-ui-1.11.1.min.css</FILE_PATH>
-      <FILE_PATH>\WEB-INF\components-new\jquery\calendar.css</FILE_PATH>
-    </FILE_PATH_LIST>
-    <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>FALSE</OVERLOADABLE>
-  </MULTI_PART_COMPONENT>
-  <COMPONENT>
-    <NAME>js/jquery-hotkeys.js</NAME>
-    <TYPE>text/javascript</TYPE>
-    <FILE_PATH>\WEB-INF\components-new\jquery\jquery.hotkeys.js</FILE_PATH>
-    <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>FALSE</OVERLOADABLE>
-  </COMPONENT>
-  <MULTI_PART_COMPONENT>
-    <NAME>js/jquery-timepicker.js</NAME>
+    <NAME>js/core-footer.js</NAME>
     <TYPE>text/javascript</TYPE>
     <FILE_PATH_LIST>
+      <FILE_PATH>\WEB-INF\components-new\jquery\jquery.fontspy.js</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\fox.js</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\tabs.js</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\jquery\jquery-ui-timepicker-addon-1.5.0.js</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\jquery\jquery-ui-timepicker-text-time-control.js</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\jquery\jquery.tooltipster.min.js</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\jquery\jquery.autosize.min.js</FILE_PATH>
     </FILE_PATH_LIST>
     <FILE_FORMAT>CHAR</FILE_FORMAT>
     <OVERLOADABLE>FALSE</OVERLOADABLE>
   </MULTI_PART_COMPONENT>
-  <COMPONENT>
-    <NAME>js/html5shiv.js</NAME>
-    <TYPE>text/javascript</TYPE>
-    <FILE_PATH>\WEB-INF\components-new\html5shiv.js</FILE_PATH>
-    <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>FALSE</OVERLOADABLE>
-  </COMPONENT>
-  <COMPONENT>
-    <NAME>js/json2.js</NAME>
-    <TYPE>text/javascript</TYPE>
-    <FILE_PATH>\WEB-INF\components-new\json2.js</FILE_PATH>
-    <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>FALSE</OVERLOADABLE>
-  </COMPONENT>
+
   <COMPONENT>
     <NAME>js/foxData.js</NAME>
     <TYPE>text/javascript</TYPE>
@@ -121,13 +109,18 @@
   </COMPONENT>
 
   <!-- File uploads -->
-  <COMPONENT>
+  <MULTI_PART_COMPONENT>
     <NAME>js/fileUpload.js</NAME>
     <TYPE>text/javascript</TYPE>
-    <FILE_PATH>\WEB-INF\components-new\fileUpload.js</FILE_PATH>
+    <FILE_PATH_LIST>
+      <FILE_PATH>\WEB-INF\components-new\jquery-file-upload\vendor\jquery.ui.widget.js</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\jquery-file-upload\jquery.iframe-transport.js</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\jquery-file-upload\jquery.fileupload.js</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\fileUpload.js</FILE_PATH>
+    </FILE_PATH_LIST>
     <FILE_FORMAT>CHAR</FILE_FORMAT>
     <OVERLOADABLE>FALSE</OVERLOADABLE>
-  </COMPONENT>
+  </MULTI_PART_COMPONENT>
   <COMPONENT>
     <NAME>css/fileUpload.css</NAME>
     <TYPE>text/css</TYPE>
@@ -143,63 +136,13 @@
     <OVERLOADABLE>TRUE</OVERLOADABLE>
   </COMPONENT>
 
-  <!-- Client-side tabs -->
-  <COMPONENT>
-    <NAME>js/tabs.js</NAME>
-    <TYPE>text/javascript</TYPE>
-    <FILE_PATH>\WEB-INF\components-new\tabs.js</FILE_PATH>
-    <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>FALSE</OVERLOADABLE>
-  </COMPONENT>
-
-  <!-- Auto-resizing text areas -->
-  <COMPONENT>
-    <NAME>js/autosize.js</NAME>
-    <TYPE>text/javascript</TYPE>
-    <FILE_PATH>\WEB-INF\components-new\jquery\jquery.autosize.min.js</FILE_PATH>
-    <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>FALSE</OVERLOADABLE>
-  </COMPONENT>
-
   <!-- Calendar -->
-  <COMPONENT>
-    <NAME>css/calendar.css</NAME>
-    <TYPE>text/css</TYPE>
-    <FILE_PATH>\WEB-INF\components-new\jquery\calendar.css</FILE_PATH>
-    <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>TRUE</OVERLOADABLE>
-  </COMPONENT>
   <COMPONENT>
     <NAME>img/calendar.png</NAME>
     <TYPE>image/png</TYPE>
     <FILE_PATH>\WEB-INF\images\calendar.png</FILE_PATH>
     <FILE_FORMAT>BIN</FILE_FORMAT>
     <OVERLOADABLE>TRUE</OVERLOADABLE>
-  </COMPONENT>
-
-  <!-- Tooltipster for the tooltips/hint popovers -->
-  <COMPONENT>
-    <NAME>js/tooltipster.js</NAME>
-    <TYPE>text/javascript</TYPE>
-    <FILE_PATH>\WEB-INF\components-new\jquery\jquery.tooltipster.min.js</FILE_PATH>
-    <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>FALSE</OVERLOADABLE>
-  </COMPONENT>
-  <COMPONENT>
-    <NAME>css/tooltipster.css</NAME>
-    <TYPE>text/css</TYPE>
-    <FILE_PATH>\WEB-INF\components-new\jquery\tooltipster.css</FILE_PATH>
-    <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>FALSE</OVERLOADABLE>
-  </COMPONENT>
-
-  <!-- FontSpy for checking icon font has loaded -->
-  <COMPONENT>
-    <NAME>js/fontspy.js</NAME>
-    <TYPE>text/javascript</TYPE>
-    <FILE_PATH>\WEB-INF\components-new\jquery\jquery.fontspy.js</FILE_PATH>
-    <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>FALSE</OVERLOADABLE>
   </COMPONENT>
 
   <COMPONENT>
@@ -238,14 +181,16 @@
   </COMPONENT>
 
   <!-- Developer Toolbar -->
-  <COMPONENT>
+  <MULTI_PART_COMPONENT>
     <NAME>js/dev-toolbar.js</NAME>
     <TYPE>text/javascript</TYPE>
-    <FILE_PATH>\WEB-INF\components-new\dev-toolbar\dev-toolbar.js</FILE_PATH>
+    <FILE_PATH_LIST>
+      <FILE_PATH>\WEB-INF\components-new\jquery\jquery.hotkeys.js</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\dev-toolbar\dev-toolbar.js</FILE_PATH>
+    </FILE_PATH_LIST>
     <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>TRUE</OVERLOADABLE>
-    <!-- Make this non-overloadable when finished -->
-  </COMPONENT>
+    <OVERLOADABLE>FALSE</OVERLOADABLE>
+  </MULTI_PART_COMPONENT>
   <COMPONENT>
     <NAME>css/dev-toolbar.css</NAME>
     <TYPE>text/css</TYPE>
@@ -312,16 +257,9 @@
 
   <!-- Client Visibility -->
   <COMPONENT>
-    <NAME>js/clientVisibility</NAME>
+    <NAME>js/clientVisibility.js</NAME>
     <TYPE>text/javascript</TYPE>
     <FILE_PATH>\WEB-INF\components-new\clientVisibility.js</FILE_PATH>
-    <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>FALSE</OVERLOADABLE>
-  </COMPONENT>
-  <COMPONENT>
-    <NAME>css/clientVisibility</NAME>
-    <TYPE>text/css</TYPE>
-    <FILE_PATH>\WEB-INF\components-new\clientVisibility.css</FILE_PATH>
     <FILE_FORMAT>CHAR</FILE_FORMAT>
     <OVERLOADABLE>FALSE</OVERLOADABLE>
   </COMPONENT>
@@ -336,14 +274,14 @@
   </COMPONENT>
 
   <COMPONENT>
-    <NAME>js/download</NAME>
+    <NAME>js/download.js</NAME>
     <TYPE>text/javascript</TYPE>
     <FILE_PATH>\WEB-INF\components-new\download.js</FILE_PATH>
     <FILE_FORMAT>CHAR</FILE_FORMAT>
     <OVERLOADABLE>FALSE</OVERLOADABLE>
   </COMPONENT>
   <COMPONENT>
-    <NAME>css/download</NAME>
+    <NAME>css/download.css</NAME>
     <TYPE>text/css</TYPE>
     <FILE_PATH>\WEB-INF\components-new\download-style.css</FILE_PATH>
     <FILE_FORMAT>CHAR</FILE_FORMAT>
@@ -398,14 +336,6 @@
     <FILE_PATH>\WEB-INF\images\loading_mini.gif</FILE_PATH>
     <FILE_FORMAT>BIN</FILE_FORMAT>
     <OVERLOADABLE>TRUE</OVERLOADABLE>
-  </COMPONENT>
-
-  <COMPONENT>
-    <NAME>schema/prefs</NAME>
-    <TYPE>text/xml</TYPE>
-    <FILE_PATH>\WEB-INF\schema\prefs.xsd</FILE_PATH>
-    <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>FALSE</OVERLOADABLE>
   </COMPONENT>
 
   <COMPONENT>

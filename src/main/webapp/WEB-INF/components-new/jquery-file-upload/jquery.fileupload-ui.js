@@ -62,10 +62,10 @@
             // The expected data type of the upload response, sets the dataType
             // option of the $.ajax upload requests:
             dataType: 'json',
-            
+
             // Error and info messages:
             messages: {
-                unknownError: 'Unknown error'  
+                unknownError: 'Unknown error'
             },
 
             // Function returning the current number of files,

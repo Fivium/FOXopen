@@ -8,4 +8,4 @@ var FOXtabs = {
 
     $("input[data-tab-group='" + pTabGroupKey + "']").val(pTabKey);
   }
-}
+};

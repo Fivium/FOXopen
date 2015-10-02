@@ -4,6 +4,9 @@ import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.FoxResponse;
 import net.foxopen.fox.FoxResponseCHAR;
 import net.foxopen.fox.XFUtil;
+import net.foxopen.fox.banghandler.InternalAuthLevel;
+import net.foxopen.fox.entrypoint.FoxGlobals;
+import net.foxopen.fox.module.serialiser.SerialisationContext;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,6 +24,15 @@ public class DevToolbarUtils {
   public static final String TRACK_UNATTACHED_LABEL_NAME = "TRACK_UNATTACHED_LABEL_NAME";
 
   private DevToolbarUtils() {}
+
+  /**
+   * Tests if the dev toolbar should be displayed for the given SerialisationContext.
+   * @param pSerialisationContext Current SerialisationContext.
+   * @return True if dev toolbar should be displayed.
+   */
+  public static boolean isDevToolbarEnabled(SerialisationContext pSerialisationContext) {
+    return FoxGlobals.getInstance().isDevelopment() || pSerialisationContext.getInternalAuthLevel().intValue() >= InternalAuthLevel.INTERNAL_SUPPORT.intValue();
+  }
 
   /**
    * Sets flags on the given DevToolbarContext according to the contents of the posted form.
