@@ -19,7 +19,7 @@
       <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\animations.css</FILE_PATH>
     </FILE_PATH_LIST>
     <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>TRUE</OVERLOADABLE>
+    <OVERLOADABLE>FALSE</OVERLOADABLE>
   </MULTI_PART_COMPONENT>
 
   <MULTI_PART_COMPONENT>
@@ -68,7 +68,7 @@
     <TYPE>text/javascript</TYPE>
     <FILE_PATH>\WEB-INF\components-new\foxData.js</FILE_PATH>
     <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>TRUE</OVERLOADABLE>
+    <OVERLOADABLE>FALSE</OVERLOADABLE>
   </COMPONENT>
 
   <!-- Tagger -->
@@ -84,7 +84,7 @@
     <TYPE>text/css</TYPE>
     <FILE_PATH>\WEB-INF\components-new\jquery\jquery.tagger.css</FILE_PATH>
     <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>TRUE</OVERLOADABLE>
+    <OVERLOADABLE>FALSE</OVERLOADABLE>
   </COMPONENT>
   <COMPONENT>
     <NAME>img/tagger-dropdown.png</NAME>
@@ -196,63 +196,63 @@
     <TYPE>text/css</TYPE>
     <FILE_PATH>\WEB-INF\components-new\dev-toolbar\dev-toolbar.css</FILE_PATH>
     <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>TRUE</OVERLOADABLE>
+    <OVERLOADABLE>FALSE</OVERLOADABLE>
   </COMPONENT>
   <COMPONENT>
     <NAME>img/dev-toolbar-advanced.png</NAME>
     <TYPE>image/png</TYPE>
     <FILE_PATH>\WEB-INF\components-new\dev-toolbar\dev-toolbar-advanced.png</FILE_PATH>
     <FILE_FORMAT>BIN</FILE_FORMAT>
-    <OVERLOADABLE>TRUE</OVERLOADABLE>
+    <OVERLOADABLE>FALSE</OVERLOADABLE>
   </COMPONENT>
   <COMPONENT>
     <NAME>img/dev-toolbar-error.png</NAME>
     <TYPE>image/png</TYPE>
     <FILE_PATH>\WEB-INF\components-new\dev-toolbar\dev-toolbar-error.png</FILE_PATH>
     <FILE_FORMAT>BIN</FILE_FORMAT>
-    <OVERLOADABLE>TRUE</OVERLOADABLE>
+    <OVERLOADABLE>FALSE</OVERLOADABLE>
   </COMPONENT>
   <COMPONENT>
     <NAME>img/dev-toolbar-icons.png</NAME>
     <TYPE>image/png</TYPE>
     <FILE_PATH>\WEB-INF\components-new\dev-toolbar\dev-toolbar-icons.png</FILE_PATH>
     <FILE_FORMAT>BIN</FILE_FORMAT>
-    <OVERLOADABLE>TRUE</OVERLOADABLE>
+    <OVERLOADABLE>FALSE</OVERLOADABLE>
   </COMPONENT>
   <COMPONENT>
     <NAME>img/dev-toolbar-loading.png</NAME>
     <TYPE>image/png</TYPE>
     <FILE_PATH>\WEB-INF\components-new\dev-toolbar\dev-toolbar-loading.png</FILE_PATH>
     <FILE_FORMAT>BIN</FILE_FORMAT>
-    <OVERLOADABLE>TRUE</OVERLOADABLE>
+    <OVERLOADABLE>FALSE</OVERLOADABLE>
   </COMPONENT>
   <COMPONENT>
     <NAME>img/dev-toolbar-pin.png</NAME>
     <TYPE>image/png</TYPE>
     <FILE_PATH>\WEB-INF\components-new\dev-toolbar\dev-toolbar-pin.png</FILE_PATH>
     <FILE_FORMAT>BIN</FILE_FORMAT>
-    <OVERLOADABLE>TRUE</OVERLOADABLE>
+    <OVERLOADABLE>FALSE</OVERLOADABLE>
   </COMPONENT>
   <COMPONENT>
     <NAME>img/dev-toolbar-success.png</NAME>
     <TYPE>image/png</TYPE>
     <FILE_PATH>\WEB-INF\components-new\dev-toolbar\dev-toolbar-success.png</FILE_PATH>
     <FILE_FORMAT>BIN</FILE_FORMAT>
-    <OVERLOADABLE>TRUE</OVERLOADABLE>
+    <OVERLOADABLE>FALSE</OVERLOADABLE>
   </COMPONENT>
   <COMPONENT>
     <NAME>img/dev-toolbar-toggle-mode.png</NAME>
     <TYPE>image/png</TYPE>
     <FILE_PATH>\WEB-INF\components-new\dev-toolbar\dev-toolbar-toggle-mode.png</FILE_PATH>
     <FILE_FORMAT>BIN</FILE_FORMAT>
-    <OVERLOADABLE>TRUE</OVERLOADABLE>
+    <OVERLOADABLE>FALSE</OVERLOADABLE>
   </COMPONENT>
   <COMPONENT>
     <NAME>img/dev-toolbar-warning.png</NAME>
     <TYPE>image/png</TYPE>
     <FILE_PATH>\WEB-INF\components-new\dev-toolbar\dev-toolbar-warning.png</FILE_PATH>
     <FILE_FORMAT>BIN</FILE_FORMAT>
-    <OVERLOADABLE>TRUE</OVERLOADABLE>
+    <OVERLOADABLE>FALSE</OVERLOADABLE>
   </COMPONENT>
 
   <!-- Client Visibility -->
@@ -285,7 +285,7 @@
     <TYPE>text/css</TYPE>
     <FILE_PATH>\WEB-INF\components-new\download-style.css</FILE_PATH>
     <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>TRUE</OVERLOADABLE>
+    <OVERLOADABLE>FALSE</OVERLOADABLE>
   </COMPONENT>
   <COMPONENT>
     <NAME>img/download-close</NAME>
@@ -343,6 +343,6 @@
     <TYPE>text/xml</TYPE>
     <FILE_PATH>\WEB-INF\xslt\report_definition_to_sox_definition.xsl</FILE_PATH>
     <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>TRUE</OVERLOADABLE>
+    <OVERLOADABLE>FALSE</OVERLOADABLE>
   </COMPONENT>
 </COMPONENTS_LIST>
