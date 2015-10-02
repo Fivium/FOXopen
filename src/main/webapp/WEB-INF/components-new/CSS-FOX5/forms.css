@@ -43,6 +43,10 @@ label {
   margin-top: -0.2em;
 }
 
+.prompt.north .mand-label {
+  margin-left: 0;
+}
+
 .fieldDescription {
   color: #666;
   font-size: 0.8em;
