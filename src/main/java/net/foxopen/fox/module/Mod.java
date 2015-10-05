@@ -268,6 +268,7 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
    */
   public Mod(String p_name, DOM pInitialDOM, App p_app)
   throws ExModule, ExDoSyntax, ExServiceUnavailable {
+    super(null);
     DOMList lParseDOMList;
 
     // Locate module element

@@ -2,6 +2,7 @@ package net.foxopen.fox.entrypoint.servlets;
 
 import net.foxopen.fox.FoxComponent;
 import net.foxopen.fox.FoxRequestHttp;
+import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.entrypoint.ComponentManager;
 import net.foxopen.fox.entrypoint.uri.RequestURIBuilder;
 import net.foxopen.fox.ex.ExInternal;
@@ -29,7 +30,24 @@ extends HttpServlet {
    * @return Gets the expiry time in milliseconds for any static resource which is unlikely to be modified.
    */
   public static long staticResourceExpiryTimeMS() {
-    return System.currentTimeMillis() + TimeUnit.DAYS.toMillis(365);
+    return TimeUnit.DAYS.toMillis(365);
+  }
+
+  /**
+   * Gets the filename for the resource at the given path, possibly with a hash value concatenated, for use in a URI.
+   * A hash is concatenated if the resource is an internal component. It is used to ensure resources with long expiry times
+   * are re-requested by the client in the event that the file's content changes between engine revisions.
+   * @param pResourcePath Path to static resource.
+   * @return Path to resource with optional hash appended.
+   */
+  public static String getStaticResourcePathWithHashParameter(String pResourcePath) {
+    String lHash = ComponentManager.getInternalComponentHashOrNull(pResourcePath);
+    if(!XFUtil.isNull(lHash)) {
+      return pResourcePath + "?h=" + lHash;
+    }
+    else {
+      return pResourcePath;
+    }
   }
 
   /**

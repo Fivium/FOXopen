@@ -32,8 +32,15 @@ $Id$
 */
 package net.foxopen.fox;
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.Hashing;
 import net.foxopen.fox.dom.DOM;
-import net.foxopen.fox.ex.*;
+import net.foxopen.fox.ex.ExApp;
+import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.ex.ExModule;
+import net.foxopen.fox.ex.ExSecurity;
+import net.foxopen.fox.ex.ExServiceUnavailable;
+import net.foxopen.fox.ex.ExUserRequest;
 import net.foxopen.fox.io.IOUtil;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.track.Track;
@@ -45,8 +52,21 @@ import java.io.Reader;
 import java.io.StringWriter;
 
 
-public abstract class FoxComponent
-{
+public abstract class FoxComponent {
+
+  private final String mOptionalHash;
+
+  protected FoxComponent(String pOptionalHash) {
+    mOptionalHash = pOptionalHash;
+  }
+
+  /**
+   * @return Gets the hash of this component if one was generated at construction time, or null if not.
+   */
+  public String getHashOrNull() {
+    return mOptionalHash;
+  }
+
   public abstract String getName();
 
   public abstract String getType();
@@ -77,6 +97,7 @@ public abstract class FoxComponent
   , InputStream pInputStream
   , App pApp
   , long pBrowserCacheMilliSec
+  , boolean pGenerateHash
   )
   throws
     ExModule
@@ -132,7 +153,8 @@ public abstract class FoxComponent
           throw new ExInternal("Failed to create CSS component: " + pName + ", no CLOB data found and reader ended up null");
         }
         StringBuffer lStringBuffer = XFUtil.toStringBuffer(pReader, 2048, -1);
-        lFoxComponent = new ComponentCSS(pName, lStringBuffer, pBrowserCacheMilliSec);
+        String lHash = pGenerateHash ? Hashing.md5().hashString(lStringBuffer, Charsets.UTF_16LE).toString() : null;
+        lFoxComponent = new ComponentCSS(pName, lStringBuffer, pBrowserCacheMilliSec, lHash);
       }
 
       // Load image formats (various)
@@ -142,7 +164,8 @@ public abstract class FoxComponent
           throw new ExInternal("Failed to create image component: " + pName + ", no BLOB data found and input stream ended up null");
         }
         byte[] lByteArray = XFUtil.toByteArray(pInputStream, 2048, -1);
-        lFoxComponent = new ComponentImage(pName, lByteArray, pType, pBrowserCacheMilliSec);
+        String lHash = pGenerateHash ? Hashing.md5().hashBytes(lByteArray).toString() : null;
+        lFoxComponent = new ComponentImage(pName, lByteArray, pType, pBrowserCacheMilliSec, lHash);
       }
 
       // Load image formats (various)
@@ -152,7 +175,8 @@ public abstract class FoxComponent
           throw new ExInternal("Failed to create text component: " + pName + ", no CLOB data found and reader ended up null");
         }
         StringBuffer lStringBuffer = XFUtil.toStringBuffer(pReader, 2048, -1);
-        lFoxComponent = new ComponentText(pName, pType, lStringBuffer, pBrowserCacheMilliSec);
+        String lHash = pGenerateHash ? Hashing.md5().hashString(lStringBuffer, Charsets.UTF_16LE).toString() : null;
+        lFoxComponent = new ComponentText(pName, pType, lStringBuffer, pBrowserCacheMilliSec, lHash);
       }
 
       // Unknown object type

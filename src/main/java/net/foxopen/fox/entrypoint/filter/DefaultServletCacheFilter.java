@@ -31,7 +31,7 @@ implements Filter {
     final HttpServletResponse lResponse = (HttpServletResponse) pServletResponse;
 
     //Set expiry time to a year - these resources are unlikely to change, and we can modify the directory name if they do
-    lResponse.setDateHeader("Expires", StaticServlet.staticResourceExpiryTimeMS());
+    lResponse.setDateHeader("Expires", System.currentTimeMillis() + StaticServlet.staticResourceExpiryTimeMS());
 
     //ResponseWrapper to prevent etag headers being sent on static resources - the expires header should suffice
     pFilterChain.doFilter(pServletRequest, new HttpServletResponseWrapper(lResponse) {

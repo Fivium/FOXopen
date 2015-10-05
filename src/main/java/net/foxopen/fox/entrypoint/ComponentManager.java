@@ -11,6 +11,7 @@ import net.foxopen.fox.FoxComponent;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.DOMList;
+import net.foxopen.fox.entrypoint.servlets.StaticServlet;
 import net.foxopen.fox.ex.ExApp;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExModule;
@@ -105,6 +106,10 @@ public class ComponentManager {
         throw new ExInternal("Internal Component File format not CHAR/BIN: " + lFilePath);
       }
 
+      //Cache expiry times for internal components should be set to a long duration
+      //If the files are modified the hash difference will cause clients to re-request the component
+      //(this is why we generate a hash for these components)
+
       // Create internal component
       FoxComponent lFoxComponent = null;
       try {
@@ -118,7 +123,8 @@ public class ComponentManager {
             , lReader
             , null
             , null
-            , COMPONENT_BROWSER_CACHE_MS
+            , StaticServlet.staticResourceExpiryTimeMS()
+            , true
             );
           }
           catch(FileNotFoundException x) {
@@ -143,7 +149,8 @@ public class ComponentManager {
             , null
             , lIS
             , null
-            , COMPONENT_BROWSER_CACHE_MS
+            , StaticServlet.staticResourceExpiryTimeMS()
+            , true
             );
           }
           catch(FileNotFoundException x) {
@@ -346,6 +353,23 @@ public class ComponentManager {
         // If it wasn't an internal mutable component, then re-throw the original error that App.getComponent() returned
         throw e;
       }
+    }
+  }
+
+  /**
+   * Gets the hash value for an internal component at the given path. If the component does not exist or is does not have
+   * a hash generated for it, null is returned.
+   * @param pPath Path for internal component.
+   * @return Hash value or null.
+   */
+  public static String getInternalComponentHashOrNull(String pPath) {
+    //Note: if an internal compontent has been overloaded, it will have a short cache timeout, so the hash value from here will have no effect
+    FoxComponent lFoxComponent = XFUtil.nvl(INTERNAL_COMPONENTS_IMMUTABLE.get(pPath), INTERNAL_COMPONENTS_OVERLOADABLE.get(pPath));
+    if(lFoxComponent != null) {
+      return lFoxComponent.getHashOrNull();
+    }
+    else {
+      return null;
     }
   }
 

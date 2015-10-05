@@ -32,14 +32,14 @@ $Id$
 */
 package net.foxopen.fox;
 
-import java.io.InputStream;
-import java.io.Reader;
-
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.ex.ExSecurity;
 import net.foxopen.fox.ex.ExServiceUnavailable;
 import net.foxopen.fox.ex.ExUserRequest;
+
+import java.io.InputStream;
+import java.io.Reader;
 
 public final class ComponentCSS
 extends FoxComponent
@@ -49,8 +49,8 @@ extends FoxComponent
   private final FoxResponse mFoxResponse;
   private final StringBuffer mStringBuffer;
 
-  public ComponentCSS(String pName, StringBuffer pStringBuffer, long pBrowserCacheMilliSec)
-  {
+  public ComponentCSS(String pName, StringBuffer pStringBuffer, long pBrowserCacheMilliSec, String pOptionalHash) {
+    super(pOptionalHash);
     mName = pName;
     mStringBuffer = pStringBuffer;
     mFoxResponse = new FoxResponseCHAR("text/css", pStringBuffer, pBrowserCacheMilliSec);

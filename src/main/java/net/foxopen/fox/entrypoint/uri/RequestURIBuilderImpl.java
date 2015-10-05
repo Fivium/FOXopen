@@ -71,7 +71,7 @@ implements RequestURIBuilder {
 
   @Override
   public String buildStaticResourceURI(String pResourcePath) {
-    return buildURIHead(StaticServlet.SERVLET_PATH) + "/" + mAppMnem + "/" + pResourcePath;
+    return buildURIHead(StaticServlet.SERVLET_PATH) + "/" + mAppMnem + "/" + StaticServlet.getStaticResourcePathWithHashParameter(pResourcePath);
   }
 
   @Override

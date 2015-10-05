@@ -584,7 +584,8 @@ public class App {
       , lReader
       , lInputStream
       , this // owning application
-        , (pRow.columnExists("BROWSER_CACHE_MS") ? pRow.getLong("BROWSER_CACHE_MS") : ComponentManager.getComponentBrowserCacheMS())
+      , (pRow.columnExists("BROWSER_CACHE_MS") ? pRow.getLong("BROWSER_CACHE_MS") : ComponentManager.getComponentBrowserCacheMS())
+      , false
       );
     }
     catch(SQLException x) {

@@ -55,9 +55,11 @@ extends FoxComponent
   , byte[] pImageBytes
   , String pExpectedMimeType
   , long pBrowserCacheMilliSec
+  , String pOptionalHash
   )
   throws ExApp // when unsupported image format
   {
+    super(pOptionalHash);
     // Record name
     mName = pName;
 

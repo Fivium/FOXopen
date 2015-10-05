@@ -635,6 +635,7 @@ public class EngineMirror {
         , null
         , null
         , ComponentManager.getComponentBrowserCacheMS()
+        , false
         );
       }
       catch(Throwable x) {
@@ -660,6 +661,7 @@ public class EngineMirror {
         , lIS
         , null
         , ComponentManager.getComponentBrowserCacheMS()
+        , false
         );
       }
       catch(Throwable x) {
