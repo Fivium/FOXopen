@@ -37,7 +37,7 @@ extends DevToolbarBangHandler {
       try {
         ComponentText lXPathPage = (ComponentText) ComponentManager.getComponent("html/xpath-runner");
         String lXP = lXPathPage.getText().toString();
-        lXP = lXP.replaceAll("%JQUERY%", pRequestContext.createURIBuilder().buildStaticResourceURI("js/jquery.js"));
+        lXP = lXP.replaceAll("%JQUERY%", pRequestContext.createURIBuilder().buildStaticResourceURI("js/core-header.js"));
         lXP = lXP.replaceAll("%THREAD_ID%", lThreadID);
         return new FoxResponseCHAR("text/html", new StringBuffer(lXP), 0);
       }

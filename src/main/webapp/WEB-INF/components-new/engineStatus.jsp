@@ -12,7 +12,7 @@
 <html>
 <head>
   <title>FOX Engine Status</title>
-  <script type="text/javascript" src="<%= lURIBuilder.buildStaticResourceURI("js/jquery.js") %>"></script>
+  <script type="text/javascript" src="<%= lURIBuilder.buildStaticResourceURI("js/core-header.js") %>"></script>
   <script type="text/javascript" src="<%= lURIBuilder.buildServletURI("status/bootstrap.min.js")  %>"></script>
   <link rel="stylesheet" href="<%= lURIBuilder.buildServletURI("status/bootstrap.min.css")  %>"/>
   <link rel="stylesheet" type="text/css" href="<%= lURIBuilder.buildContextResourceURI("/icomoon/icomoon.css") %>" />

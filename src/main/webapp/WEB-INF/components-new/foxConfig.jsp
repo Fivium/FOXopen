@@ -25,8 +25,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <title>Fox Engine Configuration</title>
-    <script type="text/javascript" src="<%= lURIBuilder.buildStaticResourceURI("js/jquery.js") %>"></script>
-    <script type="text/javascript" src="<%= lURIBuilder.buildStaticResourceURI("js/html5shiv.js")  %>"></script>
+    <script type="text/javascript" src="<%= lURIBuilder.buildStaticResourceURI("js/core-header.js") %>"></script>
     <script type="text/javascript">
       function isAllNBSPs(passValue) {
         return passValue != null && passValue.length > 0 && (passValue.match(new RegExp(String.fromCharCode(160), "g")) || []).length == passValue.length
