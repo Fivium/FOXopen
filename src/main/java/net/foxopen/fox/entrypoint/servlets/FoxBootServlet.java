@@ -95,14 +95,8 @@ extends HttpServlet {
       //Start by setting to UNCONFIGURED so we don't end up with an old configured environment if anything goes wrong
       FoxGlobals.getInstance().setFoxEnvironment(new UnconfiguredFoxEnvironment());
 
-      // Load up engine mirror cache
-      //EngineMirror.init(); // TODO - NP - Reimplement Engine Mirror
-
       // Load internal components
       ComponentManager.loadInternalComponents();
-
-      // Populate error pages from engine mirror cache
-//      populateErrorComponentMap();
 
       // Scan for plugins and get names ready to post when registering engine
       PluginManager.instance().scanPluginDirectory();
@@ -132,9 +126,6 @@ extends HttpServlet {
 
       // TODO - NP - This should probably happen as part of loadResourceMaster() above
       //initAuthenticationPackage();
-
-      //Refresh the Engine Mirror
-      //EngineMirror.loadCacheFromDatabase(false); // TODO - NP - Reimplement Engine Mirror
 
       //Re-parse cached queries in case database user changed
       DatabaseSharedDOMManager.parseQueries();
@@ -191,28 +182,6 @@ extends HttpServlet {
 
     FoxLogger.getLogger().info("FOX shutdown complete");
   }
-
-  // TODO - NP - Put this in component manager class
-//  public static boolean populateErrorComponentMap() {
-//    try {
-//      DOM lErrorComponentsDOM = DOM.createDocument(new File(EngineMirror.getMirrorFolder() + File.separator + "error_pages.xml"), false);
-//      gDefaultErrorApp = lErrorComponentsDOM.get1SNoEx("/*/DEFAULT-ERROR-APP");
-//      DOMList lErrorComponentsDOMList = lErrorComponentsDOM.getUL("/*/COMPONENT");
-//      DOM lErrorComonentDOM;
-//      if (gErrorComponentMap.size() > 0) {
-//        gErrorComponentMap.clear();
-//      }
-//      while((lErrorComonentDOM = lErrorComponentsDOMList.popHead()) != null) {
-//        gErrorComponentMap.put(lErrorComonentDOM.get1SNoEx("APP"), lErrorComonentDOM.get1SNoEx("NAME"));
-//        gAppStatuses.put(lErrorComonentDOM.get1SNoEx("APP")+": error-module", new String[] {"CONFIGURED", "<a href=\"" + lErrorComonentDOM.get1SNoEx("APP")+"/"+lErrorComonentDOM.get1SNoEx("NAME") + "\">" + lErrorComonentDOM.get1SNoEx("NAME") + "</a>"});
-//      }
-//      return true;
-//    }
-//    catch (Throwable th) {
-//      return false;
-//    }
-//  }
-
 
   @Override
   protected void doGet(HttpServletRequest pRequest, HttpServletResponse pResponse)

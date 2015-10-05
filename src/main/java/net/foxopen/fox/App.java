@@ -32,7 +32,6 @@ import net.foxopen.fox.ex.ExUserRequest;
 import net.foxopen.fox.filetransfer.VirusScanner;
 import net.foxopen.fox.filetransfer.VirusScannerDefinition;
 import net.foxopen.fox.image.ImageWidgetProcessing;
-import net.foxopen.fox.logging.FoxLogger;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.module.entrytheme.EntryTheme;
 import net.foxopen.fox.module.fieldset.transformer.html.HTMLWidgetConfig;
@@ -672,21 +671,6 @@ public class App {
           //Put it in the app specific cache if it wasn't there already
           FoxCache<String, FoxComponent> lFoxCache = CacheManager.getMemberCache(BuiltInCacheDefinition.APP_COMPONENTS, mAppMnem);
           lFoxCache.put(lRow.getString("NAME"), lFoxComponent);
-
-          //Put in engine mirror too if it should be
-          if ("Y".equals(lRow.getString("ENGINE_MIRROR"))) {
-            try {
-              if (!lRow.isNull("DATA")) {
-                EngineMirror.storeFile(mAppMnem, lRow.getString("NAME"), lRow.getClob("DATA").getCharacterStream(), lRow.getString("TYPE"));
-              }
-              else {
-                EngineMirror.storeFile(mAppMnem, lRow.getString("NAME"), lRow.getBlob("BINDATA").getBinaryStream(), lRow.getString("TYPE"));
-              }
-            }
-            catch (Exception e) {
-              FoxLogger.getLogger().error("App getComponent failed to store component in EngineMirror", e);
-            }
-          }
         }
       }
     }

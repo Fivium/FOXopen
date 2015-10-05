@@ -6,7 +6,6 @@ import com.github.mustachejava.MustacheFactory;
 import net.foxopen.fox.App;
 import net.foxopen.fox.ComponentCSS;
 import net.foxopen.fox.ComponentText;
-import net.foxopen.fox.EngineMirror;
 import net.foxopen.fox.FoxComponent;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
@@ -322,12 +321,6 @@ public class ComponentManager {
     String lAppMnem = pAppMnem;
     if (XFUtil.isNull(lAppMnem)) {
       lAppMnem = XFUtil.pathPopHead(pRequestURI, true);
-    }
-
-    // Check for app based engine mirror component
-    lFoxComponent = EngineMirror.getComponentOrNull(lAppMnem, lFullPath);
-    if(lFoxComponent != null) {
-      return lFoxComponent;
     }
 
     // Check for global fox based immutable cached components

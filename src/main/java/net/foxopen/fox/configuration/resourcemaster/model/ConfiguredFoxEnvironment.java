@@ -272,9 +272,6 @@ implements FoxEnvironment {
         }
       }
     }
-
-    // TODO NP - Uses DOM resource master.
-    //EngineMirror.loadCacheFromDatabase(false);
   }
 
   @Override
