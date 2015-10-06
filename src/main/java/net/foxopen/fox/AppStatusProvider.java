@@ -60,7 +60,6 @@ implements StatusProvider {
           pRowDestination.addRow().setColumn("Default module").setColumn(lApp.getDefaultModuleName());
 
           pRowDestination.addRow().setColumn("HTML response method").setColumn(lApp.getResponseMethod().toString());
-          pRowDestination.addRow().setColumn("Logout page").setColumn(lApp.getLogoutPage());
           pRowDestination.addRow().setColumn("Resource table list").setColumn(StatusCollection.fromStringSet("resourceTables", lApp.getResourceTableList()));
 
           pRowDestination.addRow().setColumn("Security check module").setColumn(lApp.getSecurityCheckModuleName());

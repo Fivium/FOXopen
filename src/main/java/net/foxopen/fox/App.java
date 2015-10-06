@@ -106,7 +106,6 @@ public class App {
   private final String mResponseMethod;
 
   // Environment Properties
-  private final String mLogoutPage;
   private final String mExitPage;
 
   // Processing variables
@@ -229,8 +228,6 @@ public class App {
     if (XFUtil.isNull(mExitPage)) {
       throw new ExApp("App " + mAppMnem + " cannot be created with no exit-page set (property path " + AppProperty.EXIT_PAGE.getPath() + ")");
     }
-
-    mLogoutPage = pAppDefinition.getPropertyAsString(AppProperty.LOGOUT_PAGE);
 
     // Load DOM properties
     DOM lDisplayAttrDOM = pAppDefinition.getPropertyAsDOM(AppProperty.APP_DISPLAY_ATTR_LIST);
@@ -465,10 +462,6 @@ public class App {
 
   public String getExitPage() {
     return mExitPage;
-  }
-
-  public String getLogoutPage() {
-    return mLogoutPage;
   }
 
   /**
