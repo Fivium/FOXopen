@@ -11,7 +11,6 @@ public enum AppProperty {
   DEFAULT_HTML_DOCTYPE("/*/default-html-doctype", false, false),
   DICTIONARY_LIST("/*/dictionary-properties/dictionary-list", true, false),
   RESOURCE_TABLE_LIST ("/*/resource-table-list", true),
-  AJAX_POLL_FREQUENCY("/*/ajax-poll-frequency", false),
   VIRUS_SCANNER_LIST("/*/virus-scanner-list", true),
   FILE_TRANSFER_QUEUE_LIST("/*/file-properties/file-transfer-queue-list", true),
   FILE_UPLOAD_TYPE_LIST("/*/file-properties/file-upload-type-list", true),

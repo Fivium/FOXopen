@@ -76,7 +76,6 @@ public class App {
   private final List<String> mAppAliasList;
   private final Map<String, String> mAppDisplayAttributeList = new HashMap<>();
   private final List<String> mResourceTableList;
-  private final int mAjaxPollFrequency;
   private final Map<String, VirusScannerDefinition> mVirusScannerDefinitionMap;
   private final String mDefaultHTMLWidgetConfigName;
   private final Map<String, HTMLWidgetConfig> mHTMLWidgetConfigMap = HTMLWidgetConfig.engineDefaults();
@@ -173,8 +172,6 @@ public class App {
 
     DOM lResourceTableDOMList = pAppDefinition.getPropertyAsDOM(AppProperty.RESOURCE_TABLE_LIST);
     mResourceTableList = App.loadDomListValuesIntoStringList(lResourceTableDOMList, "*");
-
-    mAjaxPollFrequency = Integer.parseInt(pAppDefinition.getPropertyAsString(AppProperty.AJAX_POLL_FREQUENCY));
 
     //Construct virus scanner definitions
     DOM lVirusScannerListDOM = pAppDefinition.getPropertyAsDOM(AppProperty.VIRUS_SCANNER_LIST);
@@ -404,10 +401,6 @@ public class App {
 
   public List<String> getResourceTableList() {
     return mResourceTableList;
-  }
-
-  public int getAjaxPollFrequency() {
-    return mAjaxPollFrequency;
   }
 
   public FileProperties getFileProperties() {
