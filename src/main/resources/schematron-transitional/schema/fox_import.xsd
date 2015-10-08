@@ -68,6 +68,7 @@
       <xs:element name="label" type="html-with-attrs-or-fox-html-tags"/>
       <xs:element name="legend" type="html-with-attrs-or-fox-html-tags"/>
       <xs:element name="iframe" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="blockquote" type="html-with-attrs-or-fox-html-tags"/>
     </xs:choice>
   </xs:group>
   <xs:attributeGroup name="html-attrs-grp">
