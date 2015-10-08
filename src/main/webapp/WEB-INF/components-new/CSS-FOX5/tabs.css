@@ -1,0 +1,136 @@
+ul.tabs {
+  font-size: 0.9em;
+  display: table;
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+ul.tabs li {
+  white-space: nowrap;
+  padding: 0 0.75em;
+  display: table-cell;
+  border-bottom: 1px solid #ccc;
+  border-radius: 3px 3px 0 0;
+  text-align: center
+}
+
+ul.tabs li:hover {
+  background: #e8e8e8;
+}
+
+ul.tabs li.current-tab:hover {
+  background: transparent;
+}
+
+ul.tabs::after {
+  width: 100%;
+  border-bottom: 1px solid #ccc;
+  content:"";
+  display: table-cell;
+}
+
+ul.tabs .current-tab {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-bottom: none;
+}
+
+ul.contained-tabs li {
+  border: 1px solid #ccc;
+  background: #f4f4f4;
+}
+
+ul.tabs a {
+  font-size: 1em;
+  padding: 0.3em 0 0.4em 0;
+  margin: 0 0.25em;
+  text-decoration: none;
+}
+
+ul.tabs li>a {
+  display: inline-block;
+}
+
+ul.tabs li.current-tab a {
+  color: #333;
+}
+
+ul.tabs img {
+  max-height: 13px;
+  max-width: none;
+  width: auto;
+}
+
+ul.tabs .label {
+  vertical-align: top;
+  margin: 0 0.25em;
+  margin-top: 0.5em;
+}
+
+ul.big-tabs {
+  font-size: 1.2em;
+}
+
+ul.big-tabs .label {
+  font-weight: 600;
+}
+
+ul.big-tabs img {
+  max-height: 16px;
+}
+
+ul.small-tabs {
+  font-size: 0.8em;
+}
+
+ul.small-tabs .label {
+  border-radius: 2px;
+  margin-top: 0.8em;
+}
+
+ul.small-tabs img {
+  max-height: 11px;
+}
+
+.tab-content.contained-tab-content {
+  border: 1px solid #ccc;
+  border-top: none;
+  margin-bottom: 1em;
+  padding: 1em;
+  overflow: auto;
+  clear: both;
+}
+
+/* Multiline tabs */
+ul.multiline-tabs {
+  display: block;
+}
+
+ul.multiline-tabs li {
+  display: inline-block;
+  border-bottom: none;
+  border-radius: 100px;
+  margin-bottom: 0.5em;
+  margin-right: 0.5em;
+}
+
+ul.multiline-tabs li.current-tab,
+ul.multiline-tabs li.current-tab:hover {
+  border: none;
+  background: #1065AF;
+  color: #fff;
+}
+
+ul.multiline-tabs li.current-tab a {
+  color: #fff;
+}
+
+ul.contained-tabs li {
+  border: 1px solid #ccc;
+  background: transparent;
+}
+
+.tab-content.contained-tab-content.multiline-tabs {
+  border: 1px solid #ccc;
+}
