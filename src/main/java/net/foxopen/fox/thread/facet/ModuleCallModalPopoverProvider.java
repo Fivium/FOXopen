@@ -35,12 +35,12 @@ implements ModalPopoverProvider {
     ModalPopover lCurrentPopover = getCurrentPopoverOrNull();
     ModalPopover lNewPopover = new ModuleCallModalPopover(ID_ITERATOR.next(), getModuleCall().getCallId(), pBufferName, pBufferAttachFoxId, pModalOptions);
 
+    //Delete/dismiss the current popover if it exists
     if(lCurrentPopover != null) {
-      updateExistingFacet(lNewPopover);
+      deleteFacet(lCurrentPopover);
     }
-    else {
-      registerNewFacet(lNewPopover);
-    }
+
+    registerNewFacet(lNewPopover);
 
     return lNewPopover;
   }
