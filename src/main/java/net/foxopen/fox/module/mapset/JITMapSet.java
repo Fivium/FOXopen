@@ -171,11 +171,19 @@ public class JITMapSet implements MapSet {
         }
 
         ResultSetMetaData lMetaData = lResultSet.getMetaData();
+        int lKeyColumnIndex = 0;
         for (int lCol = 1; lCol <= lMetaData.getColumnCount(); lCol++) {
           if (MapSet.KEY_ELEMENT_NAME.equals(lMetaData.getColumnName(lCol))) {
-            mKey = SQLTypeConverter.getValueAsString(new ResultSetAdaptor(lResultSet), lCol, lMetaData.getColumnType(lCol));
+            lKeyColumnIndex = lCol;
             break;
           }
+        }
+
+        if (lKeyColumnIndex == 0) {
+          throw new ExDB("Couldn't find a key column in the ref query " + pQuery.getParsedStatement().getStatementPurpose());
+        }
+        else {
+          mKey = SQLTypeConverter.getValueAsString(new ResultSetAdaptor(lResultSet), lKeyColumnIndex, lMetaData.getColumnType(lKeyColumnIndex));
         }
 
         if(lResultSet.next()) {
