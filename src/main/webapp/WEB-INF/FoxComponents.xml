@@ -13,11 +13,22 @@
       <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\typography.css</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\components.css</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\tabs.css</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\popover.css</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\infobox.css</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\grid.css</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\tables.css</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\forms.css</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\animations.css</FILE_PATH>
+    </FILE_PATH_LIST>
+    <FILE_FORMAT>CHAR</FILE_FORMAT>
+    <OVERLOADABLE>FALSE</OVERLOADABLE>
+  </MULTI_PART_COMPONENT>
+
+  <MULTI_PART_COMPONENT>
+    <NAME>css/fox-ie8.css</NAME>
+    <TYPE>text/css</TYPE>
+    <FILE_PATH_LIST>
+      <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\popover-ie8.css</FILE_PATH>
     </FILE_PATH_LIST>
     <FILE_FORMAT>CHAR</FILE_FORMAT>
     <OVERLOADABLE>FALSE</OVERLOADABLE>
@@ -55,6 +66,7 @@
       <FILE_PATH>\WEB-INF\components-new\jquery\jquery.fontspy.js</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\fox.js</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\tabs.js</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\foxModal.js</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\jquery\jquery-ui-timepicker-addon-1.5.0.js</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\jquery\jquery-ui-timepicker-text-time-control.js</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\jquery\jquery.tooltipster.min.js</FILE_PATH>
@@ -335,6 +347,14 @@
     <NAME>img/loading_mini</NAME>
     <TYPE>image/gif</TYPE>
     <FILE_PATH>\WEB-INF\images\loading_mini.gif</FILE_PATH>
+    <FILE_FORMAT>BIN</FILE_FORMAT>
+    <OVERLOADABLE>TRUE</OVERLOADABLE>
+  </COMPONENT>
+
+  <COMPONENT>
+    <NAME>img/popover-background-ie8</NAME>
+    <TYPE>image/png</TYPE>
+    <FILE_PATH>\WEB-INF\images\popover-background-ie8.png</FILE_PATH>
     <FILE_FORMAT>BIN</FILE_FORMAT>
     <OVERLOADABLE>TRUE</OVERLOADABLE>
   </COMPONENT>

@@ -70,6 +70,7 @@ extends AbstractResourcesComponentBuilder {
     css(pSerialiser, pSerialisationContext.getContextResourceURI("/icomoon/icomoon-png.css"));
 
     css(pSerialiser, pSerialisationContext.getStaticResourceURI("css/fox.css"));
+    css(pSerialiser, pSerialisationContext.getStaticResourceURI("css/fox-ie8.css"), "IE 8");
 
     if (pSerialisationContext.getImplicatedWidgets().contains(WidgetBuilderType.SEARCH_SELECTOR)) {
       css(pSerialiser, pSerialisationContext.getStaticResourceURI("css/tagger.css"));

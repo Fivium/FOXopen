@@ -6,6 +6,7 @@ package net.foxopen.fox.module.facet;
  */
 public enum ModuleFacetType {
 
+  MODAL_POPOVER,
   PAGER,
   TAB_GROUP
 

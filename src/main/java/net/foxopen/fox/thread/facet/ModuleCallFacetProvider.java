@@ -31,7 +31,7 @@ public abstract class ModuleCallFacetProvider<T extends ModuleFacet>
 implements ModuleFacetProvider {
 
   /** All Provider Builders which need to be used when a ModuleCall is created */
-  private static final Set<Builder<?>> gBuilders = new HashSet<>();
+  private static final Set<Builder<?>> BUILDERS = new HashSet<>();
 
   private final PersistenceContext mPersistenceContext;
   private final ModuleCall mModuleCall;
@@ -40,8 +40,9 @@ implements ModuleFacetProvider {
   static {
     //Explicitly register all the provider builders. This must be done in a "pull" style, otherwise builder classes
     //are not created by the class loader.
-    gBuilders.add(ModuleCallTabGroupProvider.getBuilder());
-    gBuilders.add(ModuleCallPagerProvider.getBuilder());
+    BUILDERS.add(ModuleCallModalPopoverProvider.getBuilder());
+    BUILDERS.add(ModuleCallTabGroupProvider.getBuilder());
+    BUILDERS.add(ModuleCallPagerProvider.getBuilder());
   }
 
   /**
@@ -49,7 +50,7 @@ implements ModuleFacetProvider {
    * @return
    */
   public static Collection<Builder<?>> getAllBuilders() {
-    return Collections.unmodifiableCollection(gBuilders);
+    return Collections.unmodifiableCollection(BUILDERS);
   }
 
   protected ModuleCallFacetProvider(PersistenceContext pPersistenceContext, ModuleCall pModuleCall, Map<String, T> pFacetKeyToFacetMap) {
@@ -90,6 +91,15 @@ implements ModuleFacetProvider {
     //Put into the map again, in case the caller has actaully created a new object
     mFacetKeyToFacetMap.put(pFacet.getFacetKey(), pFacet);
     mPersistenceContext.requiresPersisting(pFacet, PersistenceMethod.UPDATE);
+  }
+
+  /**
+   * Removes the given facet from this provider and marks it as requiring a delete.
+   * @param pFacet Facet to delete.
+   */
+  protected void deleteFacet(T pFacet) {
+    mFacetKeyToFacetMap.remove(pFacet.getFacetKey());
+    mPersistenceContext.requiresPersisting(pFacet, PersistenceMethod.DELETE);
   }
 
   protected ModuleCall getModuleCall() {

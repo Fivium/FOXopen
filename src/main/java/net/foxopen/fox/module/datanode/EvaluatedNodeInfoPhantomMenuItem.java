@@ -1,11 +1,13 @@
 package net.foxopen.fox.module.datanode;
 
+import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.module.ActionDefinition;
 import net.foxopen.fox.module.DisplayOrder;
 import net.foxopen.fox.module.MenuOutActionProvider;
 import net.foxopen.fox.module.evaluatedattributeresult.DOMAttributeResult;
+import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedMenuOutPresentationNode;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.GenericAttributesEvaluatedPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.GenericAttributesPresentationNode;
 import net.foxopen.fox.module.serialiser.components.html.MenuOutWidgetHelper;
@@ -111,7 +113,16 @@ extends EvaluatedNodeInfoItem
    */
   @Override
   public List<String> getClasses() {
-    return getStringAttributes(NodeAttribute.MENU_CLASS, NodeAttribute.CLASS);
+
+    List<String> lClasses = getStringAttributes(NodeAttribute.MENU_CLASS, NodeAttribute.CLASS);
+
+    //Note: logic copied from EvaluatedMenuOutPresentationNode, awaiting consolidation of these classes
+    String lMenuType = getStringAttribute(NodeAttribute.MENU_TYPE);
+    if(!XFUtil.isNull(lMenuType)) {
+      lClasses.add(0, EvaluatedMenuOutPresentationNode.MenuType.fromString(lMenuType).getInternalCSSClasses());
+    }
+
+    return lClasses;
   }
 
   /**

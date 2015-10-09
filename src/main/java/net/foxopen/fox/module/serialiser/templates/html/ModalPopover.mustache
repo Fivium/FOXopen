@@ -1,0 +1,9 @@
+<div id="modal-popover-container"{{^content}} style="display:none"{{/content}}{{#content}} data-save-scroll-position="true"{{/content}}{{#scroll-position}} data-initial-scroll-position="{{scroll-position}}"{{/scroll-position}}>
+  <div id="modal-popover" class="{{#content}}{{size}}-popover {{cssClass}}{{/content}}">
+    <div id="modal-popover-content">
+      {{#title}}<h2>{{title}}</h2>{{/title}}
+      {{{content}}}
+    </div>
+  </div>
+</div>
+{{#content}}<script type="text/javascript">$('body').addClass('contains-popover');</script>{{/content}}

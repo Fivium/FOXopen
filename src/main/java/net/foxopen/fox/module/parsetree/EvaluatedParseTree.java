@@ -139,6 +139,9 @@ public class EvaluatedParseTree implements SerialisationContext {
   /** Deque of DOM nodes used for context when evaluating buffers dynamically so fm:label can target the prompt-buffer caller */
   private Deque<DOM> mCurrentBufferContextNode = new ArrayDeque<>();
 
+  /** Currently displayed modal popover, or null if none is currently displayed */
+  private final EvaluatedModalPopover mOptionalModalPopover;
+
   public EvaluatedParseTree(ActionRequestContext pRequestContext, FieldSet pFieldSet, List<EvaluatedDataDefinition> pEvaluatedDataDefinitions, ThreadInfoProvider pThreadInfoProvider) {
     mRequestContext = pRequestContext;
     mState = pRequestContext.getCurrentState();
@@ -173,8 +176,10 @@ public class EvaluatedParseTree implements SerialisationContext {
     }
     finally {
       Track.pop("EvaluatedParseTree");
-
     }
+
+    //Evaluate the modal popover if one is active
+    mOptionalModalPopover = EvaluatedModalPopover.getEvaluatedPopoverOrNull(mRequestContext, this);
 
     handleClientVisibilityRules();
   }
@@ -333,6 +338,11 @@ public class EvaluatedParseTree implements SerialisationContext {
   @Override
   public <T extends XDoResult> List<T> getXDoResultList(Class<T> pForClass){
     return mRequestContext.getXDoResults(pForClass);
+  }
+
+  @Override
+  public EvaluatedModalPopover getCurrentModalPopoverOrNull() {
+    return mOptionalModalPopover;
   }
 
   public MapSet resolveMapSet(String pMapSetName, DOM pItemDOM, String pMapSetAttachXPath) {

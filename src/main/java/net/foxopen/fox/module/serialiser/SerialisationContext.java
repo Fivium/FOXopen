@@ -12,6 +12,7 @@ import net.foxopen.fox.module.State;
 import net.foxopen.fox.module.datadefinition.EvaluatedDataDefinition;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.fieldset.FieldSet;
+import net.foxopen.fox.module.parsetree.EvaluatedModalPopover;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedBufferPresentationNode;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 import net.foxopen.fox.thread.AlertMessage;
@@ -50,6 +51,8 @@ public interface SerialisationContext {
   List<ModelessCall.ModelessPopup> getModelessPopups();
 
   <T extends XDoResult> List<T> getXDoResultList(Class<T> pForClass);
+
+  EvaluatedModalPopover getCurrentModalPopoverOrNull();
 
   boolean isAccessibilityMode();
 

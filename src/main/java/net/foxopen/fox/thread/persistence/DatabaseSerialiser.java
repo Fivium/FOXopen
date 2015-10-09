@@ -39,6 +39,7 @@ public class DatabaseSerialiser
 implements Serialiser {
 
   private static final String DELETE_MODULE_CALL_FILENAME = "DeleteModuleCall.sql";
+  private static final String DELETE_MODULE_FACET_FILENAME = "DeleteModuleFacet.sql";
   private static final String DELETE_MODULE_CALL_FACETS_FILENAME = "DeleteModuleCallFacets.sql";
   private static final String DELETE_STATE_CALL_FILENAME = "DeleteStateCall.sql";
   private static final String DELETE_STATE_CALLSTACK_FILENAME = "DeleteStateCallStack.sql";
@@ -432,6 +433,28 @@ implements Serialiser {
     }
     finally {
       Track.pop("UpdateFacet");
+    }
+  }
+
+  @Override
+  public void deleteModuleFacet(ModuleFacet pModuleFacet) {
+
+    String lFacetType = getFacetTypeName(pModuleFacet);
+
+    Track.pushInfo("DeleteFacet", "Delete facet " + lFacetType + " " + pModuleFacet.getFacetKey());
+    try {
+      UConBindMap lBindMap = new UConBindMap();
+      lBindMap.defineBind(":facet_type", lFacetType);
+      lBindMap.defineBind(":facet_key", pModuleFacet.getFacetKey() );
+      lBindMap.defineBind(":module_call_id", pModuleFacet.getModuleCallId());
+
+      mUCon.executeAPI(SQLManager.instance().getStatement(DELETE_MODULE_FACET_FILENAME, getClass()), lBindMap);
+    }
+    catch (ExDB e) {
+      throw new ExInternal("Failed to delete " + lFacetType + " module facet", e);
+    }
+    finally {
+      Track.pop("DeleteFacet");
     }
   }
 

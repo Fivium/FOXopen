@@ -121,6 +121,7 @@ public enum NodeAttribute {
   MENU_STYLE("menuStyle", ValueType.CONSTANT, ResultType.STRING),
   MENU_TABLE_CLASS("menuTableClass", ValueType.CONSTANT, ResultType.STRING),
   MENU_TABLE_STYLE("menuTableStyle", ValueType.CONSTANT, ResultType.STRING),
+  MENU_TYPE("menuType", ValueType.CONSTANT, ResultType.STRING),
   NESTED_CLASS("nestedClass", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   NESTED_STYLE("nestedStyle", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   NESTED_FORM_CLASS("nestedFormClass", ValueType.EVALUATABLE_XPATH, ResultType.STRING),

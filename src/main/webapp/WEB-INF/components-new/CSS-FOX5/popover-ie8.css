@@ -1,0 +1,4 @@
+/* Modal popups - image for greyed-out background */
+#modal-popover-container {
+  background: url('../img/popover-background-ie8');
+}

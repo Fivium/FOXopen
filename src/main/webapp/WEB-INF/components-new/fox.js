@@ -378,6 +378,10 @@ var FOXjs = {
       alert(this.gBlockSubmitReason);
     }
     else if (!this.gPageDisabled) {
+
+      //Notify listeners that the form is about to be submitted, giving them a chance to set field values etc
+      $(document).trigger('foxBeforeSubmit');
+
       // If the page is not disabled, set up some values and submit the form
       document.mainForm.scroll_position.value = Math.round($(document).scrollTop());
       document.mainForm.action_name.value = settings.ref;

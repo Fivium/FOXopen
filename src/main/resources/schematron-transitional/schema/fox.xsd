@@ -114,6 +114,7 @@
     <xs:attribute ref="flow" use="optional"/>
     <xs:attribute ref="menuClass" use="optional"/>
     <xs:attribute ref="menuStyle" use="optional"/>
+    <xs:attribute ref="menuType" use="optional"/>
     <xs:attribute ref="promptClass"/>
     <xs:attribute ref="promptStyle"/>
     <xs:attribute ref="actionClass"/>
@@ -346,6 +347,7 @@
     <xs:attribute ref="fieldGroup"/>
     <xs:attribute ref="menuClass" use="optional"/>
     <xs:attribute ref="menuStyle" use="optional"/>
+    <xs:attribute ref="menuType" use="optional"/>
     <xs:attribute ref="action-context"/>
     <xs:attribute ref="phantom-menu-mode"/>
     <xs:attribute ref="phantom-data-xpath"/>
@@ -855,6 +857,14 @@
   </xs:simpleType>
   <xs:attribute name="menuClass"/>
   <xs:attribute name="menuStyle" type="style-type"/>
+  <xs:attribute name="menuType">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="standard"/>
+        <xs:enumeration value="popover"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:attribute>
   <xs:attribute name="nestedClass"/>
   <xs:attribute name="nestedStyle" type="style-type"/>
   <xs:attribute name="nestedFormClass"/>

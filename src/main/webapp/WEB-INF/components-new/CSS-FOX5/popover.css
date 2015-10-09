@@ -1,0 +1,74 @@
+/* Popups */
+body.contains-popover {
+  overflow: hidden;
+}
+
+#modal-popover-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 500;
+  background: rgba(0,0,0,0.5);
+  overflow: auto;
+}
+
+#modal-popover {
+  background: #fff;
+  border-radius: 3px;
+  box-shadow: 0 0 3px rgba(0,0,0,0.7);
+  width: 680px;
+  max-width: 98%;
+  margin: 5% auto 140px auto;
+  position: relative;
+}
+
+#modal-popover.large-popover {
+  width: 880px;
+}
+
+#modal-popover.small-popover {
+  width: 380px;
+}
+
+#modal-popover h2 {
+  font-size: 1.6em;
+  font-weight: 400;
+  color: #1065AF;
+  padding: 0.5em;
+  margin: 0 -0.64em 0.5em -0.6em; /**Required for IE8 */
+  margin: 0 -1rem 1rem -1rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+#modal-popover h3 {
+  font-size: 1.4em;
+  font-weight: 400;
+  color: #666;
+}
+
+#modal-popover-content {
+  padding: 0 1em 1em 1em;
+}
+
+#modal-popover-content p {
+  padding-bottom: 0.5em;
+}
+
+ul.modal-popover-actions,
+.modal-popover-actions {
+  border-top: 1px solid #e5e5e5;
+  display: block;
+  text-align: right;
+  padding: 0.5em;
+  margin: 1em -1em -1em -1em;
+  background: rgba(9, 121, 198, 0.01);
+  border-radius: 0 0 3px 3px;
+}
+
+ul.modal-popover-actions li {
+  display: inline-block;
+  zoom: 1;
+  *display: inline;
+}

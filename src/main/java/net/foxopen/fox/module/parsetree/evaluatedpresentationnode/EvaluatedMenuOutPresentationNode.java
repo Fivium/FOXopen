@@ -29,6 +29,40 @@ import java.util.Map;
 public class EvaluatedMenuOutPresentationNode
 extends GenericAttributesEvaluatedPresentationNode<MenuOutPresentationNode>
 implements MenuOutActionProvider {
+
+  /** Options for built-in styling of menu-outs */
+  public enum MenuType {
+    STANDARD(""),
+    POPOVER("modal-popover-actions");
+
+    private final String mInternalCSSClasses;
+
+    /**
+     * Resolves a MenuType from an external string. If the string is null, the standard MenuType is returned.
+     * @param pString String which must match a MenuType enum.
+     * @return MenuType for the given string.
+     */
+    public static MenuType fromString(String pString) {
+      if(XFUtil.isNull(pString)) {
+        return STANDARD;
+      }
+      else {
+        return valueOf(pString.toUpperCase());
+      }
+    }
+
+    private MenuType(String pInternalCSSClasses) {
+      mInternalCSSClasses = pInternalCSSClasses;
+    }
+
+    /**
+     * @return Gets the CSS classes which should be applied to menu-outs of this MenuType.
+     */
+    public String getInternalCSSClasses() {
+      return mInternalCSSClasses;
+    }
+  }
+
   private final List<EvaluatedNodeAction> mEvaluatedNodeActionList = new ArrayList<>();
   private final StringAttributeResult mFlow;
   private final List<String> mClasses;
@@ -89,6 +123,12 @@ implements MenuOutActionProvider {
     mFlow = XFUtil.nvl(mNodeEvaluationContext.getStringAttributeOrNull(NodeAttribute.FLOW), new FixedStringAttributeResult(MenuOutWidgetHelper.MENU_FLOW_ACROSS));
     mClasses = mNodeEvaluationContext.getStringAttributes(NodeAttribute.MENU_CLASS, NodeAttribute.MENU_TABLE_CLASS);
     mStyles = mNodeEvaluationContext.getStringAttributes(NodeAttribute.MENU_STYLE, NodeAttribute.MENU_TABLE_STYLE);
+
+    //Add additional built-in classes if the menu out has a menuType attribute
+    StringAttributeResult lMenuType = mNodeEvaluationContext.getStringAttributeOrNull(NodeAttribute.MENU_TYPE);
+    if(lMenuType != null) {
+      mClasses.add(0, MenuType.fromString(lMenuType.getString()).getInternalCSSClasses());
+    }
   }
 
   @Override

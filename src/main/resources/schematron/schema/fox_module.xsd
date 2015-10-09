@@ -2096,6 +2096,50 @@ Mapsets can have the following structures:
             </xs:attribute>
           </xs:complexType>
         </xs:element>
+        <xs:element name="show-popover">
+          <xs:annotation>
+            <xs:documentation>Shows a modal popover on the screen, which is rendered in front of all other content and blocks the user from clicking behind it.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:attribute name="buffer" type="fm:entered-string" use="required">
+              <xs:annotation>
+                <xs:documentation>The name of the buffer containing the content for the modal popover.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="bufferAttach" type="fm:entered-string">
+              <xs:annotation>
+                <xs:documentation>Attach point to use when evaluating the popover buffer. The default is the current state attach point if not specified.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="title" type="fm:entered-string">
+              <xs:annotation>
+                <xs:documentation>The title of the modal popover, which appears before the content buffer. If not specified, no title is displayed.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="size">
+              <xs:annotation>
+                <xs:documentation>Specify the width of the popover. If not specified, the default is 'regular'.</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="regular"/>
+                  <xs:enumeration value="large"/>
+                  <xs:enumeration value="small"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="class" type="fm:entered-string">
+              <xs:annotation>
+                <xs:documentation>Additional CSS class(es) to set on the popover's containing element.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="close-popover">
+          <xs:annotation>
+            <xs:documentation>Closes the active modal popover (as created by fm:show-popover). If no modal popover is currently displayed, this command does nothing.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
       </xs:choice>
       <xs:choice minOccurs="0">
         <xs:element name="call-module">

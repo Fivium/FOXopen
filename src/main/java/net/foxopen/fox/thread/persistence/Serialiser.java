@@ -55,5 +55,7 @@ public interface Serialiser {
 
   public void updateModuleFacet(ModuleFacet pFacet);
 
+  public void deleteModuleFacet(ModuleFacet pFacet);
+
   public void deleteModuleCallFacets(String pCallId);
 }

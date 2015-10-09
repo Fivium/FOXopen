@@ -6,6 +6,8 @@ import net.foxopen.fox.entrypoint.servlets.FoxMainServlet;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.datadefinition.EvaluatedDataDefinition;
 import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
+import net.foxopen.fox.module.fieldset.InternalHiddenField;
+import net.foxopen.fox.module.parsetree.EvaluatedModalPopover;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedHtmlPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.HtmlPresentationNode;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
@@ -43,6 +45,8 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
   private static final ComponentBuilder<HTMLSerialiser, EvaluatedHtmlPresentationNode> INSTANCE = new HTMLComponentBuilder();
 
   private static final String HIDDEN_FORM_ELEMENTS_TEMPLATE = "html/HiddenFormElements.mustache";
+  public static final String MODAL_POPOVER_TEMPLATE = "html/ModalPopover.mustache";
+
   /**
    * List of Void Elements, html tags to force leaving open, no self close and no closing tag needed. These should throw
    * an error if they have children also.
@@ -136,6 +140,9 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
 
       // Include hidden fields
       insertHiddenFormElements(pSerialiser, pSerialisationContext);
+
+      //Insert modal popover container div and optional contents
+      insertModalPopover(pSerialiser, pSerialisationContext);
     }
 
     processChildren(pSerialisationContext, pSerialiser, pEvalNode);
@@ -324,5 +331,37 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
     lTemplateVars.put("CurrentCallID", pSerialisationContext.getThreadInfoProvider().getCurrentCallId());
 
     MustacheFragmentBuilder.applyMapToTemplate(HIDDEN_FORM_ELEMENTS_TEMPLATE, lTemplateVars, pSerialiser.getWriter());
+  }
+
+  /**
+   * Inserts the modal popover div, with rendered contents if a modal popover is active. This must be as soon as possible
+   * during HTML generation so the page is rendered with the popover content and greyout div from the start.
+   * @param pSerialiser Current Serialiser.
+   * @param pSerialisationContext Current SerialisationContext.
+   */
+  private void insertModalPopover(HTMLSerialiser pSerialiser, SerialisationContext pSerialisationContext) {
+
+    Map<String, Object> lTemplateMap = new HashMap<>();
+
+    EvaluatedModalPopover lEvaluatedPopover = pSerialisationContext.getCurrentModalPopoverOrNull();
+
+    if(lEvaluatedPopover != null) {
+      //Render the popover's buffer into a temp serialiser
+      HTMLSerialiser.HTMLTempSerialiser lTempSerialiser = pSerialiser.getTempSerialiser();
+      lEvaluatedPopover.render(pSerialisationContext, lTempSerialiser);
+
+      lTemplateMap.put("content", lTempSerialiser.getOutput());
+      lTemplateMap.put("scroll-position", lEvaluatedPopover.getModalPopover().getScrollPosition());
+
+      //Get additional template variables from the modal popover
+      lTemplateMap.putAll(lEvaluatedPopover.getModalPopover().getModalPopoverOptions().asMustacheTemplatePropertyMap());
+
+      //Write input element for the hidden modal scroll position field (note the field's sending value should equal the current scroll position)
+      InternalHiddenField lHiddenField = lEvaluatedPopover.getScrollPositionHiddenField();
+      pSerialiser.append("<input type=\"hidden\" name=\"" + lHiddenField.getExternalFieldName() + "\" value=\"" + lHiddenField.getSendingValue() + "\"/>");
+    }
+
+    //Insert the popover divs - the content div will be empty if no popover is active
+    MustacheFragmentBuilder.applyMapToTemplate(MODAL_POPOVER_TEMPLATE, lTemplateMap, pSerialiser.getWriter());
   }
 }
