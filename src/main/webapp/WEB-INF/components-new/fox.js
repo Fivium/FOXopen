@@ -527,7 +527,7 @@ var FOXjs = {
   focus: function(externalFoxId, yOffset) {
     var lFocusTargets = $("*[data-xfid=" + externalFoxId + "]");
     // Scroll document to focus position
-    if(lFocusTargets.offset() !== null) {
+    if(lFocusTargets.offset()) {
       $(document).scrollTop(lFocusTargets.offset().top + yOffset);
     }
     // Attempt to focus a focusable element
