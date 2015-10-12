@@ -1898,6 +1898,14 @@ use</xs:documentation>
       </xs:restriction>
     </xs:complexContent>
   </xs:complexType>
+  <xs:complexType name="foxAttrExtendedSimpleType">
+    <xs:complexContent>
+      <xs:extension base="xs:topLevelSimpleType">
+        <xs:attributeGroup ref="fox:zzz-schema-element-attr-grp"/>
+        <xs:anyAttribute namespace="##other" processContents="skip"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
   <xs:complexType name="localSimpleType">
     <xs:complexContent>
       <xs:restriction base="xs:simpleType">
@@ -1916,7 +1924,7 @@ use</xs:documentation>
       </xs:restriction>
     </xs:complexContent>
   </xs:complexType>
-  <xs:element name="simpleType" type="xs:topLevelSimpleType" id="simpleType">
+  <xs:element name="simpleType" type="xs:foxAttrExtendedSimpleType" id="simpleType">
     <xs:annotation>
       <xs:documentation source="http://www.w3.org/TR/xmlschema-2/#element-simpleType"/>
     </xs:annotation>
