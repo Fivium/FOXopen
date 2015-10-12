@@ -22,7 +22,7 @@ implements WebServiceCategory {
       new AppCacheWebService(),
       new ThreadWebService(),
       new MapSetWebService(),
-      new SpatialRendererWebService()
+      new SpatialWebService()
     );
   }
 }

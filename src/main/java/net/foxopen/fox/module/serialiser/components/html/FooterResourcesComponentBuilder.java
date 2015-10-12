@@ -51,5 +51,9 @@ extends AbstractResourcesComponentBuilder {
     if (pSerialisationContext.getEvaluatedDataDefinitions().size() > 0) {
       javascript(pSerialiser, pSerialisationContext.getStaticResourceURI("js/foxData.js"));
     }
+
+    if (pSerialisationContext.getImplicatedWidgets().contains(WidgetBuilderType.CARTOGRAPHIC)) {
+      javascript(pSerialiser, pSerialisationContext.getStaticResourceURI("js/spatial.js"));
+    }
   }
 }

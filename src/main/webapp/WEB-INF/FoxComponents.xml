@@ -366,4 +366,41 @@
     <FILE_FORMAT>CHAR</FILE_FORMAT>
     <OVERLOADABLE>FALSE</OVERLOADABLE>
   </COMPONENT>
+
+  <!-- Open Layers for cartographic widget -->
+
+  <MULTI_PART_COMPONENT>
+    <NAME>js/spatial.js</NAME>
+    <TYPE>text/javascript</TYPE>
+    <FILE_PATH_LIST>
+      <FILE_PATH>\WEB-INF\components-new\OpenLayers\ol.js</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\OpenLayers\fox-open-layers.js</FILE_PATH>
+    </FILE_PATH_LIST>
+    <FILE_FORMAT>CHAR</FILE_FORMAT>
+    <OVERLOADABLE>FALSE</OVERLOADABLE>
+  </MULTI_PART_COMPONENT>
+  <MULTI_PART_COMPONENT>
+    <NAME>css/spatial.css</NAME>
+    <TYPE>text/css</TYPE>
+    <FILE_PATH_LIST>
+      <FILE_PATH>\WEB-INF\components-new\OpenLayers\ol.css</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\OpenLayers\fox-open-layers.css</FILE_PATH>
+    </FILE_PATH_LIST>
+    <FILE_FORMAT>CHAR</FILE_FORMAT>
+    <OVERLOADABLE>FALSE</OVERLOADABLE>
+  </MULTI_PART_COMPONENT>
+  <COMPONENT>
+    <NAME>img/map-background.gif</NAME>
+    <TYPE>image/gif</TYPE>
+    <FILE_PATH>\WEB-INF\components-new\OpenLayers\background.gif</FILE_PATH>
+    <FILE_FORMAT>BIN</FILE_FORMAT>
+    <OVERLOADABLE>TRUE</OVERLOADABLE>
+  </COMPONENT>
+  <COMPONENT>
+    <NAME>img/map-error.png</NAME>
+    <TYPE>image/png</TYPE>
+    <FILE_PATH>\WEB-INF\components-new\OpenLayers\error.png</FILE_PATH>
+    <FILE_FORMAT>BIN</FILE_FORMAT>
+    <OVERLOADABLE>TRUE</OVERLOADABLE>
+  </COMPONENT>
 </COMPONENTS_LIST>

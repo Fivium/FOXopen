@@ -18,8 +18,14 @@ import java.util.Optional;
  */
 public class EvaluatedNodeInfoCartographicItem extends EvaluatedNodeInfoItem {
   private final String mCanvasID;
+  private final String mCanvasUsageID;
+  private final String mCanvasHash;
   private final String mCanvasWidth;
   private final String mCanvasHeight;
+  private final boolean mMouseZoom;
+  private final boolean mZoomButtons;
+  private final boolean mMousePan;
+  private final boolean mPanButtons;
 
   protected EvaluatedNodeInfoCartographicItem(EvaluatedNode pParent, GenericAttributesEvaluatedPresentationNode<? extends GenericAttributesPresentationNode> pEvaluatedPresentationNode, NodeEvaluationContext pNodeEvaluationContext, NodeVisibility pNodeVisibility, NodeInfo pNodeInfo) {
     super(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, pNodeVisibility, pNodeInfo);
@@ -58,15 +64,24 @@ public class EvaluatedNodeInfoCartographicItem extends EvaluatedNodeInfoItem {
     // Bootstrap widget from data
     lSpatialBootstrapDOM = lSpatialEngine.bootstrapSpatialCanvas(
       pNodeEvaluationContext.getEvaluatedParseTree().getRequestContext()
-      , lSpatialBootstrapDOM
-      , pNodeEvaluationContext.getEvaluatedParseTree().getThreadInfoProvider().getCurrentCallId()
-      , pNodeEvaluationContext.getEvaluatedParseTree().getAuthenticatedUser().map(AuthenticatedUser::getAccountID).flatMap(Optional::ofNullable).orElse("0")
+    , lSpatialBootstrapDOM
+    , pNodeEvaluationContext.getEvaluatedParseTree().getThreadInfoProvider().getCurrentCallId()
+    , pNodeEvaluationContext.getEvaluatedParseTree().getAuthenticatedUser().map(AuthenticatedUser::getAccountID).flatMap(Optional::ofNullable).orElse("0")
     );
 
     try {
       mCanvasID = lSpatialBootstrapDOM.get1S("canvas-id");
+      mCanvasUsageID = lSpatialBootstrapDOM.get1S("canvas-usage-id");
+      mCanvasHash = lSpatialBootstrapDOM.get1S("canvas-hash");
+
       mCanvasWidth = lSpatialBootstrapDOM.get1S("canvas-width");
       mCanvasHeight = lSpatialBootstrapDOM.get1S("canvas-height");
+
+      mMouseZoom = Boolean.valueOf(lSpatialBootstrapDOM.get1S("canvas-behaviour/mouse-zoom"));
+      mZoomButtons = Boolean.valueOf(lSpatialBootstrapDOM.get1S("canvas-behaviour/zoom-buttons"));
+
+      mMousePan = Boolean.valueOf(lSpatialBootstrapDOM.get1S("canvas-behaviour/mouse-pan"));
+      mPanButtons = Boolean.valueOf(lSpatialBootstrapDOM.get1S("canvas-behaviour/pan-buttons"));
     }
     catch (ExCardinality ex) {
       throw new ExInternal("Failed to obtain canvas-width or canvas-height, ensure definition contains DEFAULT_WIDTH and DEFAULT_HEIGHT", ex);
@@ -83,5 +98,29 @@ public class EvaluatedNodeInfoCartographicItem extends EvaluatedNodeInfoItem {
 
   public String getCanvasHeight() {
     return mCanvasHeight;
+  }
+
+  public String getCanvasUsageID() {
+    return mCanvasUsageID;
+  }
+
+  public String getCanvasHash() {
+    return mCanvasHash;
+  }
+
+  public boolean isMouseZoom() {
+    return mMouseZoom;
+  }
+
+  public boolean isZoomButtons() {
+    return mZoomButtons;
+  }
+
+  public boolean isMousePan() {
+    return mMousePan;
+  }
+
+  public boolean isPanButtons() {
+    return mPanButtons;
   }
 }

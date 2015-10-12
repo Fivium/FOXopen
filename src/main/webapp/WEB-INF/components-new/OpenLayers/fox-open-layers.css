@@ -1,0 +1,25 @@
+.ol-control button, .ol-control button:hover {
+  background-image: none;
+}
+
+.map {
+  background-image: url("../img/map-background.gif");
+}
+
+.map:focus {
+  outline-width: 5px;
+  outline-offset: -2px;
+  outline-style: auto;
+  outline-color: #69CAE8;
+}
+
+.map .ol-control.try-again {
+  bottom: .5em;
+  right: .5em;
+  background-color: rgba(170,0,0,.4);
+}
+.map .ol-control.try-again button {
+  width: auto;
+  padding: 0 .5em;
+  background-color: #e00;
+}

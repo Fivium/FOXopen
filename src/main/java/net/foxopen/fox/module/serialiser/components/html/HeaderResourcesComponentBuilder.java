@@ -78,7 +78,11 @@ extends AbstractResourcesComponentBuilder {
 
     if (pSerialisationContext.getImplicatedWidgets().contains(WidgetBuilderType.FILE)) {
       css(pSerialiser, pSerialisationContext.getStaticResourceURI("css/fileUpload.css"));
-      css(pSerialiser, pSerialisationContext.getStaticResourceURI("css/fileUploadLTIE8.css"),"LT IE 8");
+      css(pSerialiser, pSerialisationContext.getStaticResourceURI("css/fileUploadLTIE8.css"), "LT IE 8");
+    }
+
+    if (pSerialisationContext.getImplicatedWidgets().contains(WidgetBuilderType.CARTOGRAPHIC)) {
+      css(pSerialiser, pSerialisationContext.getStaticResourceURI("css/spatial.css"));
     }
 
     if(pSerialisationContext.getDownloadLinks().size() > 0) {
