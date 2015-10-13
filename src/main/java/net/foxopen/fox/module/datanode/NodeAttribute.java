@@ -50,6 +50,7 @@ public enum NodeAttribute {
   ERROR_URL_PROMPT("error-url-prompt", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   EMPTY_LIST_BUFFER("emptyListBuffer", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   EMPTY_LIST_BUFFER_ATTACH_DOM("emptyListBufferAttach", ValueType.EVALUATABLE_XPATH, ResultType.DOM),
+  EMPTY_TEXT("emptyText", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   ENABLE_FOCUS_HINT_DISPLAY("enableFocusHintDisplay", ValueType.CONSTANT, ResultType.BOOLEAN),
   ENABLE_LISTS_IN_FORMS("enableListsInForms", ValueType.CONSTANT, ResultType.BOOLEAN),
   EXTERNAL_URL("externalUrl", ValueType.EVALUATABLE_XPATH, ResultType.STRING),

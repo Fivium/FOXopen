@@ -2,6 +2,7 @@ package net.foxopen.fox.module.serialiser.widgets.html;
 
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
+import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
 import net.foxopen.fox.module.serialiser.fragmentbuilder.MustacheFragmentBuilder;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
@@ -36,7 +37,12 @@ public class TextWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
     Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
     lTemplateVars.put("Class", "text-widget " + XFUtil.nvl(lTemplateVars.get("Class"), ""));
 
-    lTemplateVars.put("UnescapedValue", StringEscapeUtils.escapeHtml4(pEvalNode.getFieldMgr().getSingleTextValue()).replaceAll("\r?\n","<br>"));
+    String lTextValue = pEvalNode.getFieldMgr().getSingleTextValue();
+    if (XFUtil.isNull(lTextValue)) {
+      lTextValue = XFUtil.nvl(pEvalNode.getStringAttribute(NodeAttribute.EMPTY_TEXT), "");
+    }
+
+    lTemplateVars.put("UnescapedValue", StringEscapeUtils.escapeHtml4(lTextValue).replaceAll("\r?\n","<br>"));
 
     MustacheFragmentBuilder.applyMapToTemplate(TEXT_MUSTACHE_TEMPLATE, lTemplateVars, pSerialiser.getWriter());
   }
