@@ -143,21 +143,34 @@ public class EvaluatedNodeInfoList extends EvaluatedNodeInfoGeneric {
    * This method should be called after constructing an EvaluatedNodeInfoList to potentially swap it out with an empty
    * list buffer if the list is empty and one is defined.
    *
-   * @param pEvaluatedNodeInfoList
+   * @param pParent
+   * @param pEvaluatedPresentationNode
+   * @param pNodeEvaluationContext
+   * @param pNodeVisibility
+   * @param pNodeInfo
    * @return The EvaluatedNodeInfoList or an EvaluatedNodeInfoPhantomBufferItem for the EmptyListBuffer attribute
    */
-  public static EvaluatedNodeInfo getListOrEmptyBuffer(EvaluatedNodeInfoList pEvaluatedNodeInfoList) {
-    if (pEvaluatedNodeInfoList != null && pEvaluatedNodeInfoList.getChildren().size() == 0 && !XFUtil.isNull(pEvaluatedNodeInfoList.getStringAttribute(NodeAttribute.EMPTY_LIST_BUFFER))) {
-      return new EvaluatedNodeInfoPhantomBufferItem(pEvaluatedNodeInfoList.getParent()
-                                                    , pEvaluatedNodeInfoList.getEvaluatedPresentationNode()
-                                                    , pEvaluatedNodeInfoList.getNodeEvaluationContext()
-                                                    , pEvaluatedNodeInfoList.getVisibility()
-                                                    , pEvaluatedNodeInfoList.getNodeInfo()
-                                                    , NodeAttribute.EMPTY_LIST_BUFFER
-                                                    , NodeAttribute.EMPTY_LIST_BUFFER_ATTACH_DOM);
+  public static EvaluatedNodeInfo getListOrEmptyBuffer(EvaluatedNode pParent, GenericAttributesEvaluatedPresentationNode<? extends GenericAttributesPresentationNode> pEvaluatedPresentationNode, NodeEvaluationContext pNodeEvaluationContext, NodeVisibility pNodeVisibility, NodeInfo pNodeInfo) {
+    BooleanAttributeResult lForceVisible = pNodeEvaluationContext.getBooleanAttributeOrNull(NodeAttribute.FORCE_VISIBLE);
+    if (pNodeEvaluationContext.getDataItem().getChildElements().getLength() == 0 && lForceVisible != null && !lForceVisible.getBoolean()) {
+      // If the list will have no rows and forceVisible is defined and set to false we can return null to not show the list headings
+      return null;
     }
+    else {
+      EvaluatedNodeInfoList lEvaluatedNodeList = new EvaluatedNodeInfoList(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, pNodeVisibility, pNodeInfo);
 
-    return pEvaluatedNodeInfoList;
+      if (lEvaluatedNodeList.getChildren().size() == 0 && !XFUtil.isNull(lEvaluatedNodeList.getStringAttribute(NodeAttribute.EMPTY_LIST_BUFFER))) {
+        return new EvaluatedNodeInfoPhantomBufferItem(  pParent
+                                                      , pEvaluatedPresentationNode
+                                                      , pNodeEvaluationContext
+                                                      , pNodeVisibility
+                                                      , pNodeInfo
+                                                      , NodeAttribute.EMPTY_LIST_BUFFER
+                                                      , NodeAttribute.EMPTY_LIST_BUFFER_ATTACH_DOM);
+      }
+
+      return lEvaluatedNodeList;
+    }
   }
 
   /**

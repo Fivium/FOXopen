@@ -47,7 +47,7 @@ public class EvaluatedNodeFactory {
           return EvaluatedNodeInfoItem.getEvaluatedNode(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, lVisibility, pNodeInfo);
         }
         else {
-          return EvaluatedNodeInfoList.getListOrEmptyBuffer(new EvaluatedNodeInfoList(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, lVisibility, pNodeInfo));
+          return EvaluatedNodeInfoList.getListOrEmptyBuffer(pParent, pEvaluatedPresentationNode, pNodeEvaluationContext, lVisibility, pNodeInfo);
         }
       }
       else if (pNodeInfo.getNodeType() == NodeType.COLLECTION && !lDisplayFormAsItem) {

@@ -67,6 +67,7 @@ public enum NodeAttribute {
   FIELD_MIN_HEIGHT("fieldMinHeight", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   FILE_STORAGE_LOCATION("file-storage-location", ValueType.CONSTANT, ResultType.STRING),
   FLOW("flow", ValueType.CONSTANT, ResultType.STRING),
+  FORCE_VISIBLE("forceVisible", ValueType.CONSTANT, ResultType.BOOLEAN),
   FORM_COL_CHARS("formColChars", ValueType.CONSTANT, ResultType.STRING),
   FORM_MAX_COLUMNS("formMaxCols", ValueType.CONSTANT, ResultType.STRING),
   FORM_COLUMNS("formColumns", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
