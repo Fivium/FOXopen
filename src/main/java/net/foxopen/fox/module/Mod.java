@@ -1078,20 +1078,6 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
   }
 
   /**
-   * retrieve the database column name mapped to a given dom element for a given interface
-   */
-  public String getDbColumnName(DOM findModelElement, String dbInterfaceName)
-  throws ExInternal {
-    NodeInfo path = getNodeInfo(findModelElement.absolute());
-    if (path != null) {
-      return path.getAttribute(dbInterfaceName, "col") ;
-    }
-    else {
-      return null;
-    }
-  }
-
-  /**
    * Get a Module State object by name
    *
    * @param pName State name
