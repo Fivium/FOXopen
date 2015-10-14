@@ -249,7 +249,7 @@ public class DevToolbarComponentBuilder extends ComponentBuilder<HTMLSerialiser,
           "DevToolbar.gBangUrlPrefix = '" + pSerialisationContext.createURIBuilder().buildServletURI(BangHandlerServlet.getServletPath()) + "/';\n" +
           "DevToolbar.init();\n" +
           "DevToolbar.setContextLabelInfo($('#contextLabelData > *'));\n" +
-          "DevToolbar.setDbmsOutputInfo($('#dbmsOutputData *'));\n");
+          "DevToolbar.setDbmsOutputInfo($('#dbmsOutputData'));\n");
     }
     finally {
       Track.pop("DevToolbar");

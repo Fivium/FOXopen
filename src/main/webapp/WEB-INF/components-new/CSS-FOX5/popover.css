@@ -1,9 +1,6 @@
 /* Popups */
-body.contains-popover {
-  overflow: hidden;
-}
 
-#modal-popover-container {
+.modal-popover-container {
   position: fixed;
   top: 0;
   left: 0;
@@ -14,7 +11,7 @@ body.contains-popover {
   overflow: auto;
 }
 
-#modal-popover {
+.modal-popover {
   background: #fff;
   border-radius: 3px;
   box-shadow: 0 0 3px rgba(0,0,0,0.7);
@@ -24,15 +21,15 @@ body.contains-popover {
   position: relative;
 }
 
-#modal-popover.large-popover {
+.modal-popover.large-popover {
   width: 880px;
 }
 
-#modal-popover.small-popover {
+.modal-popover.small-popover {
   width: 380px;
 }
 
-#modal-popover h2 {
+.modal-popover h2 {
   font-size: 1.6em;
   font-weight: 400;
   color: #1065AF;
@@ -42,17 +39,17 @@ body.contains-popover {
   border-bottom: 1px solid #e5e5e5;
 }
 
-#modal-popover h3 {
+.modal-popover h3 {
   font-size: 1.4em;
   font-weight: 400;
   color: #666;
 }
 
-#modal-popover-content {
+.modal-popover-content {
   padding: 0 1em 1em 1em;
 }
 
-#modal-popover-content p {
+.modal-popover-content p {
   padding-bottom: 0.5em;
 }
 
@@ -71,4 +68,16 @@ ul.modal-popover-actions li {
   display: inline-block;
   zoom: 1;
   *display: inline;
+}
+
+.modal-popover-content .modal-dismiss {
+  float:right;
+  margin-top: 0.6em;
+  margin-right: -0.8em;
+  cursor: pointer;
+}
+
+/** Needs precedence over rule in .modal-popover-container */
+.contains-popover {
+  overflow: hidden;
 }

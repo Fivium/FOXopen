@@ -49,7 +49,8 @@ var DevToolbar = {
 
     //Handler for showing context/variable info banner
     $('#dev-toolbar-contexts').click(function (e){
-      $('#contextLabelData').toggle();
+      FOXmodal.displayModal($('#contextLabelData'), 'devtoolbarContexts', {size: 'large', title: 'XPath Info', dismissAllowed: true});
+      e.preventDefault();
     });
 
     //Handler for flush link
@@ -391,6 +392,11 @@ var DevToolbar = {
 
     $('#dev-toolbar-messages').append(countStrings.join(', '));
 
+    $('#dev-toolbar-messages').click(function(e) {
+      FOXmodal.displayModal($('#dev-toolbar-messages-tooltip'), 'devtoolbarMessages', {size: 'large', title: 'Developer Messages', dismissAllowed: true});
+      e.preventDefault();
+    });
+
     if(criticalAlert) {
       $('#dev-toolbar').addClass('criticalAlert');
     }
@@ -436,9 +442,9 @@ var DevToolbar = {
   },
 
   setDbmsOutputInfo: function(pInfo) {
-    $('#dbmsOutputInfo').tooltipster({
-      content: pInfo,
-      position: 'bottom'
+    $('#dbmsOutputInfo').click(function(e) {
+      FOXmodal.displayModal(pInfo, 'devtoolbarDbmsOutput', {size: 'large', title: 'DBMS_OUTPUT', dismissAllowed: true});
+      e.preventDefault();
     });
   },
 

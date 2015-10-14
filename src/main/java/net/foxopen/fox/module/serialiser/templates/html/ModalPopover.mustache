@@ -1,6 +1,6 @@
-<div id="modal-popover-container"{{^content}} style="display:none"{{/content}}{{#content}} data-save-scroll-position="true"{{/content}}{{#scroll-position}} data-initial-scroll-position="{{scroll-position}}"{{/scroll-position}}>
-  <div id="modal-popover" class="{{#content}}{{size}}-popover {{cssClass}}{{/content}}">
-    <div id="modal-popover-content">
+<div id="engine-modal-popover" {{^content}} style="display:none"{{/content}} class="modal-popover-container"{{#scroll-position}} data-initial-scroll-position="{{scroll-position}}"{{/scroll-position}}>
+  <div class="modal-popover {{#content}}{{size}}-popover {{cssClass}}{{/content}}">
+    <div class="modal-popover-content">
       {{#title}}<h2>{{title}}</h2>{{/title}}
       {{{content}}}
     </div>
