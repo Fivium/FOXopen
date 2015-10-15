@@ -100,13 +100,13 @@ public class EvaluatedNodeInfoList extends EvaluatedNodeInfoGeneric {
                 this.getNamespacePrecedenceList(), this.getNodeEvaluationContext());
             }
 
-            //  EvaluatedNodeInfo for the column, ignoring visibility
-            EvaluatedNodeInfoStub lEvaluatedNode = new EvaluatedNodeInfoStub(this,
-              getEvaluatedPresentationNode(), lNodeInfoEvaluationContext, NodeVisibility.VIEW, lChildNodeInfo);
+            //  EvaluatedNodeInfo for the column
+            EvaluatedNodeInfoStub lEvaluatedNodeInfoStub = EvaluatedNodeFactory.createEvaluatedNodeInfoStub(this,
+              getEvaluatedPresentationNode(), lNodeInfoEvaluationContext, lChildNodeInfo);
 
             // Add it to the list of possible columns if it has an ro/edit defined that could potentially be turned on
             if (isColumnEditOrRo(lNodeInfoEvaluationContext)) {
-              mPotentialColumns.add(lEvaluatedNode);
+              mPotentialColumns.add(lEvaluatedNodeInfoStub);
             }
             break NAMESPACE_CHECK_LOOP;
           }

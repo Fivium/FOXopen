@@ -82,6 +82,26 @@ public class EvaluatedNodeFactory {
   }
 
   /**
+   * Create a stub EvaluatedNodeInfo for a lists column headers.
+   * The visibility will never be below VIEW as column headings should always be evaluated, if there's data there or not
+   *
+   * @param pParentList
+   * @param pEvaluatedPresentationNode
+   * @param pNodeEvaluationContext
+   * @param pNodeInfo
+   * @return
+   */
+  public static EvaluatedNodeInfoStub createEvaluatedNodeInfoStub(EvaluatedNodeInfoList pParentList, GenericAttributesEvaluatedPresentationNode<? extends GenericAttributesPresentationNode> pEvaluatedPresentationNode,
+                                                          NodeEvaluationContext pNodeEvaluationContext, NodeInfo pNodeInfo) {
+    NodeVisibility lVisibility = getMaxVisibility(pNodeEvaluationContext, pNodeInfo.getNodeType());
+    if (lVisibility.asInt() < NodeVisibility.VIEW.asInt()) {
+      lVisibility = NodeVisibility.VIEW;
+    }
+
+    return new EvaluatedNodeInfoStub(pParentList, pEvaluatedPresentationNode, pNodeEvaluationContext, lVisibility, pNodeInfo);
+  }
+
+  /**
    * Derives the Edit/ReadOnly visibility of a field
    *
    * @param pNodeEvaluationContext NodeEvaluationContext holding the view/mode lists
