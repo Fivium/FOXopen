@@ -14,16 +14,15 @@ import net.foxopen.fox.module.serialiser.SerialisationContext;
 import net.foxopen.fox.module.serialiser.components.ComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.ComponentBuilderType;
 import net.foxopen.fox.module.serialiser.fragmentbuilder.MustacheFragmentBuilder;
+import net.foxopen.fox.module.serialiser.html.HTMLAlertSerialiser;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
 import net.foxopen.fox.module.serialiser.widgets.html.FileWidgetBuilder;
-import net.foxopen.fox.thread.AlertMessage;
 import net.foxopen.fox.thread.FocusResult;
 import net.foxopen.fox.thread.PopupXDoResult;
 import net.foxopen.fox.thread.devtoolbar.DevToolbarUtils;
 import net.foxopen.fox.thread.stack.transform.ModelessCall.ModelessPopup;
 import net.foxopen.fox.track.Track;
 import net.foxopen.fox.track.TrackFlag;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -141,7 +140,7 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
       // Include hidden fields
       insertHiddenFormElements(pSerialiser, pSerialisationContext);
 
-      //Insert modal popover container div and optional contents
+      //Insert modal popover container div if a popover is active
       insertModalPopover(pSerialiser, pSerialisationContext);
     }
 
@@ -156,6 +155,9 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
 
       //JS files etc which go at the bottom of the page to speed up rendering
       pSerialiser.getComponentBuilder(ComponentBuilderType.FOOTER_RESOURCES).buildComponent(pSerialisationContext, pSerialiser, pEvalNode);
+
+      //Insert hidden alert buffers so they can be referenced by alert JS
+      HTMLAlertSerialiser.insertAlertBuffers(pSerialiser, pSerialisationContext);
 
       // Add JS, process onload, alerts, downloads, modals...
       insertJavascript(pSerialiser, pSerialisationContext);
@@ -184,7 +186,7 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
     pSerialiser.append("<script type=\"text/javascript\">");
     pSerialiser.append("$(document).ready( function(){ FOXjs.init(function(){");
     // If init succeeds run this block
-    insertAlerts(pSerialiser, pSerialisationContext);
+    HTMLAlertSerialiser.insertAlerts(pSerialiser, pSerialisationContext);
     insertModelessPopups(pSerialiser, pSerialisationContext);
     insertDownloadLinks(pSerialiser, pSerialisationContext);
     insertPopupLinks(pSerialiser, pSerialisationContext);
@@ -203,23 +205,6 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
 
     pSerialiser.append("</script>");
   }
-
-  /**
-   * Get alert messages from the EvaluatedParseTree and serialise them for JS alerts
-   * @param pSerialiser
-   * @param pSerialisationContext
-   */
-  private void insertAlerts(HTMLSerialiser pSerialiser, SerialisationContext pSerialisationContext) {
-    List<AlertMessage> lAlertMessages = pSerialisationContext.getAlertMessages();
-    for(AlertMessage lMessage : lAlertMessages) {
-      String lAlertMessage = lMessage.getMessage();
-      lAlertMessage = lAlertMessage.replaceAll("\\\\n", "##SAFE_ESCAPE_LINEBREAK##");
-      lAlertMessage = StringEscapeUtils.escapeEcmaScript(lAlertMessage);
-      lAlertMessage = lAlertMessage.replaceAll("##SAFE_ESCAPE_LINEBREAK##", "\\\\n");
-      pSerialiser.append("alert('" + lAlertMessage + "');\n");
-    }
-  }
-
   private void insertDownloadLinks(HTMLSerialiser pSerialiser, SerialisationContext pSerialisationContext) {
 
     //TODO PN - download JS needs improving
@@ -334,7 +319,7 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
   }
 
   /**
-   * Inserts the modal popover div, with rendered contents if a modal popover is active. This must be as soon as possible
+   * Inserts the modal popover div, including its rendered contents, if a modal popover is active. This must be as soon as possible
    * during HTML generation so the page is rendered with the popover content and greyout div from the start.
    * @param pSerialiser Current Serialiser.
    * @param pSerialisationContext Current SerialisationContext.
@@ -359,9 +344,9 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
       //Write input element for the hidden modal scroll position field (note the field's sending value should equal the current scroll position)
       InternalHiddenField lHiddenField = lEvaluatedPopover.getScrollPositionHiddenField();
       pSerialiser.append("<input type=\"hidden\" name=\"" + lHiddenField.getExternalFieldName() + "\" value=\"" + lHiddenField.getSendingValue() + "\"/>");
-    }
 
-    //Insert the popover divs - the content div will be empty if no popover is active
-    MustacheFragmentBuilder.applyMapToTemplate(MODAL_POPOVER_TEMPLATE, lTemplateMap, pSerialiser.getWriter());
+      //Insert the popover divs
+      MustacheFragmentBuilder.applyMapToTemplate(MODAL_POPOVER_TEMPLATE, lTemplateMap, pSerialiser.getWriter());
+    }
   }
 }

@@ -7,7 +7,7 @@ var FOXmodal = {
    * Handles any initialisation actions which need to be performed if the page has been rendered with a visible modal popover
    * in the HTML.
    */
-  handleWindowLoad: function() {
+  _handleWindowLoad: function() {
     var $engineModal = $('#engine-modal-popover');
     if ($engineModal.is(':visible')) {
       this.createDisplayedModal($engineModal, 'engine-internal');
@@ -19,7 +19,7 @@ var FOXmodal = {
    * @returns {DisplayedModal}
    * @private
    */
-  topModal: function() {
+  _topModal: function() {
     return this.modalStack[this.modalStack.length - 1];
   },
 
@@ -28,36 +28,38 @@ var FOXmodal = {
    * @returns {DisplayedModal}
    * @private
    */
-  underTopModal: function () {
+  _underTopModal: function () {
     return this.modalStack[this.modalStack.length - 2];
   },
 
   /**
    * Constructs a DisplayedModal and adds it onto the stack.
-   * @param $modalContainer Div containing the rendered modal.
-   * @param modalKey Key for the new modal.
+   * @param {jQuery} $modalContainer Div containing the rendered modal.
+   * @param {string} modalKey Key for the new modal.
+   * @param {function} closeCallback Callback function to run when the modal is closed.
    */
-  createDisplayedModal: function($modalContainer, modalKey) {
-    this.modalStack.push(new DisplayedModal($modalContainer, modalKey));
+  createDisplayedModal: function($modalContainer, modalKey, closeCallback) {
+    this.modalStack.push(new DisplayedModal($modalContainer, modalKey, closeCallback));
     if (this.modalStack.length == 1) {
       $('body').addClass('contains-popover');
     }
 
     if (this.modalStack.length > 1) {
       //Ensure the z-index of the top modal is higher than the modal it is over
-      this.topModal().$containerDiv.zIndex(this.underTopModal().$containerDiv.zIndex() + 1);
+      this._topModal().$containerDiv.zIndex(this._underTopModal().$containerDiv.zIndex() + 1);
       //Disallow scrolling in the modal which is now beneath the top modal
-      this.underTopModal().$containerDiv.addClass('contains-popover');
+      this._underTopModal().$containerDiv.addClass('contains-popover');
     }
   },
 
   /**
    * Displays a modal popover on the screen, which blocks clicks to underlying content.
-   * @param {*|jQuery|HTMLElement} $modalContent jQuery for the container of the popver content. The contents of this target will be copied into a new modal div.
-   * @param modalKey Key to identify the new modal, used to prevent the same modal being displayed repeatedly.
+   * @param {jQuery} $modalContent jQuery for the container of the popver content. The contents of this target will be copied into a new modal div.
+   * @param {string} modalKey Key to identify the new modal, used to prevent the same modal being displayed repeatedly.
    * @param {object} modalOptions Additional options for the modal - title, size, etc.
+   * @param {function} closeCallback Callback function to run when the modal is closed.
    */
-  displayModal: function($modalContent, modalKey, modalOptions) {
+  displayModal: function($modalContent, modalKey, modalOptions, closeCallback) {
 
     //Short circuit out if there is already a modal with the sanme key in the stack
     var matchingKeys = $.grep(this.modalStack, function(displayedModal) {
@@ -71,20 +73,26 @@ var FOXmodal = {
       title: '',
       cssClass: '',
       size: 'regular',
-      dismissAllowed: false
+      dismissAllowed: false,
+      ariaRole: 'dialog'
     }, modalOptions);
 
     //Note: until we add full Mustache support this must be kept in sync with ModalPopover.mustache
     var $modalContainer = $('<div class="modal-popover-container"><div class="modal-popover"><div class="modal-popover-content"></div></div></div>');
 
     if (modalOptions.title) {
-      $modalContainer.find('.modal-popover-content').append('<h2>' + modalOptions.title + '</h2>');
+      $modalContainer.find('.modal-popover-content').append('<h2 id="modal-title-' + modalKey + '">' + modalOptions.title + '</h2>');
+      $modalContainer.find('.modal-popover-content').attr('aria-labelledby', 'modal-title-' + modalKey);
+      //TODO: aria-describedby, needs to be sensible
     }
 
     $modalContainer.find('.modal-popover').addClass(modalOptions.size + '-popover').addClass(modalOptions.cssClass);
 
-    //Copy CLONED contents so they are not removed when we dimsiss the modal div
+    //Copy CLONED contents so they are not removed from the DOM when we dimsiss the modal div
     $modalContainer.find('.modal-popover-content').append($modalContent.contents().clone());
+
+    //Accessibility role
+    $modalContainer.find('.modal-popover-content').attr('role', modalOptions.ariaRole);
 
     //Add new modal container to the start of the page body
     $('body').prepend($modalContainer);
@@ -99,7 +107,7 @@ var FOXmodal = {
     }
 
     //Construct tracker object and add to stack
-    this.createDisplayedModal($modalContainer, modalKey);
+    this.createDisplayedModal($modalContainer, modalKey, closeCallback);
   },
 
   /**
@@ -118,7 +126,12 @@ var FOXmodal = {
     }
     else {
       //Still a modal on the stack, make sure scrolling is now allowed in it
-      this.topModal().$containerDiv.removeClass('contains-popover');
+      this._topModal().$containerDiv.removeClass('contains-popover');
+    }
+
+    //If we popped a DisplayedModal, and it has a callback defined, run it now
+    if(topModal && topModal.closeCallback) {
+      topModal.closeCallback();
     }
   },
 
@@ -132,20 +145,31 @@ var FOXmodal = {
         $("input[name='modal_scroll_position']").val(Math.round(this.modalStack[i].$containerDiv.scrollTop()));
       }
     }
+  },
+
+  /**
+   * Gets the jQuery object containing the currently displayed modal, or undefined if no modal is displayed.
+   * @returns {jQuery}
+   */
+  getCurrentModalContainer: function() {
+    return this._topModal().$containerDiv;
   }
+
 };
 
 /**
  * Creates a new DisplayedModal object which can be tracked by the FOXModal stack.
- * @param containerDiv {*|jQuery|HTMLElement} Div element for the rendered modal
- * @param modalKey {string} key for the new modal.
+ * @param {jQuery} containerDiv element for the rendered modal
+ * @param {string} modalKey key for the new modal.
+ * @param {function} closeCallback Callback function to run when this modal is closed.
  * @constructor
  */
-function DisplayedModal(containerDiv, modalKey) {
+function DisplayedModal(containerDiv, modalKey, closeCallback) {
 
   this.$containerDiv = containerDiv;
   this.modalKey = modalKey;
   this.isInternal = modalKey == 'engine-internal';
+  this.closeCallback = closeCallback;
 
   if (this.isInternal && this.$containerDiv.data('initial-scroll-position')) {
     this.$containerDiv.scrollTop(this.$containerDiv.data('initial-scroll-position'));
@@ -155,7 +179,8 @@ function DisplayedModal(containerDiv, modalKey) {
 DisplayedModal.prototype = {
   $containerDiv: null,
   modalKey: null,
-  isInternal: false
+  isInternal: false,
+  closeCallback: null
 };
 
 //Modal event listeners
@@ -165,5 +190,5 @@ $(document).on('foxBeforeSubmit', function() {
 });
 
 $(document).ready(function() {
-  FOXmodal.handleWindowLoad();
+  FOXmodal._handleWindowLoad();
 });

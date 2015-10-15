@@ -1,9 +1,9 @@
-<div id="engine-modal-popover" {{^content}} style="display:none"{{/content}} class="modal-popover-container"{{#scroll-position}} data-initial-scroll-position="{{scroll-position}}"{{/scroll-position}}>
-  <div class="modal-popover {{#content}}{{size}}-popover {{cssClass}}{{/content}}">
+<div id="engine-modal-popover" role="dialog"{{#title}} aria-labelledby="engine-modal-popover-title"{{/title}} class="modal-popover-container"{{#scroll-position}} data-initial-scroll-position="{{scroll-position}}"{{/scroll-position}}>
+  <div class="modal-popover {{size}}-popover {{cssClass}}">
     <div class="modal-popover-content">
-      {{#title}}<h2>{{title}}</h2>{{/title}}
+      {{#title}}<h2 id="engine-modal-popover-title">{{title}}</h2>{{/title}}
       {{{content}}}
     </div>
   </div>
 </div>
-{{#content}}<script type="text/javascript">$('body').addClass('contains-popover');</script>{{/content}}
+<script type="text/javascript">$('body').addClass('contains-popover');</script>

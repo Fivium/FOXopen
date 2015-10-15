@@ -5,6 +5,7 @@ import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.auth.AuthenticatedUser;
 import net.foxopen.fox.banghandler.InternalAuthLevel;
 import net.foxopen.fox.command.XDoResult;
+import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.download.DownloadLinkXDoResult;
 import net.foxopen.fox.entrypoint.uri.RequestURIBuilder;
 import net.foxopen.fox.module.Mod;
@@ -15,9 +16,9 @@ import net.foxopen.fox.module.fieldset.FieldSet;
 import net.foxopen.fox.module.parsetree.EvaluatedModalPopover;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedBufferPresentationNode;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
-import net.foxopen.fox.thread.AlertMessage;
 import net.foxopen.fox.thread.FocusResult;
 import net.foxopen.fox.thread.PopupXDoResult;
+import net.foxopen.fox.thread.alert.AlertMessage;
 import net.foxopen.fox.thread.devtoolbar.DevToolbarContext;
 import net.foxopen.fox.thread.stack.transform.ModelessCall;
 import net.foxopen.fox.thread.storage.TempResource;
@@ -131,4 +132,7 @@ public interface SerialisationContext {
    * @return Gets the number of client visibility rules which have been evaluated by this SerialisationContext.
    */
   int getClientVisibilityRuleCount();
+
+  //TODO PN - javadoc
+  EvaluatedBufferPresentationNode evaluateBuffer(String pBufferName, DOM pBufferAttach);
 }

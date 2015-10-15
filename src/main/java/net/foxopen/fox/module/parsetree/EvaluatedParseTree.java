@@ -41,7 +41,7 @@ import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 import net.foxopen.fox.security.SecurityManager;
 import net.foxopen.fox.security.SecurityOperationDescriptor;
 import net.foxopen.fox.thread.ActionRequestContext;
-import net.foxopen.fox.thread.AlertMessage;
+import net.foxopen.fox.thread.alert.AlertMessage;
 import net.foxopen.fox.thread.FocusResult;
 import net.foxopen.fox.thread.PopupXDoResult;
 import net.foxopen.fox.thread.devtoolbar.DevToolbarContext;
@@ -696,6 +696,20 @@ public class EvaluatedParseTree implements SerialisationContext {
   @Override
   public int getClientVisibilityRuleCount() {
     return mEvaluatedClientVisibilityRules.size();
+  }
+
+  @Override
+  public EvaluatedBufferPresentationNode evaluateBuffer(String pBufferName, DOM pBufferAttach) {
+
+    BufferPresentationNode lBuffer;
+    try {
+      lBuffer = getBuffer(pBufferName);
+    }
+    catch (ExModule e) {
+      throw new ExInternal("Failed to resolve buffer " + pBufferName, e);
+    }
+
+    return (EvaluatedBufferPresentationNode) evaluateNode(null, lBuffer, pBufferAttach);
   }
 
   /**

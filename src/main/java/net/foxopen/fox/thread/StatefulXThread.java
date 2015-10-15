@@ -42,6 +42,7 @@ import net.foxopen.fox.module.fieldset.action.InternalAction;
 import net.foxopen.fox.module.parsetree.EvaluatedParseTree;
 import net.foxopen.fox.module.serialiser.ThreadInfoProvider;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
+import net.foxopen.fox.thread.alert.BasicAlertMessage;
 import net.foxopen.fox.thread.devtoolbar.DevToolbarContext;
 import net.foxopen.fox.thread.persistence.DatabasePersistenceContext;
 import net.foxopen.fox.thread.persistence.Deserialiser;
@@ -777,7 +778,7 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
     //Short circuit if the action context cannot be resolved - indicates the DOM has mutated between churns and the element has been removed
     if(lActionContext == null) {
       Track.alert("MissingActionContext", "Failed to resolve ref " + pActionContextRef + "; aborting action run");
-      pRequestContext.addXDoResult(new AlertMessage("This action is no longer available."));
+      pRequestContext.addXDoResult(new BasicAlertMessage("This action is no longer available."));
       return;
     }
 
@@ -865,8 +866,8 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
       //Check the posted field set label against the expected label
       if (!lFieldSetArray[0].equals(mFieldSetIn.getOutwardFieldSetLabel())) {
         //Note: this line used to display an error message if this was not caused by the user hitting refresh, detected by reading the submit_count parameter
-        pRequestContext.addXDoResult(new AlertMessage("You appear to have reloaded the page or used one of your browser's back or forward buttons.\n\n" +
-                                                      "Please use the navigation options provided on the page, and avoid reloading the page as this may cause data to be lost."));
+        pRequestContext.addXDoResult(new BasicAlertMessage("You appear to have reloaded the page or used one of your browser's back or forward buttons.\n\n" +
+                                                           "Please use the navigation options provided on the page, and avoid reloading the page as this may cause data to be lost."));
         return false;
       }
       else {
