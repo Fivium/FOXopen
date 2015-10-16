@@ -2,3 +2,7 @@
 .modal-popover-container {
   background: url('../img/popover-background-ie8');
 }
+
+.modal-popover h2 {
+  margin: -0.8em -0.64em 0.5em -0.6em; /**Required for IE8 */
+}

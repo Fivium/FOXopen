@@ -31,7 +31,7 @@ FOXalert = {
 
 
   textAlert: function(alertText, alertProperties, callback) {
-    this._displayAlert($('<div><span>' + alertText +'</span></div>'), alertProperties, callback);
+    this._displayAlert($('<div><div class="modal-popover-icon"></div><div class="modal-popover-text">' + alertText +'</div></div>'), alertProperties, callback);
   },
 
   bufferAlert: function($buffer, alertProperties, callback) {

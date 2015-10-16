@@ -11,6 +11,21 @@ implements AlertMessage {
     public String getCSSClassName() {
       return "modal-alert-" + this.toString().toLowerCase();
     }
+
+    public String getIconName() {
+      switch(this) {
+        case INFO:
+          return "icon-info";
+        case SUCCESS:
+          return "icon-checkmark";
+        case WARNING:
+          return "icon-warning";
+        case DANGER:
+          return "icon-cross";
+        default:
+          return null;
+      }
+    }
   }
 
   private final String mTitle;
@@ -29,6 +44,7 @@ implements AlertMessage {
     JSONObject lProperties = new JSONObject();
     lProperties.put("title", mTitle);
     lProperties.put("cssClass", mDisplayStyle.getCSSClassName() + " " + mCSSClass);
+    lProperties.put("icon", mDisplayStyle.getIconName());
     lProperties.put("closePrompt", mClosePrompt);
 
     return lProperties;

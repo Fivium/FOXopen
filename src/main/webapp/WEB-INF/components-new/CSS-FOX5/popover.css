@@ -1,5 +1,3 @@
-/* Popups */
-
 .modal-popover-container {
   position: fixed;
   top: 0;
@@ -34,19 +32,28 @@
   font-weight: 400;
   color: #1065AF;
   padding: 0.5em;
-  margin: 0 -0.64em 0.5em -0.6em; /**Required for IE8 */
-  margin: 0 -1rem 1rem -1rem;
+  margin: -1rem -1rem 1rem -1rem;
   border-bottom: 1px solid #e5e5e5;
 }
 
+.modal-popover.small-popover h2 {
+  font-size: 1.5em;
+}
+
 .modal-popover h3 {
-  font-size: 1.4em;
+  font-size: 1.5em;
   font-weight: 400;
-  color: #666;
+  color: #1065AF;
+}
+
+.modal-popover h4 {
+  font-size: 1.3em;
+  font-weight: 400;
+  color: #555;
 }
 
 .modal-popover-content {
-  padding: 0 1em 1em 1em;
+  padding: 1em;
 }
 
 .modal-popover-content p {
@@ -80,4 +87,31 @@ ul.modal-popover-actions li {
 /** Needs precedence over rule in .modal-popover-container */
 .contains-popover {
   overflow: hidden;
+}
+
+.modal-popover-icon {
+  display: table-cell;
+  font-size: 2.5em;
+  color: #666;
+}
+
+.modal-popover-text {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.modal-alert-info .modal-popover-icon {
+  color: #54B3E2;
+}
+
+.modal-alert-success .modal-popover-icon {
+  color: #9EDD54;
+}
+
+.modal-alert-warning .modal-popover-icon {
+  color: #FFCF00;
+}
+
+.modal-alert-danger .modal-popover-icon {
+  color: #CF1111;
 }

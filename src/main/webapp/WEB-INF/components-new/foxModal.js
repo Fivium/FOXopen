@@ -114,6 +114,8 @@ var FOXmodal = {
     //Copy CLONED contents so they are not removed from the DOM when we dimsiss the modal div
     $modalContainer.find('.modal-popover-content').append($modalContent.contents().clone());
 
+    $modalContainer.find('.modal-popover-icon').addClass(modalOptions.icon);
+
     //Accessibility role
     $modalContainer.find('.modal-popover-content').attr('role', modalOptions.ariaRole);
 

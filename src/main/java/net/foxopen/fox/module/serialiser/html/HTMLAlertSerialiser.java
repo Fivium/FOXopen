@@ -55,13 +55,15 @@ public class HTMLAlertSerialiser {
       pSerialiser.append("<div id=\"");
       pSerialiser.append(containerIdForBufferAlert(lAlert));
       pSerialiser.append("\" style=\"display: none;\">");
+      pSerialiser.append("<div class=\"modal-popover-icon\"></div>");
+      pSerialiser.append("<div class=\"modal-popover-text\">");
 
       DOM lBufferAttach = pSerialisationContext.getContextUElem().getElemByRef(lAlert.getBufferAttachFoxId());
 
       EvaluatedBufferPresentationNode lBuffer = pSerialisationContext.evaluateBuffer(lAlert.getBufferName(), lBufferAttach);
       pSerialiser.getComponentBuilder(lBuffer.getPageComponentType()).buildComponent(pSerialisationContext, pSerialiser, lBuffer);
 
-      pSerialiser.append("</div>");
+      pSerialiser.append("</div></div>");
     }
   }
 
