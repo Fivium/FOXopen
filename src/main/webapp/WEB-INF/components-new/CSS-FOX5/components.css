@@ -1,3 +1,13 @@
+body.disabled>* {
+  opacity: 0.6;
+  filter: alpha(opacity = 0.6);
+}
+
+body.disabled .modal-popover-container {
+  opacity: 1;
+  filter: alpha(opacity = 1);
+}
+
 /* Top of page blocking styles */
  #iframe-wrapper {
   position: fixed;

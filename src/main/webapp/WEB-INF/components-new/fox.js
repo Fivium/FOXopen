@@ -210,7 +210,8 @@ var FOXjs = {
     var cookieId = "backWarningGiven_" + document.mainForm.thread_id.value;
     this.setPageExpired(true);
     if (!FOXjs.getCookie(cookieId)) {
-      alert("Warning: You appear to have navigated to this page using the Back button of your web browser.\n\nYou may view or copy information from this expired page, but you cannot use any of the links or buttons. You must navigate forward again in order to continue work.");
+      FOXalert.enqueueOnLoadAlert({"alertType":"text","cssClass":"modal-alert-warning","icon":"icon-warning","title":"Page expired","message":"<p>To avoid losing data, please don't use your browser's Back button.</p><p>You can read or copy information from this page, but you'll need to go forward again to continue.</p>","closePrompt":"OK"});
+      FOXalert.processNextOnLoadAlert();
       // warn only on first back
       FOXjs.setCookie(cookieId, "true", 1, null);
     }
@@ -242,14 +243,6 @@ var FOXjs = {
    * @private
    */
   setPageExpired: function(isExpired) {
-    try {
-      // Cope with IE
-      document.body.style.opacity = isExpired ? "0.6" : "1.0";
-      document.body.style.filter = isExpired ? "alpha(opacity=60)" : "alpha(opacity=100)";
-    }
-    catch (e) {
-      // doesn't matter
-    }
 
     if (isExpired) {
       this.gPageExpired = true;
