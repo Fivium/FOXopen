@@ -10,7 +10,7 @@ var FOXmodal = {
   _handleWindowLoad: function() {
     var $engineModal = $('#engine-modal-popover');
     if ($engineModal.is(':visible')) {
-      this.createDisplayedModal($engineModal, 'engine-internal');
+      this._createDisplayedModal($engineModal, 'engine-internal', false, null);
     }
   },
 
@@ -32,16 +32,38 @@ var FOXmodal = {
     return this.modalStack[this.modalStack.length - 2];
   },
 
+  _keyEventHandler: function(event) {
+
+    if (event.which == 27 && FOXmodal._topModal() && FOXmodal._topModal().escapeAllowed) {
+      //Escape key - dismiss top modal if allowed
+      FOXmodal.dismissTopModal();
+    }
+    else if (event.which == 9) {
+      //Tab key - prevent tabbing out of modal
+      AccessibleModal.trapTabKey(FOXmodal._topModal().$containerDiv, event);
+    }
+  },
+
+  _registerKeyListeners: function() {
+    $(document).on('keydown', this._keyEventHandler);
+  },
+
+  _deregisterKeyListeners: function() {
+    $(document).off('keydown', this._keyEventHandler);
+  },
+
   /**
    * Constructs a DisplayedModal and adds it onto the stack.
    * @param {jQuery} $modalContainer Div containing the rendered modal.
    * @param {string} modalKey Key for the new modal.
+   * @param {boolean} escapeAllowed True if an 'escape' keypress can close the modal.
    * @param {function} closeCallback Callback function to run when the modal is closed.
    */
-  createDisplayedModal: function($modalContainer, modalKey, closeCallback) {
-    this.modalStack.push(new DisplayedModal($modalContainer, modalKey, closeCallback));
+  _createDisplayedModal: function($modalContainer, modalKey, escapeAllowed, closeCallback) {
+    this.modalStack.push(new DisplayedModal($modalContainer, modalKey, escapeAllowed, closeCallback));
     if (this.modalStack.length == 1) {
       $('body').addClass('contains-popover');
+      this._registerKeyListeners();
     }
 
     if (this.modalStack.length > 1) {
@@ -74,6 +96,7 @@ var FOXmodal = {
       cssClass: '',
       size: 'regular',
       dismissAllowed: false,
+      escapeAllowed: false,
       ariaRole: 'dialog'
     }, modalOptions);
 
@@ -99,7 +122,7 @@ var FOXmodal = {
 
     //Add dismiss icon if client side dismiss is allowed
     if (modalOptions.dismissAllowed) {
-      $modalContainer.find('.modal-popover-content').prepend('<div class="icon-cancel-circle modal-dismiss"></div>');
+      $modalContainer.find('.modal-popover-content').prepend('<div class="icon-cancel-circle modal-dismiss" tabindex="1"></div>');
       var that = this;
       $modalContainer.find('.modal-dismiss').click(function(){
         that.dismissTopModal();
@@ -107,7 +130,7 @@ var FOXmodal = {
     }
 
     //Construct tracker object and add to stack
-    this.createDisplayedModal($modalContainer, modalKey, closeCallback);
+    this._createDisplayedModal($modalContainer, modalKey, modalOptions.escapeAllowed, closeCallback);
   },
 
   /**
@@ -123,6 +146,7 @@ var FOXmodal = {
 
     if(this.modalStack.length == 0) {
       $('body').removeClass('contains-popover');
+      this._deregisterKeyListeners();
     }
     else {
       //Still a modal on the stack, make sure scrolling is now allowed in it
@@ -161,14 +185,16 @@ var FOXmodal = {
  * Creates a new DisplayedModal object which can be tracked by the FOXModal stack.
  * @param {jQuery} containerDiv element for the rendered modal
  * @param {string} modalKey key for the new modal.
+ * @param {boolean} escapeAllowed True if an 'escape' keypress can close the modal.
  * @param {function} closeCallback Callback function to run when this modal is closed.
  * @constructor
  */
-function DisplayedModal(containerDiv, modalKey, closeCallback) {
+function DisplayedModal(containerDiv, modalKey, escapeAllowed, closeCallback) {
 
   this.$containerDiv = containerDiv;
   this.modalKey = modalKey;
   this.isInternal = modalKey == 'engine-internal';
+  this.escapeAllowed = escapeAllowed;
   this.closeCallback = closeCallback;
 
   if (this.isInternal && this.$containerDiv.data('initial-scroll-position')) {
@@ -180,6 +206,7 @@ DisplayedModal.prototype = {
   $containerDiv: null,
   modalKey: null,
   isInternal: false,
+  escapeAllowed: false,
   closeCallback: null
 };
 

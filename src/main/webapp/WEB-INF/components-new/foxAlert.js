@@ -15,6 +15,7 @@ FOXalert = {
       cssClass: 'modal-alert-info',
       title: 'Alert',
       ariaRole: 'alertdialog',
+      escapeAllowed: true,
       closePrompt: 'OK'
     }, alertProperties);
 
