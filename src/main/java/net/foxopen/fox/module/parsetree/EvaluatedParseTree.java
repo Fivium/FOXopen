@@ -121,8 +121,6 @@ public class EvaluatedParseTree implements SerialisationContext {
 
   private final FieldSet mFieldSet;
 
-  private final ThreadInfoProvider mThreadInfoProvider;
-
   /** Unmodifiable URIBuilder for generating URIs without params. Cached here to cut down on object creation. */
   private final RequestURIBuilder mURIBuilderInstance;
 
@@ -142,7 +140,7 @@ public class EvaluatedParseTree implements SerialisationContext {
   /** Currently displayed modal popover, or null if none is currently displayed */
   private final EvaluatedModalPopover mOptionalModalPopover;
 
-  public EvaluatedParseTree(ActionRequestContext pRequestContext, FieldSet pFieldSet, List<EvaluatedDataDefinition> pEvaluatedDataDefinitions, ThreadInfoProvider pThreadInfoProvider) {
+  public EvaluatedParseTree(ActionRequestContext pRequestContext, FieldSet pFieldSet, List<EvaluatedDataDefinition> pEvaluatedDataDefinitions, String pBufferName) {
     mRequestContext = pRequestContext;
     mState = pRequestContext.getCurrentState();
     mStateAttributes = PresentationAttribute.convertAttributeMap(mState.getStateAttributes(), null, false);
@@ -153,8 +151,6 @@ public class EvaluatedParseTree implements SerialisationContext {
 
     //Construct a stateless URI builder which does not allow parameters to be set
     mURIBuilderInstance = RequestURIBuilderImpl.createFromRequestContext(pRequestContext, false);
-
-    mThreadInfoProvider = pThreadInfoProvider;
 
     // Figure out the mode/view rules
     try {
@@ -168,7 +164,7 @@ public class EvaluatedParseTree implements SerialisationContext {
     Track.pushInfo("EvaluatedParseTree", "Evaluating the parse tree");
     // Start from the set-page buffer for this module and evaluate our way down the Parse Tree nodes
     try {
-      BufferPresentationNode lStartBuffer = getBuffer(null);
+      BufferPresentationNode lStartBuffer = getBuffer(pBufferName);
       mRootBuffer = evaluateNode(null, lStartBuffer, getContextUElem().attachDOM());
     }
     catch (ExModule e) {
@@ -182,6 +178,10 @@ public class EvaluatedParseTree implements SerialisationContext {
     mOptionalModalPopover = EvaluatedModalPopover.getEvaluatedPopoverOrNull(mRequestContext, this);
 
     handleClientVisibilityRules();
+  }
+
+  public EvaluatedParseTree(ActionRequestContext pRequestContext, FieldSet pFieldSet, List<EvaluatedDataDefinition> pEvaluatedDataDefinitions) {
+    this(pRequestContext, pFieldSet, pEvaluatedDataDefinitions, null);
   }
 
   /**
@@ -376,7 +376,7 @@ public class EvaluatedParseTree implements SerialisationContext {
 
   @Override
   public ThreadInfoProvider getThreadInfoProvider(){
-    return mThreadInfoProvider;
+    return mRequestContext.getThreadInfoProvider();
   }
 
   @Override

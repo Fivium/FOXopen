@@ -31,6 +31,7 @@ import net.foxopen.fox.module.serialiser.components.html.GridCellComponentBuilde
 import net.foxopen.fox.module.serialiser.components.html.GridComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.html.GridRowComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.html.HTMLComponentBuilder;
+import net.foxopen.fox.module.serialiser.components.html.HardErrorUnimplementedComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.html.HeaderResourcesComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.html.HeadingComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.html.HintOutComponentBuilder;
@@ -153,6 +154,10 @@ extends WriterOutputSerialiser {
     HTML_PAGE_COMPONENT_MAP.put(ComponentBuilderType.TAB_GROUP, TabGroupComponentBuilder.getGroupBuilderInstance());
     HTML_PAGE_COMPONENT_MAP.put(ComponentBuilderType.TAB_PROMPT, TabGroupComponentBuilder.getPromptBuilderInstance());
     HTML_PAGE_COMPONENT_MAP.put(ComponentBuilderType.LABEL, LabelComponentBuilder.getInstance());
+    HTML_PAGE_COMPONENT_MAP.put(ComponentBuilderType.HEADER, HardErrorUnimplementedComponentBuilder.getInstance());
+    HTML_PAGE_COMPONENT_MAP.put(ComponentBuilderType.FOOTER, HardErrorUnimplementedComponentBuilder.getInstance());
+    HTML_PAGE_COMPONENT_MAP.put(ComponentBuilderType.CURRENT_PAGE_NUMBER, HardErrorUnimplementedComponentBuilder.getInstance());
+    HTML_PAGE_COMPONENT_MAP.put(ComponentBuilderType.LAST_PAGE_NUMBER, HardErrorUnimplementedComponentBuilder.getInstance());
   }
 
   private static final HtmlDoctype DEFAULT_DOCTYPE = HtmlDoctype.HTML5;
@@ -224,7 +229,7 @@ extends WriterOutputSerialiser {
         append("</h4>");
       }
       if (pHint.getHintBufferContent() != null) {
-        TempSerialiser lTempSerialiser = this.getTempSerialiser();
+        TempSerialiser<String> lTempSerialiser = this.getTempSerialiser();
         pHint.getHintBufferContent().render(pSerialisationContext, lTempSerialiser);
         append(lTempSerialiser.getOutput());
       }
@@ -291,7 +296,7 @@ extends WriterOutputSerialiser {
 
   private String getDescriptionText(SerialisationContext pSerialisationContext, OutputDescription pDescription) {
     if (pDescription.getDescriptionBufferContent() != null) {
-      TempSerialiser lTempSerialiser = this.getTempSerialiser();
+      TempSerialiser<String> lTempSerialiser = this.getTempSerialiser();
       pDescription.getDescriptionBufferContent().render(pSerialisationContext, lTempSerialiser);
       return lTempSerialiser.getOutput();
     }
@@ -350,7 +355,7 @@ extends WriterOutputSerialiser {
    */
   public static class HTMLTempSerialiser
   extends HTMLSerialiser
-  implements TempSerialiser {
+  implements TempSerialiser<String> {
 
     StringWriter mTemp = new StringWriter();
     public HTMLTempSerialiser(EvaluatedParseTree pEvalParseTree) {

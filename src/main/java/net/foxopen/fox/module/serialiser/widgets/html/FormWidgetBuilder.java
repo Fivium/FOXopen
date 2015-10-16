@@ -5,7 +5,6 @@ import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.module.LayoutDirection;
 import net.foxopen.fox.module.OutputError;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
-import net.foxopen.fox.module.datanode.EvaluatedNodeInfo;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfoCollection;
 import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.serialiser.FOXGridUtils;
@@ -15,6 +14,7 @@ import net.foxopen.fox.module.serialiser.layout.GridLayoutManager;
 import net.foxopen.fox.module.serialiser.layout.items.LayoutItem;
 import net.foxopen.fox.module.serialiser.layout.items.LayoutItemEnum;
 import net.foxopen.fox.module.serialiser.layout.items.LayoutWidgetItemColumn;
+import net.foxopen.fox.module.serialiser.widgets.FormWidgetUtils;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 import net.foxopen.fox.thread.devtoolbar.DevToolbarContext;
@@ -56,23 +56,18 @@ public class FormWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
   public void buildWidgetInternal(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNodeInfoCollection pEvalNode) {
     Track.pushDebug("FormWidget", pEvalNode.getDataItem().absolute());
     try {
-      String lFormColumns = pEvalNode.getStringAttribute(NodeAttribute.FORM_COLUMNS);
-      if (XFUtil.isNull(lFormColumns)) {
-        lFormColumns = pEvalNode.getStringAttribute(NodeAttribute.FORM_MAX_COLUMNS, String.valueOf(FOXGridUtils.getMaxColumns()));
-      }
-      int lColumnLimit = Integer.parseInt(lFormColumns);
+      int lFormColumns = FormWidgetUtils.getFormColumns(pEvalNode);
 
-      GridLayoutManager lFormLayout = new GridLayoutManager(lColumnLimit, pSerialiser, pEvalNode);
+      GridLayoutManager lFormLayout = new GridLayoutManager(lFormColumns, pSerialiser, pEvalNode);
 
-      List<EvaluatedNodeInfo> lChildren = pEvalNode.getChildren();
-      if (lChildren.size() > 0) {
+      if (pEvalNode.hasChildren()) {
         pSerialiser.append("<div class=\"container setoutForm");
 
         List<String> lClasses = pEvalNode.getStringAttributes(NodeAttribute.CLASS, NodeAttribute.FORM_CLASS);
         List<String> lStyles = pEvalNode.getStringAttributes(NodeAttribute.STYLE, NodeAttribute.FORM_STYLE);
 
         // If pEvalNode is nested in another table/form it should add the nested class, if one is specified
-        if (pEvalNode.checkAncestry(WidgetBuilderType.FORM, WidgetBuilderType.LIST)) {
+        if (pEvalNode.isNested()) {
           lClasses.addAll(pEvalNode.getStringAttributes(NodeAttribute.NESTED_CLASS, NodeAttribute.NESTED_FORM_CLASS));
           lStyles.addAll(pEvalNode.getStringAttributes(NodeAttribute.NESTED_STYLE, NodeAttribute.NESTED_FORM_STYLE));
         }
@@ -107,7 +102,7 @@ public class FormWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
           else if (lItem.getItemType() == LayoutItemEnum.COLUMN) {
             LayoutWidgetItemColumn lColumnItem = (LayoutWidgetItemColumn)lItem;
             pSerialiser.append("<div class=\"");
-            pSerialiser.append(FOXGridUtils.calculateColumnClassName(lColumnItem.getColSpan(), lColumnLimit));
+            pSerialiser.append(FOXGridUtils.calculateColumnClassName(lColumnItem.getColSpan(), lFormColumns));
             pSerialiser.append(" columns");
 
             List<String> lCellClasses = new ArrayList<>();
@@ -157,7 +152,7 @@ public class FormWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
             pSerialiser.append(">");
 
             if (pSerialisationContext.getDevToolbarContext().isFlagOn(DevToolbarContext.Flag.HTML_GEN_DEBUG)) {
-              outputCellDebugInformation(pSerialiser, lColumnItem, lColumnLimit);
+              outputCellDebugInformation(pSerialiser, lColumnItem, lFormColumns);
             }
 
             if (!lColumnItem.isFiller()) {

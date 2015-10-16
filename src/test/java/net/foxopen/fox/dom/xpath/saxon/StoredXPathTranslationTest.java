@@ -25,6 +25,7 @@ import net.foxopen.fox.module.State;
 import net.foxopen.fox.module.entrytheme.EntryTheme;
 import net.foxopen.fox.module.facet.ModuleFacetProvider;
 import net.foxopen.fox.module.mapset.MapSet;
+import net.foxopen.fox.module.serialiser.ThreadInfoProvider;
 import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.thread.DOMHandlerProvider;
 import net.foxopen.fox.thread.ExitResponse;
@@ -164,6 +165,11 @@ public class StoredXPathTranslationTest {
 
     @Override
     public XPathVariableManager getXPathVariableManager() {
+      return null;
+    }
+
+    @Override
+    public ThreadInfoProvider getThreadInfoProvider() {
       return null;
     }
 

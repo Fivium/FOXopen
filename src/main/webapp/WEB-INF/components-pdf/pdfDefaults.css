@@ -1,0 +1,161 @@
+/* Standard elements */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0.7em 0 0.3em;
+}
+
+h1 {
+  font-size: 3em;
+}
+
+h2 {
+  font-size: 2.5em;
+}
+
+h3 {
+  font-size: 1.5em;
+  color: #1065AF;
+}
+
+h4 {
+  font-size: 1.3em;
+  font-weight: bold;
+}
+
+h5 {
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+h6 {
+  font-size: 1em;
+  font-weight: bold;
+}
+
+p {
+  margin-bottom: 0.5em;
+}
+
+strong,
+b {
+  font-weight: bold;
+}
+
+em,
+i {
+  font-style: italic;
+}
+
+/* Form layout */
+.prompt {
+  font-weight: bold;
+}
+
+.promptWest {
+  text-align: right;
+}
+
+.promptNorth {
+  /* Nothing to set */
+}
+
+.formPromptCell {
+  padding: 1pt;
+  padding-right: 10pt;
+}
+
+.formCell,
+.gridCell {
+  padding: 1pt;
+  padding-bottom: 1em;
+  text-align: left;
+}
+
+.formCell.nestedForm,
+.formCell.nestedList,
+.formCell.nestedCellmates,
+.formCell.nestedRadioGroup,
+.formCell.nestedTickboxGroup {
+  padding-top: 0;
+  padding-right: 0;
+  padding-left: 0;
+}
+
+/* Multi option layout */
+.multiOptionCell {
+  padding: 1pt;
+}
+
+/* List layout */
+.listCell {
+  border: 1pt solid black;
+  border-right: none;
+  border-left: none;
+  padding: 1em;
+}
+
+.listHeaderCell {
+  border-top: none;
+  font-weight: bold;
+}
+
+.listFooterCell {
+  font-size: 0.8em;
+  text-align: center;
+}
+
+.nestedListCell {
+  padding: 0;
+  padding-bottom: 0.5em;
+}
+
+/* Input fields */
+.inputField {
+  border: 1px solid black;
+  background-color: #EEE;
+  float: left;
+  padding: 2px;
+}
+
+.tightField.textField {
+  width: 20em;
+}
+
+.tightField.dateField {
+  width: 7em;
+}
+
+.tightField.dateTimeField {
+  width: 10em;
+}
+
+/* Info boxes */
+.infoBox {
+  padding: 1em;
+  margin: 1.5em 0;
+}
+
+.infoBox-info {
+  background-color: #EDF8FC;
+}
+
+.infoBox-success {
+  background-color: #F1F9E5;
+}
+
+.infoBox-danger {
+  background-color: #FFF5F5;
+}
+
+.infoBox-warning {
+  background-color: #FFFCEE;
+}
+
+/* Debug */
+.debug {
+  border: 1px solid red;
+}

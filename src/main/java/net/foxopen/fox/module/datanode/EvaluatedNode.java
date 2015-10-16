@@ -672,6 +672,14 @@ implements DisplayOrderSortable {
   }
 
   /**
+   * Tests whether the node is nested within either a form or list, i.e. it has a form or list ancestor
+   * @return True if the node is nested within a form or list, false if it is not
+   */
+  public boolean isNested() {
+    return checkAncestry(WidgetBuilderType.FORM, WidgetBuilderType.LIST);
+  }
+
+  /**
    * Get a string back to help developers identify this EvaluatedNode
    * Combines prompt, element name and action name to try and show something identifiable
    *
@@ -801,6 +809,17 @@ implements DisplayOrderSortable {
   @Override
   public String getDisplayOrder() {
     return getStringAttribute(NodeAttribute.DISPLAY_ORDER, "auto");
+  }
+
+  /**
+   * Returns whether the node should be initially displayed in the output. A client visibility rule for example may
+   * set the node to be initially hidden which may be layer toggled to displayed after the output has been serialised.
+   * Note this differs to the visibility of the node, as visibility determines whether or not the node should be
+   * included in the output at all, and cannot be toggled after serialisation.
+   * @return True if the node should be initially displayed in the output, false if it should be hidden
+   */
+  public boolean isInitiallyDisplayed() {
+    return true;
   }
 
   /**

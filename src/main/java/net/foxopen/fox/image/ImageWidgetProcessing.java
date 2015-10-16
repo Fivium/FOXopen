@@ -361,9 +361,8 @@ public class ImageWidgetProcessing {
       return pUCon.executeSelectAllRows(SELECT_TRUESIZE_IMAGE_SQL_STATEMENT, new String[] {pFileId, null, null}, false, false);
     }
     catch(ExDB e) {
-      e.toUnexpected();
+      throw e.toUnexpected();
     }
-    return null;
   }
 
   private final Object[] getTruesizeImage(String pFileId, int pNewRotation, boolean pDispatchable, boolean pNoWait, UCon pUCon) throws ExServiceUnavailable {
@@ -400,7 +399,8 @@ public class ImageWidgetProcessing {
   }
 
   /** Look for image in cache **/
-  private Object[] getImageFromCache(String pFileId, int pNewWidth, int pNewHeight, int pNewRotation, UCon pUCon) {
+  private Object[] getImageFromCache(String pFileId, int pNewWidth, int pNewHeight, int pNewRotation, UCon pUCon)
+    throws ExServiceUnavailable {
     if(pUCon == null) {
       throw new ExInternal("pUCon is not optional.");
     }
@@ -410,9 +410,9 @@ public class ImageWidgetProcessing {
       return pUCon.selectOneRow(SELECT_IMAGE_SQL_STATEMENT, new String[] {pFileId, Integer.toString(pNewRotation), Integer.toString(pNewRotation), Integer.toString(pNewWidth), Integer.toString(pNewHeight), Integer.toString(pNewWidth), Integer.toString(pNewHeight), Integer.toString(pNewWidth), Integer.toString(pNewHeight)});
     } catch (ExDBTooFew ignoreEx) {
     } catch (ExDBTimeout e) {
-      e.toServiceUnavailable();
+      throw e.toServiceUnavailable();
     } catch (ExDBSyntax e) {
-      e.toUnexpected();
+      throw e.toUnexpected();
     } catch (ExDBTooMany e) {
       throw new ExInternal("Found more than one cached image, check unique keys on processed image table.",e);
     }
@@ -420,7 +420,8 @@ public class ImageWidgetProcessing {
   }
 
   /** Look for images in cache **/
-  private List getImagesFromCache(String pFileId, int pNewWidth, int pNewHeight, UCon pUCon) {
+  private List getImagesFromCache(String pFileId, int pNewWidth, int pNewHeight, UCon pUCon)
+    throws ExServiceUnavailable {
     if(pUCon == null) {
       throw new ExInternal("pUCon is not optional.");
     }
@@ -428,11 +429,10 @@ public class ImageWidgetProcessing {
       //Attempt to select to already rotated image from the database
       return pUCon.executeSelectAllRows(SELECT_IMAGE_SQL_STATEMENT, new String[] {pFileId, null, null, Integer.toString(pNewWidth), Integer.toString(pNewHeight), Integer.toString(pNewWidth), Integer.toString(pNewHeight), Integer.toString(pNewWidth), Integer.toString(pNewHeight)}, false, false);
     } catch (ExDBTimeout e) {
-      e.toServiceUnavailable();
+      throw e.toServiceUnavailable();
     } catch (ExDBSyntax e) {
-      e.toUnexpected();
+      throw e.toUnexpected();
     }
-    return null;
   }
 
   public void createCachedImage(String pFileId, int pWidth, int pHeight, Integer pRotation, boolean pDirectFromTruesize, boolean pNoWait, UCon pUCon)  throws ExServiceUnavailable {
@@ -463,9 +463,9 @@ public class ImageWidgetProcessing {
         pUCon.selectOneRow(SELECT_ORIGINAL_IMAGE_SQL_STATEMENT, new String[] {pFileId});
         return true;
       } catch (ExDBTimeout e) {
-        e.toServiceUnavailable();
+        throw e.toServiceUnavailable();
       } catch (ExDBSyntax e) {
-        e.toUnexpected();
+        throw e.toUnexpected();
       } catch (ExDB ignoreEx) {
       }
 
@@ -479,11 +479,10 @@ public class ImageWidgetProcessing {
       // We don't need a commit here as we committed using an autonomous transaction.
       return true;
     } catch (ExDBTimeout e) {
-      e.toServiceUnavailable();
+      throw e.toServiceUnavailable();
     } catch (ExDBSyntax e) {
       throw new ExInternal("Error caching image",e);
     }
-    return false;
 
 //    //Now create resize bases on other server
 //    int lResizeWidth = Integer.MAX_VALUE;
@@ -760,7 +759,7 @@ public class ImageWidgetProcessing {
     }
   }
 
-  private final Object[] getRotateCandidate(String pFileId, int pNewWidth, int pNewHeight, int pNewRotation, UCon pUCon) {
+  private final Object[] getRotateCandidate(String pFileId, int pNewWidth, int pNewHeight, int pNewRotation, UCon pUCon) throws ExServiceUnavailable {
     if(pUCon == null) {
       throw new ExInternal("pUCon is not optional.");
     }

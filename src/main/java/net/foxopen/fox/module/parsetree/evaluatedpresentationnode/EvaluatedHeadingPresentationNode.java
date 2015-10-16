@@ -48,7 +48,7 @@ public class EvaluatedHeadingPresentationNode extends EvaluatedPresentationNode<
       }
     }
     catch (ExActionFailed e) {
-      e.toUnexpected();
+      throw e.toUnexpected();
     }
 
     if (XFUtil.isNull(lLevel)) {

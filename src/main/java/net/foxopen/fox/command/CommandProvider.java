@@ -54,6 +54,7 @@ import net.foxopen.fox.command.builtin.ExitModuleCommand;
 import net.foxopen.fox.command.builtin.FocusCommand;
 import net.foxopen.fox.command.builtin.ForEachCommand;
 import net.foxopen.fox.command.builtin.GenerateCommand;
+import net.foxopen.fox.command.builtin.GeneratePDFCommand;
 import net.foxopen.fox.command.builtin.GoToPageCommand;
 import net.foxopen.fox.command.builtin.IfCommand;
 import net.foxopen.fox.command.builtin.InitCommand;
@@ -148,6 +149,7 @@ public class CommandProvider {
     registerCommandFactory(new FocusCommand.Factory());
     registerCommandFactory(new ForEachCommand.Factory());
     registerCommandFactory(new GenerateCommand.Factory());
+    registerCommandFactory(new GeneratePDFCommand.Factory());
     registerCommandFactory(new GoToPageCommand.Factory());
     registerCommandFactory(new IfCommand.Factory());
     registerCommandFactory(new InitCommand.Factory());

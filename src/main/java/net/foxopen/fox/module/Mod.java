@@ -73,6 +73,7 @@ import net.foxopen.fox.module.mapset.MapSetDefinitionFactory;
 import net.foxopen.fox.module.parsetree.ParseTree;
 import net.foxopen.fox.module.parsetree.presentationnode.BufferPresentationNode;
 import net.foxopen.fox.module.serialiser.HtmlDoctype;
+import net.foxopen.fox.page.PageDefinition;
 import net.foxopen.fox.security.SecurityTable;
 import net.foxopen.fox.thread.storage.DataDOMStorageLocation;
 import net.foxopen.fox.thread.storage.FileStorageLocation;
@@ -90,6 +91,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -230,6 +232,8 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
 
 
   private Map<String, ClientVisibilityRule> mVisibilityRuleNameToVisibilityRuleMap = new HashMap<String, ClientVisibilityRule>();
+
+  private Map<String, PageDefinition> mPageDefinitions = new HashMap<>();
 
   private HtmlDoctype mDocumentType = null;
 
@@ -687,6 +691,9 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
         }
       }
 
+      // Page definitions
+      mPageDefinitions = parsePageDefinitions(lModuleDOM);
+
       // Error check point
       if(mBulkModuleErrorMessages.length()>0) {
         throw new ExModule(mBulkModuleErrorMessages);
@@ -731,6 +738,36 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
     }
 
   } // end Mod constructor
+
+  private Map<String, PageDefinition> parsePageDefinitions(DOM pModuleDOM)
+    throws ExModule {
+    DOMList lPageDefinitionDOMs = pModuleDOM.getUL("fm:page-definition-list/" + PageDefinition.ELEMENT_NAME);
+    Map<String, PageDefinition> lPageDefinitions = new HashMap<>(lPageDefinitionDOMs.size());
+
+    for (DOM lPageDefinitionDOM : lPageDefinitionDOMs) {
+      try {
+        PageDefinition lPageDefinition = PageDefinition.createFromDOM(lPageDefinitionDOM);
+        addPageDefinition(lPageDefinitions, lPageDefinition);
+      }
+      catch (Throwable th) {
+        throw exceptionForNamedElement(lPageDefinitionDOM, PageDefinition.ELEMENT_NAME, th);
+      }
+    }
+
+    return lPageDefinitions;
+  }
+
+  private void addPageDefinition(Map<String, PageDefinition> pPageDefinitions, PageDefinition pPageDefinition)
+    throws ExModule {
+    String lPageDefinitionName = pPageDefinition.getName();
+
+    if (!pPageDefinitions.containsKey(lPageDefinitionName)) {
+      pPageDefinitions.put(lPageDefinitionName, pPageDefinition);
+    }
+    else {
+      throw new ExModule("Duplicate page definition '" + lPageDefinitionName + "'");
+    }
+  }
 
   /**
   * Expands referenced security-rule instances into the mode-rules/view-rules that
@@ -1762,6 +1799,7 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
       || lMergeChildNameIntern=="fm:pagination-definition"
       || lMergeChildNameIntern=="fm:client-visibility-rule"
       || lMergeChildNameIntern=="fm:namespace-group"
+      || lMergeChildNameIntern==PageDefinition.ELEMENT_NAME
       ) {
 
         if(!pEnableModuleMetaMerging) {
@@ -1902,6 +1940,7 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
       || lMergeChildNameIntern=="fm:security-list"
       || lMergeChildNameIntern=="fm:pagination-definition-list"
       || lMergeChildNameIntern=="fm:client-visibility-rule-list"
+      || lMergeChildNameIntern=="fm:page-definition-list"
       || lMergeChildNameIntern=="fm:css-list"
       || lMergeChildNameIntern=="fm:xpath-list"
       || lMergeChildNameIntern=="fm:namespace-group-list"
@@ -2760,7 +2799,7 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
     return mHashHeader.get(pAttrName);
   }
 
-  public final MapSetDefinition getMapSetDefinitionByName(String pName) {
+  public MapSetDefinition getMapSetDefinitionByName(String pName) {
     if(pName == null) {
       throw new ExInternal("Null passed to Mod.getMapSetDefinitionByName");
     }
@@ -2782,7 +2821,7 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
     return lDataDefinition;
   }
 
-  public final PagerDefinition getPagerDefinitionByName(String pName) {
+  public PagerDefinition getPagerDefinitionByName(String pName) {
     if(pName == null) {
       throw new ExInternal("Null passed to Mod.getPagerDefinitionByName");
     }
@@ -2799,7 +2838,7 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
    * @return The client visibility rule matching the given name.
    * @throws ExModule If the client visibility rule is not defined on this module.
    */
-  public final ClientVisibilityRule getClientVisibilityRuleByName(String pName)
+  public ClientVisibilityRule getClientVisibilityRuleByName(String pName)
   throws ExModule {
     if(pName == null) {
       throw new ExInternal("Null passed to Mod.getClientVisibilityRuleByName");
@@ -2809,6 +2848,17 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
       throw new ExModule("Visibility rule '"+pName+"' not defined in Module "+getName());
     }
     return lRule;
+  }
+
+  public PageDefinition getPageDefinitionByName(String pName) {
+    if (pName == null) {
+      throw new ExInternal("Null passed to Mod.getPageDefinitionByName");
+    }
+
+    PageDefinition lPageDefinition = Optional.ofNullable(mPageDefinitions.get(pName))
+                                             .orElseThrow(() -> new ExInternal("Page definition '" + pName + "' not defined in Module " + getName()));
+
+    return lPageDefinition;
   }
 
   /** Converts a non-wellformed fox module string into a wellformed DOM

@@ -28,4 +28,8 @@ public enum ComponentBuilderType {
 , WIDGET_OUT
 , PAGER_CONTROL
 , LABEL
+, HEADER
+, FOOTER
+, CURRENT_PAGE_NUMBER
+, LAST_PAGE_NUMBER
 }

@@ -211,6 +211,11 @@ public abstract class EvaluatedNodeInfo extends EvaluatedNode {
     }
   }
 
+  public boolean hasChildren() {
+    // Assume getChildren will never return null as an empty collection is returned by default
+    return getChildren().size() > 0;
+  }
+
   public List<EvaluatedNodeInfo> getChildren() {
     return Collections.emptyList();
   }

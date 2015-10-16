@@ -226,6 +226,15 @@ public class EvaluatedClientVisibilityRule {
   }
 
   /**
+   * Determines whether the visibility rule currently evaluates to visible or hidden.
+   *
+   * @return True if the visibility rule evaluates to visible, false if it is hidden.
+   */
+  public boolean isVisible() {
+    return mEvaluatedOperation.getBooleanResult();
+  }
+
+  /**
    * Determines if this rule should hide the contents of HTML elements resolved by its target's class selector, or
    * if it should hide the target elements directly.
    * @return True if hiding target contents, false if hiding the target.

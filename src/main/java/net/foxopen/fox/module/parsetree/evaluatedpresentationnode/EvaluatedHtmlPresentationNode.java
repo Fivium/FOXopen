@@ -38,6 +38,7 @@ extends GenericAttributesEvaluatedPresentationNode<HtmlPresentationNode> {
   private final String mTagName;
 
   private final Map<String, StringAttributeResult> mAttributeMap = new HashMap<>();
+  private final Map<String, StringAttributeResult> mResolvedAttributeMap;
 
   public EvaluatedHtmlPresentationNode(EvaluatedPresentationNode<? extends PresentationNode> pParent, HtmlPresentationNode pOriginalPresentationNode, EvaluatedParseTree pEvaluatedParseTree, DOM pEvalContext) {
     super(pParent, pOriginalPresentationNode, pEvalContext);
@@ -66,38 +67,8 @@ extends GenericAttributesEvaluatedPresentationNode<HtmlPresentationNode> {
       }
     }
 
-    // Rewrite src/href tags to use correct servlet prefix etc
-    if (IMAGE_TAG_NAME.equals(mTagName)) {
-      // Re-write image src tag so URI uses correct servlet
-      StringAttributeResult lImageSource = mAttributeMap.get("src");
-
-      // Image elements require a source, see http://www.w3.org/html/wg/drafts/html/master/#the-img-element:attr-img-src-2
-      if (lImageSource == null || lImageSource.getString() == null) {
-        throw new ExInternal("Image tag found without a src attribute?");
-      }
-
-      // Warn about images missing alt attributes
-      StringAttributeResult lAltTag = mAttributeMap.get("alt");
-      if (lAltTag == null || lAltTag.getString() == null) {
-        Track.alert("MissingAttribute", "Image tag [@src='" + lImageSource + "'] found without an alt attribute. When specifying an img element always put an alt tag explaining the image contents for accessibility purposes.", TrackFlag.BAD_MARKUP);
-      }
-
-      mAttributeMap.put("src", new FixedStringAttributeResult(pEvaluatedParseTree.getStaticResourceOrFixedURI(lImageSource.getString())));
-    }
-    else if (SCRIPT_TAG_NAME.equals(mTagName) && mAttributeMap.get("src") != null) {
-      // Re-write src for scripts
-      StringAttributeResult lScriptSource = mAttributeMap.get("src");
-      if (lScriptSource != null && lScriptSource.getString() != null) {
-        mAttributeMap.put("src", new FixedStringAttributeResult(pEvaluatedParseTree.getStaticResourceOrFixedURI(lScriptSource.getString())));
-      }
-    }
-    else if (LINK_TAG_NAME.equals(mTagName) && mAttributeMap.get("href") != null) {
-      // Re-write href for links
-      StringAttributeResult lLinkHref = mAttributeMap.get("href");
-      if (lLinkHref != null && lLinkHref.getString() != null) {
-        mAttributeMap.put("href", new FixedStringAttributeResult(pEvaluatedParseTree.getStaticResourceOrFixedURI(lLinkHref.getString())));
-      }
-    }
+    // Create a copy of the map with attributes specifying a resource URI resolved
+    mResolvedAttributeMap = resolveResourceAttributes(mTagName, mAttributeMap, pEvaluatedParseTree);
   }
 
   public String getTagName() {
@@ -118,7 +89,61 @@ extends GenericAttributesEvaluatedPresentationNode<HtmlPresentationNode> {
     return ComponentBuilderType.HTML_TAG;
   }
 
-  public Map<String, StringAttributeResult> getAttributeMap() {
-    return Collections.unmodifiableMap(mAttributeMap);
+  /**
+   * Returns the HTML tag attributes optionally with any attributes that specify a static resource URI resolved to use
+   * the correct servlet prefix etc.
+   * @param pResolveResourceURIs If true, any attributes with a URI that specify a static resource will be resolved to
+   *                             use the correct servlet prefix etc.
+   * @return The HTML tag attributes
+   */
+  public Map<String, StringAttributeResult> getAttributeMap(boolean pResolveResourceURIs) {
+    return Collections.unmodifiableMap(pResolveResourceURIs ? mResolvedAttributeMap : mAttributeMap);
+  }
+
+  /**
+   * Returns a copy of the tag attributes with attributes that specify a static resource as the URI resolved using
+   * {@link EvaluatedParseTree#getStaticResourceOrFixedURI} so they have the correct servlet prefix etc.
+   * @param pTagName The name of the HTML tag
+   * @param pAttributeMap The tag attributes
+   * @param pEvaluatedParseTree The evaluated parse tree
+   * @return A copy of the tag attributes with static resource URIs resolved
+   */
+  private Map<String, StringAttributeResult> resolveResourceAttributes(String pTagName, Map<String, StringAttributeResult> pAttributeMap, EvaluatedParseTree pEvaluatedParseTree) {
+    HashMap<String, StringAttributeResult> lResolvedAttributeMap = new HashMap<>(pAttributeMap);
+
+     // Rewrite src/href tags to use correct servlet prefix etc
+    if (IMAGE_TAG_NAME.equals(pTagName)) {
+      // Re-write image src tag so URI uses correct servlet
+      StringAttributeResult lImageSource = pAttributeMap.get("src");
+
+      // Image elements require a source, see http://www.w3.org/html/wg/drafts/html/master/#the-img-element:attr-img-src-2
+      if (lImageSource == null || lImageSource.getString() == null) {
+        throw new ExInternal("Image tag found without a src attribute?");
+      }
+
+      // Warn about images missing alt attributes
+      StringAttributeResult lAltTag = pAttributeMap.get("alt");
+      if (lAltTag == null || lAltTag.getString() == null) {
+        Track.alert("MissingAttribute", "Image tag [@src='" + lImageSource + "'] found without an alt attribute. When specifying an img element always put an alt tag explaining the image contents for accessibility purposes.", TrackFlag.BAD_MARKUP);
+      }
+
+      lResolvedAttributeMap.put("src", new FixedStringAttributeResult(pEvaluatedParseTree.getStaticResourceOrFixedURI(lImageSource.getString())));
+    }
+    else if (SCRIPT_TAG_NAME.equals(pTagName) && pAttributeMap.get("src") != null) {
+      // Re-write src for scripts
+      StringAttributeResult lScriptSource = pAttributeMap.get("src");
+      if (lScriptSource != null && lScriptSource.getString() != null) {
+        lResolvedAttributeMap.put("src", new FixedStringAttributeResult(pEvaluatedParseTree.getStaticResourceOrFixedURI(lScriptSource.getString())));
+      }
+    }
+    else if (LINK_TAG_NAME.equals(pTagName) && pAttributeMap.get("href") != null) {
+      // Re-write href for links
+      StringAttributeResult lLinkHref = pAttributeMap.get("href");
+      if (lLinkHref != null && lLinkHref.getString() != null) {
+        lResolvedAttributeMap.put("href", new FixedStringAttributeResult(pEvaluatedParseTree.getStaticResourceOrFixedURI(lLinkHref.getString())));
+      }
+    }
+
+    return lResolvedAttributeMap;
   }
 }

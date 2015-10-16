@@ -15,7 +15,6 @@ import net.foxopen.fox.ex.ExDB;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfoItem;
-import net.foxopen.fox.module.serialiser.ThreadInfoProvider;
 import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.thread.RequestContext;
 import net.foxopen.fox.track.Track;
@@ -40,9 +39,8 @@ public class AJAXSearchQueryCachedBinds {
    *
    * @param pRequestContext Current RequestContext.
    * @param pEvaluateNodeInfo ENI for the JITMapSet node.
-   * @param pThreadInfoProvider Current thread info.
    */
-  public static void cacheSearchQueryBinds(ActionRequestContext pRequestContext, EvaluatedNodeInfoItem pEvaluateNodeInfo, ThreadInfoProvider pThreadInfoProvider) {
+  public static void cacheSearchQueryBinds(ActionRequestContext pRequestContext, EvaluatedNodeInfoItem pEvaluateNodeInfo) {
     if(pEvaluateNodeInfo.getMapSet() != null && pEvaluateNodeInfo.getMapSet() instanceof JITMapSet) {
 
       Track.pushInfo("CacheSearchQueryBinds", pEvaluateNodeInfo.getMapSet().getMapSetName());
@@ -67,7 +65,7 @@ public class AJAXSearchQueryCachedBinds {
 
         lInterfaceStatement.getStatementName();
 
-        String lCacheKey = cacheKey(pThreadInfoProvider.getThreadId(), pEvaluateNodeInfo.getFieldMgr().getExternalFieldName());
+        String lCacheKey = cacheKey(pRequestContext.getThreadInfoProvider().getThreadId(), pEvaluateNodeInfo.getFieldMgr().getExternalFieldName());
 
         FoxCache<Object, Object> lCache = CacheManager.getCache(BuiltInCacheDefinition.AJAX_MAPSET_BINDS);
         lCache.put(lCacheKey, new AJAXSearchQueryCachedBinds(lAppMnem, lModule, lMapSetDefinition.getLocalName(), lEvaluatedBinds));

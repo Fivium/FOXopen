@@ -20,6 +20,7 @@ import net.foxopen.fox.module.facet.ModuleFacetProvider;
 import net.foxopen.fox.module.State;
 import net.foxopen.fox.module.mapset.MapSet;
 import net.foxopen.fox.module.mapset.MapSetDefinition;
+import net.foxopen.fox.module.serialiser.ThreadInfoProvider;
 import net.foxopen.fox.thread.devtoolbar.DevToolbarContext;
 import net.foxopen.fox.thread.persistence.PersistenceContext;
 import net.foxopen.fox.thread.stack.ModuleCall;
@@ -31,6 +32,8 @@ import java.util.List;
 
 public interface ActionRequestContext
 extends RequestContext {
+
+  public ThreadInfoProvider getThreadInfoProvider();
 
   public ContextUElem getContextUElem();
 

@@ -39,7 +39,7 @@ public class EvaluatedGridRowPresentationNode extends EvaluatedPresentationNode<
       }
     }
     catch (ExActionFailed e) {
-      e.toUnexpected();
+      throw e.toUnexpected();
     }
 
     mStyles = lStyles;

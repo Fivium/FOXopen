@@ -28,6 +28,11 @@ public abstract class EvaluatedNodeInfoGeneric extends EvaluatedNodeInfo {
   }
 
   @Override
+  public boolean isInitiallyDisplayed() {
+    return mEvalClientVisibilityRule == null || mEvalClientVisibilityRule.isVisible();
+  }
+
+  @Override
   public Collection<String> getCellInternalClasses() {
     if(mEvalClientVisibilityRule != null) {
       return Collections.singleton(mEvalClientVisibilityRule.getInitialCSSClass());

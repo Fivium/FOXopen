@@ -101,6 +101,14 @@ extends DataFieldMgr {
     }
   }
 
+  /**
+   * Remove any select options that are not selected. Removal is done in-place.
+   * @param pSelectList The select options.
+   */
+  public static void removeUnselectedOptions(List<FieldSelectOption> pSelectList) {
+    pSelectList.removeIf(pOption -> !pOption.isSelected());
+  }
+
   protected OptionFieldMgr(EvaluatedNodeInfoItem pEvaluatedNodeInfo, FieldSet pFieldSet, FieldSelectConfig pFieldSelectConfig, String pFieldId, FieldValueMapping pFVM) {
     super(pEvaluatedNodeInfo, pFieldSet, pFieldId);
     mConfig = pFieldSelectConfig;
@@ -156,6 +164,14 @@ extends DataFieldMgr {
   public abstract boolean isRecognisedNotNullOptionSelected();
 
   protected abstract boolean isNull();
+
+  /**
+   * Test if unselected options should be suppressed.
+   * @return True when suppress unselected options is specified on a read-only node, false otherwise.
+   */
+  protected boolean isSuppressUnselected() {
+    return getEvaluatedNodeInfoItem().getBooleanAttribute(NodeAttribute.SUPPRESS_UNSELECTED_OPTIONS, false) && getEvaluatedNodeInfoItem().getVisibility().asInt() < NodeVisibility.EDIT.asInt();
+  }
 
   protected void augmentNullKeyIntoList(List<FieldSelectOption> pSelectList, EvaluatedNodeInfo pEvaluatedNodeInfo) {
     boolean lIsNull = isNull();

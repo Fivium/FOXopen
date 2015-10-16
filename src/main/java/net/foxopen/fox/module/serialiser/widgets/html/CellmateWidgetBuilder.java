@@ -13,6 +13,7 @@ import net.foxopen.fox.module.serialiser.layout.GridLayoutManager;
 import net.foxopen.fox.module.serialiser.layout.items.LayoutItem;
 import net.foxopen.fox.module.serialiser.layout.items.LayoutItemEnum;
 import net.foxopen.fox.module.serialiser.layout.items.LayoutWidgetItemColumn;
+import net.foxopen.fox.module.serialiser.widgets.FormWidgetUtils;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 import net.foxopen.fox.thread.devtoolbar.DevToolbarContext;
@@ -58,11 +59,7 @@ public class CellmateWidgetBuilder extends WidgetBuilderHTMLSerialiser<Evaluated
 
   @Override
   public void buildWidgetInternal(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNodeInfo pEvalNode) {
-    String lFormColumns = pEvalNode.getStringAttribute(NodeAttribute.FORM_COLUMNS);
-    if (XFUtil.isNull(lFormColumns)) {
-      lFormColumns = pEvalNode.getStringAttribute(NodeAttribute.FORM_MAX_COLUMNS, String.valueOf(FOXGridUtils.getMaxColumns()));
-    }
-    int lColumnLimit = Integer.parseInt(lFormColumns);
+    final int lColumnLimit = FormWidgetUtils.getFormColumns(pEvalNode);
 
     GridLayoutManager lFormLayout = new GridLayoutManager(lColumnLimit, pSerialiser, pEvalNode);
 

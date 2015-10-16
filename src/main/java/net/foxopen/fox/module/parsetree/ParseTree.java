@@ -8,13 +8,16 @@ import net.foxopen.fox.module.parsetree.presentationnode.BufferPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.CasePresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.CommentPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.ContainerPresentationNode;
+import net.foxopen.fox.module.parsetree.presentationnode.CurrentPageNumberPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.ErrorOutPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.ExprPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.ExternalURLPresentationNode;
+import net.foxopen.fox.module.parsetree.presentationnode.FooterPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.ForEachPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.GridCellPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.GridPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.GridRowPresentationNode;
+import net.foxopen.fox.module.parsetree.presentationnode.HeaderPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.HeadingPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.HintOutPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.HtmlPresentationNode;
@@ -23,6 +26,7 @@ import net.foxopen.fox.module.parsetree.presentationnode.IncludeHeaderResourcesP
 import net.foxopen.fox.module.parsetree.presentationnode.IncludePresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.InfoBoxPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.LabelPresentationNode;
+import net.foxopen.fox.module.parsetree.presentationnode.LastPageNumberPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.MailToPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.MenuOutPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.PagerControlPresentationNode;
@@ -129,6 +133,14 @@ public class ParseTree {
           return new TabGroupPresentationNode.TabPromptPresentationNode(pNode);
         case "fm:label":
           return new LabelPresentationNode(pNode);
+        case "fm:header":
+          return new HeaderPresentationNode(pNode);
+        case "fm:footer":
+          return new FooterPresentationNode(pNode);
+        case "fm:current-page-number":
+          return new CurrentPageNumberPresentationNode(pNode);
+        case "fm:last-page-number":
+          return new LastPageNumberPresentationNode(pNode);
         default:
           if (pNode.getName().startsWith("fm:")) {
             // Non-handled fm-prefixed elements throw an unhandled error

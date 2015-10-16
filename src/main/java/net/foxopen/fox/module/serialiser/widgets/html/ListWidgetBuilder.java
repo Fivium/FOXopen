@@ -57,7 +57,6 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
   public void buildWidgetInternal(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNodeInfoList pEvalNode) {
     Track.pushDebug("ListWidget", pEvalNode.getDataItem().absolute());
     try {
-      boolean lCollapseColumns = pEvalNode.getBooleanAttribute(NodeAttribute.COLLAPSE_COLUMNS, false);
       boolean lResponsiveList = pEvalNode.getBooleanAttribute(NodeAttribute.RESPONSIVE_LIST, false);
 
       // Build table
@@ -71,7 +70,7 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
       List<String> lStyles = pEvalNode.getStringAttributes(NodeAttribute.STYLE, NodeAttribute.LIST_STYLE);
 
       // If pEvalNode is nested in another table/form it should add the nested class, if one is specified
-      if (pEvalNode.checkAncestry(WidgetBuilderType.FORM, WidgetBuilderType.LIST)) {
+      if (pEvalNode.isNested()) {
         lClasses.add(NESTED_LIST_CLASS_NAME); // FOX puts on a pre-defined class name when lists are nested for default styling
 
         lClasses.addAll(pEvalNode.getStringAttributes(NodeAttribute.NESTED_CLASS, NodeAttribute.NESTED_TABLE_CLASS, NodeAttribute.NESTED_LIST_CLASS));
@@ -99,7 +98,7 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
 
         String lListPromptValue = null;
         if (lPromptBuffer != null) {
-          TempSerialiser lTempSerialiser = pSerialiser.getTempSerialiser();
+          TempSerialiser<String> lTempSerialiser = pSerialiser.getTempSerialiser();
           lPromptBuffer.render(pSerialisationContext, lTempSerialiser);
           lListPromptValue = lTempSerialiser.getOutput();
         }
@@ -109,12 +108,8 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
 
         if (lListPromptValue != null) {
           pSerialiser.append("<th colspan=\"");
-          if (lCollapseColumns) {
-            pSerialiser.append(String.valueOf(pEvalNode.getNonCollapsibleColumnCount()));
-          }
-          else {
-            pSerialiser.append(String.valueOf(pEvalNode.getPotentialColumns().size()));
-          }
+          // Ensure colspan is 1 when no columns exist, as table header block will still appear for list prompt
+          pSerialiser.append(String.valueOf(Math.max(pEvalNode.getColumns().size(), 1)));
 
           List<String> lPromptClasses = pEvalNode.getStringAttributes(NodeAttribute.PROMPT_CLASS);
           List<String> lPromptStyles = pEvalNode.getStringAttributes(NodeAttribute.PROMPT_STYLE);
@@ -138,11 +133,7 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
 
       // Generate the prompts for each column in the table
       COLUMN_PROMPT_LOOP:
-      for (EvaluatedNodeInfo lTitleNode : pEvalNode.getPotentialColumns()) {
-        // Skip the column prompt output if collapsible columns is on and the NodeInfo is not marked as a non-collapsible column
-        if (lCollapseColumns && !pEvalNode.isNonCollapsibleColumn(lTitleNode.getNodeInfo())) {
-          continue COLUMN_PROMPT_LOOP;
-        }
+      for (EvaluatedNodeInfo lTitleNode : pEvalNode.getColumns()) {
 
         pSerialiser.append("<th scope=\"col\"");
 
@@ -176,7 +167,7 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
 
         EvaluatedPresentationNode<? extends PresentationNode> lPromptSummaryBuffer = lTitleNode.getPromptSummaryBuffer();
         if (lPromptSummaryBuffer != null) {
-          TempSerialiser lTempSerialiser = pSerialiser.getTempSerialiser();
+          TempSerialiser<String> lTempSerialiser = pSerialiser.getTempSerialiser();
           lPromptSummaryBuffer.render(pSerialisationContext, lTempSerialiser);
           pSerialiser.append(lTempSerialiser.getOutput());
         }
@@ -234,12 +225,7 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
 
         Map<NodeInfo, EvaluatedNodeInfo> lColumns = lRowNode.getChildrenMap();
         COLUMN_DATA_LOOP:
-        for (EvaluatedNodeInfo lTitleNode : pEvalNode.getPotentialColumns()) {
-          // Skip the column output if collapsible columns is on and the NodeInfo is not marked as a non-collapsible column
-          if (lCollapseColumns && !pEvalNode.isNonCollapsibleColumn(lTitleNode.getNodeInfo())) {
-            continue COLUMN_DATA_LOOP;
-          }
-
+        for (EvaluatedNodeInfo lTitleNode : pEvalNode.getColumns()) {
           // Get the associated EvaluatedNodeInfo for the column from the row nodes child map
           EvaluatedNodeInfo lItemNode = lColumns.get(lTitleNode.getNodeInfo());
           // Output empty column if no column was found or its denied visibility

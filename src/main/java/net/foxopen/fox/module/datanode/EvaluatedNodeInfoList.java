@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -30,7 +31,7 @@ import java.util.Set;
 public class EvaluatedNodeInfoList extends EvaluatedNodeInfoGeneric {
   private final List<EvaluatedNodeInfo> mChildren = new LinkedList<>();
 
-  private final List<EvaluatedNodeInfo> mPotentialColumns = new LinkedList<>();
+  private final List<EvaluatedNodeInfo> mColumns;
   private final Set<NodeInfo> mNonCollapsibleColumns = new HashSet<>();
 
   private final String mExternalFoxId;
@@ -58,12 +59,14 @@ public class EvaluatedNodeInfoList extends EvaluatedNodeInfoGeneric {
 
     mExternalFoxId = getEvaluatedParseTree().getFieldSet().getExternalFoxId(pNodeEvaluationContext.getDataItem());
 
-    // Use the model dom to find all possible columns
+    // Use the model dom to find all defined columns
     DOMList lModelDOMListChildren = pNodeInfo.getModelDOMElem().getChildElements().get(0).getChildElements();
 
-    Track.pushDebug("ListEvalNodeInfo", "Getting a list of possible columns");
+    List<EvaluatedNodeInfo> lDefinedColumns = new LinkedList<>();
+    Track.pushDebug("ListEvalNodeInfo", "Getting a list of defined columns");
+
     try {
-      // Go into the list data and use the first "row" as the context when evaluating columns to find out possible columns
+      // Go into the list data and use the first "row" as the context when evaluating columns to find out defined columns
       DOMList lContainerChildren = getNodeEvaluationContext().getDataItem().getChildElements();
       DOM lContainerDOM = null;
       if (lContainerChildren != null && lContainerChildren.size() > 0) {
@@ -104,18 +107,29 @@ public class EvaluatedNodeInfoList extends EvaluatedNodeInfoGeneric {
             EvaluatedNodeInfoStub lEvaluatedNodeInfoStub = EvaluatedNodeFactory.createEvaluatedNodeInfoStub(this,
               getEvaluatedPresentationNode(), lNodeInfoEvaluationContext, lChildNodeInfo);
 
-            // Add it to the list of possible columns if it has an ro/edit defined that could potentially be turned on
+            // Add it to the list of defined columns if it has an ro/edit defined that could potentially be turned on
             if (isColumnEditOrRo(lNodeInfoEvaluationContext)) {
-              mPotentialColumns.add(lEvaluatedNodeInfoStub);
+              lDefinedColumns.add(lEvaluatedNodeInfoStub);
             }
             break NAMESPACE_CHECK_LOOP;
           }
         }
       }
-      DisplayOrder.sort(mPotentialColumns);
+      DisplayOrder.sort(lDefinedColumns);
 
       // Evaluate and add all the children of the list (the rows)
       addChildren();
+
+      if (getBooleanAttribute(NodeAttribute.COLLAPSE_COLUMNS, false)) {
+        // Collapse columns is enabled for the list, only retain defined columns that have been registered non-collapsible
+        mColumns = lDefinedColumns
+          .stream()
+          .filter(pEvalNodeColumn -> mNonCollapsibleColumns.contains(pEvalNodeColumn.getNodeInfo()))
+          .collect(Collectors.toList());
+      }
+      else {
+        mColumns = lDefinedColumns;
+      }
     }
     finally {
       Track.pop("ListEvalNodeInfo");
@@ -137,6 +151,16 @@ public class EvaluatedNodeInfoList extends EvaluatedNodeInfoGeneric {
       }
     }
     return false;
+  }
+
+  /**
+   * Test to see if a column was marked as non-collapsible
+   *
+   * @param pNodeInfo NodeInfo for a potentially non-collapsible column
+   * @return
+   */
+  private boolean isNonCollapsibleColumn(NodeInfo pNodeInfo) {
+    return mNonCollapsibleColumns.contains(pNodeInfo);
   }
 
   /**
@@ -205,12 +229,12 @@ public class EvaluatedNodeInfoList extends EvaluatedNodeInfoGeneric {
   }
 
   /**
-   * Get the ordered list of potential Columns
+   * Get the ordered list of list columns
    *
-   * @return
+   * @return Ordered list columns
    */
-  public List<EvaluatedNodeInfo> getPotentialColumns() {
-    return Collections.unmodifiableList(mPotentialColumns);
+  public List<EvaluatedNodeInfo> getColumns() {
+    return Collections.unmodifiableList(mColumns);
   }
 
   /**
@@ -221,25 +245,6 @@ public class EvaluatedNodeInfoList extends EvaluatedNodeInfoGeneric {
    */
   public void registerNonCollapsibleColumn(NodeInfo pNodeInfo) {
     mNonCollapsibleColumns.add(pNodeInfo);
-  }
-
-  /**
-   * Test to see if a column was marked as non-collapsible
-   *
-   * @param pNodeInfo NodeInfo for a potentially non-collapsible column
-   * @return
-   */
-  public boolean isNonCollapsibleColumn(NodeInfo pNodeInfo) {
-    return mNonCollapsibleColumns.contains(pNodeInfo);
-  }
-
-  /**
-   * Get a count of the non-collapsible columns that have been registered on this list
-   *
-   * @return Size of the mNonCollapsibleColumns list
-   */
-  public int getNonCollapsibleColumnCount() {
-    return mNonCollapsibleColumns.size();
   }
 
   @Override

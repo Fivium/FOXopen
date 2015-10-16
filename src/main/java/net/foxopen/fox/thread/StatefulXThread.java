@@ -925,7 +925,7 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
           lEvaluatedDataDefinitions.add(lDataDefinition.getOrCreateEvaluatedDataDefinition(pRequestContext, idd));
         }
 
-        EvaluatedParseTree lEPT = new EvaluatedParseTree(pRequestContext, mFieldSetOut, lEvaluatedDataDefinitions, this);
+        EvaluatedParseTree lEPT = new EvaluatedParseTree(pRequestContext, mFieldSetOut, lEvaluatedDataDefinitions);
 
         HTMLSerialiser lOutputSerialiser = new HTMLSerialiser(lEPT);
         FoxResponse lFoxResponse;

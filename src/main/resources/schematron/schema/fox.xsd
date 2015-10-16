@@ -107,6 +107,7 @@
     <xs:attribute ref="descriptionDisplayMode"/>
     <xs:attribute ref="hintDisplayMode"/>
     <xs:attribute ref="mandatoryDisplayMode"/>
+    <xs:attribute ref="renderType"/>
   </xs:attributeGroup>
   <xs:attributeGroup name="zzz-set-menu-attr-group">
     <xs:attribute ref="mode" use="optional"/>
@@ -366,6 +367,7 @@
     <xs:attribute ref="descriptionDisplayMode"/>
     <xs:attribute ref="hintDisplayMode"/>
     <xs:attribute ref="mandatoryDisplayMode"/>
+    <xs:attribute ref="renderType"/>
     <xs:attribute ref="forceVisible" use="optional"/>
   </xs:attributeGroup>
   <xs:attributeGroup name="zzz-cellmate-attr-grp">
@@ -1476,5 +1478,16 @@
     <xs:annotation>
       <xs:documentation>Used with the fm:compare command</xs:documentation>
     </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="renderType" default="form">
+    <xs:annotation>
+      <xs:documentation>Controls how the field widget is displayed, for example whether tickboxes should appear ('form') or only the tickbox text should appear ('print').</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="entered-string">
+        <xs:enumeration value="form"/>
+        <xs:enumeration value="print"/>
+      </xs:restriction>
+    </xs:simpleType>
   </xs:attribute>
 </xs:schema>

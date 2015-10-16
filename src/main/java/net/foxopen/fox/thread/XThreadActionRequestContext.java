@@ -28,6 +28,7 @@ import net.foxopen.fox.module.State;
 import net.foxopen.fox.module.entrytheme.EntryTheme;
 import net.foxopen.fox.module.facet.ModuleFacetProvider;
 import net.foxopen.fox.module.mapset.MapSet;
+import net.foxopen.fox.module.serialiser.ThreadInfoProvider;
 import net.foxopen.fox.thread.devtoolbar.DevToolbarContext;
 import net.foxopen.fox.thread.persistence.PersistenceContext;
 import net.foxopen.fox.thread.stack.ModuleCall;
@@ -49,6 +50,11 @@ implements ActionRequestContext {
   public XThreadActionRequestContext(RequestContext pRequestContext, StatefulXThread pXThread) {
     super(pRequestContext);
     mXThread = pXThread;
+  }
+
+  @Override
+  public ThreadInfoProvider getThreadInfoProvider() {
+    return this.mXThread;
   }
 
   @Override

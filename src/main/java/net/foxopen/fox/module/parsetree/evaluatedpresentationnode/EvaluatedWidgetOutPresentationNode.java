@@ -49,7 +49,7 @@ public class EvaluatedWidgetOutPresentationNode extends GenericAttributesEvaluat
         mShowDescription = pEvaluatedParseTree.getContextUElem().extendedXPathBoolean(getEvalContext(), pOriginalPresentationNode.getShowDescriptionXPath());
       }
       catch (ExActionFailed e) {
-        e.toUnexpected("Running boolean XPath on fm:widget-out failed");
+        throw e.toUnexpected("Running boolean XPath on fm:widget-out failed");
       }
 
       if (!mShowPrompt && !mShowWidget && !mShowError && !mShowHint && !mShowDescription) {

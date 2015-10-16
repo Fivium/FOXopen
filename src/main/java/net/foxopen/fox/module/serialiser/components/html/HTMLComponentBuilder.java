@@ -13,6 +13,7 @@ import net.foxopen.fox.module.parsetree.presentationnode.HtmlPresentationNode;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
 import net.foxopen.fox.module.serialiser.components.ComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.ComponentBuilderType;
+import net.foxopen.fox.module.serialiser.components.HTMLComponentUtils;
 import net.foxopen.fox.module.serialiser.fragmentbuilder.MustacheFragmentBuilder;
 import net.foxopen.fox.module.serialiser.html.HTMLAlertSerialiser;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
@@ -45,18 +46,7 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
 
   private static final String HIDDEN_FORM_ELEMENTS_TEMPLATE = "html/HiddenFormElements.mustache";
   public static final String MODAL_POPOVER_TEMPLATE = "html/ModalPopover.mustache";
-
-  /**
-   * List of Void Elements, html tags to force leaving open, no self close and no closing tag needed. These should throw
-   * an error if they have children also.
-   *
-   * @see <a href="http://www.w3.org/TR/html-markup/syntax.html#void-element">http://www.w3.org/TR/html-markup/syntax.html#void-element</a>
-   */
-  private static final List<String> VOID_ELEMENTS = new ArrayList<>(Arrays.asList("br", "hr", "img", "input", "link", "meta", "area", "base", "col", "command", "embed", "keygen",
-                                                                                  "param", "source", "track", "wbr"));
-
   private static final List<String> IGNORE_ATTRIBUTES = new ArrayList<>(Arrays.asList(HtmlPresentationNode.FORCE_SELF_CLOSE_TAG_NAME));
-
   private static final String DEFAULT_WINDOW_OPTIONS = "default";
 
   public static final ComponentBuilder<HTMLSerialiser, EvaluatedHtmlPresentationNode> getInstance() {
@@ -71,7 +61,7 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
 
     String lTagName = pEvalNode.getTagName();
     int lChildCount = pEvalNode.getChildren().size();
-    boolean lVoidElement = VOID_ELEMENTS.contains(lTagName);
+    boolean lVoidElement = HTMLComponentUtils.isVoidElement(lTagName);
     if (lVoidElement && lChildCount > 0) {
       throw new ExInternal("Found a void element with content: " + lTagName);
     }
@@ -84,7 +74,7 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
     pSerialiser.append(lTagName);
 
     // add attribute for the element
-    Map<String, StringAttributeResult> lAttributeMap = pEvalNode.getAttributeMap();
+    Map<String, StringAttributeResult> lAttributeMap = pEvalNode.getAttributeMap(true);
     ATTRIBUTE_LOOP:
     for (Map.Entry<String, StringAttributeResult> lEntry : lAttributeMap.entrySet()) {
       if (IGNORE_ATTRIBUTES.contains(lEntry.getKey())) {

@@ -14,12 +14,14 @@ public class BufferPresentationNode extends PresentationNode {
   private final String mRegionOrder;
   private final String mRegionTitle;
   private final boolean mPreserveComments;
+  private final String mPageDefinitionName;
 
   public BufferPresentationNode(DOM pCurrentNode) {
     mBufferName = pCurrentNode.getAttr("name");
     mRegionTitle = pCurrentNode.getAttr("region-title");
     mRegionOrder = pCurrentNode.getAttr("region-order");
     mPreserveComments = "true".equals(pCurrentNode.getAttr("preserve-comments"));
+    mPageDefinitionName = pCurrentNode.getAttr("page-definition-name");
 
     // Process children
     ParseTree.parseDOMChildren(this, pCurrentNode, mPreserveComments);
@@ -69,6 +71,15 @@ public class BufferPresentationNode extends PresentationNode {
    */
   public boolean isPreserveComments() {
     return mPreserveComments;
+  }
+
+  /**
+   * Get the name of the page definition used to determine what size a PDF page should be when this buffer is used as
+   * the target of a generate-pdf command.
+   * @return The page definition name
+   */
+  public String getPageDefinitionName() {
+    return mPageDefinitionName;
   }
 
   public String toString() {

@@ -15,9 +15,12 @@ import net.foxopen.fox.module.serialiser.layout.items.LayoutFieldValueMappingIte
 import net.foxopen.fox.module.serialiser.layout.items.LayoutItem;
 import net.foxopen.fox.module.serialiser.layout.items.LayoutItemEnum;
 import net.foxopen.fox.module.serialiser.layout.methods.FieldValueMappingLayout;
+import net.foxopen.fox.module.serialiser.widgets.MultiOptionSelectWidgetUtils;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 
@@ -25,6 +28,7 @@ import java.util.Map;
  * Contains the layout code for radio buttons and tickboxes as they're pretty much the same thing
  */
 public class MultiOptionSelectWidget extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfo> {
+  private static final List<WidgetBuilderType> ALLOWED_WIDGET_TYPES = Arrays.asList(WidgetBuilderType.TICKBOX, WidgetBuilderType.RADIO);
   private static final String MUSTACHE_TEMPLATE = "html/MultiOptionSelectWidget.mustache";
 
   private final WidgetBuilderType mWidgetBuilderType;
@@ -34,13 +38,16 @@ public class MultiOptionSelectWidget extends WidgetBuilderHTMLSerialiser<Evaluat
   }
 
   protected MultiOptionSelectWidget(WidgetBuilderType pWidgetBuilderType) {
+    if (!ALLOWED_WIDGET_TYPES.contains(pWidgetBuilderType)) {
+      throw new ExInternal("Invalid MultiOptionSelectWidget widget type '" + pWidgetBuilderType.toString() + "'");
+    }
+
     mWidgetBuilderType = pWidgetBuilderType;
   }
 
   @Override
   public void buildWidgetInternal(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNodeInfo pEvalNode) {
-    String lItemsPerRowEval = pEvalNode.getStringAttribute(NodeAttribute.ITEMS_PER_ROW, "4");
-    int lItemsPerRow = Integer.parseInt(lItemsPerRowEval);
+    int lItemsPerRow = MultiOptionSelectWidgetUtils.getItemsPerRow(pEvalNode);
 
     GridLayoutManager lMultiOptionsLayout = new GridLayoutManager(lItemsPerRow, pSerialiser, pEvalNode, FieldValueMappingLayout.getInstance());
 
@@ -54,6 +61,7 @@ public class MultiOptionSelectWidget extends WidgetBuilderHTMLSerialiser<Evaluat
         lHtmlInputType = "radio";
         break;
       default:
+        // Constructor checks widget builder type is valid so this should never occur
         throw new ExInternal("Don't know what HTML input type to use for " + mWidgetBuilderType);
     }
 

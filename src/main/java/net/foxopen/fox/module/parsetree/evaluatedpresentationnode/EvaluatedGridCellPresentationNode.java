@@ -15,7 +15,8 @@ import net.foxopen.fox.module.serialiser.components.ComponentBuilderType;
  */
 public class EvaluatedGridCellPresentationNode extends EvaluatedPresentationNode<PresentationNode> {
 
-  private final String mColumnSpan;
+  private final int mColumnSpan;
+  private final String mColumnSpanClass;
   private final String mStyles;
   private final String mClasses;
 
@@ -24,7 +25,6 @@ public class EvaluatedGridCellPresentationNode extends EvaluatedPresentationNode
    *
    * @param pParent
    * @param pOriginalPresentationNode
-   * @param pEvalParseTree
    * @param pEvalContext
    */
   public EvaluatedGridCellPresentationNode(EvaluatedPresentationNode<? extends PresentationNode> pParent, GridCellPresentationNode pOriginalPresentationNode, EvaluatedParseTree pEvaluatedParseTree, DOM pEvalContext) {
@@ -51,7 +51,7 @@ public class EvaluatedGridCellPresentationNode extends EvaluatedPresentationNode
       }
     }
     catch (ExActionFailed e) {
-      e.toUnexpected();
+      throw e.toUnexpected();
     }
 
     if (XFUtil.isNull(lColumnSpan)) {
@@ -62,7 +62,9 @@ public class EvaluatedGridCellPresentationNode extends EvaluatedPresentationNode
     if (lCurrentGrid == null) {
       throw new ExInternal("fm:cell found without a containing grid: " + toString());
     }
-    mColumnSpan = FOXGridUtils.calculateColumnClassName(Integer.parseInt(lColumnSpan), Integer.parseInt(lCurrentGrid.getFormColumns()));
+
+    mColumnSpan = FOXGridUtils.calculateAdjustedColumnSpan(Integer.parseInt(lColumnSpan), Integer.parseInt(lCurrentGrid.getFormColumns()));
+    mColumnSpanClass = FOXGridUtils.calculateColumnClassName(Integer.parseInt(lColumnSpan), Integer.parseInt(lCurrentGrid.getFormColumns()));
 
     mStyles = lStyles;
     mClasses = lClasses;
@@ -78,8 +80,12 @@ public class EvaluatedGridCellPresentationNode extends EvaluatedPresentationNode
     return ComponentBuilderType.GRID_CELL;
   }
 
-  public String getColumnSpan() {
+  public int getColumnSpan() {
     return mColumnSpan;
+  }
+
+  public String getColumnSpanClass() {
+    return mColumnSpanClass;
   }
 
   public String getStyles() {

@@ -22,7 +22,6 @@ import net.foxopen.fox.module.fieldset.fvm.FieldValueMapping;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -141,21 +140,13 @@ extends OptionFieldMgr {
 
     List<FieldSelectOption> lSelectOptions = mFVM.getSelectOptions(this, new HashSet<>(mSelectedFVMOptionRefs));
 
-    boolean lSuppressUnselected = getEvaluatedNodeInfoItem().getBooleanAttribute(NodeAttribute.SUPPRESS_UNSELECTED_OPTIONS,false) && getEvaluatedNodeInfoItem().getVisibility().asInt() < NodeVisibility.EDIT.asInt();
-
     //Remove unselected options if required
-    if(lSuppressUnselected) {
-      Iterator<FieldSelectOption> lOptionIterator = lSelectOptions.iterator();
-      while(lOptionIterator.hasNext()) {
-        FieldSelectOption lOption = lOptionIterator.next();
-        if(!lOption.isSelected()) {
-          lOptionIterator.remove();
-        }
-      }
+    if (isSuppressUnselected()) {
+      removeUnselectedOptions(lSelectOptions);
     }
 
     //if null augment null entry
-    if(!lSuppressUnselected || isNull()) {
+    if(!isSuppressUnselected() || isNull()) {
       augmentNullKeyIntoList(lSelectOptions, getEvaluatedNodeInfoItem());
     }
 

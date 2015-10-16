@@ -49,7 +49,7 @@ public class EvaluatedGridPresentationNode extends EvaluatedPresentationNode<Pre
       }
     }
     catch (ExActionFailed e) {
-      e.toUnexpected();
+      throw e.toUnexpected();
     }
 
     if (XFUtil.isNull(lFormColumns)) {

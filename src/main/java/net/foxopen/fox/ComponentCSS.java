@@ -38,6 +38,7 @@ import net.foxopen.fox.ex.ExSecurity;
 import net.foxopen.fox.ex.ExServiceUnavailable;
 import net.foxopen.fox.ex.ExUserRequest;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Reader;
 
@@ -90,6 +91,6 @@ extends FoxComponent
 
   @Override
   public InputStream getInputStream() {
-    return null;
+    return new ByteArrayInputStream(mStringBuffer.toString().getBytes());
   }
 }

@@ -76,6 +76,11 @@ extends OptionFieldMgr {
 
     List<FieldSelectOption> lSelectOptions = mFVM.getSelectOptions(this, mIsNull ? Collections.<String>emptySet() : Collections.singleton(mSelectedFVMOptionRef));
 
+    //Remove unselected options if required
+    if (isSuppressUnselected()) {
+      removeUnselectedOptions(lSelectOptions);
+    }
+
     //If null, augment null entry
     augmentNullKeyIntoList(lSelectOptions, getEvaluatedNodeInfoItem());
 

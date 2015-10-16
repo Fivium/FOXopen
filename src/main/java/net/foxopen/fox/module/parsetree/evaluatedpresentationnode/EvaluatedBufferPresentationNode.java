@@ -4,11 +4,12 @@ import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.module.clientvisibility.EvaluatedClientVisibilityRule;
 import net.foxopen.fox.module.parsetree.EvaluatedParseTree;
 import net.foxopen.fox.module.parsetree.presentationnode.BufferPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.PresentationNode;
 import net.foxopen.fox.module.serialiser.components.ComponentBuilderType;
-import net.foxopen.fox.module.clientvisibility.EvaluatedClientVisibilityRule;
+import net.foxopen.fox.page.PageDefinition;
 
 /**
  *
@@ -18,6 +19,7 @@ public class EvaluatedBufferPresentationNode extends EvaluatedPresentationNode<B
   private final String mSkipLinkID;
   private final String mRegionTitle;
   private final String mRegionOrder;
+  private final PageDefinition mPageDefinition;
 
   private final EvaluatedClientVisibilityRule mEvalClientVisibilityRule;
 
@@ -26,7 +28,7 @@ public class EvaluatedBufferPresentationNode extends EvaluatedPresentationNode<B
    *
    * @param pParent
    * @param pOriginalPresentationNode
-   * @param pEvalParseTree
+   * @param pEvaluatedParseTree
    * @param pEvalContext
    * @param pCVRName Client visibilty rule controlling this buffer's visibility - can be null.
    */
@@ -66,6 +68,20 @@ public class EvaluatedBufferPresentationNode extends EvaluatedPresentationNode<B
     else {
       mEvalClientVisibilityRule = null;
     }
+
+    String lPageDefinitionName = pOriginalPresentationNode.getPageDefinitionName();
+    if (!XFUtil.isNull(lPageDefinitionName)) {
+      try {
+        String lEvaluatedPageDefinitionName = pEvaluatedParseTree.getContextUElem().extendedStringOrXPathString(getEvalContext(), lPageDefinitionName);
+        mPageDefinition = pEvaluatedParseTree.getModule().getPageDefinitionByName(lEvaluatedPageDefinitionName);
+      }
+      catch (ExActionFailed e) {
+        throw new ExInternal("Error while parsing page-definition-name attribute on buffer '" + mBufferName + "'", e);
+      }
+    }
+    else {
+      mPageDefinition = null;
+    }
   }
 
   public String getBufferName() {
@@ -100,6 +116,10 @@ public class EvaluatedBufferPresentationNode extends EvaluatedPresentationNode<B
   public EvaluatedClientVisibilityRule getEvalClientVisibilityRule() {
     //TODO PN - this shouldn't be exposed
     return mEvalClientVisibilityRule;
+  }
+
+  public PageDefinition getPageDefinition() {
+    return mPageDefinition;
   }
 
   @Override

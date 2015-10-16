@@ -6,5 +6,5 @@ import net.foxopen.fox.module.serialiser.layout.LayoutResult;
 
 
 public interface LayoutMethod {
-  public LayoutResult doLayout(int pColumLimit, OutputSerialiser pSerialiser, EvaluatedNodeInfo pEvalNodeInfo);
+  public LayoutResult doLayout(int pColumnLimit, OutputSerialiser pSerialiser, EvaluatedNodeInfo pEvalNodeInfo);
 }

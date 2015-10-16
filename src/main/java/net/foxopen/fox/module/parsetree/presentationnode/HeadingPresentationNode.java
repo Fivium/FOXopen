@@ -24,7 +24,7 @@ public class HeadingPresentationNode extends PresentationNode {
   }
 
   public String toString() {
-    return "Header ("+mLevel+")";
+    return "Heading ("+mLevel+")";
   }
 
   @Override

@@ -152,6 +152,7 @@ public enum NodeAttribute {
   PROMPT_STYLE("promptStyle", ValueType.CONSTANT, ResultType.STRING),
   RADIO_GROUP("radio-group", ValueType.CONSTANT, ResultType.STRING),
   RADIO_OWNER("radio-owner", ValueType.CONSTANT, ResultType.STRING),
+  RENDER_TYPE("renderType", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   RESPONSIVE_LIST("responsiveList", ValueType.EVALUATABLE_XPATH, ResultType.BOOLEAN),
   REVERSE_BOOLEAN_ORDER("reverseBooleanOrder", ValueType.EVALUATABLE_XPATH, ResultType.BOOLEAN),
   ROW_BREAK("rowBreak", ValueType.CONSTANT, ResultType.STRING),

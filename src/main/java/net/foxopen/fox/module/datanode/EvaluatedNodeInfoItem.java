@@ -46,7 +46,7 @@ public class EvaluatedNodeInfoItem extends EvaluatedNodeInfoGeneric {
     //For JIT mapset nodes we need to pre-cache binds for performance
     //Invoked here for now pending ENI builder/subclass refactor - see FOXRD-664
     if(lEvaluatedNodeInfoItem.getMapSet() != null && lEvaluatedNodeInfoItem.getMapSet() instanceof JITMapSet) {
-      AJAXSearchQueryCachedBinds.cacheSearchQueryBinds(lEvaluatedNodeInfoItem.getEvaluatedParseTree().getRequestContext(), lEvaluatedNodeInfoItem, lEvaluatedNodeInfoItem.getEvaluatedParseTree().getThreadInfoProvider());
+      AJAXSearchQueryCachedBinds.cacheSearchQueryBinds(lEvaluatedNodeInfoItem.getEvaluatedParseTree().getRequestContext(), lEvaluatedNodeInfoItem);
     }
 
     return lEvaluatedNodeInfoItem;

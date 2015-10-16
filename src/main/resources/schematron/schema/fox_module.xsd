@@ -134,7 +134,7 @@
                   <xs:documentation>
                     A namespace group allows you to group together a series of namespaces as part of a common concept for re-use in one or more security rules.
                     Examples could include: namespaces that should be editable when a case is open, but viewable at any other time, actions that can be used when a case is open, actions that should be used when viewing, but not editing, and so on.
-                    A namespace group may extend an another namespace group using the "extends" attribute. 
+                    A namespace group may extend an another namespace group using the "extends" attribute.
                   </xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
@@ -150,14 +150,14 @@
                   <xs:attribute name="name" type="xs:string" use="required">
                     <xs:annotation>
                       <xs:documentation>
-                        Each group must be named so that it can be referred to by name in a fm:mode-rule or fm:view-rule. 
+                        Each group must be named so that it can be referred to by name in a fm:mode-rule or fm:view-rule.
                       </xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
                   <xs:attribute name="extends" type="xs:string" use="optional">
                     <xs:annotation>
                       <xs:documentation>
-                        A namespace group may optionally extend another namespace group. The "extends" attribute is followed until a group without an "extends" attribute is found. The resulting group will contain all namespaces from the entire chain. 
+                        A namespace group may optionally extend another namespace group. The "extends" attribute is followed until a group without an "extends" attribute is found. The resulting group will contain all namespaces from the entire chain.
                       </xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
@@ -467,6 +467,7 @@
                         <xs:enumeration value="standard"/>
                         <xs:enumeration value="standard-and-accessible"/>
                         <xs:enumeration value="print"/>
+                        <xs:enumeration value="pdf"/>
                       </xs:restriction>
                     </xs:simpleType>
                   </xs:attribute>
@@ -992,6 +993,62 @@ Mapsets can have the following structures:
                       <xs:documentation>Unique name of the data-definition. This will be used asthe key to use in an implicated-data-definition-list inside a states presentation block.</xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="page-definition-list" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>A list of page definitions used for PDF generation</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="page-definition" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                  <xs:documentation>Defines the attributes of a page of a generated PDF document such as width, height, margins etc.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="body" minOccurs="0" maxOccurs="1">
+                      <xs:annotation>
+                        <xs:documentation>Defines the attributes of the page body, i.e. the area that will contain the generated content</xs:documentation>
+                      </xs:annotation>
+                      <xs:complexType>
+                        <xs:attribute name="margin-left" type="fm:entered-string" use="required"/>
+                        <xs:attribute name="margin-right" type="fm:entered-string" use="required"/>
+                        <xs:attribute name="margin-top" type="fm:entered-string" use="required"/>
+                        <xs:attribute name="margin-bottom" type="fm:entered-string" use="required"/>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="header" minOccurs="0" maxOccurs="1">
+                      <xs:annotation>
+                        <xs:documentation>Defines the attributes of the page header, i.e. the area within the page margins above page body</xs:documentation>
+                      </xs:annotation>
+                      <xs:complexType>
+                        <xs:attribute name="height" type="fm:entered-string" use="required"/>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="footer" minOccurs="0" maxOccurs="1">
+                      <xs:annotation>
+                        <xs:documentation>Defines the attributes of the page footer, i.e. the area within the page margins below page body</xs:documentation>
+                      </xs:annotation>
+                      <xs:complexType>
+                        <xs:attribute name="height" type="fm:entered-string" use="required"/>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                  <xs:attribute name="name" type="fm:entered-string" use="required">
+                    <xs:annotation>
+                      <xs:documentation>The name of the page definition, used to reference it when generating PDF content</xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                  <xs:attribute name="page-width" type="fm:entered-string" use="required"/>
+                  <xs:attribute name="page-height" type="fm:entered-string" use="required"/>
+                  <xs:attribute name="margin-left" type="fm:entered-string" use="required"/>
+                  <xs:attribute name="margin-right" type="fm:entered-string" use="required"/>
+                  <xs:attribute name="margin-top" type="fm:entered-string" use="required"/>
+                  <xs:attribute name="margin-bottom" type="fm:entered-string" use="required"/>
                 </xs:complexType>
               </xs:element>
             </xs:sequence>
@@ -1665,31 +1722,21 @@ Mapsets can have the following structures:
                   with the full URL string needed to access the output.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="expires" use="optional" default="00:09">
+            <xs:attribute name="expires" type="fm:hours-minutes" use="optional" default="00:09">
               <xs:annotation>
                 <xs:documentation>- method="url" (formally internal), the output is saved in fox
                   server internally for access later via a URL. Also need attrs: -- expires="HH:MM",
                   duration to hold output in fox server for - after this time the url may not return
                   the output - default 00:09. </xs:documentation>
               </xs:annotation>
-              <xs:simpleType>
-                <xs:restriction base="xs:string">
-                  <xs:pattern value="\d*:?\d+"/>
-                </xs:restriction>
-              </xs:simpleType>
             </xs:attribute>
-            <xs:attribute name="client-cache" use="optional" default="0">
+            <xs:attribute name="client-cache" type="fm:hours-minutes" use="optional" default="0">
               <xs:annotation>
                 <xs:documentation>- method="url" (formally internal), the output is saved in fox
                   server internally for access later via a URL. Also need attrs: --
                   client-cache="HH:MM", tells client browser to cache url page for duration, so
                   repeated url use does not reload from server - default 00:00. </xs:documentation>
               </xs:annotation>
-              <xs:simpleType>
-                <xs:restriction base="xs:string">
-                  <xs:pattern value="\d*:?\d+"/>
-                </xs:restriction>
-              </xs:simpleType>
             </xs:attribute>
             <xs:attribute name="scope" use="optional" fixed="SESSION">
               <xs:annotation>
@@ -1746,6 +1793,65 @@ Mapsets can have the following structures:
               <xs:annotation>
                 <xs:documentation>A file name for the resultant file; does not need to include a file extension. This can be a static string, or string()ified XPath.</xs:documentation>
               </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="generate-pdf">
+          <xs:annotation>
+            <xs:documentation>Generate a PDF using buffer content</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:attribute name="buffer" type="fm:entered-string" use="required">
+              <xs:annotation>
+                <xs:documentation>The buffer content to be output in the generated PDF. The buffer must specify a page definition.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="method" default="download" use="optional">
+              <xs:annotation>
+                <xs:documentation>The generation method</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="download"/>
+                  <xs:enumeration value="storage-location"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="file-name" type="fm:entered-string" use="optional">
+              <xs:annotation>
+                <xs:documentation>The file name including extension</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="content-type" type="fm:entered-string" default="application/pdf" use="optional">
+              <xs:annotation>
+                <xs:documentation>The content type of the generated output</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="serve-as-attachment" type="fm:fox-xpath-type" use="optional">
+              <xs:annotation>
+                <xs:documentation>XPath evaluating to true will cause the output to be served as an attachment</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="expires" type="fm:hours-minutes" default="00:09" use="optional">
+              <xs:annotation>
+                <xs:documentation>The time until the saved output expires and can no longer be accessed after generation via URL. Format: "HH:MM"</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="storage-location" type="fm:entered-string" use="optional">
+              <xs:annotation>
+                <xs:documentation>The destination storage location of the generated document, when generating using method storage-location</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="debug" use="optional">
+              <xs:annotation>
+                <xs:documentation>Whether or not to display debug elements in the output</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="true"/>
+                  <xs:enumeration value="false"/>
+                </xs:restriction>
+              </xs:simpleType>
             </xs:attribute>
           </xs:complexType>
         </xs:element>
@@ -2464,6 +2570,11 @@ Mapsets can have the following structures:
                     <xs:enumeration value="false"/>
                   </xs:restriction>
                 </xs:simpleType>
+              </xs:attribute>
+              <xs:attribute name="page-definition-name" type="fm:entered-string">
+                <xs:annotation>
+                  <xs:documentation>The page definition that specifies the attributes to use when generating PDF pages of the buffer content. When a buffer specifying a page definition is encountered during PDF generation, a new page will be started using the attributes of the page definition when the buffer content is output. If no content exists, the new page will not be started (i.e. there will not be a blank page), but the current page if one exists will be ended. This allows a page break to be inserted by including an empty buffer that defines a page definition.</xs:documentation>
+                </xs:annotation>
               </xs:attribute>
             </xs:extension>
           </xs:complexContent>
@@ -3938,6 +4049,26 @@ Mapsets can have the following structures:
           </xs:complexContent>
         </xs:complexType>
       </xs:element>
+      <xs:element name="header" type="fm:header-footer-type">
+        <xs:annotation>
+          <xs:documentation>Content that should be included in the header of every page output by the nearest containing buffer that specifies a page definition.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="footer" type="fm:header-footer-type">
+        <xs:annotation>
+          <xs:documentation>Content that should be included in the footer of every page output by the nearest containing buffer that specifies a page definition.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="current-page-number" type="fm:page-number-type">
+        <xs:annotation>
+          <xs:documentation>Outputs the current page number of a document. Only valid within a header or footer.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="last-page-number" type="fm:page-number-type">
+        <xs:annotation>
+          <xs:documentation>Outputs the current page number of a document. Only valid within a header or footer.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:choice>
   </xs:group>
   <xs:group name="set-buffer-grp">
@@ -3991,6 +4122,22 @@ Mapsets can have the following structures:
       </xs:annotation>
     </xs:attribute>
     <xs:anyAttribute namespace="##other" processContents="skip"/>
+  </xs:complexType>
+  <xs:complexType name="header-footer-type">
+    <xs:complexContent>
+      <xs:extension base="html-or-fox-html-tags-type">
+        <xs:attribute name="class" type="fm:fox-xpath-type" use="optional"/>
+        <xs:attribute name="style" type="fm:fox-xpath-type" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="page-number-type" mixed="true">
+    <xs:complexContent>
+      <xs:extension base="html-or-fox-html-tags-type">
+        <xs:attribute name="class" type="fm:fox-xpath-type" use="optional"/>
+        <xs:attribute name="style" type="fm:fox-xpath-type" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
   </xs:complexType>
   <xs:group name="using-clause-grp">
     <xs:sequence>
@@ -4210,6 +4357,11 @@ Mapsets can have the following structures:
   <xs:simpleType name="slashless-entered-string">
     <xs:restriction base="fm:entered-string">
       <xs:pattern value="[^/]*"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="hours-minutes">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="\d*:?\d+"/>
     </xs:restriction>
   </xs:simpleType>
   <xs:complexType name="display-attr-list-type">
