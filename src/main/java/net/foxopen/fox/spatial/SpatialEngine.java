@@ -43,7 +43,6 @@ import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExApp;
 import net.foxopen.fox.ex.ExDB;
 import net.foxopen.fox.ex.ExInternal;
-import net.foxopen.fox.ex.ExServiceUnavailable;
 import net.foxopen.fox.sql.SQLManager;
 import net.foxopen.fox.thread.RequestContext;
 import net.foxopen.fox.track.Track;
@@ -177,11 +176,10 @@ public class SpatialEngine {
           .defineBind(":bootstrap_xml", UCon.bindOutXML());
 
         UConStatementResult lAPIResult = lUCon.executeAPI(SQLManager.instance().getStatement(BOOTSTRAP_SPATIAL_CANVAS_SQL, getClass()), lBootstrapBindMap);
-        lUCon.commit();
 
         return lAPIResult.getDOMFromSQLXML(":bootstrap_xml");
       }
-      catch (ExDB | ExServiceUnavailable e) {
+      catch (ExDB  e) {
         throw new ExInternal("Error Bootstrapping Spatial Canvas", e);
       }
       finally {
@@ -216,11 +214,10 @@ public class SpatialEngine {
           .defineBind(":refresh_xml", UCon.bindOutXML());
 
         UConStatementResult lAPIResult = lUCon.executeAPI(SQLManager.instance().getStatement(REFRESH_SPATIAL_CANVAS_SQL, getClass()), lBootstrapBindMap);
-        lUCon.commit();
 
         return lAPIResult.getDOMFromSQLXML(":refresh_xml");
       }
-      catch (ExDB | ExServiceUnavailable e) {
+      catch (ExDB e) {
         throw new ExInternal("Error Refreshing Spatial Canvas", e);
       }
       finally {
@@ -252,11 +249,10 @@ public class SpatialEngine {
           .defineBind(":operation_xml", UCon.bindOutXML());
 
         UConStatementResult lAPIResult = lUCon.executeAPI(SQLManager.instance().getStatement(PERFORM_SPATIAL_OPERATION_SQL, getClass()), lBootstrapBindMap);
-        lUCon.commit();
 
         return lAPIResult.getDOMFromSQLXML(":operation_xml");
       }
-      catch (ExDB | ExServiceUnavailable e) {
+      catch (ExDB e) {
         throw new ExInternal("Error Performing Spatial Operation", e);
       }
       finally {
