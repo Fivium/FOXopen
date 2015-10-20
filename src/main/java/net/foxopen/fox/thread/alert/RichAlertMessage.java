@@ -1,53 +1,40 @@
 package net.foxopen.fox.thread.alert;
 
+import net.foxopen.fox.module.NotificationDisplayType;
 import org.json.simple.JSONObject;
 
+/**
+ * Encapsulation for all modal popover based alert messages. These may contain HTML formatting.
+ */
 public abstract class RichAlertMessage
 implements AlertMessage {
 
-  public enum DisplayStyle {
-    INFO, SUCCESS, WARNING, DANGER;
-
-    public String getCSSClassName() {
-      return "modal-alert-" + this.toString().toLowerCase();
-    }
-
-    public String getIconName() {
-      switch(this) {
-        case INFO:
-          return "icon-info";
-        case SUCCESS:
-          return "icon-checkmark";
-        case WARNING:
-          return "icon-warning";
-        case DANGER:
-          return "icon-cross";
-        default:
-          return null;
-      }
-    }
-  }
+  /** Name of the title property in the JSON property object. */
+  public static final String TITLE_JSON_PROPERTY_NAME = "title";
 
   private final String mTitle;
-  private final DisplayStyle mDisplayStyle;
+  //Can be null
+  private final NotificationDisplayType mDisplayType;
   private final String mClosePrompt;
   private final String mCSSClass;
 
-  protected RichAlertMessage(String pTitle, DisplayStyle pDisplayStyle, String pClosePrompt, String pCSSClass) {
+  protected RichAlertMessage(String pTitle, NotificationDisplayType pDisplayType, String pClosePrompt, String pCSSClass) {
     mTitle = pTitle;
-    mDisplayStyle = pDisplayStyle;
+    mDisplayType = pDisplayType;
     mClosePrompt = pClosePrompt;
     mCSSClass = pCSSClass;
   }
 
+  /**
+   * @return A JSON property object for this AlertMessage, for passing to the FOXAlert JavaScript.
+   */
   public JSONObject getJSONPropertyObject() {
     JSONObject lProperties = new JSONObject();
-    lProperties.put("title", mTitle);
-    lProperties.put("cssClass", mDisplayStyle.getCSSClassName() + " " + mCSSClass);
-    lProperties.put("icon", mDisplayStyle.getIconName());
+    lProperties.put(TITLE_JSON_PROPERTY_NAME, mTitle);
+    lProperties.put("alertStyle", mDisplayType == null ? "default" : mDisplayType.toString().toLowerCase());
+    lProperties.put("cssClass", mCSSClass);
     lProperties.put("closePrompt", mClosePrompt);
 
     return lProperties;
   }
-
 }

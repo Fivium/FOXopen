@@ -33,6 +33,7 @@ import net.foxopen.fox.ex.ExInvalidThreadId;
 import net.foxopen.fox.ex.ExUserRequest;
 import net.foxopen.fox.module.ActionDefinition;
 import net.foxopen.fox.module.AutoActionType;
+import net.foxopen.fox.module.NotificationDisplayType;
 import net.foxopen.fox.module.datadefinition.DataDefinition;
 import net.foxopen.fox.module.datadefinition.EvaluatedDataDefinition;
 import net.foxopen.fox.module.datadefinition.ImplicatedDataDefinition;
@@ -43,6 +44,7 @@ import net.foxopen.fox.module.parsetree.EvaluatedParseTree;
 import net.foxopen.fox.module.serialiser.ThreadInfoProvider;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
 import net.foxopen.fox.thread.alert.BasicAlertMessage;
+import net.foxopen.fox.thread.alert.RichTextAlertMessage;
 import net.foxopen.fox.thread.devtoolbar.DevToolbarContext;
 import net.foxopen.fox.thread.persistence.DatabasePersistenceContext;
 import net.foxopen.fox.thread.persistence.Deserialiser;
@@ -866,8 +868,10 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
       //Check the posted field set label against the expected label
       if (!lFieldSetArray[0].equals(mFieldSetIn.getOutwardFieldSetLabel())) {
         //Note: this line used to display an error message if this was not caused by the user hitting refresh, detected by reading the submit_count parameter
-        pRequestContext.addXDoResult(new BasicAlertMessage("You appear to have reloaded the page or used one of your browser's back or forward buttons.\n\n" +
-                                                           "Please use the navigation options provided on the page, and avoid reloading the page as this may cause data to be lost."));
+        RichTextAlertMessage lMessage = new RichTextAlertMessage("<p>You appear to have reloaded the page or used one of your browser's back or forward buttons.</p>" +
+                                                                 "<p>Please use the navigation options provided on the page, and avoid reloading the page as this may cause data to be lost.</p>",
+                                                                 "", NotificationDisplayType.WARNING, "OK", "", false);
+        pRequestContext.addXDoResult(lMessage);
         return false;
       }
       else {

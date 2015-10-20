@@ -46,10 +46,10 @@ import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExTooFew;
 import net.foxopen.fox.ex.ExTooMany;
 import net.foxopen.fox.module.Mod;
+import net.foxopen.fox.module.NotificationDisplayType;
 import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.thread.alert.BasicAlertMessage;
 import net.foxopen.fox.thread.alert.BufferAlertMessage;
-import net.foxopen.fox.thread.alert.RichAlertMessage;
 import net.foxopen.fox.thread.alert.RichTextAlertMessage;
 import net.foxopen.fox.track.Track;
 
@@ -63,13 +63,15 @@ public class AlertCommand
 extends BuiltInCommand {
 
   private static final String DEFAULT_CLOSE_PROMPT = "OK";
+  private static final String DEFAULT_ALERT_DISPLAY_ATTR_NAME = "defaultAlertDisplay";
+  private static final DisplayType DEFAULT_ALERT_DISPLAY_TYPE = DisplayType.POPOVER;
 
   private enum DisplayType {
     NATIVE, POPOVER;
   }
 
   private final DisplayType mDisplayType;
-  private final RichAlertMessage.DisplayStyle mDisplayStyle;
+  private final NotificationDisplayType mAlertType;
 
   private final String mMessageXPath;
 
@@ -80,7 +82,7 @@ extends BuiltInCommand {
   private final String mClosePromptXPath;
   private final String mCSSClassXPath;
 
-  private AlertCommand(DOM pCommandElement)
+  private AlertCommand(DOM pCommandElement, Mod pModule)
   throws ExDoSyntax {
     super(pCommandElement);
 
@@ -93,22 +95,19 @@ extends BuiltInCommand {
 
     mBufferAttachXPath = pCommandElement.getAttr("bufferAttach");
 
-    String lDisplayType = pCommandElement.getAttr("displayType");
+    String lDisplayType = pCommandElement.getAttr("display");
     try {
-      //TODO: app-level default switch
-      mDisplayType = XFUtil.isNull(lDisplayType) ? DisplayType.NATIVE : DisplayType.valueOf(lDisplayType.toUpperCase());
+      if (XFUtil.isNull(lDisplayType)) {
+        lDisplayType = XFUtil.nvl(pModule.getModuleAttributes().get(DEFAULT_ALERT_DISPLAY_ATTR_NAME), DEFAULT_ALERT_DISPLAY_TYPE.toString()).toUpperCase();
+      }
+      mDisplayType = DisplayType.valueOf(lDisplayType.toUpperCase());
     }
     catch (IllegalArgumentException e) {
-      throw new ExDoSyntax("Not a valid displayType for fm:alert: " + lDisplayType, e);
+      throw new ExDoSyntax("Not a valid display attribute for fm:alert: '" + lDisplayType + "'", e);
     }
 
-    String lDisplayStyle = pCommandElement.getAttr("displayStyle");
-    try {
-      mDisplayStyle = XFUtil.isNull(lDisplayStyle) ? RichAlertMessage.DisplayStyle.INFO : RichAlertMessage.DisplayStyle.valueOf(lDisplayStyle.toUpperCase());
-    }
-    catch (IllegalArgumentException e) {
-      throw new ExDoSyntax("Not a valid displayStyle for fm:alert: " + lDisplayStyle, e);
-    }
+    String lAlertType = pCommandElement.getAttr("alertType");
+    mAlertType = XFUtil.isNull(lAlertType) || "normal".equals(lAlertType.toLowerCase()) ? null : NotificationDisplayType.fromExternalString(lAlertType);
 
     mTitleXPath = pCommandElement.getAttr("title");
     mClosePromptXPath = pCommandElement.getAttr("closePrompt");
@@ -150,7 +149,7 @@ extends BuiltInCommand {
     XPathResult lMessage = getMessageXPathResult(lContextUElem);
 
     if (!XFUtil.isNull(lMessage.asString())) {
-      RichTextAlertMessage lAlert = new RichTextAlertMessage(lMessage.asString(), getTitle(lContextUElem), mDisplayStyle,
+      RichTextAlertMessage lAlert = new RichTextAlertMessage(lMessage.asString(), getTitle(lContextUElem), mAlertType,
                                                              getClosePrompt(lContextUElem), getCSSClass(lContextUElem), lMessage.isEscapingRequired());
       pRequestContext.addXDoResult(lAlert);
     }
@@ -186,7 +185,7 @@ extends BuiltInCommand {
     }
 
     BufferAlertMessage lMessage = new BufferAlertMessage(lBufferName, lAttachDOM.getFoxId(), getTitle(lContextUElem),
-                                                         mDisplayStyle, getClosePrompt(lContextUElem), getCSSClass(lContextUElem));
+                                                         mAlertType, getClosePrompt(lContextUElem), getCSSClass(lContextUElem));
     pRequestContext.addXDoResult(lMessage);
 
   }
@@ -238,7 +237,7 @@ extends BuiltInCommand {
 
     @Override
     public Command create(Mod pModule, DOM pMarkupDOM) throws ExDoSyntax {
-      return new AlertCommand(pMarkupDOM);
+      return new AlertCommand(pMarkupDOM, pModule);
     }
 
     @Override

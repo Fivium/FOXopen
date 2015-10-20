@@ -133,6 +133,11 @@ public interface SerialisationContext {
    */
   int getClientVisibilityRuleCount();
 
-  //TODO PN - javadoc
+  /**
+   * Resolves a buffer by name and evaluates it. If the buffer name is invalid, an exception is thrown.
+   * @param pBufferName Name of buffer to evaluate.
+   * @param pBufferAttach Attach point for buffer evaluation.
+   * @return The evaluated buffer.
+   */
   EvaluatedBufferPresentationNode evaluateBuffer(String pBufferName, DOM pBufferAttach);
 }

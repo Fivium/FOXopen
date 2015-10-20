@@ -1,13 +1,10 @@
 package net.foxopen.fox.module.parsetree.evaluatedpresentationnode;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.module.NotificationDisplayType;
 import net.foxopen.fox.module.parsetree.EvaluatedParseTree;
 import net.foxopen.fox.module.parsetree.presentationnode.ContainerPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.InfoBoxPresentationNode;
@@ -20,8 +17,7 @@ import net.foxopen.fox.module.serialiser.components.ComponentBuilderType;
  * Evaluate an fm:info-box for serialising later
  */
 public class EvaluatedInfoBoxPresentationNode extends EvaluatedPresentationNode<PresentationNode> {
-  private static final List<String> VALID_INFO_BOX_TYPES = new ArrayList<>(Arrays.asList("info", "success", "warning", "danger"));
-  private final String mInfoBoxType;
+  private final NotificationDisplayType mInfoBoxType;
   private final String mStyles;
   private final String mClasses;
   private final String mTitleLevel;
@@ -76,11 +72,7 @@ public class EvaluatedInfoBoxPresentationNode extends EvaluatedPresentationNode<
       throw new ExInternal("Error while parsing XPaths on fm:info-box attributes", e);
     }
 
-    if (!VALID_INFO_BOX_TYPES.contains(lInfoBoxType)) {
-      throw new ExInternal("Unknown info box type: " + lInfoBoxType);
-    }
-
-    mInfoBoxType = lInfoBoxType;
+    mInfoBoxType = NotificationDisplayType.fromExternalString(lInfoBoxType);
     mStyles = lStyles;
     mClasses = lClasses;
     mTitleLevel = lTitleLevel;
@@ -99,7 +91,7 @@ public class EvaluatedInfoBoxPresentationNode extends EvaluatedPresentationNode<
     return ComponentBuilderType.INFO_BOX;
   }
 
-  public String getInfoBoxType() {
+  public NotificationDisplayType getInfoBoxType() {
     return mInfoBoxType;
   }
 

@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
-  attributeFormDefault="unqualified"
-  version="$Header$">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" version="$Header$">
   <xs:simpleType name="entered-string">
     <xs:restriction base="xs:string">
       <xs:minLength value="1"/>
@@ -9,6 +7,47 @@
   </xs:simpleType>
   <xs:simpleType name="fox-xpath-type">
     <xs:restriction base="xs:string"/>
+  </xs:simpleType>
+  <xs:simpleType name="fox-optional-xpath-string">
+    <xs:annotation>
+      <xs:documentation>Optionally blank string or XPath that resolves to a string</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="fox-xpath-type">
+      <xs:minLength value="0"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="fox-xpath-string">
+    <xs:annotation>
+      <xs:documentation>String or XPath that resolves to a string</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="fox-xpath-type">
+      <xs:minLength value="1"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="fox-xpath-number">
+    <xs:annotation>
+      <xs:documentation>Number or XPath that resolves to a number</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="fox-xpath-type">
+      <xs:pattern value="[+-.0-9]+"/>
+      <xs:pattern value="number\(.+\)"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="fox-xpath-boolean">
+    <xs:annotation>
+      <xs:documentation>XPath that resolves to a boolean value</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="fox-xpath-type">
+      <xs:minLength value="1"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="fox-xpath-dom">
+    <xs:annotation>
+      <xs:documentation>Number or XPath that resolves to a number</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="fox-xpath-type">
+      <xs:minLength value="1"/>
+    </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="yn-flag">
     <xs:annotation>
@@ -21,11 +60,39 @@
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="display-mode-enum">
-    <xs:restriction base="entered-string">
+    <xs:restriction base="xs:string">
         <xs:enumeration value="always"/>
         <xs:enumeration value="edit"/>
         <xs:enumeration value="ro"/>
         <xs:enumeration value="never"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="layout-direction">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="north"/>
+      <xs:enumeration value="east"/>
+      <xs:enumeration value="south"/>
+      <xs:enumeration value="west"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="layout-direction-prompt">
+    <xs:restriction base="layout-direction">
+      <xs:enumeration value="north"/>
+      <xs:enumeration value="west"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="layout-direction-description">
+    <xs:restriction base="layout-direction">
+      <xs:enumeration value="north"/>
+      <xs:enumeration value="south"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="notification-display-type">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="info"/>
+      <xs:enumeration value="success"/>
+      <xs:enumeration value="warning"/>
+      <xs:enumeration value="danger"/>
     </xs:restriction>
   </xs:simpleType>
 </xs:schema>

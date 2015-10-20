@@ -4,15 +4,52 @@ FOXalert = {
 
   alertCount: 0,
 
+  /**
+   * Gets a jQuery of HTML for an alert close button.
+   * @param closePrompt
+   * @returns {jQuery}
+   * @private
+   */
   _getAlertCloseControl: function(closePrompt) {
     return $('<ul class="modal-popover-actions"><li><button class="primary-button alert-dismiss" onclick="FOXmodal.dismissTopModal(); return false;">' + closePrompt + '</button></li></ul>');
   },
 
+  /**
+   * Gets an object containing styling properties to apply to an alert modal.
+   * @param alertStyle Alert style enum.
+   * @returns {{cssClass: string, icon: string}}
+   * @private
+   */
+  _getAlertStyleData: function(alertStyle) {
+
+    var result = {cssClass: 'modal-alert-' + alertStyle, icon: ''};
+
+    switch (alertStyle) {
+      case 'info':
+        result.icon = 'icon-info'; break;
+      case 'success':
+        result.icon = 'icon-checkmark'; break;
+      case 'warning':
+        result.icon = 'icon-warning'; break;
+      case 'danger':
+        result.icon = 'icon-cross'; break;
+    }
+
+    return result;
+  },
+
+  /**
+   * Displays an alert using FOXmodal.
+   * @param $alertContent Alert content locator.
+   * @param alertProperties Modal properties.
+   * @param callback Callback to run on alert close.
+   * @private
+   */
   _displayAlert: function($alertContent, alertProperties, callback) {
 
     alertProperties = $.extend({
       size: 'small',
-      cssClass: 'modal-alert-info',
+      alertStyle: 'info',
       title: 'Alert',
       ariaRole: 'alertdialog',
       escapeAllowed: true,
@@ -21,27 +58,53 @@ FOXalert = {
 
     var alertKey = 'FOXalert' + (this.alertCount++);
 
+    //Add close controls to the content container
     $alertContent.append(this._getAlertCloseControl(alertProperties.closePrompt));
 
+    //Resolve alertStyle enum to icon/CSS classes
+    var styleData = this._getAlertStyleData(alertProperties.alertStyle);
+
+    alertProperties.cssClass = (alertProperties.cssClass ? alertProperties.cssClass + ' ' : '') + styleData.cssClass;
+    alertProperties.icon = styleData.icon;
+
+    //Show the modal
     FOXmodal.displayModal($alertContent, alertKey, alertProperties, callback);
 
     //Default focus on close action
     FOXmodal.getCurrentModalContainer().find('.alert-dismiss').focus();
   },
 
-
+  /**
+   * Displays a text-based alert.
+   * @param alertText Alert text, which may contain HTML tags.
+   * @param alertProperties Additional properties for the alert.
+   * @param callback Callback to run on alert close.
+   */
   textAlert: function(alertText, alertProperties, callback) {
     this._displayAlert($('<div><div class="modal-popover-icon"></div><div class="modal-popover-text">' + alertText +'</div></div>'), alertProperties, callback);
   },
 
+  /**
+   * Displays an alert with the contents of the given buffer.
+   * @param $buffer Buffer locator.
+   * @param alertProperties Additional properties for the alert.
+   * @param callback Callback to run on alert close.
+   */
   bufferAlert: function($buffer, alertProperties, callback) {
     this._displayAlert($buffer, alertProperties, callback);
   },
 
+  /**
+   * Enqueues an alert for display when the page onLoad event fires.
+   * @param alertProperties All alert properties, including message and alertType.
+   */
   enqueueOnLoadAlert: function(alertProperties) {
     this.onLoadAlertQueue.push(alertProperties);
   },
 
+  /**
+   * Displays the next alert in the onLoad queue, if one exists.
+   */
   processNextOnLoadAlert: function() {
 
     var alertProperties = this.onLoadAlertQueue.shift();
@@ -50,9 +113,12 @@ FOXalert = {
       var that = this;
       var callback = function() { that.processNextOnLoadAlert(); };
 
+      //Note callback chaining so only one alert is displayed at a time
+
       switch (alertProperties.alertType) {
         case 'native':
-          alert(alertProperties.message);
+          //Convert newline strings to actual newlines (legacy behaviour migrated from HTML generator escaping logic)
+          alert(alertProperties.message.replace(/\\n/g,'\n'));
           this.processNextOnLoadAlert();
           break;
         case 'text':

@@ -1,8 +1,5 @@
 package net.foxopen.fox.module.serialiser.components.html;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedInfoBoxPresentationNode;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedPresentationNode;
@@ -11,6 +8,9 @@ import net.foxopen.fox.module.serialiser.TempSerialiser;
 import net.foxopen.fox.module.serialiser.components.ComponentBuilder;
 import net.foxopen.fox.module.serialiser.fragmentbuilder.MustacheFragmentBuilder;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class InfoBoxComponentBuilder extends ComponentBuilder<HTMLSerialiser, EvaluatedPresentationNode> {
@@ -28,7 +28,7 @@ public class InfoBoxComponentBuilder extends ComponentBuilder<HTMLSerialiser, Ev
     EvaluatedInfoBoxPresentationNode lEvalNode = (EvaluatedInfoBoxPresentationNode)pEvalNode;
 
     Map<String, Object> lTemplateVars = new HashMap<>();
-    lTemplateVars.put("Class", "info-box info-box-" + lEvalNode.getInfoBoxType() + (!XFUtil.isNull(lEvalNode.getClasses()) ? " " + lEvalNode.getClasses() : ""));
+    lTemplateVars.put("Class", "info-box info-box-" + lEvalNode.getInfoBoxType().toString().toLowerCase() + (!XFUtil.isNull(lEvalNode.getClasses()) ? " " + lEvalNode.getClasses() : ""));
     lTemplateVars.put("Style", lEvalNode.getStyles());
     lTemplateVars.put("Open", true);
 

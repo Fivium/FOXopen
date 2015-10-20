@@ -44,7 +44,7 @@ public class InfoBoxComponentBuilder extends ComponentBuilder<PDFSerialiser, Eva
   @Override
   public void buildComponent(SerialisationContext pSerialisationContext, PDFSerialiser pSerialiser, EvaluatedInfoBoxPresentationNode pEvalNode) {
     ElementAttributes lElementAttributes = pSerialiser.getInheritedElementAttributes();
-    List<String> lClasses = Arrays.asList(INFO_BOX_CLASS, INFO_BOX_TYPE_CLASS_PREFIX + pEvalNode.getInfoBoxType(), pEvalNode.getClasses());
+    List<String> lClasses = Arrays.asList(INFO_BOX_CLASS, INFO_BOX_TYPE_CLASS_PREFIX + pEvalNode.getInfoBoxType().toString().toLowerCase(), pEvalNode.getClasses());
     pSerialiser.getCSSResolver().resolveStyles(lElementAttributes, INFO_BOX_TAG, lClasses, Collections.singletonList(pEvalNode.getStyles()));
     pSerialiser.pushElementAttributes(lElementAttributes);
 

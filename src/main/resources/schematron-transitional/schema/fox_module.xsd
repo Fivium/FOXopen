@@ -1472,11 +1472,64 @@ If the fm:default element is reached, then its contents are evaluated.
         </xs:element>
         <xs:element name="alert">
           <xs:annotation>
-            <xs:documentation>Creates a javascript dialog box on the screen next time the page
-              loads.</xs:documentation>
+            <xs:documentation>Creates a dialog box on the screen next time the page loads.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
-            <xs:attribute name="message" type="xs:string" use="required"/>
+            <xs:attribute name="message" type="fox:fox-xpath-string" use="optional">
+              <xs:annotation>
+                <xs:documentation>Alert message to display. Mutually exclusive with the 'buffer' attribute. Occurrences of '\n' in the message text are converted to line breaks. If the alert is displayed as a popover, the alert text may contain HTML tags.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="buffer" type="fox:fox-xpath-string">
+              <xs:annotation>
+                <xs:documentation>Name of a buffer containing complex content to display as the alert message. Mutually exclusive with the 'message' attribute. Buffer-based alerts can only be displayed as a popover. </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="bufferAttach" type="fox:fox-xpath-dom">
+              <xs:annotation>
+                <xs:documentation>XPath resolving exactly one element to be used as the buffer attach point when an alert buffer is being evaluated. The default is the current state :{attach} point.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="display" default="native">
+              <xs:annotation>
+                <xs:documentation>Controls how a text-based alert is displayed. 'native' uses the browser's native alert control. 'popover' displays the alert content as a modal div, which may contain arbitrary HTML. The default is configured by the module-level display attr 'defaultAlertDisplay', which is 'popover' if undefined.</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="native"/>
+                  <xs:enumeration value="popover"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="alertType" default="normal">
+              <xs:annotation>
+                <xs:documentation>Built-in styling rules to apply to a 'popover' based alert.</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:union memberTypes="fox:notification-display-type">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:enumeration value="normal"/>
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:union>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="title" type="fox:fox-optional-xpath-string">
+              <xs:annotation>
+                <xs:documentation>Title for a popover alert.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="class" type="fox:fox-xpath-string">
+              <xs:annotation>
+                <xs:documentation>Additional CSS class(es) to add to the modal popover container for the alert.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="closePrompt" type="fox:fox-xpath-string">
+              <xs:annotation>
+                <xs:documentation>Prompt for the close button on a popover alert. The default is 'OK'.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
         <xs:element name="assert">
@@ -3920,16 +3973,7 @@ If the fm:default element is reached, then its contents are evaluated.
               </xs:documentation>
             </xs:annotation>
             <xs:simpleType>
-              <xs:union memberTypes="fm:fox-xpath-type">
-                <xs:simpleType>
-                  <xs:restriction base="xs:string">
-                    <xs:enumeration value="info"/>
-                    <xs:enumeration value="success"/>
-                    <xs:enumeration value="warning"/>
-                    <xs:enumeration value="danger"/>
-                  </xs:restriction>
-                </xs:simpleType>
-              </xs:union>
+              <xs:union memberTypes="fm:fox-xpath-type fox:notification-display-type"/>
             </xs:simpleType>
           </xs:attribute>
           <xs:attribute name="class" type="fm:fox-xpath-type" use="optional"/>

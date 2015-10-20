@@ -76,7 +76,7 @@ var FOXmodal = {
 
   /**
    * Displays a modal popover on the screen, which blocks clicks to underlying content.
-   * @param {jQuery} $modalContent jQuery for the container of the popver content. The contents of this target will be copied into a new modal div.
+   * @param {jQuery} $modalContent jQuery for the container of the popover content. The contents of this target will be copied into a new modal div.
    * @param {string} modalKey Key to identify the new modal, used to prevent the same modal being displayed repeatedly.
    * @param {object} modalOptions Additional options for the modal - title, size, etc.
    * @param {function} closeCallback Callback function to run when the modal is closed.
@@ -97,7 +97,8 @@ var FOXmodal = {
       size: 'regular',
       dismissAllowed: false,
       escapeAllowed: false,
-      ariaRole: 'dialog'
+      ariaRole: 'dialog',
+      icon: ''
     }, modalOptions);
 
     //Note: until we add full Mustache support this must be kept in sync with ModalPopover.mustache

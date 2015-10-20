@@ -210,8 +210,7 @@ var FOXjs = {
     var cookieId = "backWarningGiven_" + document.mainForm.thread_id.value;
     this.setPageExpired(true);
     if (!FOXjs.getCookie(cookieId)) {
-      FOXalert.enqueueOnLoadAlert({"alertType":"text","cssClass":"modal-alert-warning","icon":"icon-warning","title":"Page expired","message":"<p>To avoid losing data, please don't use your browser's Back button.</p><p>You can read or copy information from this page, but you'll need to go forward again to continue.</p>","closePrompt":"OK"});
-      FOXalert.processNextOnLoadAlert();
+      FOXalert.textAlert("<p>To avoid losing data, please don't use your browser's Back button.</p><p>You can read or copy information from this page, but you'll need to go forward again to continue.</p>", {"alertStyle": "warning", "title":"Page expired"});
       // warn only on first back
       FOXjs.setCookie(cookieId, "true", 1, null);
     }

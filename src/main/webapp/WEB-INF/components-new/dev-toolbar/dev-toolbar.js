@@ -49,7 +49,7 @@ var DevToolbar = {
 
     //Handler for showing context/variable info banner
     $('#dev-toolbar-contexts').click(function (e){
-      FOXmodal.displayModal($('#contextLabelData'), 'devtoolbarContexts', {size: 'large', title: 'XPath Info', dismissAllowed: true});
+      FOXmodal.displayModal($('#contextLabelData'), 'devtoolbarContexts', {size: 'large', title: 'XPath Info', dismissAllowed: true, escapeAllowed: true});
       e.preventDefault();
     });
 
@@ -393,7 +393,7 @@ var DevToolbar = {
     $('#dev-toolbar-messages').append(countStrings.join(', '));
 
     $('#dev-toolbar-messages').click(function(e) {
-      FOXmodal.displayModal($('#dev-toolbar-messages-tooltip'), 'devtoolbarMessages', {size: 'large', title: 'Developer Messages', dismissAllowed: true});
+      FOXmodal.displayModal($('#dev-toolbar-messages-tooltip'), 'devtoolbarMessages', {size: 'large', title: 'Developer Messages', dismissAllowed: true, escapeAllowed: true});
       e.preventDefault();
     });
 
@@ -443,7 +443,7 @@ var DevToolbar = {
 
   setDbmsOutputInfo: function(pInfo) {
     $('#dbmsOutputInfo').click(function(e) {
-      FOXmodal.displayModal(pInfo, 'devtoolbarDbmsOutput', {size: 'large', title: 'DBMS_OUTPUT', dismissAllowed: true});
+      FOXmodal.displayModal(pInfo, 'devtoolbarDbmsOutput', {size: 'large', title: 'DBMS_OUTPUT', dismissAllowed: true, escapeAllowed: true});
       e.preventDefault();
     });
   },
