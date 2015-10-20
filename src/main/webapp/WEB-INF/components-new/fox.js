@@ -514,7 +514,7 @@ var FOXjs = {
   /**
    * Move focus to an element with an optional Y offset
    * @param {string} externalFoxId Value of a data-xfid on one or more elements
-   * @param {int} yOffset Vertical offset, should you want the page to show information about/blow the targeted elements
+   * @param {int} yOffset Vertical offset, should you want the page to show information above/below the targeted elements
    */
   focus: function(externalFoxId, yOffset) {
     var lFocusTargets = $("*[data-xfid=" + externalFoxId + "]");

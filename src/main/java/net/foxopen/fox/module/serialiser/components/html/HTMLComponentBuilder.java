@@ -174,14 +174,16 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
   private void insertJavascript(HTMLSerialiser pSerialiser, SerialisationContext pSerialisationContext) {
     // TODO - NP - Dose of mustache needed
     pSerialiser.append("<script type=\"text/javascript\">");
-    pSerialiser.append("$(document).ready( function(){ FOXjs.init(function(){");
     // If init succeeds run this block
+    pSerialiser.append("$(document).ready( function(){ FOXjs.init(function(){");
+    //Focus JS before alerts so alert JS can re-focus to focused element on dismiss
+    insertFocusJS(pSerialiser, pSerialisationContext);
     HTMLAlertSerialiser.insertAlerts(pSerialiser, pSerialisationContext);
     insertModelessPopups(pSerialiser, pSerialisationContext);
     insertDownloadLinks(pSerialiser, pSerialisationContext);
     insertPopupLinks(pSerialiser, pSerialisationContext);
-    insertFocusJS(pSerialiser, pSerialisationContext);
     insertImplicatedDataDefinitions(pSerialiser, pSerialisationContext);
+
     for (String lJS : pSerialisationContext.getConditionalLoadJavascript()) {
       pSerialiser.append(lJS);
       pSerialiser.append("\n");

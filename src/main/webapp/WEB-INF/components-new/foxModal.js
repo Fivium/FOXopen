@@ -57,10 +57,11 @@ var FOXmodal = {
    * @param {jQuery} $modalContainer Div containing the rendered modal.
    * @param {string} modalKey Key for the new modal.
    * @param {boolean} escapeAllowed True if an 'escape' keypress can close the modal.
+   * @param {HTMLElement} restoreFocusTo DOM element to restore focus to on modal close.
    * @param {function} closeCallback Callback function to run when the modal is closed.
    */
-  _createDisplayedModal: function($modalContainer, modalKey, escapeAllowed, closeCallback) {
-    this.modalStack.push(new DisplayedModal($modalContainer, modalKey, escapeAllowed, closeCallback));
+  _createDisplayedModal: function($modalContainer, modalKey, escapeAllowed, restoreFocusTo, closeCallback) {
+    this.modalStack.push(new DisplayedModal($modalContainer, modalKey, escapeAllowed, restoreFocusTo, closeCallback));
     if (this.modalStack.length == 1) {
       $('body').addClass('contains-popover');
       this._registerKeyListeners();
@@ -133,7 +134,7 @@ var FOXmodal = {
     }
 
     //Construct tracker object and add to stack
-    this._createDisplayedModal($modalContainer, modalKey, modalOptions.escapeAllowed, closeCallback);
+    this._createDisplayedModal($modalContainer, modalKey, modalOptions.escapeAllowed, document.activeElement, closeCallback);
   },
 
   /**
@@ -156,9 +157,17 @@ var FOXmodal = {
       this._topModal().$containerDiv.removeClass('contains-popover');
     }
 
-    //If we popped a DisplayedModal, and it has a callback defined, run it now
-    if(topModal && topModal.closeCallback) {
-      topModal.closeCallback();
+    //If we popped a DisplayedModal, run close actions
+    if(topModal) {
+      //Restore focus to whatever had it before
+      if(topModal.restoreFocusTo) {
+        $(topModal.restoreFocusTo).focus();
+      }
+
+      //Run close callback function
+      if(topModal.closeCallback) {
+        topModal.closeCallback();
+      }
     }
   },
 
@@ -189,15 +198,17 @@ var FOXmodal = {
  * @param {jQuery} containerDiv element for the rendered modal
  * @param {string} modalKey key for the new modal.
  * @param {boolean} escapeAllowed True if an 'escape' keypress can close the modal.
+ * @param {HTMLElement} restoreFocusTo DOM element to restore focus to on modal close.
  * @param {function} closeCallback Callback function to run when this modal is closed.
  * @constructor
  */
-function DisplayedModal(containerDiv, modalKey, escapeAllowed, closeCallback) {
+function DisplayedModal(containerDiv, modalKey, escapeAllowed, restoreFocusTo, closeCallback) {
 
   this.$containerDiv = containerDiv;
   this.modalKey = modalKey;
   this.isInternal = modalKey == 'engine-internal';
   this.escapeAllowed = escapeAllowed;
+  this.restoreFocusTo = restoreFocusTo;
   this.closeCallback = closeCallback;
 
   if (this.isInternal && this.$containerDiv.data('initial-scroll-position')) {
@@ -210,6 +221,7 @@ DisplayedModal.prototype = {
   modalKey: null,
   isInternal: false,
   escapeAllowed: false,
+  restoreFocusTo: null,
   closeCallback: null
 };
 
