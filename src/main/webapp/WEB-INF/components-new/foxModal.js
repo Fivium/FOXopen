@@ -80,7 +80,8 @@ var FOXmodal = {
    * @param {jQuery} $modalContent jQuery for the container of the popover content. The contents of this target will be copied into a new modal div.
    * @param {string} modalKey Key to identify the new modal, used to prevent the same modal being displayed repeatedly.
    * @param {object} modalOptions Additional options for the modal - title, size, etc.
-   * @param {function} closeCallback Callback function to run when the modal is closed.
+   * @param {function} closeCallback Callback function to run when the modal is closed. The callback may take an object
+   * parameter to be passed from dismissTopModal().
    */
   displayModal: function($modalContent, modalKey, modalOptions, closeCallback) {
 
@@ -139,8 +140,9 @@ var FOXmodal = {
 
   /**
    * Dismisses (closes) the top modal.
+   * @param {Object} [callbackArgs] Arguments to pass to the callback function.
    */
-  dismissTopModal: function() {
+  dismissTopModal: function(callbackArgs) {
 
     var topModal =  this.modalStack.pop();
 
@@ -166,7 +168,7 @@ var FOXmodal = {
 
       //Run close callback function
       if(topModal.closeCallback) {
-        topModal.closeCallback();
+        topModal.closeCallback(callbackArgs);
       }
     }
   },

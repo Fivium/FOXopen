@@ -344,29 +344,28 @@ var FOXjs = {
       return; // Can't run an action without reference
     }
 
-    if (settings.confirm !== null && !confirm(settings.confirm)) {
-      return; // Can't run an action if a confirm is defined and not okay'd by the user
-    }
-
+    var that = this;
     if (this.isExpired()) {
       // If the page has expired notify them
-      var goForward = confirm("Warning: this page has expired.\n\nIt looks like you have navigated back to this page using the browser back button. You will need to navigate forwards to the most recent page before you can activate any links or buttons.\n\nClick OK to be taken back to your current workflow position.\nClick CANCEL to remain on this expired page.");
-      // A bit ugly, but worst case scenario is that we go nowhere and user has to use browser forward button
-      // If problematic, could add a form POST timeout to make sure users go somewhere
-      if (goForward) {
-        // IE, Opera will go to top of history stack with this
-        // assuming < 999 pages navigated
-        for (var b = 999; b > 0; b--) {
-          window.history.go(b);
-        }
+      var goForwardConfirm = "<p>It looks like you have navigated back to this page using the browser back button.</p> " +
+        "<p>You will need to go forward to the most recent page before you can click any links or buttons.</p>" +
+        "<p>Click <strong>OK</strong> to be taken to your most recent page.</p>" +
+        "<p>Click <strong>Cancel</strong> to remain on this expired page.</p>";
 
-        // Firefox prefers this instead
-        for (var f = 1; f <= 999; f++) {
-          window.history.go(f);
-        }
-      }
+      FOXalert.textConfirm(goForwardConfirm, {title: 'Page expired', alertStyle: 'warning'}, function() { that._expiredPageGoForward(settings); }, null);
     }
-    else if (this.gBlockSubmitReason !== null) {
+    else if (settings.confirm) {
+      // Can't run an action if a confirm is defined and not okay'd by the user
+      FOXalert.textConfirm(settings.confirm, {}, function() { that._runAction(settings); }, null);
+    }
+    else {
+      this._runAction(settings);
+    }
+  },
+
+  _runAction : function(settings) {
+
+    if (this.gBlockSubmitReason !== null) {
       alert(this.gBlockSubmitReason);
     }
     else if (!this.gPageDisabled) {
@@ -395,6 +394,22 @@ var FOXjs = {
 
       // Show "loading/updating"
       this.showUpdating();
+    }
+  },
+
+  _expiredPageGoForward : function() {
+    // A bit ugly, but worst case scenario is that we go nowhere and user has to use browser forward button
+    // If problematic, could add a form POST timeout to make sure users go somewhere
+
+    // IE, Opera will go to top of history stack with this
+    // assuming < 999 pages navigated
+    for (var b = 999; b > 0; b--) {
+      window.history.go(b);
+    }
+
+    // Firefox prefers this instead
+    for (var f = 1; f <= 999; f++) {
+      window.history.go(f);
     }
   },
 

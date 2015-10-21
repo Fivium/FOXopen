@@ -15,6 +15,17 @@ FOXalert = {
   },
 
   /**
+   * Gets a jQuery of HTML for an confirm "OK" and "Cancel" button.
+   * @returns {jQuery}
+   * @private
+   */
+  _getConfirmCloseControl: function() {
+    return $('<ul class="modal-popover-actions">' +
+      '<li><button class="primary-button alert-dismiss" onclick="FOXmodal.dismissTopModal({confirmResult: true}); return false;">OK</button></li>' +
+      '<li><button class="link-button" onclick="FOXmodal.dismissTopModal({confirmResult: false}); return false;">Cancel</button></li></ul>');
+  },
+
+  /**
    * Gets an object containing styling properties to apply to an alert modal.
    * @param alertStyle Alert style enum.
    * @returns {{cssClass: string, icon: string}}
@@ -33,6 +44,8 @@ FOXalert = {
         result.icon = 'icon-warning'; break;
       case 'danger':
         result.icon = 'icon-cross'; break;
+      case 'confirm':
+        result.icon = 'icon-question'; break;
     }
 
     return result;
@@ -49,17 +62,23 @@ FOXalert = {
 
     alertProperties = $.extend({
       size: 'small',
-      alertStyle: 'info',
+      alertStyle: 'normal',
       title: 'Alert',
       ariaRole: 'alertdialog',
       escapeAllowed: true,
-      closePrompt: 'OK'
+      closePrompt: 'OK',
+      isConfirm: false
     }, alertProperties);
 
     var alertKey = 'FOXalert' + (this.alertCount++);
 
     //Add close controls to the content container
-    $alertContent.append(this._getAlertCloseControl(alertProperties.closePrompt));
+    if (alertProperties.isConfirm) {
+      $alertContent.append(this._getConfirmCloseControl());
+    }
+    else {
+      $alertContent.append(this._getAlertCloseControl(alertProperties.closePrompt));
+    }
 
     //Resolve alertStyle enum to icon/CSS classes
     var styleData = this._getAlertStyleData(alertProperties.alertStyle);
@@ -92,6 +111,29 @@ FOXalert = {
    */
   bufferAlert: function($buffer, alertProperties, callback) {
     this._displayAlert($buffer, alertProperties, callback);
+  },
+
+  /**
+   * Displays a text-based confirm dialog.
+   * @param confirmText Text of the confirm message.
+   * @param confirmProperties Properties to pass to alert/modal functions.
+   * @param successCallback Callback to run if the user clicks "OK".
+   * @param cancelCallback Callback to run if the user clicks "Cancel".
+   */
+  textConfirm: function(confirmText, confirmProperties, successCallback, cancelCallback) {
+
+    var callback = function(callbackResult) {
+      if (callbackResult && callbackResult.confirmResult && successCallback) {
+        successCallback();
+      }
+      else if (callbackResult && !callbackResult.confirmResult && cancelCallback) {
+        cancelCallback();
+      }
+    };
+
+    confirmProperties = $.extend({isConfirm: true, title: '', alertStyle: 'confirm'}, confirmProperties);
+
+    this.textAlert(confirmText, confirmProperties, callback);
   },
 
   /**

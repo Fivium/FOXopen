@@ -116,7 +116,7 @@ public class HTMLAlertSerialiser {
 
     String lMessage = pRichTextAlertMessage.getMessage();
 
-    lMessage = lMessage.replaceAll("\\\\n", "##SAFE_ESCAPE_LINEBREAK##");
+    lMessage = lMessage.replace("\\n", "##SAFE_ESCAPE_LINEBREAK##");
 
     //Only escape HTML if required - otherwise, HTML can be passed through direct from module markup
     if(pRichTextAlertMessage.isEscapingRequired()) {
@@ -124,7 +124,7 @@ public class HTMLAlertSerialiser {
     }
 
     //Support conversion of "\n" strings into line breaks
-    lMessage = lMessage.replaceAll("##SAFE_ESCAPE_LINEBREAK##", "<br>");
+    lMessage = lMessage.replace("##SAFE_ESCAPE_LINEBREAK##", "<br>");
 
     escapeTitle(lMessageProperties);
 

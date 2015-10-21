@@ -31,7 +31,7 @@ implements AlertMessage {
   public JSONObject getJSONPropertyObject() {
     JSONObject lProperties = new JSONObject();
     lProperties.put(TITLE_JSON_PROPERTY_NAME, mTitle);
-    lProperties.put("alertStyle", mDisplayType == null ? "default" : mDisplayType.toString().toLowerCase());
+    lProperties.put("alertStyle", mDisplayType == null ? "normal" : mDisplayType.toString().toLowerCase());
     lProperties.put("cssClass", mCSSClass);
     lProperties.put("closePrompt", mClosePrompt);
 

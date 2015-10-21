@@ -94,11 +94,17 @@ extends WidgetBuilder<HTMLSerialiser, EN>  {
     JSONObject lActionJSON = new JSONObject();
     lActionJSON.put("ref", pActionName);
     lActionJSON.put("ctxt", pContextRef);
+
+    //Confirm text will be JS escaped by JSON serialiser - to support old style newlines we must convert to \n strings to br tags
+    //All other HTML must be escaped here as confirms are not currently designed to support formatting
     if(XFUtil.exists(pOptionalConfirm)) {
-      lActionJSON.put("confirm", pOptionalConfirm.replaceAll("\\\\n", "##SAFE_ESCAPE_LINEBREAK##"));
+      pOptionalConfirm = pOptionalConfirm.replace("\\n", "##SAFE_ESCAPE_LINEBREAK##");
+      pOptionalConfirm = StringEscapeUtils.escapeHtml4(pOptionalConfirm);
+      pOptionalConfirm = pOptionalConfirm.replace("##SAFE_ESCAPE_LINEBREAK##", "<br>");
+      lActionJSON.put("confirm", pOptionalConfirm);
     }
 
-    return lActionJSON.toString().replaceAll("##SAFE_ESCAPE_LINEBREAK##", "\\\\n");
+    return lActionJSON.toString();
   }
 
   private void addActionTemplateVars(SerialisationContext pSerialisationContext, EN pEvalNode, Map<String, Object> pTemplateVars) {
