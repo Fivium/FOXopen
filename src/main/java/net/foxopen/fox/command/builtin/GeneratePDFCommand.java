@@ -40,6 +40,7 @@ public class GeneratePDFCommand extends BuiltInCommand {
   private final GeneratorDestination mGeneratorDestination;
   private final String mBufferName;
   private final boolean mIsDebug;
+  private final boolean mIsIgnoreUnsupported;
 
   private GeneratePDFCommand(DOM pMarkupDOM) {
     super(pMarkupDOM);
@@ -47,6 +48,7 @@ public class GeneratePDFCommand extends BuiltInCommand {
                                                                                               DEFAULT_CONTENT_TYPE, GENERATE_METHOD_VALUES);
     mBufferName = pMarkupDOM.getAttrOrNull("buffer");
     mIsDebug = Boolean.valueOf(pMarkupDOM.getAttrOrNull("debug"));
+    mIsIgnoreUnsupported = Boolean.valueOf(pMarkupDOM.getAttrOrNull("ignore-unsupported"));
 
     if (XFUtil.isNull(mBufferName)) {
       throw new ExInternal("Required attribute 'buffer' not provided to the " + COMMAND_NAME + " command");
@@ -58,7 +60,7 @@ public class GeneratePDFCommand extends BuiltInCommand {
     mGeneratorDestination.generateToOutputStream(pRequestContext, pOutputStream -> {
       EvaluatedParseTree lEPT = new EvaluatedParseTree(pRequestContext, FieldSet.createNewFieldSet(pRequestContext),
                                                        Collections.emptyList(), mBufferName);
-      PDFSerialiser lOutputSerialiser = new PDFSerialiser(lEPT, mIsDebug);
+      PDFSerialiser lOutputSerialiser = new PDFSerialiser(lEPT, mIsDebug, mIsIgnoreUnsupported);
       lOutputSerialiser.serialise(pOutputStream);
     });
 

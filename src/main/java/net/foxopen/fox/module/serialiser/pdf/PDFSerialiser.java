@@ -30,6 +30,7 @@ import net.foxopen.fox.module.serialiser.components.pdf.GridRowComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.pdf.HTMLComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.pdf.HeaderComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.pdf.HeadingComponentBuilder;
+import net.foxopen.fox.module.serialiser.components.pdf.IgnoreUnimplementedComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.pdf.InfoBoxComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.pdf.LastPageNumberComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.pdf.SetOutComponentBuilder;
@@ -56,6 +57,7 @@ import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 import net.foxopen.fox.module.serialiser.widgets.pdf.CellmateWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.pdf.DateWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.pdf.FormWidgetBuilder;
+import net.foxopen.fox.module.serialiser.widgets.pdf.IgnoreUnimplementedWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.pdf.InputWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.pdf.LinkWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.pdf.ListWidgetBuilder;
@@ -124,6 +126,7 @@ public class PDFSerialiser implements OutputSerialiser {
 
   private final EvaluatedParseTree mEvalParseTree;
   private final boolean mIsDebug;
+  private final boolean mIsIgnoreUnsupported;
   private final Document mDocument = new Document();
   private final PageManager mPageManager = new PageManager(mDocument);
   private final FontManager mFontManager = new FontManager();
@@ -131,19 +134,33 @@ public class PDFSerialiser implements OutputSerialiser {
   private final ElementContainerManager mElementContainerManager = new ElementContainerManager();
   private final CSSResolver mCSSResolver;
   private final List<SerialisationObserver> mSerialisationObservers = new LinkedList<>();
+  private final WidgetBuilder<PDFSerialiser, ? extends EvaluatedNode> mUnimplementedWidgetBuilder;
+  private final ComponentBuilder<PDFSerialiser, ? extends EvaluatedPresentationNode> mUnimplementedComponentBuilder;
 
   /**
    * Create a serialiser for the provided evaluated parse tree
    * @param pEvalParseTree The parse tree to process during serialisation
    * @param pIsDebug Whether or not the serialiser should serialise PDFs in debug mode
+   * @param pIsIgnoreUnsupported If true unsupported components and widgets are ignored, else an exception is thrown
+   *                            when they are encountered
    */
-  public PDFSerialiser(EvaluatedParseTree pEvalParseTree, boolean pIsDebug) {
+  public PDFSerialiser(EvaluatedParseTree pEvalParseTree, boolean pIsDebug, boolean pIsIgnoreUnsupported) {
     mEvalParseTree = pEvalParseTree;
     mIsDebug = pIsDebug;
+    mIsIgnoreUnsupported = pIsIgnoreUnsupported;
+
+    if (mIsIgnoreUnsupported) {
+      mUnimplementedWidgetBuilder = IgnoreUnimplementedWidgetBuilder.getInstance();
+      mUnimplementedComponentBuilder = IgnoreUnimplementedComponentBuilder.getInstance();
+    }
+    else {
+      mUnimplementedWidgetBuilder = UnimplementedWidgetBuilder.getInstance();
+      mUnimplementedComponentBuilder = UnimplementedComponentBuilder.getInstance();
+    }
 
     // Create a CSS resolver after loading css files from the module css-list
-    CSSFileManager lCSSFileManager = new CSSFileManager(pEvalParseTree, pEvalParseTree.getModule().getStyleSheets());
-    mCSSResolver = new CSSResolver(lCSSFileManager.getCSSFiles(), pIsDebug);
+    CSSFileManager lCSSFileManager = new CSSFileManager(mEvalParseTree, mEvalParseTree.getModule().getStyleSheets());
+    mCSSResolver = new CSSResolver(lCSSFileManager.getCSSFiles(), mIsDebug);
 
     // Add the page manager observer, so that new pages can be added when content is serialised if a new page is pending
     addObserver(mPageManager.getSerialisationObserver());
@@ -205,18 +222,18 @@ public class PDFSerialiser implements OutputSerialiser {
   @Override
   public WidgetBuilder<PDFSerialiser, EvaluatedNode> getWidgetBuilder(WidgetBuilderType pWidgetBuilderType) {
     return Optional.<WidgetBuilder>ofNullable(PDF_WIDGET_MAP.get(pWidgetBuilderType))
-                   .orElse(UnimplementedWidgetBuilder.getInstance());
+                   .orElse(mUnimplementedWidgetBuilder);
   }
 
   @Override
   public ComponentBuilder<PDFSerialiser, EvaluatedPresentationNode> getComponentBuilder(ComponentBuilderType pComponentBuilderType) {
     return Optional.<ComponentBuilder>ofNullable(PDF_COMPONENT_MAP.get(pComponentBuilderType))
-                   .orElse(UnimplementedComponentBuilder.getInstance());
+                   .orElse(mUnimplementedComponentBuilder);
   }
 
   @Override
   public PDFTempSerialiser getTempSerialiser() {
-    return new PDFTempSerialiser(mEvalParseTree, mIsDebug);
+    return new PDFTempSerialiser(mEvalParseTree, mIsDebug, mIsIgnoreUnsupported);
   }
 
   @Override

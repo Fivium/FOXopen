@@ -1843,16 +1843,15 @@ Mapsets can have the following structures:
                 <xs:documentation>The destination storage location of the generated document, when generating using method storage-location</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="debug" use="optional">
+            <xs:attribute name="debug"  type="xs:boolean" default="false"  use="optional">
               <xs:annotation>
                 <xs:documentation>Whether or not to display debug elements in the output</xs:documentation>
               </xs:annotation>
-              <xs:simpleType>
-                <xs:restriction base="xs:string">
-                  <xs:enumeration value="true"/>
-                  <xs:enumeration value="false"/>
-                </xs:restriction>
-              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="ignore-unsupported" type="xs:boolean" default="false"  use="optional">
+              <xs:annotation>
+                <xs:documentation>If true unsupported components and widgets will be ignored instead of throwing an exception when they are encountered. Ignored components and widgets are displayed in the track. Note that ignoring unsupported is not recommended as it causes regression issues if an unsupported component or widget is implemented in the future.</xs:documentation>
+              </xs:annotation>
             </xs:attribute>
           </xs:complexType>
         </xs:element>

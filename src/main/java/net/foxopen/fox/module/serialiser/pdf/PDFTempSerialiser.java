@@ -20,8 +20,8 @@ public class PDFTempSerialiser extends PDFSerialiser implements TempSerialiser<P
   private final static PageTemplate TEMP_PAGE_TEMPLATE = getTempPageTemplate();
   private final PDFTempSerialiserOutput mOutput = new PDFTempSerialiserOutput();
 
-  public PDFTempSerialiser(EvaluatedParseTree pEvalParseTree, boolean pIsDebug) {
-    super(pEvalParseTree, pIsDebug);
+  public PDFTempSerialiser(EvaluatedParseTree pEvalParseTree, boolean pIsDebug, boolean pIsIgnoreUnsupported) {
+    super(pEvalParseTree, pIsDebug, pIsIgnoreUnsupported);
 
     startPageTemplate(TEMP_PAGE_TEMPLATE);
     pushElementAttributes(DefaultElementAttributes.getDefaultAttributes());
