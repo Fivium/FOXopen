@@ -1,0 +1,29 @@
+.flash-message {
+  z-index: 1200;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+}
+
+.flash-message .info-box {
+  display: inline-block;
+  margin: 1.5em auto;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.flash-message-close {
+  float: right;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 1em;
+  opacity: 0.4;
+  font-size: 0.8em;
+}
+
+.flash-message-close:before {
+  margin-right: 0;
+  margin-left: 0.5em;
+  vertical-align: -0.3em;
+}

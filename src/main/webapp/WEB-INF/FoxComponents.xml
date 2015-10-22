@@ -14,6 +14,7 @@
       <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\components.css</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\tabs.css</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\popover.css</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\flash.css</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\infobox.css</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\grid.css</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\CSS-FOX5\tables.css</FILE_PATH>
@@ -69,6 +70,7 @@
       <FILE_PATH>\WEB-INF\components-new\accessibleModal.js</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\foxModal.js</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\foxAlert.js</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\foxFlash.js</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\jquery\jquery-ui-timepicker-addon-1.5.0.js</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\jquery\jquery-ui-timepicker-text-time-control.js</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\jquery\jquery.tooltipster.min.js</FILE_PATH>

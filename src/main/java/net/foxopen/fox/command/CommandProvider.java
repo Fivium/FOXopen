@@ -51,6 +51,7 @@ import net.foxopen.fox.command.builtin.ContextSetCommand;
 import net.foxopen.fox.command.builtin.CopyCommand;
 import net.foxopen.fox.command.builtin.EvalCommand;
 import net.foxopen.fox.command.builtin.ExitModuleCommand;
+import net.foxopen.fox.command.builtin.FlashCommand;
 import net.foxopen.fox.command.builtin.FocusCommand;
 import net.foxopen.fox.command.builtin.ForEachCommand;
 import net.foxopen.fox.command.builtin.GenerateCommand;
@@ -146,6 +147,7 @@ public class CommandProvider {
     registerCommandFactory(new CopyCommand.Factory());
     registerCommandFactory(new EvalCommand.Factory());
     registerCommandFactory(new ExitModuleCommand.Factory());
+    registerCommandFactory(new FlashCommand.Factory());
     registerCommandFactory(new FocusCommand.Factory());
     registerCommandFactory(new ForEachCommand.Factory());
     registerCommandFactory(new GenerateCommand.Factory());

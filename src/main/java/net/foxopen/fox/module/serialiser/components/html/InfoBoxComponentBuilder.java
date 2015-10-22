@@ -1,6 +1,7 @@
 package net.foxopen.fox.module.serialiser.components.html;
 
 import net.foxopen.fox.XFUtil;
+import net.foxopen.fox.module.NotificationDisplayType;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedInfoBoxPresentationNode;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedPresentationNode;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
@@ -20,6 +21,14 @@ public class InfoBoxComponentBuilder extends ComponentBuilder<HTMLSerialiser, Ev
     return INSTANCE;
   }
 
+  /**
+   * @param pDisplayType Display type to get suffix for.
+   * @return Gets the suffix to be appended to the "info-box-" class name prefix for the given display type.
+   */
+  public static String getInfoBoxClassNameSuffix(NotificationDisplayType pDisplayType) {
+    return pDisplayType.toString().toLowerCase();
+  }
+
   private InfoBoxComponentBuilder() {
   }
 
@@ -28,7 +37,7 @@ public class InfoBoxComponentBuilder extends ComponentBuilder<HTMLSerialiser, Ev
     EvaluatedInfoBoxPresentationNode lEvalNode = (EvaluatedInfoBoxPresentationNode)pEvalNode;
 
     Map<String, Object> lTemplateVars = new HashMap<>();
-    lTemplateVars.put("Class", "info-box info-box-" + lEvalNode.getInfoBoxType().toString().toLowerCase() + (!XFUtil.isNull(lEvalNode.getClasses()) ? " " + lEvalNode.getClasses() : ""));
+    lTemplateVars.put("Class", "info-box info-box-" + getInfoBoxClassNameSuffix(lEvalNode.getInfoBoxType()) + (!XFUtil.isNull(lEvalNode.getClasses()) ? " " + lEvalNode.getClasses() : ""));
     lTemplateVars.put("Style", lEvalNode.getStyles());
     lTemplateVars.put("Open", true);
 

@@ -1490,7 +1490,7 @@ If the fm:default element is reached, then its contents are evaluated.
                 <xs:documentation>XPath resolving exactly one element to be used as the buffer attach point when an alert buffer is being evaluated. The default is the current state :{attach} point.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="display" default="native">
+            <xs:attribute name="display">
               <xs:annotation>
                 <xs:documentation>Controls how a text-based alert is displayed. 'native' uses the browser's native alert control. 'popover' displays the alert content as a modal div, which may contain arbitrary HTML. The default is configured by the module-level display attr 'defaultAlertDisplay', which is 'popover' if undefined.</xs:documentation>
               </xs:annotation>
@@ -2297,6 +2297,28 @@ Can also be used to replace all states on the state-call stack with the state sp
           <xs:annotation>
             <xs:documentation>Closes the active modal popover (as created by fm:show-popover). If no modal popover is currently displayed, this command does nothing.</xs:documentation>
           </xs:annotation>
+        </xs:element>
+        <xs:element name="flash">
+          <xs:annotation>
+            <xs:documentation>Shows a non-modal, dismissable message at the top of the screen.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:attribute name="message" type="fm:fox-xpath-string" use="required">
+              <xs:annotation>
+                <xs:documentation>Message to display. Fixed or unescaped strings may contain HTML tags.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="type" type="fox:notification-display-type" default="info">
+              <xs:annotation>
+                <xs:documentation>Built-in styling rules to apply to the flash message.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="class" type="fm:fox-xpath-string" use="optional">
+              <xs:annotation>
+                <xs:documentation>Additional CSS class(es) to set on the flash's container element.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
         </xs:element>
       </xs:choice>
       <xs:choice minOccurs="0">

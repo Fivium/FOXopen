@@ -179,6 +179,7 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
     //Focus JS before alerts so alert JS can re-focus to focused element on dismiss
     insertFocusJS(pSerialiser, pSerialisationContext);
     HTMLAlertSerialiser.insertAlerts(pSerialiser, pSerialisationContext);
+    HTMLAlertSerialiser.insertFlashMessages(pSerialiser, pSerialisationContext);
     insertModelessPopups(pSerialiser, pSerialisationContext);
     insertDownloadLinks(pSerialiser, pSerialisationContext);
     insertPopupLinks(pSerialiser, pSerialisationContext);

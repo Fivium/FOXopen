@@ -1843,12 +1843,12 @@ Mapsets can have the following structures:
                 <xs:documentation>The destination storage location of the generated document, when generating using method storage-location</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="debug"  type="xs:boolean" default="false"  use="optional">
+            <xs:attribute name="debug" type="xs:boolean" default="false" use="optional">
               <xs:annotation>
                 <xs:documentation>Whether or not to display debug elements in the output</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="ignore-unsupported" type="xs:boolean" default="false"  use="optional">
+            <xs:attribute name="ignore-unsupported" type="xs:boolean" default="false" use="optional">
               <xs:annotation>
                 <xs:documentation>If true unsupported components and widgets will be ignored instead of throwing an exception when they are encountered. Ignored components and widgets are displayed in the track. Note that ignoring unsupported is not recommended as it causes regression issues if an unsupported component or widget is implemented in the future.</xs:documentation>
               </xs:annotation>
@@ -2297,6 +2297,28 @@ Mapsets can have the following structures:
           <xs:annotation>
             <xs:documentation>Closes the active modal popover (as created by fm:show-popover). If no modal popover is currently displayed, this command does nothing.</xs:documentation>
           </xs:annotation>
+        </xs:element>
+        <xs:element name="flash">
+          <xs:annotation>
+            <xs:documentation>Shows a non-modal, dismissable message at the top of the screen.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:attribute name="message" type="fm:fox-xpath-string" use="required">
+              <xs:annotation>
+                <xs:documentation>Message to display. Fixed or unescaped strings may contain HTML tags.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="type" type="fox:notification-display-type" default="info">
+              <xs:annotation>
+                <xs:documentation>Built-in styling rules to apply to the flash message.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="class" type="fm:fox-xpath-string" use="optional">
+              <xs:annotation>
+                <xs:documentation>Additional CSS class(es) to set on the flash's container element.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
         </xs:element>
       </xs:choice>
       <xs:choice minOccurs="0">

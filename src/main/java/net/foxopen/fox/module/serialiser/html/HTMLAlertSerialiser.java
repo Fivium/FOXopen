@@ -5,9 +5,11 @@ import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedBufferPresentationNode;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
+import net.foxopen.fox.module.serialiser.components.html.InfoBoxComponentBuilder;
 import net.foxopen.fox.thread.alert.AlertMessage;
 import net.foxopen.fox.thread.alert.BasicAlertMessage;
 import net.foxopen.fox.thread.alert.BufferAlertMessage;
+import net.foxopen.fox.thread.alert.FlashMessage;
 import net.foxopen.fox.thread.alert.RichAlertMessage;
 import net.foxopen.fox.thread.alert.RichTextAlertMessage;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -167,5 +169,35 @@ public class HTMLAlertSerialiser {
    */
   private static void enqueueAlert(HTMLSerialiser pSerialiser, JSONObject pAlertProperties) {
     pSerialiser.append("FOXalert.enqueueOnLoadAlert("  +  pAlertProperties.toJSONString() + ");\n");
+  }
+
+  /**
+   * Inserts JavaScript for creating all {@link FlashMessage}s registered on the SerialisationContext into the given HTMLSerialiser.
+   * If no flash messages are registered, no action is taken. Flashes are displayed in the order of registration.<br><br>
+   * Note: this method assumes it is writing into an open &lt;script&gt; tag on the HTMLSerialiser.
+   * @param pSerialiser Current HTMLSerialiser.
+   * @param pSerialisationContext Current SerialisationContext.
+   */
+  public static void insertFlashMessages(HTMLSerialiser pSerialiser, SerialisationContext pSerialisationContext) {
+    List<FlashMessage> lFlashMessages = pSerialisationContext.getXDoResultList(FlashMessage.class);
+
+    for (FlashMessage lFlashMessage : lFlashMessages) {
+
+      String lMessage = lFlashMessage.getMessage();
+      //Escape HTML tags if required
+      if(lFlashMessage.isEscapingRequired()) {
+        lMessage = StringEscapeUtils.escapeHtml4(lMessage);
+      }
+
+      //Always need to escape JS characters like apostrophes
+      lMessage = StringEscapeUtils.escapeEcmaScript(lMessage);
+
+      JSONObject lFlashProperties = new JSONObject();
+      lFlashProperties.put("displayType", InfoBoxComponentBuilder.getInfoBoxClassNameSuffix(lFlashMessage.getDisplayType()));
+      lFlashProperties.put("cssClass", lFlashMessage.getCSSClass());
+
+      pSerialiser.append("FOXflash.textFlash('" + lMessage + "', " +  lFlashProperties.toJSONString() + ");\n");
+    }
+
   }
 }
