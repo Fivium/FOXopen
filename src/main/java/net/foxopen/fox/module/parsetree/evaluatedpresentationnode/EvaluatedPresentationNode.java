@@ -45,7 +45,7 @@ public abstract class EvaluatedPresentationNode<PN extends PresentationNode> {
   }
 
   /**
-   * Evaluated the children of an EvaulatedPresentationNode
+   * Evaluated the children of an EvaluatedPresentationNode
    *
    * @param pEvaluatedParseTree
    */
@@ -56,6 +56,15 @@ public abstract class EvaluatedPresentationNode<PN extends PresentationNode> {
         addChild(lEvalChild);
       }
     }
+
+    postChildEvaluate(pEvaluatedParseTree);
+  }
+
+  /**
+   * This is an empty stub function which will be called after children have been evaluated.
+   */
+  public void postChildEvaluate(EvaluatedParseTree pEvaluatedParseTree) {
+
   }
 
   public void addChild(EvaluatedPresentationNode<? extends PresentationNode> pNode) {

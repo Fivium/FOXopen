@@ -88,6 +88,6 @@ public class BufferPresentationNode extends PresentationNode {
 
   @Override
   public EvaluatedBufferPresentationNode evaluate(EvaluatedPresentationNode<? extends PresentationNode> pParent, EvaluatedParseTree pEvaluatedParseTree, DOM pEvalContext) {
-    return new EvaluatedBufferPresentationNode(pParent, this, pEvaluatedParseTree, pEvalContext, null);
+    return new EvaluatedBufferPresentationNode(pParent, this, pEvaluatedParseTree, pEvalContext, null, null);
   }
 }

@@ -6,6 +6,7 @@ import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.ex.ExCardinality;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExModule;
+import net.foxopen.fox.module.parsetree.BufferLocation;
 import net.foxopen.fox.module.parsetree.EvaluatedParseTree;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedBufferPresentationNode;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedPresentationNode;
@@ -57,7 +58,9 @@ public class IncludePresentationNode extends PresentationNode {
         }
       }
 
-      return new EvaluatedBufferPresentationNode(pParent, lBuffer, pEvaluatedParseTree, lAttachContext, mClientVisibilityRule);
+      BufferLocation lBufferLocation = pEvaluatedParseTree.getBufferLocationFromName(lBufferName);
+
+      return new EvaluatedBufferPresentationNode(pParent, lBuffer, pEvaluatedParseTree, lAttachContext, mClientVisibilityRule, lBufferLocation.getStateName());
     }
     catch (ExModule e) {
       throw new ExInternal("Failed to find buffer to include", e);

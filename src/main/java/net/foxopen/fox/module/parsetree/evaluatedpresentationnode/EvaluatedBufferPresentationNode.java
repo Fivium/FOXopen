@@ -15,6 +15,7 @@ import net.foxopen.fox.page.PageDefinition;
  *
  */
 public class EvaluatedBufferPresentationNode extends EvaluatedPresentationNode<BufferPresentationNode> {
+  private final String mStateName;
   private final String mBufferName;
   private final String mSkipLinkID;
   private final String mRegionTitle;
@@ -25,17 +26,23 @@ public class EvaluatedBufferPresentationNode extends EvaluatedPresentationNode<B
 
 
   /**
-   *
    * @param pParent
    * @param pOriginalPresentationNode
    * @param pEvaluatedParseTree
    * @param pEvalContext
-   * @param pCVRName Client visibilty rule controlling this buffer's visibility - can be null.
+   * @param pCVRName Client visibility rule controlling this buffer's visibility - can be null.
+   * @param pStateName
    */
-  public EvaluatedBufferPresentationNode(EvaluatedPresentationNode<? extends PresentationNode> pParent, BufferPresentationNode pOriginalPresentationNode, EvaluatedParseTree pEvaluatedParseTree, DOM pEvalContext, String pCVRName) {
+  public EvaluatedBufferPresentationNode(EvaluatedPresentationNode<? extends PresentationNode> pParent, BufferPresentationNode pOriginalPresentationNode, EvaluatedParseTree pEvaluatedParseTree, DOM pEvalContext, String pCVRName, String pStateName) {
     super(pParent, pOriginalPresentationNode, pEvalContext);
 
     mBufferName = pOriginalPresentationNode.getName();
+
+    mStateName = pStateName;
+    // If a state name was passed in this buffer should push that name on a stack so that child nodes can evaluate relative to that state name
+    if (!XFUtil.isNull(mStateName)) {
+      pEvaluatedParseTree.pushIncludedBufferStateName(pStateName);
+    }
 
     // Used for skip link anchors
     mSkipLinkID = "b" + (pEvaluatedParseTree.getFieldSet().getNextFieldSequence());
@@ -52,12 +59,12 @@ public class EvaluatedBufferPresentationNode extends EvaluatedPresentationNode<B
       }
     }
     catch (ExActionFailed e) {
-      throw new ExInternal("Error while parsing XPaths on fm:hint-out attributes", e);
+      throw new ExInternal("Error while parsing XPaths for buffer region title or region order attributes", e);
     }
     mRegionTitle = lRegionTitle;
     mRegionOrder = lRegionOrder;
 
-    // Add the the Buffer Regious list on the Evaluated Parse Tree if a title was specified (for skip links)
+    // Add the the Buffer Regions list on the Evaluated Parse Tree if a title was specified (for skip links)
     if (!XFUtil.isNull(mRegionTitle)) {
       pEvaluatedParseTree.addBufferRegion(this);
     }
@@ -81,6 +88,14 @@ public class EvaluatedBufferPresentationNode extends EvaluatedPresentationNode<B
     }
     else {
       mPageDefinition = null;
+    }
+  }
+
+  @Override
+  public void postChildEvaluate(EvaluatedParseTree pEvaluatedParseTree) {
+    // If we had a state name it should have been pushed to the stack in the constructor, make sure it's popped after children have been evaluated
+    if (!XFUtil.isNull(mStateName)) {
+      pEvaluatedParseTree.popIncludedBufferStateName(mStateName);
     }
   }
 

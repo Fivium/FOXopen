@@ -137,6 +137,9 @@ public class EvaluatedParseTree implements SerialisationContext {
   /** Deque of DOM nodes used for context when evaluating buffers dynamically so fm:label can target the prompt-buffer caller */
   private Deque<DOM> mCurrentBufferContextNode = new ArrayDeque<>();
 
+  /** Deque of State names used for context when evaluating buffers dynamically so fm:label can target the prompt-buffer caller */
+  private Deque<String> mIncludedBufferStateNames = new ArrayDeque<>();
+
   /** Currently displayed modal popover, or null if none is currently displayed */
   private final EvaluatedModalPopover mOptionalModalPopover;
 
@@ -209,6 +212,46 @@ public class EvaluatedParseTree implements SerialisationContext {
   }
 
   /**
+   * A buffer name defined in an attribute throughout a module might be in the form of just a buffer name or a forward
+   * slash separated state & buffer name tuple.
+   * This function returns an object which you can get both the buffer and state name from.
+   *
+   * @param pBufferName Name of the buffer specified by an attribute typically
+   * @return BufferLocation implementation with both state and buffer names accessible
+   */
+  public BufferLocation getBufferLocationFromName(String pBufferName) {
+    final String lBuffer;
+    final String lState;
+    if (XFUtil.exists(pBufferName)) {
+      int lSlashPosition = pBufferName.indexOf('/');
+      if (lSlashPosition != -1) {
+        lState = pBufferName.substring(0, lSlashPosition);
+        lBuffer = pBufferName.substring(lSlashPosition + 1, pBufferName.length());
+      }
+      else {
+        lState = null;
+        lBuffer = pBufferName;
+      }
+    }
+    else {
+      lState = null;
+      lBuffer = null;
+    }
+
+    return new BufferLocation() {
+      @Override
+      public String getStateName() {
+        return lState;
+      }
+
+      @Override
+      public String getBufferName() {
+        return lBuffer;
+      }
+    };
+  }
+
+  /**
    * Get buffer from the state/module. If null Buffer Name is passed in it defaults to the set-page buffer from the
    * current state, or if no set-page on the current state it gets it from the module.<br /><br />
    *
@@ -223,33 +266,28 @@ public class EvaluatedParseTree implements SerialisationContext {
    * @throws ExModule If state/buffer not found / invalid
    */
   public BufferPresentationNode getBuffer(String pBufferName) throws ExModule {
-    // Split up state/buffer
-    String lBuffer = null;
-    String lState = null;
-    if (XFUtil.exists(pBufferName)) {
-      int lSlashPosition = pBufferName.indexOf('/');
-      if (lSlashPosition != -1) {
-        lState = pBufferName.substring(0, lSlashPosition);
-        lBuffer = pBufferName.substring(lSlashPosition+1, pBufferName.length());
-      }
-      else {
-        lBuffer = pBufferName;
-      }
-    }
+    BufferLocation lBufferLocation = getBufferLocationFromName(pBufferName);
 
     // Find the BufferPresentationNode for the State and Buffer in the params
     State lPageState;
     BufferPresentationNode lPageBuffer;
 
-    if (XFUtil.exists(lState)) {
+    if (XFUtil.exists(lBufferLocation.getStateName())) {
       // If a state was specified, attempt to get it from the current module
-      lPageState = mModule.getState(lState); // Throws ExInternal if lState not defined
+      lPageState = mModule.getState(lBufferLocation.getStateName()); // Throws ExInternal if lState not defined
     }
     else {
-      lPageState = mState;
+      // If no state was explicitly named for the buffer lookup, check the buffer include state stack first
+      //  (buffers included from other states will push that state name onto this stack while their child nodes are evaluating)
+      if (mIncludedBufferStateNames.size() > 0) {
+        lPageState =  mModule.getState(mIncludedBufferStateNames.getLast());
+      }
+      else {
+        lPageState = mState;
+      }
     }
 
-    if (!XFUtil.exists(lBuffer)) {
+    if (!XFUtil.exists(lBufferLocation.getBufferName())) {
       // find the set-page at state level
       lPageBuffer = lPageState.getSetPageBuffer();
       if (lPageBuffer == null) {
@@ -259,10 +297,10 @@ public class EvaluatedParseTree implements SerialisationContext {
     }
     else {
       // find buffer at state level
-      lPageBuffer = lPageState.getParsedBuffer(lBuffer);
+      lPageBuffer = lPageState.getParsedBuffer(lBufferLocation.getBufferName());
       if (lPageBuffer == null) {
         // find buffer at module level
-        lPageBuffer = mModule.getParsedBuffer(lBuffer);
+        lPageBuffer = mModule.getParsedBuffer(lBufferLocation.getBufferName());
       }
     }
 
@@ -271,7 +309,7 @@ public class EvaluatedParseTree implements SerialisationContext {
         throw new ExModule("Evaluated Parse Tree error: failed to find the presentation root (fm:set-page is not defined)");
       }
       else {
-        throw new ExModule("Evaluated Parse Tree error: There is no html buffer called '" + lBuffer + "' under the current state: " + lPageState.getName());
+        throw new ExModule("Evaluated Parse Tree error: There is no html buffer called '" + lBufferLocation.getBufferName() + "' under the current state: " + lPageState.getName());
       }
     }
 
@@ -690,6 +728,28 @@ public class EvaluatedParseTree implements SerialisationContext {
     DOM lPoppedTargetElement = mCurrentBufferContextNode.pop();
     if (lPoppedTargetElement != pCurrentTargetElement) {
       throw new ExInternal("Popped Target Element from the current buffer label target element stack on evaluated parse tree but it did not match the expected value to be popped: Expected " + pCurrentTargetElement.absolute() + "\r\nPopped: " + lPoppedTargetElement.absolute());
+    }
+  }
+
+
+  /**
+   * When evaluating include presentation nodes we should make a note of the state the buffer is from so that any nested
+   * buffer includes are scoped from that state too.
+   *
+   * @param pStateName Name of the current state to push onto the stack
+   */
+  public void pushIncludedBufferStateName(String pStateName) {
+    mIncludedBufferStateNames.push(pStateName);
+  }
+
+  /**
+   * When a buffer that was fm:included with a state finishes evaluating its children it calls this to pop off the state
+   * it pushed on
+   */
+  public void popIncludedBufferStateName(String pStateName) {
+    String lPoppedStateName = mIncludedBufferStateNames.pop();
+    if (!lPoppedStateName.equals(pStateName)) {
+      throw new ExInternal("Popped State name from the included buffer state name element stack on evaluated parse tree but it did not match the expected value to be popped: Expected " + pStateName + "\r\nPopped: " + lPoppedStateName);
     }
   }
 
