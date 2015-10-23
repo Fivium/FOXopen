@@ -25,14 +25,10 @@ public class CartographicWidgetBuilder extends WidgetBuilderHTMLSerialiser<Evalu
       pSerialisationContext.getApp().getAppMnem(),
       pSerialisationContext.getThreadInfoProvider().getCurrentCallId(),
       pSerialisationContext.getThreadInfoProvider().getThreadId(),
-      pEvalNode.getCanvasID(),
+      pEvalNode.getCanvasUsageID(),
       pEvalNode.getCanvasWidth().replaceAll("[^0-9]", ""), // The Web Service just takes the height/width in pixels without units
       pEvalNode.getCanvasHeight().replaceAll("[^0-9]", ""));
-    String lSpatialEventWebServiceURL = SpatialWebService.EventEndPoint.buildEndPointURI(pSerialisationContext.createURIBuilder(),
-      pSerialisationContext.getApp().getAppMnem(),
-      pSerialisationContext.getThreadInfoProvider().getCurrentCallId(),
-      pSerialisationContext.getThreadInfoProvider().getThreadId(),
-      pEvalNode.getCanvasID());
+    String lSpatialEventWebServiceURL = SpatialWebService.EventEndPoint.buildEndPointURI(pSerialisationContext.createURIBuilder());
 
     String lFieldName = pEvalNode.getExternalFieldName();
 
@@ -46,7 +42,7 @@ public class CartographicWidgetBuilder extends WidgetBuilderHTMLSerialiser<Evalu
     lSpatialInfo.put("target", lFieldName);
     lSpatialInfo.put("imageURL", lSpatialRenderWebServiceURL);
     lSpatialInfo.put("eventURL", lSpatialEventWebServiceURL);
-    lSpatialInfo.put("canvasUseID", pEvalNode.getCanvasUsageID());
+    lSpatialInfo.put("canvasUsageID", pEvalNode.getCanvasUsageID());
     lSpatialInfo.put("canvasHash", pEvalNode.getCanvasHash());
     lSpatialInfo.put("mouseZoom", pEvalNode.isMouseZoom());
     lSpatialInfo.put("zoomButtons", pEvalNode.isZoomButtons());

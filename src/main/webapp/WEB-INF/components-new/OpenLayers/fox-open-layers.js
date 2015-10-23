@@ -120,7 +120,7 @@ var FOXspatial = {
             "event": "move",
             "zoomDirection": zoomDirection,
             "coord": center[0] + ',' + ((frameState.size[1]/2)+((frameState.size[1]/2)-center[1])),
-            "canvasUseID": e.map.get("canvasUseID"),
+            "canvasUsageID": e.map.get("canvasUsageID"),
             "canvasHash": e.map.get("canvasHash"),
             "imageWidth": frameState.size[0],
             "imageHeight": frameState.size[1]

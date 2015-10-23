@@ -124,17 +124,17 @@ public class SpatialEngine {
    * @param pRequestContext Context to get a connection from
    * @param pCallID the current module call id
    * @param pWUAID the current user wuaid
-   * @param pCanvasID ID of the spatial canvas to render
+   * @param pCanvasUsageID ID of the spatial canvas to render
    * @param pWidth Width of the image to render, in pixels
    * @param pHeight Height of the image to render, in pixels
    * @return DOM containing information a rendering engine can use to generate an image
    */
-  private DOM generateRenderXML(RequestContext pRequestContext, String pCallID, String pWUAID, String pCanvasID, int pWidth, int pHeight) {
+  private DOM generateRenderXML(RequestContext pRequestContext, String pCallID, String pWUAID, String pCanvasUsageID, int pWidth, int pHeight) {
     UCon lUCon = pRequestContext.getContextUCon().getUCon("Rendering Canvas");
     UConStatementResult lAPIResult;
     try {
       UConBindMap lRenderBindMap = new UConBindMap()
-        .defineBind(":spatial_canvas_id", pCanvasID)
+        .defineBind(":canvas_usage_id", pCanvasUsageID)
         .defineBind(":call_id", pCallID)
         .defineBind(":wua_id", pWUAID)
         .defineBind(":image_width_px", pWidth)

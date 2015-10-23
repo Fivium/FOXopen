@@ -43,7 +43,7 @@ implements WebService {
   private static final String APP_MNEM_PARAM = "app_mnem";
   private static final String THREAD_ID_PARAM = "thread_id";
   private static final String CALL_ID_PARAM = "call_id";
-  private static final String CANVAS_ID_PARAM = "canvas_id";
+  private static final String CANVAS_USAGE_ID_PARAM = "canvas_usage_id";
   private static final String WIDTH_PARAM = "width";
   private static final String HEIGHT_PARAM = "height";
 
@@ -89,7 +89,7 @@ implements WebService {
   public static class RenderEndPoint
   implements EndPoint {
     private static final String END_POINT_NAME = "render";
-    private static final PathParamTemplate RENDER_PARAM_TEMPLATE = new PathParamTemplate("/{"+THREAD_ID_PARAM+"}/{"+CALL_ID_PARAM+"}/{"+ CANVAS_ID_PARAM +"}/{"+WIDTH_PARAM+"}/{"+HEIGHT_PARAM+"}");
+    private static final PathParamTemplate RENDER_PARAM_TEMPLATE = new PathParamTemplate("/{"+THREAD_ID_PARAM+"}/{"+CALL_ID_PARAM+"}/{"+ CANVAS_USAGE_ID_PARAM +"}/{"+WIDTH_PARAM+"}/{"+HEIGHT_PARAM+"}");
 
     @Override
     public String getName() {
@@ -123,11 +123,11 @@ implements WebService {
       return CookieBasedFoxSession.getOrCreateFoxSession(pRequestContext);
     }
 
-    public static String buildEndPointURI(RequestURIBuilder pRequestURIBuilder, String pAppMnem, String pCallID, String pThreadID, String pCanvasID, String pWidth, String pHeight) {
+    public static String buildEndPointURI(RequestURIBuilder pRequestURIBuilder, String pAppMnem, String pCallID, String pThreadID, String pCanvasUsageID, String pWidth, String pHeight) {
       pRequestURIBuilder.setParam(APP_MNEM_PARAM, pAppMnem);
       pRequestURIBuilder.setParam(CALL_ID_PARAM, pCallID);
       pRequestURIBuilder.setParam(THREAD_ID_PARAM, pThreadID);
-      pRequestURIBuilder.setParam(CANVAS_ID_PARAM, pCanvasID);
+      pRequestURIBuilder.setParam(CANVAS_USAGE_ID_PARAM, pCanvasUsageID);
       pRequestURIBuilder.setParam(WIDTH_PARAM, pWidth);
       pRequestURIBuilder.setParam(HEIGHT_PARAM, pHeight);
       return pRequestURIBuilder.buildWebServiceURI(EngineWebServiceCategory.CATEGORY_NAME, WEB_SERVICE_NAME, END_POINT_NAME, RENDER_PARAM_TEMPLATE);
@@ -139,7 +139,7 @@ implements WebService {
       try {
         String lCallID = pParamMap.get(CALL_ID_PARAM);
         String lThreadID = pParamMap.get(THREAD_ID_PARAM);
-        String lCanvasID = pParamMap.get(CANVAS_ID_PARAM);
+        String lCanvasUsageID = pParamMap.get(CANVAS_USAGE_ID_PARAM);
         int lWidth = Integer.valueOf(pParamMap.get(WIDTH_PARAM));
         int lHeight = Integer.valueOf(pParamMap.get(HEIGHT_PARAM));
 
@@ -171,7 +171,7 @@ implements WebService {
         Track.pushInfo("RenderingCanvasToOutputStream");
         try {
           ByteArrayOutputStream lImageOutput = new ByteArrayOutputStream();
-          lSpatialEngine.renderCanvasToOutputStream(pRequestContext, lImageOutput, lCallID, lWuaIdGetter.mWUAID, lCanvasID, lWidth, lHeight);
+          lSpatialEngine.renderCanvasToOutputStream(pRequestContext, lImageOutput, lCallID, lWuaIdGetter.mWUAID, lCanvasUsageID, lWidth, lHeight);
 
           // Currently rendering to ByteArrayOutputStream first, then just writing to the response output stream here due to renderer ucon use containment
           return new BinaryWebServiceResponse("image/png", 0, lImageOutput::writeTo);
@@ -192,7 +192,6 @@ implements WebService {
   public static class EventEndPoint
   implements EndPoint {
     private static final String END_POINT_NAME = "event";
-    private static final PathParamTemplate EVENT_PARAM_TEMPLATE = new PathParamTemplate("/{"+THREAD_ID_PARAM+"}/{"+CALL_ID_PARAM+"}/{"+ CANVAS_ID_PARAM +"}");
 
     @Override
     public String getName() {
@@ -201,7 +200,7 @@ implements WebService {
 
     @Override
     public PathParamTemplate getPathParamTemplate() {
-      return EVENT_PARAM_TEMPLATE;
+      return null;
     }
 
     @Override
@@ -214,12 +213,8 @@ implements WebService {
       return Collections.singleton("POST");
     }
 
-    public static String buildEndPointURI(RequestURIBuilder pRequestURIBuilder, String pAppMnem, String pCallID, String pThreadID, String pCanvasID) {
-      pRequestURIBuilder.setParam(APP_MNEM_PARAM, pAppMnem);
-      pRequestURIBuilder.setParam(CALL_ID_PARAM, pCallID);
-      pRequestURIBuilder.setParam(THREAD_ID_PARAM, pThreadID);
-      pRequestURIBuilder.setParam(CANVAS_ID_PARAM, pCanvasID);
-      return pRequestURIBuilder.buildWebServiceURI(EngineWebServiceCategory.CATEGORY_NAME, WEB_SERVICE_NAME, END_POINT_NAME, EVENT_PARAM_TEMPLATE);
+    public static String buildEndPointURI(RequestURIBuilder pRequestURIBuilder) {
+      return pRequestURIBuilder.buildWebServiceURI(EngineWebServiceCategory.CATEGORY_NAME, WEB_SERVICE_NAME, END_POINT_NAME);
     }
 
     @Override
@@ -237,7 +232,7 @@ implements WebService {
         switch (pParamMap.get("event")) {
           case "move":
             lEventLabel = "!CENTROID-ZOOM";
-            lCanvasDOM.addElem("canvas-usage-id", pParamMap.get("canvasUseID"));
+            lCanvasDOM.addElem("canvas-usage-id", pParamMap.get("canvasUsageID"));
             lCanvasDOM.addElem("canvas-hash", pParamMap.get("canvasHash"));
             lCanvasDOM.addElem("zoom-direction", pParamMap.get("zoomDirection"));
             lCanvasDOM.addElem("image-width", pParamMap.get("imageWidth"));
