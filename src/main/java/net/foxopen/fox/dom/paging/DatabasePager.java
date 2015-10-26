@@ -123,5 +123,6 @@ extends Pager {
     pRequestContext.addSysDOMInfo("sqlquery/paging/retrievedrowcount", String.valueOf(getCurrentPage() * getPageSize() > getRowCount() ? getRowCount() % getPageSize() : getPageSize()));
     pRequestContext.addSysDOMInfo("sqlquery/paging/pagecount", String.valueOf(getPageCount()));
     pRequestContext.addSysDOMInfo("sqlquery/paging/pagesize", String.valueOf(getPageSize()));
+    pRequestContext.addSysDOMInfo("sqlquery/paging/currentpage", String.valueOf(getCurrentPage()));
   }
 }
