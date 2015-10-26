@@ -20,7 +20,15 @@
       <xs:element name="html" type="html-with-attrs-or-fox-html-tags"/>
       <xs:element name="head" type="html-with-attrs-or-fox-html-tags"/>
       <xs:element name="title" type="html-with-attrs-or-fox-html-tags"/>
-      <xs:element name="meta" type="html-with-attrs-or-fox-html-tags"/>
+      <xs:element name="meta">
+        <xs:complexType>
+          <xs:complexContent>
+            <xs:extension base="html-with-attrs-or-fox-html-tags">
+              <xs:attribute name="http-equiv" use="optional"/>
+            </xs:extension>
+          </xs:complexContent>
+        </xs:complexType>
+      </xs:element>
       <xs:element name="link" type="html-with-attrs-or-fox-html-tags"/>
       <xs:element name="script" type="html-with-attrs-or-fox-html-tags"/>
       <xs:element name="style" type="html-with-attrs-or-fox-html-tags"/>
