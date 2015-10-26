@@ -16,6 +16,7 @@
     </xs:complexContent>
   </xs:complexType>
   <xs:group name="html-tags-grp">
+    <xs:choice>
       <xs:element name="html" type="html-with-attrs-or-fox-html-tags"/>
       <xs:element name="head" type="html-with-attrs-or-fox-html-tags"/>
       <xs:element name="title" type="html-with-attrs-or-fox-html-tags"/>
@@ -107,6 +108,7 @@
         <xs:documentation>Force the tag to self-close rather than have a full closing tag; only valid on tags with no content.</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="aria-hidden" use="optional"/>
   </xs:attributeGroup>
   <xs:complexType name="phantom"/>
   <xs:complexType name="file-type">
