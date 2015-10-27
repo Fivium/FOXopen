@@ -560,7 +560,7 @@
       <xs:documentation>Value to use as the title attribute for the link</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-  <xs:attribute name="hintTitle" type="fox-xpath-type">
+  <xs:attribute name="hintTitle" type="fox-optional-xpath-string">
     <xs:annotation>
       <xs:documentation>Value to use as the hint title for this field in form set-out</xs:documentation>
     </xs:annotation>
