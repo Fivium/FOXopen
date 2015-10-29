@@ -252,6 +252,7 @@ implements WebService {
         JSONObject lJSONResponse = new JSONObject();
         lJSONResponse.put("result", "OK");
         lJSONResponse.put("changeNumber", lOperationResultDOM.get1SNoEx("/*/change-number"));
+        lJSONResponse.put("canvasHash", lOperationResultDOM.get1SNoEx("/*/canvas-hash"));
         return new JSONWebServiceResponse(lJSONResponse);
       }
       finally {
