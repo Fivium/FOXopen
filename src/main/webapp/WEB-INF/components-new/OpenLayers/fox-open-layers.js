@@ -130,6 +130,10 @@ var FOXspatial = {
         })
         .done(function(result) {
           if (result.result === "OK") {
+            // Update the hash if it's changed
+            if (result.canvasHash && result.canvasHash !== e.map.get("canvasHash")) {
+              e.map.set("canvasHash", result.canvasHash);
+            }
             FOXspatial._refreshImage(e.map, result.changeNumber);
           }
           else {
