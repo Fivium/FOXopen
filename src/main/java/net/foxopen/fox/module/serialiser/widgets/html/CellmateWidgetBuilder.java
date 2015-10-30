@@ -2,6 +2,7 @@ package net.foxopen.fox.module.serialiser.widgets.html;
 
 import com.google.common.base.Joiner;
 import net.foxopen.fox.XFUtil;
+import net.foxopen.fox.module.LayoutDirection;
 import net.foxopen.fox.module.OutputError;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfo;
 import net.foxopen.fox.module.datanode.NodeAttribute;
@@ -177,11 +178,14 @@ public class CellmateWidgetBuilder extends WidgetBuilderHTMLSerialiser<Evaluated
                 pSerialiser.append("<div class=\"eleven-column-input\">");
               }
 
+              if(lColumnItem.getItemNode().hasDescription() && LayoutDirection.NORTH == lColumnItem.getItemNode().getDescriptionLayout()) {
+                pSerialiser.addDescription(pSerialisationContext, lColumnItem.getItemNode());
+              }
+
               lColumnItem.getWidgetBuilder().buildWidget(pSerialisationContext, pSerialiser, lColumnItem.getItemNode());
 
-              if(lColumnItem.getItemNode().getWidgetBuilderType() != WidgetBuilderType.FORM && lColumnItem.getItemNode().getWidgetBuilderType() != WidgetBuilderType.LIST) {
-                //TODO PN hack - this method requires a FieldMgr, nested forms/lists don't have one (yet)
-                pSerialiser.addDescription(pSerialisationContext, lColumnItem.getItemNode());  //TODO add ENI.hasDescription (like hasHint)
+              if(lColumnItem.getItemNode().hasDescription() && LayoutDirection.SOUTH == lColumnItem.getItemNode().getDescriptionLayout()) {
+                pSerialiser.addDescription(pSerialisationContext, lColumnItem.getItemNode());
               }
 
               if (lColumnItem.getItemNode().hasError()) {
