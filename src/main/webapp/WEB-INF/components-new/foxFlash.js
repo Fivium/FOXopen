@@ -9,6 +9,7 @@ FOXflash = {
     var container = $('.flash-message');
     if(container.length == 0) {
       container = $('<div class="flash-message"></div>').prependTo($(document.body));
+      $('.flash-message').hide();
     }
 
     return container;
@@ -24,10 +25,10 @@ FOXflash = {
 
     var flashContainer = this._$getFlashContainer();
     flashContainer.append('<div role="alert" class="info-box info-box-' + infoBoxClass + '">' +
-      '<div onclick="$(this).parent().fadeOut(100)" tabindex="0" class="flash-message-close icon-cross" title="Close this message">' +
-      '<span class="screen-reader-only">Close this message</span>' +
+      '<div tabindex="0" class="flash-message-close icon-cross" title="Close this message" aria-label="Close this message">' +
     '</div>' + message +'</div>');
-
+    flashContainer.find('.flash-message-close').click(function() { $(this).parent().fadeOut(100) });
+    flashContainer.delay(200).fadeIn(300);
   },
 
   /**

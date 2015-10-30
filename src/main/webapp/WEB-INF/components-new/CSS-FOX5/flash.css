@@ -5,12 +5,13 @@
   left: 0;
   right: 0;
   text-align: center;
+  height: 1px;
 }
 
 .flash-message .info-box {
   display: inline-block;
   margin: 1.5em auto;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.3);
 }
 
 .flash-message-close {
