@@ -203,56 +203,52 @@ implements ListeningPersistable, Iterable<ModuleCall>, ThreadEventListener {
 
     ModuleCall lRemovedModuleCall = getTopModuleCall();
 
-    //Mark the callstack as requiring an update - this will process module calls/deletes
-    pRequestContext.getPersistenceContext().requiresPersisting(this, PersistenceMethod.UPDATE);
-
-    //Mark removed module call as requiring delete - although the callstack update will physically delete the module call,
-    //this will prevent the PersistenceContext from attempting to update the module call if it is created and removed in the same churn
-    //and it is marked for update (i.e. due to a facet change)
-    mModuleCallsRemovedDuringPersistenceCycle.add(lRemovedModuleCall);
-//    pRequestContext.getPersistenceContext().requiresPersisting(lRemovedModuleCall, PersistenceMethod.DELETE);
-
-    //Mark state call stack as requiring delete - in case of insert followed by immediate delete (i.e. push/pop in same churn)
-    //pRequestContext.getPersistenceContext().requiresPersisting(lRemovedModuleCall.getStateCallStack(), PersistenceMethod.DELETE);
-
-    //Run any auto state final actions - legacy behaviour was only to run these when running callbacks
-    if(pRunCallbacks) {
-      //Ensure the call we're about to run actions on is mounted
-      if(!lRemovedModuleCall.isMounted()){
-        lRemovedModuleCall.mount(pRequestContext);
-      }
-
-      //Note that breaks/ignores in state finals do not interrupt the pop UNLESS they came from a state-pop (flag on CST)
-      XDoRunner lStateFinalRunner;
-      if(pAllowStateFinalInterrupts){
-        lStateFinalRunner = pRequestContext.createCommandRunner(false);
-        lStateFinalRunner.treatIgnoresAsBreaks();
-      }
-      else {
-        lStateFinalRunner = pRequestContext.createIsolatedCommandRunner(true);
-      }
-
-      //Run any auto state finals
-      lRemovedModuleCall.runFinalActions(pRequestContext, lStateFinalRunner);
-
-      //Record now if the auto state final caused an interrupt (if we're allowing them)
-      boolean lWasInterrupted = pAllowStateFinalInterrupts && !lStateFinalRunner.executionAllowed();
-
-      //Do the standard post-action processing (including running any further CSTs if they're allowed)
-      lStateFinalRunner.processCompletion(pRequestContext, this);
-
-      //If the auto state final threw an interrupt, cancel the pop operation
-      if(lWasInterrupted){
-        return;
-      }
-    }
-
-    //Pop from the top of the stack
-    mStack.removeFirst();
-    notifyStateChangeListeners(pRequestContext, EventType.MODULE);
-
     //Any errors which occur from here must manually abort the popped module call, because Thread abort only aborts the top call
     try {
+      //Mark the callstack as requiring an update - this will process module calls/deletes
+      pRequestContext.getPersistenceContext().requiresPersisting(this, PersistenceMethod.UPDATE);
+
+      //Mark removed module call as requiring delete - although the callstack update will physically delete the module call,
+      //this will prevent the PersistenceContext from attempting to update the module call if it is created and removed in the same churn
+      //and it is marked for update (i.e. due to a facet change)
+      mModuleCallsRemovedDuringPersistenceCycle.add(lRemovedModuleCall);
+
+      //Run any auto state final actions - legacy behaviour was only to run these when running callbacks
+      if(pRunCallbacks) {
+        //Ensure the call we're about to run actions on is mounted
+        if(!lRemovedModuleCall.isMounted()){
+          lRemovedModuleCall.mount(pRequestContext);
+        }
+
+        //Note that breaks/ignores in state finals do not interrupt the pop UNLESS they came from a state-pop (flag on CST)
+        XDoRunner lStateFinalRunner;
+        if(pAllowStateFinalInterrupts){
+          lStateFinalRunner = pRequestContext.createCommandRunner(false);
+          lStateFinalRunner.treatIgnoresAsBreaks();
+        }
+        else {
+          lStateFinalRunner = pRequestContext.createIsolatedCommandRunner(true);
+        }
+
+        //Run any auto state finals
+        lRemovedModuleCall.runFinalActions(pRequestContext, lStateFinalRunner);
+
+        //Record now if the auto state final caused an interrupt (if we're allowing them)
+        boolean lWasInterrupted = pAllowStateFinalInterrupts && !lStateFinalRunner.executionAllowed();
+
+        //Do the standard post-action processing (including running any further CSTs if they're allowed)
+        lStateFinalRunner.processCompletion(pRequestContext, this);
+
+        //If the auto state final threw an interrupt, cancel the pop operation
+        if(lWasInterrupted){
+          return;
+        }
+      }
+
+      //Pop from the top of the stack
+      mStack.removeFirst();
+      notifyStateChangeListeners(pRequestContext, EventType.MODULE);
+
       //If the stack has calls remaining on it, we may need to run callbacks
       if(mStack.size() > 0) {
 
