@@ -1991,6 +1991,7 @@ Mapsets can have the following structures:
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
+            <xs:attribute name="materialise-mapsets" type="fm:fox-xpath-type" use="optional" default="."/>
           </xs:complexType>
         </xs:element>
         <xs:group ref="fm:server-side-include-cmd-grp"/>

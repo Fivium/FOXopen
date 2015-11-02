@@ -32,18 +32,23 @@ $Id$
 */
 package net.foxopen.fox.command.util;
 
+import com.google.common.base.Joiner;
 import net.foxopen.fox.ContextUElem;
+import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.DOMList;
 import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.module.datanode.NodeInfo;
+import net.foxopen.fox.module.mapset.MapSet;
+import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.track.Track;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -69,13 +74,13 @@ public class CompareXml {
     outputDisplayStyle = pOutputStyle;
   }
 
-  public DOM compareElements(DOM pElementOne, DOM pElementTwo, String pVersionLabel, Mod pSchemaModule) throws ExModule {
+  public DOM compareElements(ActionRequestContext pRequestContext, DOM pElementOne, DOM pElementTwo, String pVersionLabel, Mod pSchemaModule, boolean pMaterialiseMapsets) throws ExModule {
     // created a different dom so the xpaths aren't slowed down during the implementation
     changesMap = new HashMap();
     changesDOM = DOM.createDocument("CHANGES_DOM");
     mSchemaModule = pSchemaModule;
     DOM result = pElementOne.clone(true,pElementOne);
-    compareElementsCloned(result, pElementTwo, pVersionLabel);
+    compareElementsCloned(pRequestContext, result, pElementTwo, pVersionLabel, pMaterialiseMapsets);
     // implement all the dom changes at the end so the xpaths aren't slowed down
     if (changesMap.size() > 0) {
       Iterator entriesItr = changesMap.entrySet().iterator();
@@ -89,7 +94,7 @@ public class CompareXml {
     return result;
   }
 
-  private void compareElementsCloned(DOM pElementOne, DOM pElementTwo, String pVersionLabel) throws ExModule {
+  private void compareElementsCloned(ActionRequestContext pRequestContext, DOM pElementOne, DOM pElementTwo, String pVersionLabel, boolean pMaterialiseMapsets) throws ExModule {
     // A distinct list of all the element names with the signature concat(name,position relative to same), e.g. B1,C1,B2
     ArrayList distinctList = new ArrayList();
     // Create the 2 key hashmaps of signature to element
@@ -121,7 +126,7 @@ public class CompareXml {
       if (childOne != null && childTwo != null) {
         // Calculate the children nodes history
         if (childOne.getChildElements().getLength()>0 || childTwo.getChildElements().getLength()>0) {
-          compareElementsCloned(childOne,childTwo,pVersionLabel);
+          compareElementsCloned(pRequestContext, childOne,childTwo,pVersionLabel, pMaterialiseMapsets);
           // Add the history to the parent
           DOM childHistory = (DOM)changesMap.get(childOne);
           if (childHistory != null) {
@@ -141,6 +146,39 @@ public class CompareXml {
         String textOne = childOne.value(false).trim();
         String textTwo = childTwo.value(false).trim();
         if (!textOne.equals(textTwo)) {
+          // Resolve textTwo mapset if it was one?
+          if (pMaterialiseMapsets) {
+            NodeInfo lSourceNodeInfo = pRequestContext.getCurrentModule().getNodeInfo(childTwo);
+            if (lSourceNodeInfo != null) {
+              String lMapSetName = lSourceNodeInfo.getAttribute("fox", "map-set");
+              if (!XFUtil.isNull(lMapSetName)) {
+                MapSet lMapSet = pRequestContext.resolveMapSet(lMapSetName, childTwo, lSourceNodeInfo.getAttribute("fox", "map-set-attach"));
+
+                String lMultiSelectSubNode = lSourceNodeInfo.getAttribute("fox", "selector");
+                if (!XFUtil.isNull(lMultiSelectSubNode)) {
+                  List<String> lPreviousValues = new ArrayList<>();
+                  // If we have a multi-select mapset, recurse through its children that have the name in the selector attribute
+                  for (int lChildIndex = 0; lChildIndex < childTwo.getChildNodes().getLength(); lChildIndex++) {
+                    DOM lSourceMultiSelectSubNode = childTwo.getChildNodes().item(lChildIndex);
+
+                    if (!lMultiSelectSubNode.equals(lSourceMultiSelectSubNode.getName())) {
+                      // Skip node if it's not the "selector" node of a multi-select
+                      continue;
+                    }
+
+                    // Replace the mapset data with the value in the destination node based on the source node and the MapSet
+                    lPreviousValues.add(getMapsetData(lSourceMultiSelectSubNode, lMapSet));
+                  }
+                  textTwo = Joiner.on(", ").join(lPreviousValues);
+                }
+                else {
+                  // Replace the mapset data with the value in the destination DOM based on the source DOM and the MapSet
+                  textTwo = getMapsetData(childTwo, lMapSet);
+                }
+              }
+            }
+          }
+
           // Add history information to the leaf element
           addHistoryChild(childOne,pVersionLabel,textTwo,HISTORY_OP_STR_CHANGE);
 
@@ -266,6 +304,16 @@ public class CompareXml {
       keyMap.put(childName,child);
     }
     return keyMap;
+  }
+
+  private String getMapsetData(DOM pSourceDOM, MapSet pMapSet) {
+
+    int lMapSetItemIndex = pMapSet.indexOf(pSourceDOM);
+    if(lMapSetItemIndex >= 0) {
+      //If the mapset contains this DOM as an item, look up the key and and set it as the text of the destination node
+      return pMapSet.getEntryList().get(lMapSetItemIndex).getKey();
+    }
+    return pSourceDOM.value(false);
   }
 
 }

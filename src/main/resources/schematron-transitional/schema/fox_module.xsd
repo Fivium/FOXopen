@@ -134,7 +134,7 @@
                   <xs:documentation>
                     A namespace group allows you to group together a series of namespaces as part of a common concept for re-use in one or more security rules.
                     Examples could include: namespaces that should be editable when a case is open, but viewable at any other time, actions that can be used when a case is open, actions that should be used when viewing, but not editing, and so on.
-                    A namespace group may extend an another namespace group using the "extends" attribute. 
+                    A namespace group may extend an another namespace group using the "extends" attribute.
                   </xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
@@ -150,14 +150,14 @@
                   <xs:attribute name="name" type="xs:string" use="required">
                     <xs:annotation>
                       <xs:documentation>
-                        Each group must be named so that it can be referred to by name in a fm:mode-rule or fm:view-rule. 
+                        Each group must be named so that it can be referred to by name in a fm:mode-rule or fm:view-rule.
                       </xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
                   <xs:attribute name="extends" type="xs:string" use="optional">
                     <xs:annotation>
                       <xs:documentation>
-                        A namespace group may optionally extend another namespace group. The "extends" attribute is followed until a group without an "extends" attribute is found. The resulting group will contain all namespaces from the entire chain. 
+                        A namespace group may optionally extend another namespace group. The "extends" attribute is followed until a group without an "extends" attribute is found. The resulting group will contain all namespaces from the entire chain.
                       </xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
@@ -1991,6 +1991,7 @@ If the fm:default element is reached, then its contents are evaluated.
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
+            <xs:attribute name="materialise-mapsets" type="fm:fox-xpath-type" use="optional" default="."/>
           </xs:complexType>
         </xs:element>
         <xs:group ref="fm:server-side-include-cmd-grp"/>

@@ -13,6 +13,7 @@ import net.foxopen.fox.module.MandatoryDisplayOption;
 import net.foxopen.fox.module.OutputDescription;
 import net.foxopen.fox.module.OutputError;
 import net.foxopen.fox.module.OutputHint;
+import net.foxopen.fox.module.OutputHistory;
 import net.foxopen.fox.module.evaluatedattributeresult.BooleanAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.DOMAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.DOMListAttributeResult;
@@ -616,6 +617,28 @@ implements DisplayOrderSortable {
 
   public boolean hasError() {
     return (getError() != null);
+  }
+
+  /**
+   * Get an OutputHistory wrapper for the fox-history information on this element (typically created by the fm:compare command)
+   *
+   * @return History information for this node
+   */
+  public OutputHistory getHistory() {
+    if(mNodeEvaluationContext.getDataItem() != null && mNodeEvaluationContext.getDataItem().get1EOrNull("fox-history") != null) {
+      String lLabel = mNodeEvaluationContext.getDataItem().get1SNoEx("fox-history/history/label");
+      String lOperation = mNodeEvaluationContext.getDataItem().get1SNoEx("fox-history/history/operation");
+      String lValue = mNodeEvaluationContext.getDataItem().get1SNoEx("fox-history/history/value");
+      return new OutputHistory(lLabel, lOperation, lValue);
+    }
+    return null;
+  }
+
+  public boolean hasHistory() {
+    // History should not be displayed for widgets which are marked internal (cellmates, forms, lists etc.)
+    boolean lDisableHistoryDisplay = !getWidgetBuilderType().isInternalOnly();
+
+    return (lDisableHistoryDisplay && getHistory() != null);
   }
 
   /**
