@@ -1,0 +1,25 @@
+/* History Information */
+.history {
+  margin-bottom: 0.5em;
+  padding-right: 4px;
+}
+
+.history-insert {
+  border-right: 2px dashed #9EDD54;
+  background-color: #F1F9E5;
+}
+
+.history-update {
+  border-right: 2px dashed #54B3E2;
+  background-color: #EDF8FC;
+}
+
+.history-delete {
+  border-right: 2px dashed #CF1111;
+  background-color: #FFF5F5;
+}
+
+.history-message {
+  font-size: 0.8em;
+  margin: 0.3em 0 0.3em 0.3em;
+}

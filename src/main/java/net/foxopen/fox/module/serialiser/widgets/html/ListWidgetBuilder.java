@@ -3,7 +3,6 @@ package net.foxopen.fox.module.serialiser.widgets.html;
 import com.google.common.base.Joiner;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.module.MandatoryDisplayOption;
-import net.foxopen.fox.module.OutputError;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfo;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfoList;
 import net.foxopen.fox.module.datanode.NodeAttribute;
@@ -14,6 +13,7 @@ import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedPrese
 import net.foxopen.fox.module.parsetree.presentationnode.PresentationNode;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
 import net.foxopen.fox.module.serialiser.TempSerialiser;
+import net.foxopen.fox.module.serialiser.components.html.SingleWidgetBuildHelper;
 import net.foxopen.fox.module.serialiser.fragmentbuilder.MustacheFragmentBuilder;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
@@ -246,6 +246,8 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
             Collection<String> lClassList = lItemNode.getStringAttributes(NodeAttribute.LIST_TABLE_CLASS, NodeAttribute.LIST_CELL_CLASS, NodeAttribute.FIELD_CELL_CLASS, NodeAttribute.CELL_CLASS);
             lClassList.addAll(lItemNode.getCellInternalClasses());
 
+            lClassList.addAll(SingleWidgetBuildHelper.getClassesForNodeFeatures(lItemNode));
+
             String lCellClasses = Joiner.on(" ").join(lClassList);
             if (!XFUtil.isNull(lCellClasses)) {
               pSerialiser.append(" class=\"" + lCellClasses + "\"");
@@ -262,32 +264,13 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
 
             // Output debug information if turned on
             if (pSerialisationContext.getDevToolbarContext().isFlagOn(DevToolbarContext.Flag.HTML_GEN_DEBUG)) {
-              StringBuilder lItemDebugInfo = new StringBuilder();
-              lItemDebugInfo.append("<p>Namespaces:<ol><li>");
-              lItemDebugInfo.append(Joiner.on("</li><li>").join(lItemNode.getNamespacePrecedenceList()));
-              lItemDebugInfo.append("</li></ol></p>");
-              lItemDebugInfo.append("<p>");
-              lItemDebugInfo.append(StringEscapeUtils.escapeHtml4(lItemNode.getIdentityInformation()));
-              lItemDebugInfo.append("</p>");
-              pSerialiser.addDebugInformation(lItemDebugInfo.toString());
+              SingleWidgetBuildHelper.outputDebugInformation(pSerialiser, lItemNode);
             }
 
             pSerialiser.getWidgetBuilder(lItemNode.getWidgetBuilderType()).buildWidget(pSerialisationContext, pSerialiser, lItemNode);
 
-            //TODO PN consolidate with code in FormWidgetBuilder
-            if (lItemNode.hasError()) {
-              OutputError lError = lItemNode.getError();
-              pSerialiser.append("<div class=\"error-message\">");
-              pSerialiser.append(lError.getContent());
-              if (XFUtil.exists(lError.getErrorURL()) && XFUtil.exists(lError.getErrorURLPrompt())) {
-                pSerialiser.append("<a href=\"");
-                pSerialiser.append(StringEscapeUtils.escapeHtml4(lError.getErrorURL()));
-                pSerialiser.append("\" class=\"error-url\">");
-                pSerialiser.append(StringEscapeUtils.escapeHtml4(lError.getErrorURLPrompt()));
-                pSerialiser.append("</a>");
-              }
-              pSerialiser.append("</div>");
-            }
+            SingleWidgetBuildHelper.insertErrorMessage(pSerialiser, lItemNode);
+            SingleWidgetBuildHelper.insertHistoryMessage(pSerialiser, lItemNode);
 
             pSerialiser.append("</td>");
           }

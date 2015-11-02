@@ -37,6 +37,7 @@ import java.util.Collections;
 
 import net.foxopen.fox.ContextLabel;
 import net.foxopen.fox.ContextUElem;
+import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.command.Command;
 import net.foxopen.fox.command.CommandFactory;
 import net.foxopen.fox.command.flow.XDoControlFlow;
@@ -70,6 +71,7 @@ extends BuiltInCommand
   private String mContextTwoVersion;
   private String mModuleName;
   private String mDisplayStyle;
+  private String mMaterialiseMapsetsXPath;
 
   /**
   * Contructs the command from the XML element specified.
@@ -115,6 +117,8 @@ extends BuiltInCommand
     else if (!CompareXml.COMPARE_DISPLAY_LEGACY.equals(mDisplayStyle) &&  !CompareXml.COMPARE_DISPLAY_HINT.equals(mDisplayStyle)) {
       throw new ExInternal("Specified display-style '" + mDisplayStyle + "' is invalid");
     }
+
+    mMaterialiseMapsetsXPath = commandElement.getAttrOrNull("materialise-mapsets");
   }
 
   /**
@@ -125,7 +129,6 @@ extends BuiltInCommand
    */
   @Override
   public XDoControlFlow run(ActionRequestContext pRequestContext){
-
     ContextUElem pContextUElem = pRequestContext.getContextUElem();
     try {
       DOM elementOne;
@@ -163,13 +166,26 @@ extends BuiltInCommand
           throw new ExInternal("Can not find the module which is used the compare command: "+mModuleName,ex);
         }
       }
+
+      boolean lMaterialiseMapsets = false;
+      if (!XFUtil.isNull(mMaterialiseMapsetsXPath)) {
+        try {
+          lMaterialiseMapsets = pContextUElem.extendedXPathBoolean(pContextUElem.getUElem(ContextLabel.ATTACH), mMaterialiseMapsetsXPath);
+        }
+        catch (ExActionFailed e) {
+          throw new ExInternal("Failed to evaluate 'materialise-mapsets' XPath of fm:copy command", e);
+        }
+      }
+
       try {
         CompareXml comparexml = new CompareXml(pContextUElem, mDisplayStyle);
         DOM elementOutResult = comparexml.compareElements(
+          pRequestContext,
           elementOne,
           elementTwo,
           versionTwo==null?"":versionTwo,
-          schemaModule
+          schemaModule,
+          lMaterialiseMapsets
         );
          DOM elementOut = pContextUElem.extendedXPath1E(mContextOut);
         elementOut.removeAllChildren();

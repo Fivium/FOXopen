@@ -1,14 +1,13 @@
 package net.foxopen.fox.module.serialiser.widgets.html;
 
 import com.google.common.base.Joiner;
-import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.module.LayoutDirection;
-import net.foxopen.fox.module.OutputError;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfoCollection;
 import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.serialiser.FOXGridUtils;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
+import net.foxopen.fox.module.serialiser.components.html.SingleWidgetBuildHelper;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
 import net.foxopen.fox.module.serialiser.layout.GridLayoutManager;
 import net.foxopen.fox.module.serialiser.layout.items.LayoutItem;
@@ -19,7 +18,6 @@ import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 import net.foxopen.fox.thread.devtoolbar.DevToolbarContext;
 import net.foxopen.fox.track.Track;
-import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -120,16 +118,7 @@ public class FormWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
             }
             else if (!lColumnItem.isFiller()) {
               // If it's a cell for a field
-              if (lColumnItem.getItemNode().hasHint() && lColumnItem.getItemNode().getWidgetBuilderType() != WidgetBuilderType.BUTTON) { // TODO - NP - Hack to stop hints on buttons
-                // Add the input group class when not a prompt column and has hints
-                lCellClasses.add("input-group");
-              }
-              if (lColumnItem.getItemNode().getWidgetBuilderType() == WidgetBuilderType.RADIO || lColumnItem.getItemNode().getWidgetBuilderType() == WidgetBuilderType.TICKBOX) {
-                lCellClasses.add("radio-or-tickbox-group");
-              }
-              if (lColumnItem.getItemNode().hasError()) {
-                lCellClasses.add("input-error");
-              }
+              lCellClasses.addAll(SingleWidgetBuildHelper.getClassesForNodeFeatures(lColumnItem.getItemNode()));
 
               // Add styles just for the field cell
               lCellClasses.addAll(lColumnItem.getItemNode().getStringAttributes(NodeAttribute.FIELD_CELL_CLASS, NodeAttribute.FORM_TABLE_CLASS, NodeAttribute.FORM_CELL_CLASS, NodeAttribute.CELL_CLASS));
@@ -152,7 +141,7 @@ public class FormWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
             pSerialiser.append(">");
 
             if (pSerialisationContext.getDevToolbarContext().isFlagOn(DevToolbarContext.Flag.HTML_GEN_DEBUG)) {
-              outputCellDebugInformation(pSerialiser, lColumnItem, lFormColumns);
+              SingleWidgetBuildHelper.outputDebugInformation(pSerialiser, lColumnItem, lFormColumns);
             }
 
             if (!lColumnItem.isFiller()) {
@@ -174,19 +163,8 @@ public class FormWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
                   pSerialiser.addDescription(pSerialisationContext, lColumnItem.getItemNode());
                 }
 
-                if (lColumnItem.getItemNode().hasError()) {
-                  OutputError lError = lColumnItem.getItemNode().getError();
-                  pSerialiser.append("<div class=\"error-message\">");
-                  pSerialiser.append(lError.getContent());
-                  if (XFUtil.exists(lError.getErrorURL()) && XFUtil.exists(lError.getErrorURLPrompt())) {
-                    pSerialiser.append("<a href=\"");
-                    pSerialiser.append(StringEscapeUtils.escapeHtml4(lError.getErrorURL()));
-                    pSerialiser.append("\" class=\"error-url\">");
-                    pSerialiser.append(StringEscapeUtils.escapeHtml4(lError.getErrorURLPrompt()));
-                    pSerialiser.append("</a>");
-                  }
-                  pSerialiser.append("</div>");
-                }
+                SingleWidgetBuildHelper.insertErrorMessage(pSerialiser, lColumnItem.getItemNode());
+                SingleWidgetBuildHelper.insertHistoryMessage(pSerialiser, lColumnItem.getItemNode());
 
                 if (lColumnItem.getItemNode().hasHint() && lColumnItem.getItemNode().getWidgetBuilderType() != WidgetBuilderType.BUTTON) {
                   pSerialiser.append("</div>");
@@ -207,55 +185,5 @@ public class FormWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
     finally {
       Track.pop("FormWidget");
     }
-  }
-
-  /**
-   * Output as much debug information as possible for a LayoutWidgetItemColumn
-   *
-   * @param pSerialiser Serialiser to output debug with
-   * @param pColumnItem The item to get information from
-   * @param pColumnLimit Limit for reference in debug information
-   */
-  private void outputCellDebugInformation(HTMLSerialiser pSerialiser, LayoutWidgetItemColumn pColumnItem, int pColumnLimit) {
-    StringBuilder lItemDebugInfo = new StringBuilder();
-    if (!pColumnItem.isFiller()) {
-      lItemDebugInfo.append("<p><strong>Namespaces:</strong><ol><li>");
-      lItemDebugInfo.append(Joiner.on("</li><li>").join(pColumnItem.getItemNode().getNamespacePrecedenceList()));
-      lItemDebugInfo.append("</li></ol></p>");
-      lItemDebugInfo.append("<p>");
-      lItemDebugInfo.append(StringEscapeUtils.escapeHtml4(pColumnItem.getItemNode().getIdentityInformation()));
-      lItemDebugInfo.append("</p>");
-
-      lItemDebugInfo.append("<p><strong>DisplayOrder:</strong> ");
-      lItemDebugInfo.append(pColumnItem.getItemNode().getDisplayOrder());
-      lItemDebugInfo.append("</p>");
-      if (!XFUtil.isNull(pColumnItem.getItemNode().getDisplayBeforeAttribute())) {
-        lItemDebugInfo.append("<p><strong>DisplayBefore:</strong> ");
-        lItemDebugInfo.append(pColumnItem.getItemNode().getDisplayBeforeAttribute());
-        lItemDebugInfo.append("</p>");
-      }
-      if (!XFUtil.isNull(pColumnItem.getItemNode().getDisplayAfterAttribute())) {
-        lItemDebugInfo.append("<p><strong>DisplayAfter:</strong> ");
-        lItemDebugInfo.append(pColumnItem.getItemNode().getDisplayAfterAttribute());
-        lItemDebugInfo.append("</p>");
-      }
-    }
-    lItemDebugInfo.append("<p><strong>Column Type:</strong> ");
-    if (pColumnItem.isFiller()) {
-      lItemDebugInfo.append("Filler");
-    }
-    else if (pColumnItem.isPrompt()) {
-      lItemDebugInfo.append("Prompt");
-    }
-    else {
-      lItemDebugInfo.append("Field");
-    }
-    lItemDebugInfo.append("</p>");
-    lItemDebugInfo.append("<p><strong>Width:</strong> ");
-    lItemDebugInfo.append(pColumnItem.getColSpan());
-    lItemDebugInfo.append(" of ");
-    lItemDebugInfo.append(pColumnLimit);
-    lItemDebugInfo.append(" logical columns</p>");
-    pSerialiser.addDebugInformation(lItemDebugInfo.toString());
   }
 }

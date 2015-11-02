@@ -7,7 +7,6 @@ import net.foxopen.fox.module.serialiser.SerialisationContext;
 import net.foxopen.fox.module.serialiser.fragmentbuilder.MustacheFragmentBuilder;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
 import net.foxopen.fox.thread.devtoolbar.DevToolbarContext;
-import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,22 +38,15 @@ public class MenuOutWidgetHelper {
       }
 
       List<Map<String, String>> lRenderedMenuItems = new ArrayList<>();
-      for (EvaluatedNode lMenuItemNI : pMenuOutNode.getActionList()){
+      for (EvaluatedNode lMenuItemEvalNode : pMenuOutNode.getActionList()){
         HTMLSerialiser.HTMLTempSerialiser lTempSerialiser = pSerialiser.getTempSerialiser();
 
         // Output debug information if turned on
         if (pSerialisationContext.getDevToolbarContext().isFlagOn(DevToolbarContext.Flag.HTML_GEN_DEBUG)) {
-          StringBuilder lItemDebugInfo = new StringBuilder();
-          lItemDebugInfo.append("<p><strong>Namespaces:</strong><ol><li>");
-          lItemDebugInfo.append(Joiner.on("</li><li>").join(lMenuItemNI.getNamespacePrecedenceList()));
-          lItemDebugInfo.append("</li></ol></p>");
-          lItemDebugInfo.append("<p>");
-          lItemDebugInfo.append(StringEscapeUtils.escapeHtml4(lMenuItemNI.getIdentityInformation()));
-          lItemDebugInfo.append("</p>");
-          pSerialiser.addDebugInformation(lItemDebugInfo.toString());
+          SingleWidgetBuildHelper.outputDebugInformation(pSerialiser, lMenuItemEvalNode);
         }
 
-        lTempSerialiser.getWidgetBuilder(lMenuItemNI.getWidgetBuilderType()).buildWidget(pSerialisationContext, lTempSerialiser, lMenuItemNI);
+        lTempSerialiser.getWidgetBuilder(lMenuItemEvalNode.getWidgetBuilderType()).buildWidget(pSerialisationContext, lTempSerialiser, lMenuItemEvalNode);
         Map<String, String> lRenderedItem = new HashMap<>(1);
         lRenderedItem.put("ItemHTML", lTempSerialiser.getOutput());
         lRenderedMenuItems.add(lRenderedItem);

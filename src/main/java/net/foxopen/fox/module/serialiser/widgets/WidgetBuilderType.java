@@ -19,7 +19,7 @@ public enum WidgetBuilderType {
   BUTTON(new WidgetBuilderProperties(WidgetFlag.ACTION, WidgetFlag.RUNNABLE), "button"),
   CAPTCHA(new WidgetBuilderProperties(WidgetFlag.TEXT_VALUE), "captcha", "obscure"),
   CARTOGRAPHIC(new WidgetBuilderProperties(), "cartographic"),
-  CELLMATES(new WidgetBuilderProperties(), "cellmates"),
+  CELLMATES(new WidgetBuilderProperties(WidgetFlag.INTERNAL_ONLY), "cellmates"),
   DATE(new WidgetBuilderProperties(WidgetFlag.TEXT_VALUE, WidgetFlag.RUNNABLE), "date"),
   DATE_TIME(new WidgetBuilderProperties(WidgetFlag.TEXT_VALUE, WidgetFlag.RUNNABLE), "datetime"),
   ERROR_REF(new WidgetBuilderProperties(WidgetFlag.ACTION, WidgetFlag.RUNNABLE), "error-ref"),
