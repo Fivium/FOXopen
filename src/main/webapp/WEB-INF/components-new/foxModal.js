@@ -15,15 +15,6 @@ var FOXmodal = {
   },
 
   /**
-   * Gets the top modal currently on the stack, or undefined if the stack is empty.
-   * @returns {DisplayedModal}
-   * @private
-   */
-  _topModal: function() {
-    return this.modalStack[this.modalStack.length - 1];
-  },
-
-  /**
    * Gets the modal currently underneath the top modal on the stack, or undefined if the stack contains 1 or 0 modals.
    * @returns {DisplayedModal}
    * @private
@@ -34,13 +25,13 @@ var FOXmodal = {
 
   _keyEventHandler: function(event) {
 
-    if (event.which == 27 && FOXmodal._topModal() && FOXmodal._topModal().escapeAllowed) {
+    if (event.which == 27 && FOXmodal.topModal() && FOXmodal.topModal().escapeAllowed) {
       //Escape key - dismiss top modal if allowed
       FOXmodal.dismissTopModal();
     }
     else if (event.which == 9) {
       //Tab key - prevent tabbing out of modal
-      AccessibleModal.trapTabKey(FOXmodal._topModal().$containerDiv, event);
+      AccessibleModal.trapTabKey(FOXmodal.topModal().$containerDiv, event);
     }
   },
 
@@ -69,7 +60,7 @@ var FOXmodal = {
 
     if (this.modalStack.length > 1) {
       //Ensure the z-index of the top modal is higher than the modal it is over
-      this._topModal().$containerDiv.zIndex(this._underTopModal().$containerDiv.zIndex() + 1);
+      this.topModal().$containerDiv.zIndex(this._underTopModal().$containerDiv.zIndex() + 1);
       //Disallow scrolling in the modal which is now beneath the top modal
       this._underTopModal().$containerDiv.addClass('contains-popover');
     }
@@ -139,6 +130,14 @@ var FOXmodal = {
   },
 
   /**
+   * Gets the top modal currently on the stack, or undefined if the stack is empty.
+   * @returns {DisplayedModal}
+   */
+  topModal: function() {
+    return this.modalStack[this.modalStack.length - 1];
+  },
+
+  /**
    * Dismisses (closes) the top modal.
    * @param {Object} [callbackArgs] Arguments to pass to the callback function.
    */
@@ -156,7 +155,7 @@ var FOXmodal = {
     }
     else {
       //Still a modal on the stack, make sure scrolling is now allowed in it
-      this._topModal().$containerDiv.removeClass('contains-popover');
+      this.topModal().$containerDiv.removeClass('contains-popover');
     }
 
     //If we popped a DisplayedModal, run close actions
@@ -190,7 +189,7 @@ var FOXmodal = {
    * @returns {jQuery}
    */
   getCurrentModalContainer: function() {
-    return this._topModal().$containerDiv;
+    return this.topModal().$containerDiv;
   }
 
 };
@@ -215,7 +214,12 @@ function DisplayedModal(containerDiv, modalKey, escapeAllowed, restoreFocusTo, c
 
   if (this.isInternal && this.$containerDiv.data('initial-scroll-position')) {
     this.$containerDiv.scrollTop(this.$containerDiv.data('initial-scroll-position'));
+    this.lastScrollTop = this.$containerDiv.scrollTop();
   }
+
+  this.$containerDiv.on('scroll', function(e) {
+    FOXmodal.topModal().updateDatePickerScrollPosition(e);
+  })
 }
 
 DisplayedModal.prototype = {
@@ -224,7 +228,13 @@ DisplayedModal.prototype = {
   isInternal: false,
   escapeAllowed: false,
   restoreFocusTo: null,
-  closeCallback: null
+  closeCallback: null,
+  lastScrollTop: null,
+  updateDatePickerScrollPosition: function(e) {
+    var newTop = parseFloat($('#ui-datepicker-div').css('top')) - ( e.target.scrollTop - this.lastScrollTop);
+    $('#ui-datepicker-div').css('top', newTop + 'px');
+    this.lastScrollTop = e.target.scrollTop;
+  }
 };
 
 //Modal event listeners
