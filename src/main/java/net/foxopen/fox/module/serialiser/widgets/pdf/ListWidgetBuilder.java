@@ -14,6 +14,7 @@ import net.foxopen.fox.module.serialiser.pdf.PDFSerialiser;
 import net.foxopen.fox.module.serialiser.pdf.elementattributes.ElementAttributes;
 import net.foxopen.fox.module.serialiser.pdf.elementcontainers.ElementContainerFactory;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
+import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -69,12 +70,13 @@ public class ListWidgetBuilder extends WidgetBuilderPDFSerialiser<EvaluatedNodeI
 
     List<EvaluatedNodeInfo> lListColumns = pEvalNode.getColumns();
     // Ensure column count is 1 when no columns exist to allow the list header to come out instead of nothing
-    final int lListColumnCount = Math.max(lListColumns.size(), 1);
+    int lListColumnCount = Math.max(lListColumns.size(), 1);
     PdfPTable lListTable = pSerialiser.getElementFactory().getTable(lListColumnCount);
     pSerialiser.startContainer(ElementContainerFactory.getContainer(lListTable));
 
-    // Only add column headers if not nested within another list or form
-    if (!pEvalNode.isNested()) {
+    // Only add column headers if not nested within another list (in html output, the thead of a list in a list is
+    // hidden by the css)
+    if (!pEvalNode.checkAncestry(WidgetBuilderType.LIST)) {
       addColumnHeaders(pSerialiser, lListColumns);
     }
 
