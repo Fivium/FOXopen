@@ -63,6 +63,6 @@ public class ElementContainerManager {
    * @return True if any containers are currently suppressing new page templates
    */
   public boolean isSuppressNewPageTemplates() {
-    return mContainers.stream().anyMatch(pContainer -> pContainer.isSuppressNewPageTemplates());
+    return mContainers.stream().anyMatch(ElementContainer::isSuppressNewPageTemplates);
   }
 }
