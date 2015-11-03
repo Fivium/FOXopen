@@ -19,6 +19,11 @@ public class DocumentContainer  implements ElementContainer {
     mDocument = pDocument;
   }
 
+  @Override
+  public boolean isSuppressNewPageTemplates() {
+    return false;
+  }
+
   /**
    * Adds an element to the document
    * @param pChildElement The element to be added

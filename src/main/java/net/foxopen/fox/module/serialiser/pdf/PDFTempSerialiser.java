@@ -20,8 +20,8 @@ public class PDFTempSerialiser extends PDFSerialiser implements TempSerialiser<P
   private final static PageTemplate TEMP_PAGE_TEMPLATE = getTempPageTemplate();
   private final PDFTempSerialiserOutput mOutput = new PDFTempSerialiserOutput();
 
-  public PDFTempSerialiser(EvaluatedParseTree pEvalParseTree, boolean pIsDebug, boolean pIsIgnoreUnsupported) {
-    super(pEvalParseTree, pIsDebug, pIsIgnoreUnsupported);
+  public PDFTempSerialiser(EvaluatedParseTree pEvalParseTree, DocumentMetadata pDocumentMetadata, boolean pIsDebug, boolean pIsIgnoreUnsupported) {
+    super(pEvalParseTree, pDocumentMetadata, pIsDebug, pIsIgnoreUnsupported);
 
     startPageTemplate(TEMP_PAGE_TEMPLATE);
     pushElementAttributes(DefaultElementAttributes.getDefaultAttributes());
@@ -53,8 +53,7 @@ public class PDFTempSerialiser extends PDFSerialiser implements TempSerialiser<P
 
   /**
    * Returns the page template to be used as the root during temporary serialisation. The temp serialiser does not
-   * actually output a document, however at least one page template is required by events that can occur during
-   * serialisation (e.g. set header/footer, adding a new template).
+   * actually output a document, however at least one page template must exist on the stack during serialisation.
    * @return A dummy page template for use as the temp serialiser root page template
    */
   private static PageTemplate getTempPageTemplate() {

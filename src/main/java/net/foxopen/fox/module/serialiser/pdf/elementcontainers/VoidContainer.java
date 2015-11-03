@@ -7,6 +7,11 @@ import com.itextpdf.text.Element;
  * any concrete, e.g. the temporary PDF serialiser does not need to do anything with the top level elements.
  */
 public class VoidContainer implements ElementContainer {
+  @Override
+  public boolean isSuppressNewPageTemplates() {
+    return true;
+  }
+
   /**
    * Add an element. Any elements added are discarded.
    * @param pChildElement The element to be ignored.

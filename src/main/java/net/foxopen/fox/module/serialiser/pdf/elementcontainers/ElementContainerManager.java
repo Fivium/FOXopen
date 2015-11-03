@@ -55,4 +55,14 @@ public class ElementContainerManager {
       throw new ExInternal("Cannot get current container as no container exists", e);
     }
   }
+
+  /**
+   * Returns true if any containers are currently suppressing new page templates. This method must be used instead of
+   * checking only the current container, because the current container may not be suppressing new page templates but an
+   * ancestor may be.
+   * @return True if any containers are currently suppressing new page templates
+   */
+  public boolean isSuppressNewPageTemplates() {
+    return mContainers.stream().anyMatch(pContainer -> pContainer.isSuppressNewPageTemplates());
+  }
 }

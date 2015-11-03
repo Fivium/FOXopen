@@ -25,6 +25,12 @@ public class CellContainer implements ElementContainer {
   }
 
   @Override
+  public boolean isSuppressNewPageTemplates() {
+    // Cannot have a new page within a cell
+    return true;
+  }
+
+  @Override
   public void addChildElement(Element pChildElement) {
     mCellParagraph.add(pChildElement);
   }

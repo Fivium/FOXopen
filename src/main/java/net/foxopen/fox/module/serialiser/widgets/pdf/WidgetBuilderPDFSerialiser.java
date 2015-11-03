@@ -3,11 +3,16 @@ package net.foxopen.fox.module.serialiser.widgets.pdf;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.tool.xml.html.HTML;
 import net.foxopen.fox.StringUtil;
+import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.module.LayoutDirection;
 import net.foxopen.fox.module.RenderTypeOption;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.datanode.NodeVisibility;
+import net.foxopen.fox.module.parsetree.ParseTree;
+import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedPresentationNode;
+import net.foxopen.fox.module.parsetree.presentationnode.PresentationNode;
+import net.foxopen.fox.module.serialiser.OutputSerialiser;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
 import net.foxopen.fox.module.serialiser.pdf.PDFSerialiser;
 import net.foxopen.fox.module.serialiser.pdf.elementattributes.ElementAttributes;
@@ -35,7 +40,8 @@ public abstract class WidgetBuilderPDFSerialiser<EN extends EvaluatedNode> exten
     PROMPT_LAYOUT_CLASSES.put(LayoutDirection.NORTH, "promptNorth");
   }
 
-  protected WidgetBuilderPDFSerialiser() {}
+  protected WidgetBuilderPDFSerialiser() {
+  }
 
   @Override
   public void buildPrompt(SerialisationContext pSerialisationContext, PDFSerialiser pSerialiser, EN pEvalNode) {
@@ -46,7 +52,7 @@ public abstract class WidgetBuilderPDFSerialiser<EN extends EvaluatedNode> exten
 
       Paragraph lParagraph = pSerialiser.getElementFactory().getParagraph();
       pSerialiser.startContainer(ElementContainerFactory.getContainer(lParagraph));
-      pSerialiser.addText(pEvalNode.getPrompt().getString());
+      renderXMLStringContent(pSerialisationContext, pSerialiser, pEvalNode.getPrompt().getString());
       pSerialiser.endContainer();
       pSerialiser.add(lParagraph);
 
@@ -54,7 +60,7 @@ public abstract class WidgetBuilderPDFSerialiser<EN extends EvaluatedNode> exten
     }
   }
 
-  protected boolean isVisible(EN pEvalNode) {
+  protected static boolean isVisible(EvaluatedNode pEvalNode) {
     return Arrays.asList(NodeVisibility.VIEW, NodeVisibility.EDIT).contains(pEvalNode.getFieldMgr().getVisibility());
   }
 
@@ -64,7 +70,7 @@ public abstract class WidgetBuilderPDFSerialiser<EN extends EvaluatedNode> exten
    * @param pEvalNode The node with a prompt
    * @return The layout direction of the node prompt
    */
-  protected LayoutDirection getPromptLayoutDirection(EN pEvalNode) {
+  protected static LayoutDirection getPromptLayoutDirection(EvaluatedNode pEvalNode) {
     return Optional.ofNullable(pEvalNode.getStringAttribute(NodeAttribute.PROMPT_LAYOUT))
                    .map(LayoutDirection::fromString)
                    .flatMap(Optional::ofNullable)
@@ -77,7 +83,7 @@ public abstract class WidgetBuilderPDFSerialiser<EN extends EvaluatedNode> exten
    * @param pEvalNode The widget node
    * @return True if the widget node is a tight field, false otherwise
    */
-  protected boolean isTightField(EN pEvalNode) {
+  protected static boolean isTightField(EvaluatedNode pEvalNode) {
     return pEvalNode.getBooleanAttribute(NodeAttribute.TIGHT_FIELD, false) || isTightWidgetType(pEvalNode);
   }
 
@@ -86,7 +92,7 @@ public abstract class WidgetBuilderPDFSerialiser<EN extends EvaluatedNode> exten
    * @param pEvalNode The node to get the widget render type attribute from
    * @return The render type specified on the node, or the default if not specified or the node attribute was invalid
    */
-  protected RenderTypeOption getRenderType(EN pEvalNode) {
+  protected static RenderTypeOption getRenderType(EvaluatedNode pEvalNode) {
     return RenderTypeOption.fromString(pEvalNode.getStringAttribute(NodeAttribute.RENDER_TYPE))
                            .orElse(DEFAULT_RENDER_TYPE);
   }
@@ -97,7 +103,7 @@ public abstract class WidgetBuilderPDFSerialiser<EN extends EvaluatedNode> exten
    * @param pEvalNode The node with a prompt
    * @return The class name of the prompt layout specified on the node
    */
-  private String getPromptLayoutClass(EN pEvalNode) {
+  private static String getPromptLayoutClass(EvaluatedNode pEvalNode) {
     return PROMPT_LAYOUT_CLASSES.get(getPromptLayoutDirection(pEvalNode));
   }
 
@@ -106,7 +112,7 @@ public abstract class WidgetBuilderPDFSerialiser<EN extends EvaluatedNode> exten
    * @param pEvalNode The node with a prompt
    * @return The classes to be applied to the prompt of the node
    */
-  private List<String> getPromptClasses(EN pEvalNode) {
+  private static List<String> getPromptClasses(EvaluatedNode pEvalNode) {
     return Arrays.asList(PROMPT_CLASS, getPromptLayoutClass(pEvalNode));
   }
 
@@ -115,7 +121,7 @@ public abstract class WidgetBuilderPDFSerialiser<EN extends EvaluatedNode> exten
    * @param pEvalNode The widget node
    * @return True if the given node is of a tight widget type, false otherwise
    */
-  private boolean isTightWidgetType(EN pEvalNode) {
+  private static boolean isTightWidgetType(EvaluatedNode pEvalNode) {
     return Optional.ofNullable(pEvalNode.getStringAttribute(NodeAttribute.TIGHT_WIDGETS))
                    .map(StringUtil::commaDelimitedListToSet)
                    .map(pTightWidgets -> pTightWidgets.stream().anyMatch(pTightWidgetName -> isWidgetType(pEvalNode, pTightWidgetName)))
@@ -128,7 +134,21 @@ public abstract class WidgetBuilderPDFSerialiser<EN extends EvaluatedNode> exten
    * @param pWidgetTypeName The name of the widget builder type to test
    * @return True if the given node widget builder type is equal to the specified widget builder type name, false otherwise
    */
-  private boolean isWidgetType(EN pEvalNode, String pWidgetTypeName) {
+  private static boolean isWidgetType(EvaluatedNode pEvalNode, String pWidgetTypeName) {
     return pEvalNode.getWidgetBuilderType() == WidgetBuilderType.fromString(pWidgetTypeName, pEvalNode, false);
+  }
+
+  /**
+   * Renders XML string content, that may include text nodes, comments, html nodes etc.
+   * @param pSerialisationContext The serialisation context to use during rendering
+   * @param pSerialiser The serialiser to use to render
+   * @param pXMLStringContent The string of XML to be rendered, does not have to have a parent node
+   */
+  private static void renderXMLStringContent(SerialisationContext pSerialisationContext, OutputSerialiser pSerialiser, String pXMLStringContent) {
+    DOM lWrapperDOM = DOM.createDocumentFromXMLString("<span>" + pXMLStringContent + "</span>");
+    PresentationNode lWrapperNode = ParseTree.parseDOMNode(lWrapperDOM);
+
+    EvaluatedPresentationNode lEvaluatedWrapperNode = pSerialisationContext.evaluateNode(null, lWrapperNode, lWrapperDOM);
+    lEvaluatedWrapperNode.render(pSerialisationContext, pSerialiser);
   }
 }

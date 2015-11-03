@@ -1,5 +1,6 @@
 package net.foxopen.fox.command.builtin;
 
+import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.command.Command;
 import net.foxopen.fox.command.CommandFactory;
@@ -9,10 +10,12 @@ import net.foxopen.fox.command.util.GenerateMethod;
 import net.foxopen.fox.command.util.GeneratorDestination;
 import net.foxopen.fox.command.util.GeneratorDestinationUtils;
 import net.foxopen.fox.dom.DOM;
+import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.module.fieldset.FieldSet;
 import net.foxopen.fox.module.parsetree.EvaluatedParseTree;
+import net.foxopen.fox.module.serialiser.pdf.DocumentMetadata;
 import net.foxopen.fox.module.serialiser.pdf.PDFSerialiser;
 import net.foxopen.fox.thread.ActionRequestContext;
 
@@ -38,7 +41,11 @@ public class GeneratePDFCommand extends BuiltInCommand {
   }
 
   private final GeneratorDestination mGeneratorDestination;
-  private final String mBufferName;
+  private final String mBufferNameXPath;
+  private final String mTitleXPath;
+  private final String mAuthorXPath;
+  private final String mSubjectXPath;
+  private final String mKeywordsXPath;
   private final boolean mIsDebug;
   private final boolean mIsIgnoreUnsupported;
 
@@ -46,21 +53,34 @@ public class GeneratePDFCommand extends BuiltInCommand {
     super(pMarkupDOM);
     mGeneratorDestination = GeneratorDestinationUtils.getDestinationFromGenerateCommandMarkup(pMarkupDOM, DEFAULT_FILE_EXTENSION,
                                                                                               DEFAULT_CONTENT_TYPE, GENERATE_METHOD_VALUES);
-    mBufferName = pMarkupDOM.getAttrOrNull("buffer");
+    mBufferNameXPath = pMarkupDOM.getAttrOrNull("buffer");
+    mTitleXPath = pMarkupDOM.getAttrOrNull("title");
+    mAuthorXPath = pMarkupDOM.getAttrOrNull("author");
+    mSubjectXPath = pMarkupDOM.getAttrOrNull("subject");
+    mKeywordsXPath = pMarkupDOM.getAttrOrNull("keywords");
     mIsDebug = Boolean.valueOf(pMarkupDOM.getAttrOrNull("debug"));
     mIsIgnoreUnsupported = Boolean.valueOf(pMarkupDOM.getAttrOrNull("ignore-unsupported"));
 
-    if (XFUtil.isNull(mBufferName)) {
+    if (XFUtil.isNull(mBufferNameXPath)) {
       throw new ExInternal("Required attribute 'buffer' not provided to the " + COMMAND_NAME + " command");
     }
   }
 
   @Override
   public XDoControlFlow run(ActionRequestContext pRequestContext) {
+    ContextUElem lContextUElem = pRequestContext.getContextUElem();
+
+    String lBufferName = evaluateStringAttributeXPathOrThrow(lContextUElem, mBufferNameXPath, "buffer");
+    String lTitle = evaluateStringAttributeXPathOrThrow(lContextUElem, mTitleXPath, "title");
+    String lAuthor = evaluateStringAttributeXPathOrThrow(lContextUElem, mAuthorXPath, "author");
+    String lSubject = evaluateStringAttributeXPathOrThrow(lContextUElem, mSubjectXPath, "subject");
+    String lKeywords = evaluateStringAttributeXPathOrThrow(lContextUElem, mKeywordsXPath, "keywords");
+    DocumentMetadata lDocumentMetadata = new DocumentMetadata(lTitle, lAuthor, lSubject, lKeywords);
+
     mGeneratorDestination.generateToOutputStream(pRequestContext, pOutputStream -> {
       EvaluatedParseTree lEPT = new EvaluatedParseTree(pRequestContext, FieldSet.createNewFieldSet(pRequestContext),
-                                                       Collections.emptyList(), mBufferName);
-      PDFSerialiser lOutputSerialiser = new PDFSerialiser(lEPT, mIsDebug, mIsIgnoreUnsupported);
+                                                       Collections.emptyList(), lBufferName);
+      PDFSerialiser lOutputSerialiser = new PDFSerialiser(lEPT, lDocumentMetadata, mIsDebug, mIsIgnoreUnsupported);
       lOutputSerialiser.serialise(pOutputStream);
     });
 
@@ -69,6 +89,21 @@ public class GeneratePDFCommand extends BuiltInCommand {
 
   public boolean isCallTransition() {
     return false;
+  }
+
+  private String evaluateStringAttributeXPathOrThrow(ContextUElem pContextUElem, String pStringOrExtendedXPath, String pAttributeName) {
+    String lEvaluatedString = null;
+
+    if (!XFUtil.isNull(pStringOrExtendedXPath)) {
+      try {
+        return pContextUElem.extendedStringOrXPathString(pContextUElem.attachDOM(), pStringOrExtendedXPath);
+      }
+      catch (ExActionFailed e) {
+        throw new ExInternal("Failed to evaluate attribute '" + pAttributeName + "' XPath provided to the " + COMMAND_NAME + " command", e);
+      }
+    }
+
+    return lEvaluatedString;
   }
 
   public static class Factory implements CommandFactory {
