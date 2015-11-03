@@ -17,6 +17,11 @@ public class TextElementArrayContainer implements ElementContainer {
     mTextElementArray = pTextElementArray;
   }
 
+  @Override
+  public boolean isSuppressNewPageTemplates() {
+    return false;
+  }
+
   /**
    * Add an element to the text element array
    * @param pChildElement The element to be added

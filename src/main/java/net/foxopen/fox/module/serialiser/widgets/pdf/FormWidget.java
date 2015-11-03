@@ -12,6 +12,7 @@ import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.serialiser.FOXGridUtils;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
 import net.foxopen.fox.module.serialiser.layout.GridLayoutManager;
+import net.foxopen.fox.module.serialiser.layout.items.LayoutItem;
 import net.foxopen.fox.module.serialiser.layout.items.LayoutWidgetItemColumn;
 import net.foxopen.fox.module.serialiser.pdf.PDFSerialiser;
 import net.foxopen.fox.module.serialiser.pdf.elementattributes.ElementAttributes;
@@ -107,29 +108,50 @@ public class FormWidget extends WidgetBuilderPDFSerialiser<EvaluatedNodeInfo> {
     PdfPTable lFormTable = pSerialiser.getElementFactory().getTable(FOXGridUtils.getMaxColumns());
     pSerialiser.startContainer(ElementContainerFactory.getContainer(lFormTable));
 
-    Set<Integer> lNorthPromptRowIndexes = new HashSet<>();
-
     int lFormColumns = FormWidgetUtils.getFormColumns(pEvalNode);
     GridLayoutManager lFormLayout = new GridLayoutManager(lFormColumns, pSerialiser, pEvalNode);
 
-    lFormLayout.getLayoutItems().forEach(pLayoutItem -> {
-      switch (pLayoutItem.getItemType()) {
+    Set<Integer> lNorthPromptRowIndexes = new HashSet<>();
+    boolean lLastRowHasNorthPromptFields = false;
+
+    for (LayoutItem lLayoutItem : lFormLayout.getLayoutItems()) {
+      switch (lLayoutItem.getItemType()) {
         case ROW_START:
+          if (lLastRowHasNorthPromptFields) {
+            // Add a dummy row that isn't kept-together so that the prompt north and field can be kept-together, but
+            // still split from further rows. For example, if there is a form with 4 rows: prompt, field, prompt, field,
+            // setting all of them to be keep-together means they can't split at all, so the dummy row in between the
+            // first and second pair of prompt/fields allows them to split
+            PdfPCell lCell = new PdfPCell();
+            lCell.setColspan(lFormTable.getNumberOfColumns());
+            lCell.setBorder(PdfPCell.NO_BORDER);
+            lFormTable.addCell(lCell);
+
+            lLastRowHasNorthPromptFields = false;
+          }
+          break;
         case ROW_END:
           break;
         case COLUMN:
-          LayoutWidgetItemColumn lLayoutWidgetItemColumn =  (LayoutWidgetItemColumn) pLayoutItem;
+          LayoutWidgetItemColumn lLayoutWidgetItemColumn = (LayoutWidgetItemColumn) lLayoutItem;
+          boolean lIsField = !lLayoutWidgetItemColumn.isFiller() && !lLayoutWidgetItemColumn.isPrompt();
 
-          // If the layout item is a north prompt, record the index so that the corresponding field can be set to keep
-          // together so the prompt and field aren't split over a page
-          if (lLayoutWidgetItemColumn.isPrompt() && getPromptLayoutDirection(pEvalNode) == LayoutDirection.NORTH) {
-            lNorthPromptRowIndexes.add(lFormTable.getLastCompletedRowIndex() + 1);
+          if (lIsField && getPromptLayoutDirection(lLayoutWidgetItemColumn.getItemNode()) == LayoutDirection.NORTH) {
+            // Record the last completed row index as one with prompt norths in it
+            // Check that this isn't the very top row, where the last completed index would be -1
+            if (lFormTable.getLastCompletedRowIndex() >= 0) {
+              lNorthPromptRowIndexes.add(lFormTable.getLastCompletedRowIndex());
+            }
+
+            // Set flag so that a dummy row is added below the prompt north field, which allows the prompt and field to
+            // be set as stay together but still split from other north prompt/field pairs
+            lLastRowHasNorthPromptFields = true;
           }
 
           addColumnItem(pSerialisationContext, pSerialiser, lLayoutWidgetItemColumn, lFormColumns);
           break;
       }
-    });
+    }
 
     setKeepNorthPromptFieldsTogether(lFormTable, lNorthPromptRowIndexes);
 
@@ -190,11 +212,10 @@ public class FormWidget extends WidgetBuilderPDFSerialiser<EvaluatedNodeInfo> {
    */
   private void setKeepNorthPromptFieldsTogether(PdfPTable pTable, Set<Integer> pNorthPromptRowIndexes) {
     // The row index of the field is the row below the prompt - if there is a row below the prompt, set it so that the
-    // table shouldn't split at that row (i.e. between the prompt and field)
+    // table shouldn't split the prompt and field row
     pNorthPromptRowIndexes.stream()
-                          .map(pPromptRowIndex -> pPromptRowIndex + 1)
-                          .filter(pFieldRowIndex -> pFieldRowIndex < pTable.size())
-                          .forEach(pFieldRowIndex -> pTable.keepRowsTogether(pFieldRowIndex, pFieldRowIndex + 1));
+                          .filter(pPromptRowIndex -> pPromptRowIndex < pTable.size() - 1)
+                          .forEach(pPromptRowIndex -> pTable.keepRowsTogether(pPromptRowIndex, pPromptRowIndex + 2));
   }
 
   /**

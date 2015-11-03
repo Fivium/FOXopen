@@ -1802,9 +1802,29 @@ Mapsets can have the following structures:
             <xs:documentation>Generate a PDF using buffer content</xs:documentation>
           </xs:annotation>
           <xs:complexType>
-            <xs:attribute name="buffer" type="fm:entered-string" use="required">
+            <xs:attribute name="buffer" type="fm:fox-xpath-type" use="required">
               <xs:annotation>
-                <xs:documentation>The buffer content to be output in the generated PDF. The buffer must specify a page definition.</xs:documentation>
+                <xs:documentation>The buffer content to be output in the generated PDF. The buffer must specify a page definition. Stringifyable.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="title" type="fm:fox-xpath-type" use="optional">
+              <xs:annotation>
+                <xs:documentation>The title added to the generated PDF metadata. Stringifyable.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="subject" type="fm:fox-xpath-type" use="optional">
+              <xs:annotation>
+                <xs:documentation>The subject added to the generated PDF metadata. Stringifyable.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="author" type="fm:fox-xpath-type" use="optional">
+              <xs:annotation>
+                <xs:documentation>The author added to the generated PDF metadata. Stringifyable.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="keywords" type="fm:fox-xpath-type" use="optional">
+              <xs:annotation>
+                <xs:documentation>The keywords added to the generated PDF metadata. Multiple keywords should be entered comma-separated. Stringifyable.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute name="method" default="download" use="optional">
@@ -1843,12 +1863,12 @@ Mapsets can have the following structures:
                 <xs:documentation>The destination storage location of the generated document, when generating using method storage-location</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="debug" type="xs:boolean" default="false" use="optional">
+            <xs:attribute name="debug"  type="xs:boolean" default="false"  use="optional">
               <xs:annotation>
                 <xs:documentation>Whether or not to display debug elements in the output</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="ignore-unsupported" type="xs:boolean" default="false" use="optional">
+            <xs:attribute name="ignore-unsupported" type="xs:boolean" default="false"  use="optional">
               <xs:annotation>
                 <xs:documentation>If true unsupported components and widgets will be ignored instead of throwing an exception when they are encountered. Ignored components and widgets are displayed in the track. Note that ignoring unsupported is not recommended as it causes regression issues if an unsupported component or widget is implemented in the future.</xs:documentation>
               </xs:annotation>

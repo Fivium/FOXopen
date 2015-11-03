@@ -8,6 +8,7 @@ import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.FontSelector;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfWriter;
+import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.OutputHint;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
@@ -68,6 +69,7 @@ import net.foxopen.fox.module.serialiser.widgets.pdf.StaticTextWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.pdf.TextWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.pdf.TickboxWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.pdf.UnimplementedWidgetBuilder;
+import net.foxopen.fox.track.Track;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
@@ -76,11 +78,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 /**
  * Serialises PDF output of an evaluated parse tree
  */
 public class PDFSerialiser implements OutputSerialiser {
+  /**
+   * The name of the application that created the PDF, to be embedded in the PDF metadata
+   */
+  private static final String DOCUMENT_CREATOR_APPLICATION = "FOX";
   /**
    * The widget builders that should be used to serialise the specified widget builder types
    */
@@ -125,6 +132,7 @@ public class PDFSerialiser implements OutputSerialiser {
   }
 
   private final EvaluatedParseTree mEvalParseTree;
+  private final DocumentMetadata mDocumentMetadata;
   private final boolean mIsDebug;
   private final boolean mIsIgnoreUnsupported;
   private final Document mDocument = new Document();
@@ -140,12 +148,14 @@ public class PDFSerialiser implements OutputSerialiser {
   /**
    * Create a serialiser for the provided evaluated parse tree
    * @param pEvalParseTree The parse tree to process during serialisation
+   * @param pDocumentMetadata The metadata to be included in the serialised PDF
    * @param pIsDebug Whether or not the serialiser should serialise PDFs in debug mode
    * @param pIsIgnoreUnsupported If true unsupported components and widgets are ignored, else an exception is thrown
    *                            when they are encountered
    */
-  public PDFSerialiser(EvaluatedParseTree pEvalParseTree, boolean pIsDebug, boolean pIsIgnoreUnsupported) {
+  public PDFSerialiser(EvaluatedParseTree pEvalParseTree, DocumentMetadata pDocumentMetadata, boolean pIsDebug, boolean pIsIgnoreUnsupported) {
     mEvalParseTree = pEvalParseTree;
+    mDocumentMetadata = pDocumentMetadata;
     mIsDebug = pIsDebug;
     mIsIgnoreUnsupported = pIsIgnoreUnsupported;
 
@@ -185,6 +195,8 @@ public class PDFSerialiser implements OutputSerialiser {
     ByteArrayOutputStream lFirstPassOutput = new ByteArrayOutputStream();
     // Opening a writer with the first pass output stream will allow the document to be opened and written to the stream
     PdfWriter lWriter = openWriter(mDocument, lFirstPassOutput);
+    // Set the document metadata (title, author etc.) provided to the serialiser
+    setDocumentMetadata();
     // Page manager will handle document page events (i.e. page end)
     lWriter.setPageEvent(mPageManager);
 
@@ -209,7 +221,11 @@ public class PDFSerialiser implements OutputSerialiser {
       throw new ExInternal("Document processing has finished but not all page templates have been ended");
     }
 
-    // TODO WH: handle document with nothing added/no pages (otherwise exception is thrown) - or just allow exception
+    // Check that any content was actually serialised (document is opened only when content is first serialised)
+    if (!mDocument.isOpen()) {
+      throw new ExInternal("The document was not opened because no content was serialised. Ensure your PDF buffer has content.");
+    }
+
     // Close the document - this completes the first pass output
     mDocument.close();
 
@@ -233,7 +249,7 @@ public class PDFSerialiser implements OutputSerialiser {
 
   @Override
   public PDFTempSerialiser getTempSerialiser() {
-    return new PDFTempSerialiser(mEvalParseTree, mIsDebug, mIsIgnoreUnsupported);
+    return new PDFTempSerialiser(mEvalParseTree, mDocumentMetadata, mIsDebug, mIsIgnoreUnsupported);
   }
 
   @Override
@@ -291,21 +307,30 @@ public class PDFSerialiser implements OutputSerialiser {
   }
 
   /**
-   * Starts a page template. A new page is started with the new attributes when content is added to the document. Added
-   * page templates must be ended via {@link #endPageTemplate} once they are out of scope (i.e. further pages should no
-   * longer be created using this template).
+   * Starts a page template if not within a container that is currently suppressing new page templates (see
+   * {@link ElementContainer#isSuppressNewPageTemplates}). A new page is started with the new attributes when content is
+   * added to the document. Added page templates must be ended via {@link #endPageTemplate} once they are out of scope
+   * (i.e. further pages should no longer be created using this template).
    * @param pPageTemplate The page template to be started
    */
   public void startPageTemplate(PageTemplate pPageTemplate) {
-    mPageManager.startPageTemplate(pPageTemplate);
+    if (!mElementContainerManager.isSuppressNewPageTemplates()) {
+      mPageManager.startPageTemplate(pPageTemplate);
+    }
+    else {
+      Track.info("SuppressPageTemplates", "Suppressing new page template added within a container that does not support new page templates");
+    }
   }
 
   /**
-   * Ends the current page template. The current page is ended (content added to the document after end will be added to
-   * a new page created using whatever page template is previous to the ended template).
+   * Ends the current page template if not within a container that is currently suppressing new page templates (see
+   * {@link ElementContainer#isSuppressNewPageTemplates}). The current page is ended (content added to the document
+   * after end will be added to a new page created using whatever page template is previous to the ended template).
    */
   public void endPageTemplate() {
-    mPageManager.endPageTemplate();
+    if (!mElementContainerManager.isSuppressNewPageTemplates()) {
+      mPageManager.endPageTemplate();
+    }
   }
 
   /**
@@ -467,6 +492,28 @@ public class PDFSerialiser implements OutputSerialiser {
     }
     catch (DocumentException e) {
       throw new ExInternal("Failed to open PDF writer", e);
+    }
+  }
+
+  /**
+   * Embeds the metadata provided to the serialiser in the document
+   */
+  private void setDocumentMetadata() {
+    setDocumentMetadataValueIfNotNull(Document::addTitle, mDocumentMetadata.getTitle());
+    setDocumentMetadataValueIfNotNull(Document::addAuthor, mDocumentMetadata.getAuthor());
+    setDocumentMetadataValueIfNotNull(Document::addSubject, mDocumentMetadata.getSubject());
+    setDocumentMetadataValueIfNotNull(Document::addKeywords, mDocumentMetadata.getKeywords());
+    setDocumentMetadataValueIfNotNull(Document::addCreator, DOCUMENT_CREATOR_APPLICATION);
+  }
+
+  /**
+   * Embeds the document metadata value using the specified consumer, if the value is not null
+   * @param pMetadataValueConsumer The metadata value consumer (i.e. the consumer that adds the metadata)
+   * @param pMetadataValue The metadata value that may ne null
+   */
+  private void setDocumentMetadataValueIfNotNull(BiConsumer<Document, String> pMetadataValueConsumer, String pMetadataValue) {
+    if (!XFUtil.isNull(pMetadataValue)) {
+      pMetadataValueConsumer.accept(mDocument, pMetadataValue);
     }
   }
 

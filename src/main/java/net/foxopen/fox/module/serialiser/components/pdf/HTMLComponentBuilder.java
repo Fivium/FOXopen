@@ -10,14 +10,16 @@ import net.foxopen.fox.module.serialiser.components.HTMLComponentUtils;
 import net.foxopen.fox.module.serialiser.components.pdf.htmltags.BreakComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.pdf.htmltags.CellComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.pdf.htmltags.DivComponentBuilder;
+import net.foxopen.fox.module.serialiser.components.pdf.htmltags.ForwarderComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.pdf.htmltags.HorizontalRuleComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.pdf.htmltags.ImageComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.pdf.htmltags.ListItemComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.pdf.htmltags.OrderedListComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.pdf.htmltags.SpanComponentBuilder;
+import net.foxopen.fox.module.serialiser.components.pdf.htmltags.SubComponentBuilder;
+import net.foxopen.fox.module.serialiser.components.pdf.htmltags.SupComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.pdf.htmltags.TableComponentBuilder;
 import net.foxopen.fox.module.serialiser.components.pdf.htmltags.UnorderedListComponentBuilder;
-import net.foxopen.fox.module.serialiser.components.pdf.htmltags.ForwarderComponentBuilder;
 import net.foxopen.fox.module.serialiser.pdf.PDFSerialiser;
 import net.foxopen.fox.module.serialiser.pdf.elementattributes.ElementAttributes;
 
@@ -42,6 +44,8 @@ import java.util.Optional;
  *   <li>b</li>
  *   <li>em</li>
  *   <li>i</li>
+ *   <li>sup</li>
+ *   <li>sub</li>
  *   <li>table</li>
  *   <li>thead</li>
  *   <li>tbody</li>
@@ -80,6 +84,8 @@ public class HTMLComponentBuilder extends ComponentBuilder<PDFSerialiser, Evalua
     TAG_COMPONENT_BUILDERS.put(HTML.Tag.B, SpanComponentBuilder.getInstance());
     TAG_COMPONENT_BUILDERS.put(HTML.Tag.EM, SpanComponentBuilder.getInstance());
     TAG_COMPONENT_BUILDERS.put(HTML.Tag.I, SpanComponentBuilder.getInstance());
+    TAG_COMPONENT_BUILDERS.put(HTML.Tag.SUP, SupComponentBuilder.getInstance());
+    TAG_COMPONENT_BUILDERS.put(HTML.Tag.SUB, SubComponentBuilder.getInstance());
 
     TAG_COMPONENT_BUILDERS.put(HTML.Tag.TABLE, TableComponentBuilder.getInstance());
     TAG_COMPONENT_BUILDERS.put(HTML.Tag.THEAD, ForwarderComponentBuilder.getInstance());

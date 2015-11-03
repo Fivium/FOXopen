@@ -15,6 +15,8 @@ import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.fieldset.FieldSet;
 import net.foxopen.fox.module.parsetree.EvaluatedModalPopover;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedBufferPresentationNode;
+import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedPresentationNode;
+import net.foxopen.fox.module.parsetree.presentationnode.PresentationNode;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 import net.foxopen.fox.thread.FocusResult;
 import net.foxopen.fox.thread.PopupXDoResult;
@@ -34,6 +36,8 @@ public interface SerialisationContext {
   App getApp();
 
   Mod getModule();
+
+  EvaluatedPresentationNode<? extends PresentationNode> evaluateNode(EvaluatedPresentationNode<? extends PresentationNode> pParent, PresentationNode pNode, DOM pEvalContext);
 
   State getState();
 

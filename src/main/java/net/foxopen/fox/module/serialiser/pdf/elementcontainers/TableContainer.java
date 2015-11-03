@@ -21,6 +21,12 @@ public class TableContainer implements ElementContainer {
     mTable = pTable;
   }
 
+  @Override
+  public boolean isSuppressNewPageTemplates() {
+    // Cannot have a new page within a table
+    return true;
+  }
+
   /**
    * Unsupported for table containers. Only cells can be added to a table via {@link #addChildCell}. If the element
    * provided to this function is an instance of a PdfPCell the operation is still unsupported, {@link #addChildCell}

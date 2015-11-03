@@ -11,20 +11,27 @@ public interface ElementContainer {
    * Add an element to the container
    * @param pChildElement The element to be added
    */
-  public void addChildElement(Element pChildElement);
+  void addChildElement(Element pChildElement);
+
+  /**
+   * Returns true if new page templates should be suppressed when added during the lifetime of the container. This is
+   * used to stop new pages being added within containers that cannot be sensibly split.
+   * @return True if new page templates should be suppressed when added during the lifetime of the container
+   */
+  boolean isSuppressNewPageTemplates();
 
   /**
    * Add a cell to the container. Cells may be treated differently from other elements by implementing this method. By
    * default this forwards to {@link #addChildElement}.
-   * @param pCell
+   * @param pCell The cell to be added
    */
-  public default void addChildCell(PdfPCell pCell) {
+  default void addChildCell(PdfPCell pCell) {
     addChildElement(pCell);
   }
 
   /**
    * Called immediately after the container has been ended (i.e. removed from the container stack).
    */
-  public default void onEndContainer() {
+  default void onEndContainer() {
   }
 }
