@@ -50,6 +50,11 @@ i {
   font-style: italic;
 }
 
+sup,
+sub {
+  font-size: 0.8em;
+}
+
 /* Form layout */
 .prompt {
   font-weight: bold;
