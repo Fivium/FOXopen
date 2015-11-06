@@ -81,7 +81,6 @@
           if (jsonData.status == 'true') {
             $("#generateSecurityKeyStatus").text("Success");
             $("#encryptionKey").val(jsonData['generated_key']);
-            $(".testConnection").prop('disabled', false);
           }
           else {
             $("#generateSecurityKeyStatus").text("Failure");
@@ -101,15 +100,6 @@
         .always(function(){
           $("#generateSecurityKey").removeClass("icon-animated-spinner");
         })
-      }
-
-        function enableTestDBConnection() {
-        if ($("#encryptionKey").val() != "") {
-          $(".testConnection").prop('disabled', false);
-        }
-        else {
-          $(".testConnection").prop('disabled', true);
-        }
       }
 
       function testFoxConnectionAndGetEnvironments() {
@@ -265,7 +255,7 @@
       function addNewDbConnection() {
         var foxConnectionCount = parseInt($("#fox_connection_count").val());
 
-        $("#dbConnectionsContainer").append('<div class="row dbUserDetails"><div class="two columns"><label id="pdb_username_' + foxConnectionCount + '" for="db_username_' + foxConnectionCount + '" class="prompt west">Username</label></div><div class="two columns"><input id="db_username_' + foxConnectionCount + '" name="db_username_' + foxConnectionCount + '" class="db_user" type="text" value="" /></div><div class="two columns"><label id="pdb_password_' + foxConnectionCount + '" for="db_password_' + foxConnectionCount + '" class="prompt west">Password</label></div><div class="two columns"><input id="db_password_' + foxConnectionCount + '" name="db_password_' + foxConnectionCount + '" class="db_password" type="password" value="" class="db_password"/></div><div class="two columns"><button type="button" disabled="disabled" class="testConnection" name="testConnection" onclick="javascript:testDBUserConnection(this);">Test Connection</button></div><div class="two columns"><span class="text-widget testConnectionStatus"></span></div></div>');
+        $("#dbConnectionsContainer").append('<div class="row dbUserDetails"><div class="two columns"><label id="pdb_username_' + foxConnectionCount + '" for="db_username_' + foxConnectionCount + '" class="prompt west">Username</label></div><div class="two columns"><input id="db_username_' + foxConnectionCount + '" name="db_username_' + foxConnectionCount + '" class="db_user" type="text" value="" /></div><div class="two columns"><label id="pdb_password_' + foxConnectionCount + '" for="db_password_' + foxConnectionCount + '" class="prompt west">Password</label></div><div class="two columns"><input id="db_password_' + foxConnectionCount + '" name="db_password_' + foxConnectionCount + '" class="db_password" type="password" value="" class="db_password"/></div><div class="two columns"><button type="button" class="testConnection" name="testConnection" onclick="javascript:testDBUserConnection(this);">Test Connection</button></div><div class="two columns"><span class="text-widget testConnectionStatus"></span></div></div>');
 
         foxConnectionCount = foxConnectionCount + 1;
 
@@ -276,7 +266,7 @@
     <link rel="stylesheet" type="text/css" href="<%= lURIBuilder.buildContextResourceURI("/OpenSans/OpenSans.css") %>" />
     <link rel="stylesheet" type="text/css" href="<%= lURIBuilder.buildContextResourceURI("/icomoon/icomoon.css") %>" />
   </head>
-  <body onload="javascript:enableTestDBConnection();" style="margin-left: 1.5em;"> <!-- required so that the connection button is not disabled when laoding the configuration from a file -->
+  <body style="margin-left: 1.5em;">
     <h1>FOX engine configuration</h1>
     <h2>Boot-config</h2>
   <!-- [atwd] move all parameters to variables and get them locally, escaping all information with util methods -->
@@ -289,7 +279,7 @@
             <label id="pencryptionKey" for="encryptionKey" class="prompt west">Public Encryption Key</label>
           </div>
           <div class="eight columns">
-            <textarea rows="6" cols="78" id="encryptionKey" name="encryptionKey" onchange="javascript:enableTestDBConnection();"></textarea>
+            <textarea rows="6" cols="78" id="encryptionKey" name="encryptionKey"></textarea>
           </div>
           <div class="two columns">
             <button type="button" id="generateSecurityKey" name="generateSecurityKey" onclick="javascript:getSecurityKey();">Generate Security Key</button>
@@ -328,7 +318,7 @@
           <div class="two columns">
           </div>
           <div class="ten columns">
-            <button type="button" disabled="disabled" id="getFoxConnection" name="getFoxConnection" class="testConnection" onclick="javascript:testFoxConnectionAndGetEnvironments();">Test Connection and Get Fox Environments</button>
+            <button type="button" id="getFoxConnection" name="getFoxConnection" class="testConnection" onclick="javascript:testFoxConnectionAndGetEnvironments();">Test Connection and Get Fox Environments</button>
             <span id="getFoxConnectionStatus"></span>
           </div>
         </div>
@@ -369,7 +359,7 @@
             <input id="db_password_<%= lFoxConnectionCount %>" name="db_password_<%= lFoxConnectionCount %>" class="db_password" type="password" value="<%= XFUtil.obfuscateValue(lFoxDatabasePassword) %>"/>
           </div>
           <div class="two columns">
-            <button type="button" disabled="disabled" class="testConnection" name="testConnection" onclick="javascript:testDBUserConnection(this);">Test Connection</button>
+            <button type="button" class="testConnection" name="testConnection" onclick="javascript:testDBUserConnection(this);">Test Connection</button>
           </div>
           <div class="two columns">
             <span class="text-widget testConnectionStatus"></span>
