@@ -43,6 +43,7 @@ import net.foxopen.fox.queue.ServiceQueueHandler;
 import net.foxopen.fox.queue.WorkItem;
 import net.foxopen.fox.track.Track;
 import org.apache.commons.fileupload.FileItemStream;
+import org.apache.commons.fileupload.MultipartStream;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -404,9 +405,21 @@ public class UploadWorkItem extends WorkItem {
       }
       mUploadInfo.setSystemMsg(XFUtil.getJavaStackTraceInfo(pEx));
     }
-    if(mItemNonBlockingInputStream != null)
-      mItemNonBlockingInputStream.destroy();
 
+    if(mItemInputStream != null && mItemInputStream instanceof MultipartStream.ItemInputStream) {
+      //Forcibly close the underlying input stream for the file upload
+      //This prevents threads getting stuck due to Tomcat/F5 issue caused by the client continuing to send data when FOX isn't reading it
+      try {
+        ((MultipartStream.ItemInputStream) mItemInputStream).close(true);
+      }
+      catch (Throwable th) {
+        Track.recordSuppressedException("UploadFinaliseInputStreamClose", th);
+      }
+    }
+
+    if(mItemNonBlockingInputStream != null) {
+      mItemNonBlockingInputStream.destroy();
+    }
   }
 }
 
