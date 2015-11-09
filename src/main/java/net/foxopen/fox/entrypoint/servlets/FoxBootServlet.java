@@ -75,6 +75,10 @@ extends HttpServlet {
     // Configure the logging properties for FoxLogger
     PropertyConfigurator.configure(pServletConfig.getServletContext().getRealPath("/WEB-INF/config/log4j.properties"));
 
+    // Avoid the oracle XML parsers being used for document building and SAX parsing
+    System.setProperty("javax.xml.parsers.DocumentBuilderFactory", "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
+    System.setProperty("javax.xml.parsers.SAXParserFactory", "com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl");
+
     if (FoxGlobals.getInstance().isEngineInitialised()) {
       // TODO - Clear down and re-call initReal(pServletConfig)
       FoxLogger.getLogger().info("FoxBoot: already initialised");
