@@ -19,6 +19,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 
@@ -267,6 +268,26 @@ public class EvaluatedClientVisibilityRule {
   }
 
   /**
+   * Gets a FieldMgr for the given FoxId from the given FieldSet, giving priority to editable FieldMgrs. If none are
+   * editable, the first one which is visible on the screen is returned, or null if no FieldMgrs exist.
+   * @param pFieldSet FieldSet to use for lookup.
+   * @param pFoxId DOM reference to lookup.
+   * @return FieldMgr, editable if possible, or null if no FieldMgrs could be found.
+   */
+  private static FieldMgr resolveFieldMgr(FieldSet pFieldSet, String pFoxId) {
+    Collection<FieldMgr> lFieldMgrs = pFieldSet.getFieldMgrsForFoxId(pFoxId);
+    return
+      lFieldMgrs.stream()
+        .filter(e -> e.getVisibility() == NodeVisibility.EDIT)
+        .findFirst()
+        .orElse(
+          lFieldMgrs.stream()
+            .findFirst()
+            .orElse(null)
+        );
+  }
+
+  /**
    * Repesents an evaluated WidgetTest Operation. A WidgetTest represents a trigger for this rule. When a widget which
    * is subject to a WidgetTest is changed by the user on the screen, the whole rule is evaluated to determine the new
    * visibility for the target. Currently triggers can only be based on widgets which support FieldValueMappings (i.e. mapsets
@@ -371,8 +392,8 @@ public class EvaluatedClientVisibilityRule {
     @Override
     public void completeEvaluation(FieldSet pFieldSet) {
 
-      //Get the FieldMgr for the field referred to by this trigger
-      FieldMgr lFieldMgr = pFieldSet.getFieldMgrForFoxIdOrNull(mTriggerDOM.getRef());
+      //Get the FieldMgr for the field referred to by this trigger - prefer an editable one if it exists
+      FieldMgr lFieldMgr = resolveFieldMgr(pFieldSet, mTriggerDOM.getRef());
       if (lFieldMgr == null) {
         throw new ExInternal("Failed to resolve a FieldMgr for Client Visibility Rule " + mRuleName + ", XPath " + mTriggerXPath + "\n" +
             "Fields targeted in rules must be displayed on the screen.");
@@ -397,7 +418,7 @@ public class EvaluatedClientVisibilityRule {
     public JSONObject getJSON(FieldSet pFieldSet) {
 
       //Already checked type is OK
-      FieldMgr lUncastFieldMgr = pFieldSet.getFieldMgrForFoxIdOrNull(mTriggerDOM.getRef());
+      FieldMgr lUncastFieldMgr = resolveFieldMgr(pFieldSet, mTriggerDOM.getRef());
       OptionFieldMgr lFieldMgr;
 
       //If the trigger is a radio group, get the wrapped FieldMgr
@@ -439,7 +460,7 @@ public class EvaluatedClientVisibilityRule {
 
       String lTestExternalName;
       if(lUncastFieldMgr instanceof RadioGroupValueFieldMgr) {
-        lTestExternalName = ((RadioGroupValueFieldMgr) lUncastFieldMgr).getExternalFieldName();
+        lTestExternalName = lUncastFieldMgr.getExternalFieldName();
       }
       else {
         lTestExternalName = lFieldMgr.getExternalFieldName();

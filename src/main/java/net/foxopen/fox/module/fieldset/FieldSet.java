@@ -1,6 +1,8 @@
 package net.foxopen.fox.module.fieldset;
 
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.thoughtworks.xstream.XStream;
 import net.foxopen.fox.ContextLabel;
 import net.foxopen.fox.ContextUElem;
@@ -13,7 +15,11 @@ import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.ex.ExCardinality;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.ChangeActionContext;
+import net.foxopen.fox.module.datanode.EvaluatedNode;
+import net.foxopen.fox.module.datanode.EvaluatedNodeAction;
+import net.foxopen.fox.module.datanode.EvaluatedNodeInfo;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfoItem;
+import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.fieldset.action.InternalAction;
 import net.foxopen.fox.module.fieldset.action.InternalActionContext;
 import net.foxopen.fox.module.fieldset.clientaction.ClientAction;
@@ -22,10 +28,6 @@ import net.foxopen.fox.module.fieldset.fieldinfo.InternalFieldInfo;
 import net.foxopen.fox.module.fieldset.fieldinfo.SingleValueFieldInfo;
 import net.foxopen.fox.module.fieldset.fieldmgr.ActionFieldMgr;
 import net.foxopen.fox.module.fieldset.fieldmgr.FieldMgr;
-import net.foxopen.fox.module.datanode.EvaluatedNode;
-import net.foxopen.fox.module.datanode.EvaluatedNodeAction;
-import net.foxopen.fox.module.datanode.EvaluatedNodeInfo;
-import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.thread.persistence.xstream.XStreamManager;
 import net.foxopen.fox.track.Track;
@@ -36,6 +38,8 @@ import org.json.simple.parser.ParseException;
 
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -74,7 +78,8 @@ public class FieldSet {
 
   private transient Set<String> mEditableItemRefs = new HashSet<>();
 
-  private transient Map<String, FieldMgr> mFoxIdToFieldMgrMap = new HashMap<>();
+  /** Multimap of DOM FOXIDs to corresponding FieldMgrs, in registration order. (cardinality required as an element may be set out multiple times) */
+  private transient Multimap<String, FieldMgr> mFoxIdToFieldMgrMap = ArrayListMultimap.create();
 
   private transient Map<String, String> mFoxIdToExternalFoxId = new HashMap<>();
 
@@ -308,8 +313,15 @@ public class FieldSet {
     return mUploadTargets.contains(pContextRef);
   }
 
-  public FieldMgr getFieldMgrForFoxIdOrNull(String pFoxId) {
-    return mFoxIdToFieldMgrMap.get(pFoxId);
+  /**
+   * Gets all the FieldMgrs for the given DOM node. The collection will be empty if no FieldMgrs exist for the given
+   * FOXID. The order of the collection reflects the order in which the FieldMgrs were registered on this FieldSet.
+   * A collection is returned to reflect the fact that a single node may be set out multiple times.
+   * @param pFoxId FOXID of element to resolve FieldMgrs for.
+   * @return 0 or more FieldMgrs.
+   */
+  public Collection<FieldMgr> getFieldMgrsForFoxId(String pFoxId) {
+    return Collections.unmodifiableCollection(mFoxIdToFieldMgrMap.get(pFoxId));
   }
 
   public String getExternalFoxId(DOM pRelativeDOM) {
