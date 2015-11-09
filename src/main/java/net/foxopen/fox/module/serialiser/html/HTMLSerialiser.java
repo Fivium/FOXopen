@@ -55,6 +55,7 @@ import net.foxopen.fox.module.serialiser.widgets.html.CellmateWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.html.DateWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.html.ErrorRefWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.html.FileWidgetBuilder;
+import net.foxopen.fox.module.serialiser.widgets.html.FormListWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.html.FormWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.html.HTMLWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.html.ImageWidgetBuilder;
@@ -101,6 +102,7 @@ extends WriterOutputSerialiser {
   static {
     HTML_WIDGET_MAP.put(WidgetBuilderType.FORM, FormWidgetBuilder.getInstance());
     HTML_WIDGET_MAP.put(WidgetBuilderType.LIST, ListWidgetBuilder.getInstance());
+    HTML_WIDGET_MAP.put(WidgetBuilderType.FORM_LIST, FormListWidgetBuilder.getInstance());
     HTML_WIDGET_MAP.put(WidgetBuilderType.PHANTOM_BUFFER, PhantomBufferWidgetBuilder.getInstance());
     HTML_WIDGET_MAP.put(WidgetBuilderType.PHANTOM_MENU, PhantomMenuWidgetBuilder.getInstance());
     HTML_WIDGET_MAP.put(WidgetBuilderType.INPUT, InputWidgetBuilder.getInstance());

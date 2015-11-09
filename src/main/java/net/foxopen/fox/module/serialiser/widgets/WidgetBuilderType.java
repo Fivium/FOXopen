@@ -30,6 +30,7 @@ public enum WidgetBuilderType {
   INPUT(new WidgetBuilderProperties(WidgetFlag.TEXT_VALUE, WidgetFlag.RUNNABLE), "input", "input-resizable"),
   LINK(new WidgetBuilderProperties(WidgetFlag.ACTION, WidgetFlag.RUNNABLE), "link", "alive"),
   LIST(new WidgetBuilderProperties(WidgetFlag.INTERNAL_ONLY), "list"),
+  FORM_LIST(new WidgetBuilderProperties(WidgetFlag.INTERNAL_ONLY), "form-list"),
   MAILTO(new WidgetBuilderProperties(WidgetFlag.ACTION), "mailto", "mailto-btn"),
   MENU_OUT(new WidgetBuilderProperties(WidgetFlag.INTERNAL_ONLY), "menu-out"),
   PASSWORD(new WidgetBuilderProperties(WidgetFlag.TEXT_VALUE, WidgetFlag.RUNNABLE), "password"),

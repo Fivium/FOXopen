@@ -249,7 +249,14 @@ public class EvaluatedNodeInfoList extends EvaluatedNodeInfoGeneric {
 
   @Override
   protected WidgetType getWidgetType() {
-    return WidgetType.fromBuilderType(WidgetBuilderType.LIST);
+    WidgetType lWidgetType;
+    if (getBooleanAttribute(NodeAttribute.FORM_LIST, false)) {
+      lWidgetType = WidgetType.fromBuilderType(WidgetBuilderType.FORM_LIST);
+    }
+    else {
+      lWidgetType = WidgetType.fromBuilderType(WidgetBuilderType.LIST);
+    }
+    return lWidgetType;
   }
 
   @Override

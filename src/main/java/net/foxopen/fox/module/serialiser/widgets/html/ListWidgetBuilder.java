@@ -60,7 +60,7 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
       boolean lResponsiveList = pEvalNode.getBooleanAttribute(NodeAttribute.RESPONSIVE_LIST, false);
 
       // Build table
-      pSerialiser.append("<table class=\"" + SETOUT_LIST_CLASS_NAME);
+      pSerialiser.append("<table");
 
       if (lResponsiveList) {
         pSerialiser.append(" " + RESPONSIVE_LIST_CLASS_NAME);
@@ -68,6 +68,8 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
 
       List<String> lClasses = pEvalNode.getStringAttributes(NodeAttribute.CLASS, NodeAttribute.LIST_CLASS);
       List<String> lStyles = pEvalNode.getStringAttributes(NodeAttribute.STYLE, NodeAttribute.LIST_STYLE);
+
+      lClasses.add(SETOUT_LIST_CLASS_NAME);
 
       // If pEvalNode is nested in another table/form it should add the nested class, if one is specified
       if (pEvalNode.isNested()) {
@@ -78,14 +80,16 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
       }
 
       if (lClasses.size() > 0) {
-        pSerialiser.append(" ");
+        pSerialiser.append(" class=\"");
         pSerialiser.append(Joiner.on(" ").join(lClasses));
+        pSerialiser.append("\"");
       }
       if (lStyles.size() > 0) {
-        pSerialiser.append("\" style=\"");
+        pSerialiser.append("style=\"");
         pSerialiser.append(Joiner.on(" ").join(lStyles));
+        pSerialiser.append("\"");
       }
-      pSerialiser.append("\">");
+      pSerialiser.append(">");
 
 
       // Build header block
