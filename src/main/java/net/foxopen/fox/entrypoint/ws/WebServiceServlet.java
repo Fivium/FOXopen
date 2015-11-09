@@ -15,6 +15,7 @@ import net.foxopen.fox.entrypoint.engine.EngineWebServiceCategory;
 import net.foxopen.fox.entrypoint.servlets.EntryPointServlet;
 import net.foxopen.fox.entrypoint.servlets.ErrorServlet;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.logging.FoxLogger;
 import net.foxopen.fox.thread.RequestContext;
 import net.foxopen.fox.track.Track;
 
@@ -308,6 +309,8 @@ extends EntryPointServlet {
         try {
           EndPoint lEndPoint = resolveEndPoint(lWebService, lUriPath);
 
+          FoxLogger.getLogger().info("Web Service '{}' End Point '{}' Start {}", lWebService.getName(), lEndPoint.getName(), lFoxRequest.getRequestLogId());
+
           //Validate http method being used
           if(!lEndPoint.getAllowedHttpMethods().isEmpty() && !lEndPoint.getAllowedHttpMethods().contains(lHttpRequest.getMethod())) {
             throw new ExInternal("Endpoint " + lEndPoint.getName() + " cannot respond to " + lHttpRequest.getMethod() + " requests");
@@ -342,6 +345,8 @@ extends EntryPointServlet {
 
           //Commit the MAIN connection - commits all work done by web service
           pRequestContext.getContextUCon().commit(MAIN_CONNECTION_NAME);
+
+          FoxLogger.getLogger().info("Web Service '{}' End Point '{}' End {}", lWebService.getName(), lEndPoint.getName(), lFoxRequest.getRequestLogId());
         }
         catch(Throwable th) {
           pRequestContext.getContextUCon().rollbackAndCloseAll(true);
