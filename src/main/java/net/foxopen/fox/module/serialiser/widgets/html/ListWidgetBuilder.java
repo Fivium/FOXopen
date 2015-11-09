@@ -250,7 +250,7 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
             Collection<String> lClassList = lItemNode.getStringAttributes(NodeAttribute.LIST_TABLE_CLASS, NodeAttribute.LIST_CELL_CLASS, NodeAttribute.FIELD_CELL_CLASS, NodeAttribute.CELL_CLASS);
             lClassList.addAll(lItemNode.getCellInternalClasses());
 
-            lClassList.addAll(SingleWidgetBuildHelper.getClassesForNodeFeatures(lItemNode));
+            lClassList.addAll(SingleWidgetBuildHelper.getClassesForNodeFeatures(lItemNode, SingleWidgetBuildHelper.NodeFeatures.ERROR, SingleWidgetBuildHelper.NodeFeatures.HISTORY));
 
             String lCellClasses = Joiner.on(" ").join(lClassList);
             if (!XFUtil.isNull(lCellClasses)) {

@@ -13,6 +13,7 @@ import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -102,25 +103,48 @@ public class SingleWidgetBuildHelper {
   }
 
   /**
-   * Get a list of CSS classes based on features of the Evaluated Node (e.g. errors, history, widget types)
+   * Enum of Features a node might have
+   */
+  public enum NodeFeatures {
+    INPUT_GROUP,
+    RADIO_OR_TICKBOX,
+    ERROR,
+    HISTORY
+  }
+
+  /**
+   * Get a list of CSS classes based on all features of the Evaluated Node (e.g. errors, history, widget types)
    *
-   * @param pEvaluatedNode
-   * @return
+   * @param pEvaluatedNode Node to get feature classes for
+   * @return List of CSS class names resulting from node features
    */
   public static List<String> getClassesForNodeFeatures(EvaluatedNode pEvaluatedNode) {
+    return getClassesForNodeFeatures(pEvaluatedNode, NodeFeatures.values());
+  }
+
+  /**
+   * Get a list of CSS classes based on features of the Evaluated Node (e.g. errors, history, widget types)
+   *
+   * @param pEvaluatedNode Node to get feature classes for
+   * @param pNodeFeatures Varags list of node features types to get classes for
+   * @return List of CSS class names resulting from node features
+   */
+  public static List<String> getClassesForNodeFeatures(EvaluatedNode pEvaluatedNode, NodeFeatures... pNodeFeatures) {
     List<String> lClassList = new ArrayList<>();
 
-    if (pEvaluatedNode.hasHint() && pEvaluatedNode.getWidgetBuilderType() != WidgetBuilderType.BUTTON) { // TODO - NP - Hack to stop hints on buttons
+    List<NodeFeatures> lNodeFeatures = Arrays.asList(pNodeFeatures);
+
+    if (lNodeFeatures.contains(NodeFeatures.INPUT_GROUP) && (pEvaluatedNode.hasHint() && pEvaluatedNode.getWidgetBuilderType() != WidgetBuilderType.BUTTON)) {
       // Add the input group class when not a prompt column and has hints
       lClassList.add("input-group");
     }
-    if (pEvaluatedNode.getWidgetBuilderType() == WidgetBuilderType.RADIO || pEvaluatedNode.getWidgetBuilderType() == WidgetBuilderType.TICKBOX) {
+    if (lNodeFeatures.contains(NodeFeatures.RADIO_OR_TICKBOX) && (pEvaluatedNode.getWidgetBuilderType() == WidgetBuilderType.RADIO || pEvaluatedNode.getWidgetBuilderType() == WidgetBuilderType.TICKBOX)) {
       lClassList.add("radio-or-tickbox-group");
     }
-    if (pEvaluatedNode.hasError()) {
+    if (lNodeFeatures.contains(NodeFeatures.ERROR) && (pEvaluatedNode.hasError())) {
       lClassList.add("input-error");
     }
-    if (pEvaluatedNode.hasHistory()) {
+    if (lNodeFeatures.contains(NodeFeatures.HISTORY) && (pEvaluatedNode.hasHistory())) {
       lClassList.add("history");
       lClassList.add("history-" + StringEscapeUtils.escapeEcmaScript(pEvaluatedNode.getHistory().getOperation()));
     }
