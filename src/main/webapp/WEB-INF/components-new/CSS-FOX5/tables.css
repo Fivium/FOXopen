@@ -217,3 +217,9 @@
   float: right;
   padding: 0;
 }
+
+/* formList setous */
+ul.setoutList {
+  padding: 0;
+  list-style-type: none;
+}
