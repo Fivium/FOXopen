@@ -33,9 +33,6 @@ extends FieldInfo {
   @Override
   public List<ChangeActionContext> applyPostedValues(ActionRequestContext pRequestContext, String[] pPostedValues) {
 
-    //The complex container
-    DOM lTargetDOM = resolveTargetDOM(pRequestContext);
-
     //Determine actual strings posted back (remove prefix)
     Set<String> lPostedStrings = new HashSet<>();
     if(pPostedValues != null && pPostedValues.length > 0) {
@@ -54,18 +51,21 @@ extends FieldInfo {
 
     //Shortcut out if the posted set exactly matches the sent set
     if(!lPostedStrings.equals(mSentValues)) {
+      //Resolve the complex container (only if something has changed)
+      DOM lTargetDOM = resolveTargetDOM(pRequestContext);
+
       boolean lRemoved = removeDeselectedItems(pRequestContext, lPostedStrings, lTargetDOM);
       boolean lAdded = addSelectedItems(pRequestContext, lPostedStrings, lTargetDOM);
 
       lChanged = lRemoved || lAdded;
+
+      if(lChanged) {
+        return createChangeActionContext(lTargetDOM);
+      }
     }
 
-    if(lChanged) {
-      return createChangeActionContext(lTargetDOM);
-    }
-    else {
-      return Collections.emptyList();
-    }
+    //Nothing modified so no change action required
+    return Collections.emptyList();
   }
 
   private boolean removeDeselectedItems(ActionRequestContext pRequestContext, Set<String> pPostedStrings, DOM pTargetDOM) {
