@@ -47,10 +47,16 @@ public interface FieldSelectOption {
   public boolean isDisabled();
 
   /**
-   * Tests if this option represents a "key-null" entry. This is a dummy option prompting the user to perform a selection.
+   * Tests if this option represents a "key-null" entry. This is a dummy option showing the user that nothing has been selected.
    * @return True if the option is a key-null value.
    */
   public boolean isNullEntry();
+
+  /**
+   * Tests if this option represents a "key-missing" entry. This is a dummy option prompting the user to perform a selection.
+   * @return True if the option is a key-missing value.
+   */
+  public boolean isMissingEntry();
 
   /**
    * Gets an "additional property" for this FieldSelectOption which may have been defined by a developer. Custom widgets

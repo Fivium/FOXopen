@@ -10,7 +10,6 @@ import net.foxopen.fox.module.datanode.EvaluatedNodeInfoItem;
 import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.datanode.NodeEvaluationContext;
 import net.foxopen.fox.module.datanode.NodeInfo;
-import net.foxopen.fox.module.datanode.NodeVisibility;
 import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
 import net.foxopen.fox.module.fieldset.FieldSelectConfig;
 import net.foxopen.fox.module.fieldset.FieldSet;
@@ -18,6 +17,7 @@ import net.foxopen.fox.module.fieldset.fieldinfo.FieldInfo;
 import net.foxopen.fox.module.fieldset.fieldinfo.MultiOptionFieldInfo;
 import net.foxopen.fox.module.fieldset.fvm.FieldSelectOption;
 import net.foxopen.fox.module.fieldset.fvm.FieldValueMapping;
+import net.foxopen.fox.module.fieldset.fvm.NullOptionType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -92,7 +92,7 @@ extends OptionFieldMgr {
       if(lRef == null) {
         //If unrecognised, create the entry now so we don't have to work it out later
         String lUnrecognisedDisplayKey = XFUtil.nvl(getEvaluatedNodeInfoItem().getStringAttribute(NodeAttribute.KEY_UNRECOGNISED), lChildElement.value());
-        FieldSelectOption lUnrecognisedOption = mFVM.createFieldSelectOption(lUnrecognisedDisplayKey, true, false, getExternalValueForUnrecognisedEntry(lChildElement));
+        FieldSelectOption lUnrecognisedOption = mFVM.createFieldSelectOption(lUnrecognisedDisplayKey, true, NullOptionType.NOT_NULL, getExternalValueForUnrecognisedEntry(lChildElement));
         mUnrecognisedOptions.add(lUnrecognisedOption);
         mUnrecognisedSentStrings.add(getSentValueForUnrecognisedEntry(lChildElement));
       }

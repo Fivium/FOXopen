@@ -15,7 +15,7 @@ import net.foxopen.fox.module.serialiser.layout.items.LayoutFieldValueMappingIte
 import net.foxopen.fox.module.serialiser.layout.items.LayoutItem;
 import net.foxopen.fox.module.serialiser.layout.items.LayoutItemEnum;
 import net.foxopen.fox.module.serialiser.layout.methods.FieldValueMappingLayout;
-import net.foxopen.fox.module.serialiser.widgets.MultiOptionSelectWidgetUtils;
+import net.foxopen.fox.module.serialiser.widgets.OptionWidgetUtils;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 
@@ -47,7 +47,7 @@ public class MultiOptionSelectWidget extends WidgetBuilderHTMLSerialiser<Evaluat
 
   @Override
   public void buildWidgetInternal(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNodeInfo pEvalNode) {
-    int lItemsPerRow = MultiOptionSelectWidgetUtils.getItemsPerRow(pEvalNode);
+    int lItemsPerRow = OptionWidgetUtils.getItemsPerRow(pEvalNode);
 
     GridLayoutManager lMultiOptionsLayout = new GridLayoutManager(lItemsPerRow, pSerialiser, pEvalNode, FieldValueMappingLayout.getInstance());
 

@@ -74,6 +74,7 @@
     <xs:attribute ref="searchNoSuggestionsText"/>
     <xs:attribute ref="searchEmptySuggestionsText"/>
     <xs:attribute ref="searchLimitedSuggestionsText"/>
+    <xs:attribute ref="searchMandatorySelection"/>
     <xs:attribute ref="autoResize"/>
     <xs:attribute ref="autoResizeMaxHeight"/>
     <xs:attribute ref="htmlWidgetConfig"/>
@@ -330,6 +331,7 @@
     <xs:attribute ref="searchNoSuggestionsText"/>
     <xs:attribute ref="searchEmptySuggestionsText"/>
     <xs:attribute ref="searchLimitedSuggestionsText"/>
+    <xs:attribute ref="searchMandatorySelection"/>
     <xs:attribute ref="autoResize"/>
     <xs:attribute ref="autoResizeMaxHeight"/>
     <xs:attribute ref="htmlWidgetConfig"/>

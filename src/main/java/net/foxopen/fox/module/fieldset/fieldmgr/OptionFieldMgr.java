@@ -16,6 +16,7 @@ import net.foxopen.fox.module.fieldset.fvm.FieldSelectOption;
 import net.foxopen.fox.module.fieldset.fvm.FieldValueMapping;
 import net.foxopen.fox.module.fieldset.fvm.JITMapSetFVM;
 import net.foxopen.fox.module.fieldset.fvm.MapSetFVM;
+import net.foxopen.fox.module.fieldset.fvm.NullOptionType;
 import net.foxopen.fox.module.fieldset.fvm.SchemaEnumFVM;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 import net.foxopen.fox.track.Track;
@@ -177,7 +178,7 @@ extends DataFieldMgr {
     boolean lIsNull = isNull();
 
     String lDisplayKey;
-    boolean lIsKeyNull;
+    boolean lIsKeyMissing;
     boolean lIsMand = pEvaluatedNodeInfo.isMandatory();
     if(lIsMand && mConfig.isAddKeyMissing() && lIsNull) {
       //If field is mandatory and currently null, and widget allows, add key-missing
@@ -185,12 +186,12 @@ extends DataFieldMgr {
       if(lDisplayKey == null) {
         lDisplayKey = pEvaluatedNodeInfo.isMultiSelect() ? "Select Many" : "Select One";
       }
-      lIsKeyNull = true;
+      lIsKeyMissing = true;
     }
     else if(!lIsMand && mConfig.isAddKeyNull()) {
       //If field is not mandatory and currently null, and widget allows, add key-null
       lDisplayKey = pEvaluatedNodeInfo.getStringAttribute(NodeAttribute.KEY_NULL, "None");
-      lIsKeyNull = false;
+      lIsKeyMissing = false;
     }
     else {
       //Skip adding anything if no extra key is required
@@ -198,7 +199,7 @@ extends DataFieldMgr {
     }
 
     //Add to front of list
-    pSelectList.add(0, mFVM.createFieldSelectOption(lDisplayKey, lIsNull, lIsKeyNull, getExternalValueForNullSelection()));
+    pSelectList.add(0, mFVM.createFieldSelectOption(lDisplayKey, lIsNull, lIsKeyMissing ? NullOptionType.KEY_MISSING : NullOptionType.KEY_NULL, getExternalValueForNullSelection()));
   }
 
   /**
