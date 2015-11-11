@@ -81,3 +81,36 @@
 .info-box-danger .info-box-link {
   color: #843534;
 }
+
+.info-box[class^="icon-"],
+.info-box[class*=" icon-"] {
+  padding-left: 3em;
+  position: relative;
+}
+
+.info-box[class^="icon-"]:before,
+.info-box[class*=" icon-"]:before {
+  font-size: 1.5em;
+  position: absolute;
+  left: 0.5em;
+}
+
+.info-box-success[class^="icon-"]:before,
+.info-box-success[class*=" icon-"]:before {
+  color: #9EDD54;
+}
+
+.info-box-info[class^="icon-"]:before,
+.info-box-info[class*=" icon-"]:before {
+  color: #54B3E2;
+}
+
+.info-box-warning[class^="icon-"]:before,
+.info-box-warning[class*=" icon-"]:before {
+  color: #FFBE00;
+}
+
+.info-box-danger[class^="icon-"]:before,
+.info-box-danger[class*=" icon-"]:before {
+  color: #CF1111;
+}

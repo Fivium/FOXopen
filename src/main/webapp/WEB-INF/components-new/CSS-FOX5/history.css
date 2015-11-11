@@ -1,25 +1,46 @@
 /* History Information */
 .history {
-  margin-bottom: 0.5em;
-  padding-right: 4px;
 }
 
 .history-insert {
-  border-right: 2px dashed #9EDD54;
-  background-color: #F1F9E5;
 }
 
 .history-update {
-  border-right: 2px dashed #54B3E2;
-  background-color: #EDF8FC;
 }
 
 .history-delete {
-  border-right: 2px dashed #CF1111;
-  background-color: #FFF5F5;
 }
 
 .history-message {
   font-size: 0.8em;
-  margin: 0.3em 0 0.3em 0.3em;
+  border: 1px solid #54B3E2;
+  border-radius: 3px;
+  padding: 0.2em 0.5em;
+  width: auto;
+  display: inline-block;
+  clear: left;
+  background: #EDF8FC;
+  margin-bottom: 1em;
+}
+
+.history-insert .history-message {
+  border-color: #9EDD54;
+  background: #F1F9E5;
+}
+
+.history-delete .history-message {
+  border-color: #CF1111;
+  background: #FFF5F5;
+}
+
+.setoutForm .history input,
+.setoutForm .history button,
+.setoutForm .history select,
+.setoutForm .history textarea,
+.setoutForm .history .tagger,
+.setoutForm .history .text-widget,
+.setoutForm .history .radio-or-tickbox-group,
+.setoutForm .history .mce-panel,
+.setoutForm .history .prompt {
+  margin-bottom: 0.1em;
 }
