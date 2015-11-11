@@ -1,7 +1,7 @@
 package net.foxopen.fox.module.serialiser.widgets.html;
 
 
-import com.google.common.base.Joiner;
+import net.foxopen.fox.JSONNonEscapedValue;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.entrypoint.engine.MapSetWebService;
 import net.foxopen.fox.entrypoint.servlets.StaticServlet;
@@ -22,9 +22,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -112,17 +110,6 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
       pSerialiser.append(lLoadingElementName);
       pSerialiser.append("\" class=\"tagger tagger-loading\" />");
 
-      // Pass through lSelectedIdList
-      Set<String> lSelectedValues = new HashSet<>();
-      for (FieldSelectOption lOption : lSelectOptions) {
-        if (lOption.isSelected()) {
-          lSelectedValues.add("\"" + lOption.getExternalFieldValue() + "\"");
-        }
-      }
-      String lPreselectedTags = "[" + Joiner.on(", ").join(lSelectedValues) + "]";
-
-      String lBaseURL = lURIBuilder.buildServletURI(StaticServlet.SERVLET_PATH);
-
       // Use the field width as the tagger width if tight field is specified, otherwise tagger should use 100% of the cell
       String lFieldWidth;
       if (pEvalNode.getBooleanAttribute(NodeAttribute.TIGHT_FIELD, false)) {
@@ -132,106 +119,128 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
         lFieldWidth = "'100%'";
       }
 
-      // Find DIA values to pass to tagger
-      String lExtraParams = establishExtraParams(pEvalNode);
+      // Config for the jqueryTagger widget
+      JSONObject lTaggerConfig = new JSONObject();
+      lTaggerConfig.put("baseURL", lURIBuilder.buildServletURI(StaticServlet.SERVLET_PATH));
+      lTaggerConfig.put("imgDownArrow", "/img/tagger-dropdown.png");
+      lTaggerConfig.put("imgRemove", "/img/tagger-remove.png");
+      lTaggerConfig.put("imgSearch", "/img/tagger-search.png");
+      lTaggerConfig.put("fieldWidth", lFieldWidth);
+
+      // Add optinal values to pass to tagger
+      lTaggerConfig.putAll(establishExtraParams(pEvalNode));
+
+      // Variable is passed in as a raw variable name to be resolved at runtime
+      lTaggerConfig.put("availableTags", new JSONNonEscapedValue(lMapsetJSONVariableName));
+
+      // Pass through lSelectedIdList
+      JSONArray lSelectedTags = new JSONArray();
+      for (FieldSelectOption lOption : lSelectOptions) {
+        if (lOption.isSelected()) {
+          lSelectedTags.add(lOption.getExternalFieldValue());
+        }
+      }
+      lTaggerConfig.put("preselectedTags", lSelectedTags);
 
       boolean lAJAXMapSet = pEvalNode.getMapSet() instanceof JITMapSet;
       if (lAJAXMapSet) {
-        lExtraParams += "    ajaxURL: '" + MapSetWebService.AjaxSearchEndPoint.buildEndPointURI(pSerialisationContext.createURIBuilder(), pSerialisationContext.getThreadInfoProvider().getThreadId()) + "',\n"
-          + "    ajaxErrorFunction: function(self, data){self._showMessageSuggestion('The application has experienced an unexpected error, please try again or contact support. Error reference: <strong>' + data.responseJSON.errorDetails.reference + '</strong>', 'error');},\n";
+        lTaggerConfig.put("ajaxURL", MapSetWebService.AjaxSearchEndPoint.buildEndPointURI(pSerialisationContext.createURIBuilder(), pSerialisationContext.getThreadInfoProvider().getThreadId()));
+        lTaggerConfig.put("ajaxErrorFunction", new JSONNonEscapedValue("function(self, data){self._showMessageSuggestion('The application has experienced an unexpected error, please try again or contact support. Error reference: <strong>' + data.responseJSON.errorDetails.reference + '</strong>', 'error');}"));
       }
 
       // Add in the JS to construct the tagger for the select
       pSerialisationContext.addConditionalLoadJavascript("$(function(){\n" +
-      "  $('#" + lFieldMgr.getExternalFieldName() + "').tagger({\n" +
-      "    availableTags: " + lMapsetJSONVariableName + ",\n" +
-      "    preselectedTags: " + lPreselectedTags + ",\n" +
-      lExtraParams +
-      "    baseURL: '" + lBaseURL + "',\n" +
-      "    imgDownArrow: '/img/tagger-dropdown.png',\n" +
-      "    imgRemove: '/img/tagger-remove.png',\n" +
-      "    imgSearch: '/img/tagger-search.png',\n" +
-      "    fieldWidth: " + lFieldWidth + "\n" +
-      "  });\n" +
+      "  $('#" + lFieldMgr.getExternalFieldName() + "').tagger(" + lTaggerConfig.toJSONString() + ");\n" +
       "});");
     }
   }
 
-  private String establishExtraParams(EvaluatedNodeInfo pEvalNode) {
-    String lExtraParams = "";
+  /**
+   * Establish optional search tagger widget parameters from optional search selector attributes
+   *
+   * @param pEvalNode Evaluated Node to get attribute values from
+   * @return JSONObject with extra tagger parameters
+   */
+  private JSONObject establishExtraParams(EvaluatedNodeInfo pEvalNode) {
+    JSONObject lExtraParams = new JSONObject();
     try {
       String lFieldSuggestionWidth = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_SUGGESTION_WIDTH);
       if (lFieldSuggestionWidth != null) {
-        lExtraParams += "    suggestWidth: '" + Float.parseFloat(lFieldSuggestionWidth) + "em',\n";
+        lExtraParams.put("suggestWidth", Float.valueOf(lFieldSuggestionWidth) + "em");
       }
 
       String lFieldSuggestionMaxWidth = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_SUGGESTION_MAX_WIDTH);
       if (lFieldSuggestionMaxWidth != null) {
-        lExtraParams += "    suggestMaxWidth: '" + Float.parseFloat(lFieldSuggestionMaxWidth) + "em',\n";
+        lExtraParams.put("suggestMaxWidth", Float.valueOf(lFieldSuggestionMaxWidth) + "em");
       }
 
       String lFieldSuggestionMaxHeight = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_SUGGESTION_MAX_HEIGHT);
       if (lFieldSuggestionMaxHeight != null) {
-        lExtraParams += "    suggestMaxHeight: '" + Float.parseFloat(lFieldSuggestionMaxHeight) + "em',\n";
+        lExtraParams.put("suggestMaxHeight", Float.valueOf(lFieldSuggestionMaxHeight) + "em");
       }
 
       String lPlaceholder = pEvalNode.getStringAttribute(NodeAttribute.PLACEHOLDER);
       if (lPlaceholder != null) {
-        lExtraParams += "    placeholder: '" + StringEscapeUtils.escapeHtml4(lPlaceholder) + "',\n";
+        lExtraParams.put("placeholder", StringEscapeUtils.escapeHtml4(lPlaceholder));
       }
 
-      String lSearchLimit = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_CHARACTER_THRESHOLD);
-      if (lSearchLimit != null) {
-        lExtraParams += "    characterThreshold: " + Float.parseFloat(lSearchLimit) + ",\n";
+      String lSearchCharacterThreshold = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_CHARACTER_THRESHOLD);
+      if (lSearchCharacterThreshold != null) {
+        lExtraParams.put("characterThreshold", Integer.valueOf(lSearchCharacterThreshold));
+      }
+
+      if (pEvalNode.getMaxDataLength() != Integer.MAX_VALUE) {
+        lExtraParams.put("characterLimit", Integer.valueOf(pEvalNode.getMaxDataLength()));
       }
 
       String lIndentMultiplier = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_INDENT_MULTIPLIER);
       if (lIndentMultiplier != null) {
-        lExtraParams += "    indentMultiplier: " + Float.parseFloat(lIndentMultiplier) + ",\n";
+        lExtraParams.put("indentMultiplier", Float.valueOf(lIndentMultiplier));
       }
 
       String lSearchTypingTimeout = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_TYPING_TIMEOUT);
       if (lSearchTypingTimeout != null) {
-        lExtraParams += "    typingTimeThreshold: " + Float.parseFloat(lSearchTypingTimeout) + ",\n";
+        lExtraParams.put("typingTimeThreshold", Float.valueOf(lSearchTypingTimeout));
       }
 
       if (pEvalNode.getBooleanAttribute(NodeAttribute.SEARCH_DISPLAY_HIERARCHY, false)) {
-        lExtraParams += "    displayHierarchy: true,\n";
+        lExtraParams.put("displayHierarchy", true);
       }
 
       if (pEvalNode.getBooleanAttribute(NodeAttribute.SEARCH_CASE_SENSITIVE, false)) {
-        lExtraParams += "    caseSensitive: true,\n";
+        lExtraParams.put("caseSensitive", true);
       }
 
       if (pEvalNode.getBooleanAttribute(NodeAttribute.SEARCH_SORTED_OUTPUT, true)) {
-        lExtraParams += "    sortedOutput: true,\n";
+        lExtraParams.put("sortedOutput", true);
       }
       else {
-        lExtraParams += "    sortedOutput: false,\n";
+        lExtraParams.put("sortedOutput", false);
       }
 
       if (pEvalNode.getBooleanAttribute(NodeAttribute.SEARCH_MANDATORY_SELECTION, false)) {
-        lExtraParams += "    mandatorySelection: true,\n";
+        lExtraParams.put("mandatorySelection", true);
       }
 
       String lNoSuggestionsText = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_NO_SUGGESTIONS_TEXT);
       if (lNoSuggestionsText != null) {
-        lExtraParams += "    noSuggestText: '" + StringEscapeUtils.escapeHtml4(lNoSuggestionsText) + "',\n";
+        lExtraParams.put("noSuggestText",  StringEscapeUtils.escapeHtml4(lNoSuggestionsText));
       }
 
       String lEmptyListText = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_EMPTY_SUGGESTIONS_TEXT);
       if (lEmptyListText != null) {
-        lExtraParams += "    emptyListText: '" + StringEscapeUtils.escapeHtml4(lNoSuggestionsText) + "',\n";
+        lExtraParams.put("emptyListText",  StringEscapeUtils.escapeHtml4(lEmptyListText));
       }
 
       String lLimitedText = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_LIMITED_SUGGESTIONS_TEXT);
       if (lLimitedText != null) {
-        lExtraParams += "    limitedText: '" + StringEscapeUtils.escapeHtml4(lLimitedText) + "',\n";
+        lExtraParams.put("limitedText",  StringEscapeUtils.escapeHtml4(lLimitedText));
       }
     }
     catch (NumberFormatException ex) {
       throw new ExInternal("Failed to convert XPath result to Float for search-selector attributes", ex);
     }
+
     return lExtraParams;
   }
 
