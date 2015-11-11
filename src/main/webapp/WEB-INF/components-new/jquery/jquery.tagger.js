@@ -425,10 +425,15 @@
             });
           }
 
+          // If the select was in focus already, make the tagger input focused
+          if (this.element.is(':focus')) {
+            this.taggerInput.focus();
+          }
           // Capture focus on the underlying element and redirect that focus to the tagger
-          this.element.get(0).focus = function () {
-            self.taggerWidget.find('[tabindex]:visible').first().focus();
-          };
+          this.element.focus(function (e) {
+            e.preventDefault();
+            self.taggerInput.focus();
+          });
         }
 
         // Let the available tags be accessed through a nicer name
@@ -1039,7 +1044,7 @@
       if (!this.readonly) {
         // Select the option in the underlying select element
         if ($('option[value="'+tagID+'"]', this.element).length > 0) {
-          $('option[value="'+tagID+'"]', this.element).prop("selected",true);
+          $('option[value="'+tagID+'"]', this.element).prop("selected", true);
         } else {
           $('<option value="'+tagID+'" selected="selected">'+$('<div/>').html(tagData.key).text()+'</option>').appendTo(this.element);
         }

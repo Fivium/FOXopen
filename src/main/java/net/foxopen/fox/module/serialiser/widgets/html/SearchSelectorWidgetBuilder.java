@@ -84,7 +84,7 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
       if (lFieldMgr.isRunnable()) {
         lSelectAttributes += " onchange=\"javascript:" + StringEscapeUtils.escapeHtml4(getActionSubmitString(pEvalNode)) + "\"";
       }
-      pSerialiser.append("<select id=\"" + lFieldMgr.getExternalFieldName() + "\" name=\"" + lFieldMgr.getExternalFieldName() + "\"" + lSelectAttributes + " style=\"display:none;\" size=\"2\">");
+      pSerialiser.append("<select id=\"" + lFieldMgr.getExternalFieldName() + "\" name=\"" + lFieldMgr.getExternalFieldName() + "\"" + lSelectAttributes + " style=\"position: absolute; left: -999em; width: 990em;\" size=\"" + lSelectOptions.size() + "\">");
 
       for (FieldSelectOption lOption : lSelectOptions) {
         if (lOption.isSelected()) {
