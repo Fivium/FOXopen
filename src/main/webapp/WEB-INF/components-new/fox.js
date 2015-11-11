@@ -539,7 +539,13 @@ var FOXjs = {
     }
     // Attempt to focus a focusable element
     // TODO PN this needs to be aware of element visibility (otherwise IE might have an error)
-    lFocusTargets.find("input, select, textarea").focus()
+    var lFocusTargetElement = lFocusTargets.find("input, select, textarea").first();
+    if (!lFocusTargetElement.is(":visible")) {
+      lFocusTargetElement.triggerHandler('focus');
+    }
+    else {
+      lFocusTargetElement.focus();
+    }
   },
 
   /**
