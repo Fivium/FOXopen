@@ -183,9 +183,28 @@ public class SingleWidgetBuildHelper {
   public static void insertHistoryMessage(HTMLSerialiser pSerialiser, EvaluatedNode pEvaluatedNode) {
     if (pEvaluatedNode.hasHistory()) {
       OutputHistory lHistory = pEvaluatedNode.getHistory();
-      pSerialiser.append("<div class=\"history-message\"><p>Data changed:</p><p>");
-      pSerialiser.append(StringEscapeUtils.escapeHtml4(XFUtil.initCap(lHistory.getOperation())));
-      pSerialiser.append("</p><p>");
+      String lHistoryIcon;
+      String lOperationDescription;
+
+      switch (lHistory.getOperation()) {
+        case "insert":
+          lHistoryIcon = "icon-plus";
+          lOperationDescription = "Added";
+          break;
+        case "delete":
+          lHistoryIcon = "icon-minus";
+          lOperationDescription = "Removed";
+          break;
+        default:
+          lHistoryIcon = "icon-history";
+          lOperationDescription = "Updated";
+          break;
+      }
+
+      pSerialiser.append("<div><div class=\"history-message ");
+      pSerialiser.append(lHistoryIcon);
+      pSerialiser.append("\">");
+      pSerialiser.append(lOperationDescription);
       if (XFUtil.isNull(lHistory.getValue())) {
         // TODO - NP - This showed in FOX4 but commented out as nobody wanted to see this now
 //        pSerialiser.append("(Unable to show ");
@@ -193,13 +212,13 @@ public class SingleWidgetBuildHelper {
 //        pSerialiser.append(")");
       }
       else {
-        pSerialiser.append("(");
+        pSerialiser.append(" (");
         pSerialiser.append(StringEscapeUtils.escapeHtml4(XFUtil.initCap(lHistory.getLabel())));
         pSerialiser.append(": ");
         pSerialiser.append(StringEscapeUtils.escapeHtml4(XFUtil.initCap(lHistory.getValue())));
         pSerialiser.append(")");
       }
-      pSerialiser.append("</p></div>");
+      pSerialiser.append("</div></div>");
     }
   }
 
