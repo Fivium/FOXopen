@@ -73,6 +73,7 @@
      * @property {array}    ajaxURL             - URL to autocomplete webservice for updating available tags
      * @property {array}    preselectedTags     - Array of tag ID's that are selected in the element (helps performance)
      * @property {integer}  characterThreshold  - How many characters must be typed before searching
+     * @property {integer}  characterLimit      - How many characters can be entered into the input box
      * @property {integer}  typingTimeThreshold - How many milliseconds to wait after the last keypress before filtering
      * @property {boolean}  caseSensitive       - Case sensitive searching - defaults to false
      * @property {string}   placeholder         - Placeholder text for input area
@@ -102,6 +103,7 @@
       , ajaxURL             : null
       , preselectedTags     : null
       , characterThreshold  : 1
+      , characterLimit      : null
       , typingTimeThreshold : 200
       , caseSensitive       : false
       , placeholder         : null
@@ -201,6 +203,10 @@
           // Add placeholder text to text input field
           if (this.options.placeholder !== null) {
             this.taggerInput.attr("placeholder", this.options.placeholder);
+          }
+
+          if (this.options.characterLimit !== null) {
+            this.taggerInput.attr("maxlength", this.options.characterLimit);
           }
 
           // Set the tab index on the input field
