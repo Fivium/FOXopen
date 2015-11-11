@@ -1039,7 +1039,7 @@
       if (!this.readonly) {
         // Select the option in the underlying select element
         if ($('option[value="'+tagID+'"]', this.element).length > 0) {
-          $('option[value="'+tagID+'"]', this.element).attr("selected","selected");
+          $('option[value="'+tagID+'"]', this.element).prop("selected",true);
         } else {
           $('<option value="'+tagID+'" selected="selected">'+$('<div/>').html(tagData.key).text()+'</option>').appendTo(this.element);
         }
@@ -1199,7 +1199,7 @@
       tagElem.remove();
       this.tagCount--;
       // Deselect from hidden select
-      $('option[value="' + tagID + '"]', this.element).removeAttr("selected");
+      $('option[value="' + tagID + '"]', this.element).prop("selected", false);
 
       // In single select mode, make sure no options are selected
       if (this.singleValue) {
