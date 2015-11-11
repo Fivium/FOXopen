@@ -17,7 +17,7 @@ import net.foxopen.fox.module.serialiser.layout.methods.FieldValueMappingLayout;
 import net.foxopen.fox.module.serialiser.pdf.PDFSerialiser;
 import net.foxopen.fox.module.serialiser.pdf.elementattributes.ElementAttributes;
 import net.foxopen.fox.module.serialiser.pdf.elementcontainers.ElementContainerFactory;
-import net.foxopen.fox.module.serialiser.widgets.MultiOptionSelectWidgetUtils;
+import net.foxopen.fox.module.serialiser.widgets.OptionWidgetUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -41,7 +41,7 @@ public class MultiOptionSelectWidget extends WidgetBuilderPDFSerialiser<Evaluate
 
   @Override
   public void buildWidgetInternal(SerialisationContext pSerialisationContext, PDFSerialiser pSerialiser, EvaluatedNodeInfo pEvalNode) {
-    int lItemsPerRow = MultiOptionSelectWidgetUtils.getItemsPerRow(pEvalNode);
+    int lItemsPerRow = OptionWidgetUtils.getItemsPerRow(pEvalNode);
     GridLayoutManager lMultiOptionLayout = new GridLayoutManager(lItemsPerRow, pSerialiser, pEvalNode, FieldValueMappingLayout.getInstance());
     boolean lHideField = getRenderType(pEvalNode) == RenderTypeOption.PRINT;
 

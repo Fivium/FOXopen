@@ -49,6 +49,11 @@ implements FieldSelectOption {
   }
 
   @Override
+  public boolean isMissingEntry() {
+    return false;
+  }
+
+  @Override
   public String getAdditionalProperty(String pPropertyName) {
     return mMapSetEntry.getAdditionalPropertyString(pPropertyName);
   }

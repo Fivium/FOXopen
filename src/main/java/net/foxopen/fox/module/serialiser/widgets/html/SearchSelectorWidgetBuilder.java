@@ -16,6 +16,7 @@ import net.foxopen.fox.module.fieldset.fvm.FieldSelectOption;
 import net.foxopen.fox.module.mapset.JITMapSet;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
+import net.foxopen.fox.module.serialiser.widgets.OptionWidgetUtils;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.simple.JSONArray;
@@ -24,6 +25,7 @@ import org.json.simple.JSONObject;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoItem> {
@@ -51,14 +53,25 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
   private SearchSelectorWidgetBuilder () {
   }
 
+  /**
+   * Gets a list of FieldSelectOptions for the given ENI, filtered to remove any key-null entries which should not be
+   * displayed by a search selector (unless it is a single selector with <tt>searchMandatorySelection</tt> set to true).
+   * @param pEvalNode Current ENI.
+   * @return List of FieldSelectOptions to be used by the current widget instance.
+   */
+  private static List<FieldSelectOption> filteredOptionList(EvaluatedNodeInfoItem pEvalNode) {
+    //Filter key-null/key-missing entries, unless mandatory selection is enabled and the field is single select and not mandatory (i.e. a key-null exists)
+    return OptionWidgetUtils.filteredSearchSelectorOptions(pEvalNode).collect(Collectors.toList());
+  }
+
   @Override
   public void buildWidgetInternal(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNodeInfoItem pEvalNode) {
 
     FieldMgr lFieldMgr = pEvalNode.getFieldMgr();
-    List<FieldSelectOption> lSelectOptions = lFieldMgr.getSelectOptions();
+    List<FieldSelectOption> lSelectOptions = filteredOptionList(pEvalNode);
 
     if (!pEvalNode.isPlusWidget() && lFieldMgr.getVisibility() == NodeVisibility.VIEW) {
-      SelectorWidgetBuilder.outputReadOnlyOptions(pSerialiser, lFieldMgr);
+      SelectorWidgetBuilder.outputReadOnlyOptions(pSerialiser, pEvalNode);
     }
     else {
       String lSelectAttributes = "";
@@ -89,7 +102,7 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
       // Mapset var name, could be cache key but then possible issues with itemrec
       String lMapsetJSONVariableName = lFieldMgr.getExternalFieldName() + pEvalNode.getStringAttribute(NodeAttribute.MAPSET, "missing-map-set").replaceAll("[^a-zA-Z0-9]*", "");
       //Static servlet requires app mnem appended
-      String lJSON = mapsetToJSON(lFieldMgr, StaticServlet.getURIWithAppMnem(lURIBuilder, pSerialisationContext.getApp().getAppMnem()));
+      String lJSON = mapsetToJSON(pEvalNode, StaticServlet.getURIWithAppMnem(lURIBuilder, pSerialisationContext.getApp().getAppMnem()));
       // Add the JSON to the page
       pSerialisationContext.addConditionalLoadJavascript("var " + lMapsetJSONVariableName + " = " + lJSON + ";");
 
@@ -226,24 +239,24 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
    * Take in all the lists from the mapset and generate a JSON object array for each entry, to be used by the
    * search-selector widget
    *
-   * @param pFieldMgr FieldMgr to get options from
+   * @param pEvalNode Current ENI to get options from
    * @param pBaseURL Base URL of static servlet to replace %IMAGE_BASE% with in suggestion text
    * @return String of the JSON array to be set at the top of the page
    */
-  private String mapsetToJSON(FieldMgr pFieldMgr, String pBaseURL) {
+  private String mapsetToJSON(EvaluatedNodeInfoItem pEvalNode, String pBaseURL) {
     JSONArray lMapsetJSON = new JSONArray();
     JSONObject lMapsetObject = new JSONObject();
     JSONObject lJSONEntry;
 
     int i = 1;
-    for (FieldSelectOption lItem : pFieldMgr.getSelectOptions()) {
+    for (FieldSelectOption lItem : filteredOptionList(pEvalNode)) {
       FieldSelectOption lSearchableItem = lItem;
 
       String lHiddenSearchable = lItem.getAdditionalProperty(HIDDEN_SEARCHABLE_MS_PROPERTY);
       String lSuggestion = lItem.getAdditionalProperty(SUGGESTION_DISPLAY_MS_PROPERTY);
       String lLevel = lItem.getAdditionalProperty(LEVEL_MS_PROPERTY);
 
-      if ((pFieldMgr.getVisibility() == NodeVisibility.VIEW && !lItem.isSelected())) {
+      if ((pEvalNode.getFieldMgr().getVisibility() == NodeVisibility.VIEW && !lItem.isSelected())) {
         // Skip putting it in the JSON if it's got null entries or in read only mode and not selected
         continue;
       }

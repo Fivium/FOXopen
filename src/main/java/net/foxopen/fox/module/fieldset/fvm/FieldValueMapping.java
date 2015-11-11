@@ -69,12 +69,12 @@ public abstract class FieldValueMapping {
    * subtypes as they require.
    * @param pDisplayKey User facing display key for the new option.
    * @param pSelected True if the option is selected.
-   * @param pIsNullEntry True if the option represents a "key-null" entry.
+   * @param pNullOptionType Type of null option (i.e. key-missing/key-null) this represents, if any. NOT_NULL indicates that this is a "real" option.
    * @param pExternalValue Value which this option will be represented as in a posted form.
    * @return A new FieldSelectOption, based on the FVM subclass.
    */
-  public FieldSelectOption createFieldSelectOption(String pDisplayKey, boolean pSelected, boolean pIsNullEntry, String pExternalValue) {
-    return new BasicSelectOption(pDisplayKey, pSelected, pIsNullEntry, pExternalValue, false);
+  public FieldSelectOption createFieldSelectOption(String pDisplayKey, boolean pSelected, NullOptionType pNullOptionType, String pExternalValue) {
+    return new BasicSelectOption(pDisplayKey, pSelected, pNullOptionType, pExternalValue, false);
   }
 
   /**

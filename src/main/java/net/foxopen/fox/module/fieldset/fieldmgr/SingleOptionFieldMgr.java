@@ -9,6 +9,7 @@ import net.foxopen.fox.module.fieldset.fieldinfo.FieldInfo;
 import net.foxopen.fox.module.fieldset.fieldinfo.SingleOptionFieldInfo;
 import net.foxopen.fox.module.fieldset.fvm.FieldSelectOption;
 import net.foxopen.fox.module.fieldset.fvm.FieldValueMapping;
+import net.foxopen.fox.module.fieldset.fvm.NullOptionType;
 
 import java.util.Collections;
 import java.util.List;
@@ -76,18 +77,18 @@ extends OptionFieldMgr {
 
     List<FieldSelectOption> lSelectOptions = mFVM.getSelectOptions(this, mIsNull ? Collections.<String>emptySet() : Collections.singleton(mSelectedFVMOptionRef));
 
+    //If null, augment null entry
+    augmentNullKeyIntoList(lSelectOptions, getEvaluatedNodeInfoItem());
+
     //Remove unselected options if required
     if (isSuppressUnselected()) {
       removeUnselectedOptions(lSelectOptions);
     }
 
-    //If null, augment null entry
-    augmentNullKeyIntoList(lSelectOptions, getEvaluatedNodeInfoItem());
-
     //if unrecognised, augment entry
     if(mIsUnrecognised) {
       String lUnrecognisedDisplayKey = XFUtil.nvl(getEvaluatedNodeInfoItem().getStringAttribute(NodeAttribute.KEY_UNRECOGNISED), getValueDOM().value());
-      FieldSelectOption lUnrecognisedOption = mFVM.createFieldSelectOption(lUnrecognisedDisplayKey, true, false, getExternalValueForUnrecognisedEntry(getValueDOM()));
+      FieldSelectOption lUnrecognisedOption = mFVM.createFieldSelectOption(lUnrecognisedDisplayKey, true, NullOptionType.NOT_NULL, getExternalValueForUnrecognisedEntry(getValueDOM()));
       lSelectOptions.add(lUnrecognisedOption);
     }
 

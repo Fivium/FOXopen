@@ -6,26 +6,26 @@ implements FieldSelectOption {
 
   private final String mDisplayKey;
   private final boolean mIsSelected;
-  private final boolean mIsNullEntry;
+  private final NullOptionType mNullOptionType;
   private final String mExternalValue;
   private final boolean mDisabled;
 
-  BasicSelectOption(String pDisplayKey, boolean pIsSelected, boolean pIsNullEntry, String pExternalValue, boolean pDisabled) {
+  BasicSelectOption(String pDisplayKey, boolean pIsSelected, NullOptionType pNullOptionType, String pExternalValue, boolean pDisabled) {
     mDisplayKey = pDisplayKey;
     mIsSelected = pIsSelected;
-    mIsNullEntry = pIsNullEntry;
+    mNullOptionType = pNullOptionType;
     mExternalValue = pExternalValue;
     mDisabled = pDisabled;
   }
 
   /**
-   * Basic constructor for a FieldSelectOption which provides defauls for the null entry and disabled properties (both false).
+   * Basic constructor for a FieldSelectOption which provides defaults for the null entry and disabled properties (all false).
    * @param pDisplayKey
    * @param pIsSelected
    * @param pExternalValue
    */
   BasicSelectOption(String pDisplayKey, boolean pIsSelected, String pExternalValue) {
-    this(pDisplayKey, pIsSelected, false, pExternalValue, false);
+    this(pDisplayKey, pIsSelected, NullOptionType.NOT_NULL, pExternalValue, false);
   }
 
   @Override
@@ -55,7 +55,12 @@ implements FieldSelectOption {
 
   @Override
   public boolean isNullEntry() {
-    return mIsNullEntry;
+    return mNullOptionType == NullOptionType.KEY_NULL;
+  }
+
+  @Override
+  public boolean isMissingEntry() {
+    return mNullOptionType == NullOptionType.KEY_MISSING;
   }
 
   @Override

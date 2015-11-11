@@ -39,7 +39,7 @@ public enum WidgetBuilderType {
   PRINT(new WidgetBuilderProperties(WidgetFlag.ACTION), "print"),
   RADIO(new WidgetBuilderProperties(WidgetFlag.RUNNABLE), new FieldSelectConfig(true, false, false), "radio"),
   SELECTOR(new WidgetBuilderProperties(WidgetFlag.RUNNABLE), new FieldSelectConfig(true, true, false), "selector"),
-  SEARCH_SELECTOR(new WidgetBuilderProperties(WidgetFlag.RUNNABLE), new FieldSelectConfig(false, false, false), "search-selector"),
+  SEARCH_SELECTOR(new WidgetBuilderProperties(WidgetFlag.RUNNABLE), new FieldSelectConfig(true, false, false), "search-selector"),
   STATIC_TEXT(new WidgetBuilderProperties(WidgetFlag.TEXT_VALUE), "static-text"),
   SUBMIT(new WidgetBuilderProperties(WidgetFlag.ACTION, WidgetFlag.RUNNABLE), "submit"),
   TEXT(new WidgetBuilderProperties(WidgetFlag.TEXT_VALUE), "text"),
