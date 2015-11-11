@@ -110,10 +110,10 @@ public class SaxonEnvironment {
   private static final NamespaceContext gFoxNamespaceContext = new DefaultNamespaceContext();
 
   /**
-   * ThreadLocal reference to a ContextUElem.
+   * ThreadLocal reference to a ContextUElem, wrapped in a UsageCounter to deal with nested setting/unsetting.
    * This is used by the FoxContext (:{x}) function to resolve a context name to a node.
    */
-  private static final ThreadLocal<WeakReference<ContextUElem>> gThreadLocalContextUElem;
+  private static final ThreadLocal<UsageCounter<WeakReference<ContextUElem>>> gThreadLocalContextUElem;
 
   private static final ThreadLocal<WeakReference<ActionRequestContext>> gThreadLocalRequestContext;
 
@@ -192,7 +192,7 @@ public class SaxonEnvironment {
    * @return The thread's ContextUElem.
    */
   static ContextUElem getThreadLocalContextUElem() {
-    WeakReference<ContextUElem> lRef = gThreadLocalContextUElem.get();
+    WeakReference<ContextUElem> lRef = gThreadLocalContextUElem.get().mObject;
     if (lRef != null) {
       ContextUElem lContext = lRef.get();
       if (lContext != null) {
@@ -268,11 +268,11 @@ public class SaxonEnvironment {
   public static void setThreadLocalContextUElem(ContextUElem pContextUElem) {
     //Sanity check
     if (gThreadLocalContextUElem.get() != null) {
-      //Don't error, this was being called from getMapset within an XPath function which is fine
-      Track.debug("ThreadLocalContextUElem", "setThreadLocalContextUElem called when already set");
+      //We already have a ContextUElem set for this thread - increment the usage count to prevent it being cleared
+      gThreadLocalContextUElem.get().mUsageCount++;
     }
     else {
-      gThreadLocalContextUElem.set(new WeakReference<>(pContextUElem));
+      gThreadLocalContextUElem.set(new UsageCounter<>(new WeakReference<>(pContextUElem)));
     }
   }
 
@@ -289,7 +289,10 @@ public class SaxonEnvironment {
    * Clean up the ThreadLocal ContextUElem after XPath execution has completed.
    */
   public static void clearThreadLocalContextUElem() {
-    gThreadLocalContextUElem.remove();
+    //Only clear the reference if there are no remaining usages
+    if(gThreadLocalContextUElem.get() != null && --gThreadLocalContextUElem.get().mUsageCount == 0) {
+      gThreadLocalContextUElem.remove();
+    }
   }
 
   public static void clearThreadLocalRequestContext() {
@@ -412,6 +415,20 @@ public class SaxonEnvironment {
     }
     else {
       return false;
+    }
+  }
+
+  /**
+   * Object for tracking nested usages of a ThreadLocal ContextUElem, and preventing the clear method from clearing the
+   * reference while it is still in use.
+   * @param <T>
+   */
+  private static class UsageCounter<T> {
+    final T mObject;
+    int mUsageCount = 1;
+
+    UsageCounter(T pObject) {
+      mObject = pObject;
     }
   }
 
