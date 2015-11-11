@@ -16,6 +16,7 @@ import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
 import org.apache.commons.lang3.StringEscapeUtils;
 
+import java.util.Arrays;
 import java.util.Map;
 
 
@@ -59,7 +60,7 @@ public class ErrorRefWidgetBuilder extends WidgetBuilderHTMLSerialiser<Evaluated
 
     Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
 
-    lTemplateVars.put("PromptText", getPrompt(lMatchedItemNodeInfo, pEvalNode));
+    lTemplateVars.put("PromptText", getPrompt(lErrorElement, lMatchedItemNodeInfo, pEvalNode));
 
     if (XFUtil.isNull(lErrorItemNavAction)) {
       lTemplateVars.put("ReadOnly", true);
@@ -74,12 +75,18 @@ public class ErrorRefWidgetBuilder extends WidgetBuilderHTMLSerialiser<Evaluated
     MustacheFragmentBuilder.applyMapToTemplate(MUSTACHE_TEMPLATE, lTemplateVars, pSerialiser.getWriter());
   }
 
-  private String getPrompt(NodeInfo pNodeInfo, EvaluatedNode pEvalNode) {
-    NodeEvaluationContext lParentNEC = pEvalNode.getNodeEvaluationContext();
+  private String getPrompt(DOM pErrorElement, NodeInfo pErrorItemNodeInfo, EvaluatedNode pEvalNode) {
+
     // Construct a new NodeEvaluationContext using the given NodeInfo for the referenced element with the error
-    NodeEvaluationContext lNodeEvaluationContext = NodeEvaluationContext.createNodeInfoEvaluationContext(lParentNEC.getEvaluatedParseTree(), pEvalNode.getEvaluatedPresentationNode(),
-      lParentNEC.getDataItem(), lParentNEC.getEvaluateContextRuleItem(), lParentNEC.getEvaluateContextRuleItem(),
-      pNodeInfo.getNamespaceAttributeTable(),
+    NodeEvaluationContext lParentNEC = pEvalNode.getNodeEvaluationContext();
+
+    DOM lEvalContextItem = NodeEvaluationContext.establishEvaluateContextRuleNode(pErrorElement, pErrorItemNodeInfo);
+
+    //We only care about prompt/prompt-short, so filter the attribute table accordingly
+    NodeEvaluationContext lNodeEvaluationContext = NodeEvaluationContext.createNodeInfoEvaluationContext(
+      lParentNEC.getEvaluatedParseTree(), pEvalNode.getEvaluatedPresentationNode(),
+      pErrorElement, lEvalContextItem, lEvalContextItem,
+      pErrorItemNodeInfo.getNamespaceAttributeTable().createFilteredAttributeTable(Arrays.asList(NodeAttribute.PROMPT.getExternalString(), NodeAttribute.PROMPT_SHORT.getExternalString())),
       lParentNEC.getNamespacePrecedenceList(), lParentNEC);
 
     // Try the fox:prompt attribute
@@ -95,8 +102,8 @@ public class ErrorRefWidgetBuilder extends WidgetBuilderHTMLSerialiser<Evaluated
     }
     else {
       // If no prompt[-short] then use the element name
-      if (XFUtil.exists(pNodeInfo.getName())) {
-        return XFUtil.initCap(pNodeInfo.getName());
+      if (XFUtil.exists(pErrorItemNodeInfo.getName())) {
+        return XFUtil.initCap(pErrorItemNodeInfo.getName());
       }
       else {
         return null;
