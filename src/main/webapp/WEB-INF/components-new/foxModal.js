@@ -162,7 +162,13 @@ var FOXmodal = {
     if(topModal) {
       //Restore focus to whatever had it before
       if(topModal.restoreFocusTo) {
-        $(topModal.restoreFocusTo).focus();
+        var focusTargetElement = $(topModal.restoreFocusTo);
+        if (!focusTargetElement.is(":visible")) {
+          focusTargetElement.triggerHandler('focus');
+        }
+        else {
+          focusTargetElement.focus();
+        }
       }
 
       //Run close callback function
