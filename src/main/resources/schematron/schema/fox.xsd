@@ -80,6 +80,7 @@
     <xs:attribute ref="htmlWidgetConfig"/>
     <xs:attribute ref="collapseColumns"/>
     <xs:attribute ref="layoutMethod"/>
+    <xs:attribute ref="formList"/>
     <xs:attribute ref="tightField"/>
     <xs:attribute ref="fieldSpan"/>
     <xs:attribute ref="promptSpan"/>
@@ -371,6 +372,7 @@
     <xs:attribute ref="mandatoryDisplayMode"/>
     <xs:attribute ref="renderType"/>
     <xs:attribute ref="forceVisible" use="optional"/>
+    <xs:attribute ref="formList"/>
   </xs:attributeGroup>
   <xs:attributeGroup name="zzz-cellmate-attr-grp">
     <xs:attribute ref="cellmateKey"/>
@@ -1251,6 +1253,12 @@
   <xs:attribute name="layoutMethod" type="fox-xpath-type">
     <xs:annotation>
       <xs:documentation>Layout method to use when doing a form set-out. Currently there is 'form' and 'test'.</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+
+  <xs:attribute name="formList" type="fox-xpath-boolean">
+    <xs:annotation>
+      <xs:documentation>If this is set to true lists will set out a list of form set-outs for each row instead of displaying the data in a table</xs:documentation>
     </xs:annotation>
   </xs:attribute>
 
