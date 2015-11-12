@@ -126,10 +126,16 @@ public abstract class FoxComponent {
             IOUtil.transfer(pReader, lStringWriter);
           }
           catch (IOException e) {
-            throw new ExInternal("Error reading module clob", e);
+            throw new ExInternal("Error reading module clob for module " + pName, e);
           }
           // Parse module to DOM
-          DOM lUElem = Mod.parseModuleDOM(lStringWriter.getBuffer(), pName, false);
+          DOM lUElem;
+          try {
+            lUElem = Mod.parseModuleDOM(lStringWriter.getBuffer(), pName, false);
+          }
+          catch (Throwable th) {
+            throw new ExInternal("Error parsing DOM for module " + pName, th);
+          }
           // Construct fox module
 
           try {
