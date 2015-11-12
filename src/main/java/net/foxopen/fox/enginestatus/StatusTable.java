@@ -236,8 +236,8 @@ implements ContainerStatusItem, NamedStatusItem {
       return this;
     }
 
-    public Row setActionColumn(String pActionPrompt, BangHandler pBangHandler, Map<String, String> pParamMap) {
-      mColumns.put(mColumnNames.get(mCurrentColumnIndex++), new StatusAction(pActionPrompt, pBangHandler, pParamMap));
+    public Row setActionColumn(String pActionPrompt, BangHandler pBangHandler, Map<String, String> pParamMap, boolean pBasicLink) {
+      mColumns.put(mColumnNames.get(mCurrentColumnIndex++), new StatusAction(pActionPrompt, pBangHandler, pParamMap, pBasicLink));
       return this;
     }
 

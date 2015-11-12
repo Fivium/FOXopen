@@ -4,11 +4,6 @@ package net.foxopen.fox.track;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.cache.BuiltInCacheDefinition;
 import net.foxopen.fox.cache.CacheManager;
-import net.foxopen.fox.enginestatus.EngineStatus;
-import net.foxopen.fox.enginestatus.StatusDestination;
-import net.foxopen.fox.enginestatus.StatusProvider;
-import net.foxopen.fox.enginestatus.StatusTable;
-import net.foxopen.fox.entrypoint.filter.RequestLogFilter;
 import net.foxopen.fox.ex.TrackableException;
 import net.foxopen.fox.logging.ErrorLogger;
 import net.foxopen.fox.track.Track.SeverityLevel;
@@ -29,44 +24,6 @@ import java.util.TreeMap;
 
 class DefaultTrackLogger
 implements TrackLogger {
-
-  static {
-    EngineStatus.instance().registerStatusProvider(new StatusProvider() {
-      @Override
-      public void refreshStatus(StatusDestination pDestination) {
-
-        //Exclude the current request from the overall count
-        pDestination.addMessage("Active request counter", Integer.toString(RequestLogFilter.getActiveRequestCount() - 1));
-
-        StatusTable lTable = pDestination.addTable("Hot Tracks", "Track ID", "View Track");
-        lTable.setRowProvider(new StatusTable.RowProvider() {
-          @Override
-          public void generateRows(StatusTable.RowDestination pRowDestination) {
-            for (Map.Entry<String, TrackLogger> lHotTrack : CacheManager.<String, TrackLogger>getCache(BuiltInCacheDefinition.HOT_TRACKS).entrySet()) {
-              pRowDestination.addRow(lHotTrack.getKey())
-                .setColumn(lHotTrack.getKey())
-                .setActionColumn("View", ShowTrackBangHandler.instance(), Collections.singletonMap(ShowTrackBangHandler.TRACK_ID_PARAM_NAME, lHotTrack.getKey()));
-            }
-          }
-        });
-      }
-
-      @Override
-      public String getCategoryTitle() {
-        return "Active Requests";
-      }
-
-      @Override
-      public String getCategoryMnemonic() {
-        return "activeRequests";
-      }
-
-      @Override
-      public boolean isCategoryExpandedByDefault() {
-        return true;
-      }
-    });
-  }
 
   private static final Iterator<String> TRACK_ID_ITERATOR = XFUtil.getUniqueIterator();
 
@@ -139,14 +96,14 @@ implements TrackLogger {
     mCurrentEntry = createTrackEntry(pTrackName, "", Track.SeverityLevel.INFO, null, null);
     mTopEntry = mCurrentEntry;
     mStartTimeMS = System.currentTimeMillis();
-    CacheManager.getCache(BuiltInCacheDefinition.HOT_TRACKS).put(mTrackId, this);
+    CacheManager.getCache(BuiltInCacheDefinition.HOT_TRACKS).put(mRequestId, this);
   }
 
   @Override
   public void close() {
     mCurrentEntry.setOutTime(System.currentTimeMillis());
     mLogWriter.writeTrack(this);
-    CacheManager.getCache(BuiltInCacheDefinition.HOT_TRACKS).remove(mTrackId);
+    CacheManager.getCache(BuiltInCacheDefinition.HOT_TRACKS).remove(mRequestId);
   }
 
   @Override
