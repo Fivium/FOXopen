@@ -4,6 +4,7 @@ import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.banghandler.BangHandlerServlet;
 import net.foxopen.fox.banghandler.FlushBangHandler;
 import net.foxopen.fox.dbinterface.DBMSOutputResult;
+import net.foxopen.fox.enginestatus.StatusBangHandler;
 import net.foxopen.fox.entrypoint.uri.RequestURIBuilder;
 import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.module.fieldset.action.InternalActionContext;
@@ -144,9 +145,15 @@ public class DevToolbarComponentBuilder extends ComponentBuilder<HTMLSerialiser,
         }
       }
       pSerialiser.append("</li>\n");
+
       if(lDBMSOutputList.size() > 0) {
         pSerialiser.append("<li><a href=\"#\" id=\"dbmsOutputInfo\">DBMS_OUTPUT</a></li>\n");
       }
+
+      //!STATUS URL
+      String lStatusURL = pSerialisationContext.createURIBuilder().buildBangHandlerURI(StatusBangHandler.instance());
+      pSerialiser.append("<li><a href=\"" + lStatusURL + "\" target=\"_new\">Engine Status</a></li>\n");
+
       pSerialiser.append("</ul>\n" +
           "<div id=\"dev-toolbar-toggle-mode\" class=\"icon-circle-down\"></div>\n" +
           "<div id=\"dev-toolbar-toggle-pin\" class=\"icon-pushpin\"></div>\n" +
