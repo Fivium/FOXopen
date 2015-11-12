@@ -98,26 +98,29 @@
       //Attach event listeners for action links
       $('*[data-status-type=action]').unbind('click').click(function(event) {
 
-        if(!confirm("Are you sure?")) {
-          return false;
+        //Allow basic links to be clicked
+        if(!$(this).data('basic-link')) {
+          if (!confirm("Are you sure?")) {
+            return false;
+          }
+
+          var that = $(this);
+          $.ajax({
+            url: $(this).attr('href')
+          })
+            .done(function () {
+              that.parents('.categoryContainer').find('*[data-status-type=refreshCategory]').click();
+              that.addClass("icon-animated-spinner");
+            })
+            .fail(function () {
+              alert('Error running action.');
+            })
+            .always(function () {
+              that.removeClass("icon-animated-spinner");
+            });
+
+          event.preventDefault();
         }
-
-        var that = $(this);
-        $.ajax({
-          url: $(this).attr('href')
-        })
-        .done(function(){
-          that.parents('.categoryContainer').find('*[data-status-type=refreshCategory]').click();
-          that.addClass("icon-animated-spinner");
-        })
-        .fail(function() {
-          alert('Error running action.');
-        })
-        .always(function() {
-          that.removeClass("icon-animated-spinner");
-        });
-
-        event.preventDefault();
       });
     }
 

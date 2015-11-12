@@ -15,12 +15,22 @@ implements StatusItem {
   private final BangHandler mBangHandler;
   private final String mAbsoluteURI;
   private final Map<String, String> mParamMap;
+  private final boolean mBasicLink;
 
   public StatusAction(String pPrompt, BangHandler pBangHandler, Map<String, String> pParamMap) {
     mPrompt = pPrompt;
     mBangHandler = pBangHandler;
     mParamMap = pParamMap;
     mAbsoluteURI = null;
+    mBasicLink = false;
+  }
+
+  public StatusAction(String pPrompt, BangHandler pBangHandler, Map<String, String> pParamMap, boolean pBasicLink) {
+    mPrompt = pPrompt;
+    mBangHandler = pBangHandler;
+    mParamMap = pParamMap;
+    mAbsoluteURI = null;
+    mBasicLink = pBasicLink;
   }
 
   public StatusAction(String pPrompt, String pAbsoulteURI) {
@@ -28,6 +38,7 @@ implements StatusItem {
     mAbsoluteURI = pAbsoulteURI;
     mBangHandler = null;
     mParamMap = null;
+    mBasicLink = false;
   }
 
   @Override
@@ -54,7 +65,11 @@ implements StatusItem {
       lURI = lURIBuilder.buildServletURI(mAbsoluteURI);
     }
 
-    pWriter.append("<a href=\"").append(lURI).append("\" data-status-type=\"action\">").append(mPrompt).append("</a>");
+    pWriter.append("<a href=\"").append(lURI).append("\" data-status-type=\"action\"");
+    if(mBasicLink) {
+      pWriter.append(" data-basic-link=\"true\"");
+    }
+    pWriter.append(">").append(mPrompt).append("</a>");
   }
 
 }

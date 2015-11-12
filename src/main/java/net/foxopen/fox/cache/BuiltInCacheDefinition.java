@@ -152,8 +152,8 @@ public enum BuiltInCacheDefinition {
       FoxTTLCacheBuilder lCacheBuilder = new FoxTTLCacheBuilder();
       lCacheBuilder.setPurpose("Hot Tracks");
       lCacheBuilder.setMaxCapacity(100);
-      //15 mins only
-      lCacheBuilder.setTimeToLiveMs(15 * 60 * 1000);
+      //30 mins only
+      lCacheBuilder.setTimeToLiveMs(30 * 60 * 1000);
       lCacheBuilder.setConcurrencyLevel(5);
       return lCacheBuilder;
     }
