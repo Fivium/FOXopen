@@ -127,8 +127,21 @@ var FOXjs = {
     // Enable autosize on textareas with the autosize data attribute
     $("textarea[data-auto-resize = 'true']").autosize();
 
-    // TODO - NP - Implement text area input limiting
-    //$("textarea[data-maxlength]").limitOrSomething();
+    // Limit textarea length in <= IE9
+    if (!("maxLength" in document.createElement("textarea"))) {
+      $("textarea[maxlength]").on('keyup blur paste drop', function () {
+        var that = $(this);
+        //setTimeout required so the browser has time to see the pasted value in a paste event
+        setTimeout(function() {
+          var maxLength = that.attr('maxlength');
+          var val = that.val();
+
+          if (val.length > maxLength) {
+            that.val(val.slice(0, maxLength));
+          }
+        }, 0);
+      });
+    }
 
     // Initialise the date pickers for fields that need them
     $( ".date-input").not(".date-time-input").not("[readonly='readonly']").datepicker({
