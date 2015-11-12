@@ -44,8 +44,8 @@ implements XMLWorkDocDOMAccessor {
 
   @Override
   public void prepareForDML(UCon pUCon, DOM pDOM) {
-    //Previous this set the "xml:space" attribute to "preserve" to stop whitespace being interfered with
-    //Since switching reads to use the Oracle Binary XML API this behaviour has been disabled
+    //Reads using the standard XML reader introduce extra unwanted whitespace unless this attribute is set
+    pDOM.setPreserveWhitespace(true);
   }
 
   @Override
