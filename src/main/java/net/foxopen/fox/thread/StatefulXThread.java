@@ -944,6 +944,7 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
         //We need to force buffered output on a new thread so user can't churn the page before thread is initially committed -
         //otherwise the thread locker fails on the 2nd churn as it is unable to find the thread row.
         ResponseMethod lResponseMethod = pForceBufferedOutput ? ResponseMethod.BUFFERED : pRequestContext.getRequestApp().getResponseMethod();
+        Track.info("ResponseMethod", lResponseMethod.toString());
         if (lResponseMethod == ResponseMethod.STREAMING) {
 
           //Set a ResponseErrorHandler on the request for the streaming response
