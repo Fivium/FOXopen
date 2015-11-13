@@ -3,6 +3,7 @@ package net.foxopen.fox.boot;
 import net.foxopen.fox.ContextUCon;
 import net.foxopen.fox.configuration.FoxBootConfig;
 import net.foxopen.fox.database.UCon;
+import net.foxopen.fox.database.UConStatementResult;
 import net.foxopen.fox.database.parser.StatementParser;
 import net.foxopen.fox.enginestatus.EngineStatus;
 import net.foxopen.fox.enginestatus.MessageLevel;
@@ -12,6 +13,8 @@ import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.ex.ExDB;
 
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class FoxBootStatusProvider
 implements StatusProvider{
@@ -54,12 +57,11 @@ implements StatusProvider{
     }
 
     try {
-      checkDatabaseTime(pDestination);
+      getDatabaseInfo(pDestination);
     }
     catch (Throwable th) {
-      pDestination.addMessage("TIME CHECK ERROR", th.getMessage(), MessageLevel.ERROR);
+      pDestination.addMessage("DB CHECK ERROR", th.getMessage(), MessageLevel.ERROR);
     }
-
   }
 
   @Override
@@ -77,11 +79,37 @@ implements StatusProvider{
     return true;
   }
 
+  private void getDatabaseInfo(StatusDestination pCategory) {
 
-  private void checkDatabaseTime(StatusDestination pCategory) {
-    ContextUCon lContextUCon = ContextUCon.createContextUCon(FoxGlobals.getInstance().getEngineConnectionPoolName(), "Sysdate check");
-    lContextUCon.pushConnection("SysdateCheck");
-    UCon lUCon = lContextUCon.getUCon("Check database time");
+    ContextUCon lContextUCon = ContextUCon.createContextUCon(FoxGlobals.getInstance().getEngineConnectionPoolName(), "DB status");
+    lContextUCon.pushConnection("DBStatus");
+    try {
+      getDatabaseVersionInfo(lContextUCon, pCategory);
+      checkDatabaseTime(lContextUCon, pCategory);
+    }
+    finally {
+      lContextUCon.rollbackAndCloseAll(true);
+    }
+  }
+
+  private void getDatabaseVersionInfo(ContextUCon pContextUCon, StatusDestination pCategory) {
+
+    UCon lUCon = pContextUCon.getUCon("Get database version");
+    try {
+      List<UConStatementResult> lRows = lUCon.queryMultipleRows(StatementParser.parseSafely("SELECT banner FROM V$VERSION", "Select DB version"));
+      pCategory.addMessage("Database Version Info", lRows.stream().map(e -> e.getString("BANNER")).collect(Collectors.joining("\n")));
+    }
+    catch (ExDB e) {
+      throw e.toUnexpected();
+    }
+    finally {
+      pContextUCon.returnUCon(lUCon, "Get database version");
+    }
+  }
+
+  private void checkDatabaseTime(ContextUCon pContextUCon, StatusDestination pCategory) {
+
+    UCon lUCon = pContextUCon.getUCon("Check database time");
     try {
       Date lSysdate = (Date) lUCon.queryScalarObject(StatementParser.parseSafely("SELECT sysdate FROM dual", "Select sysdate"));
       //Establish difference in seconds
@@ -95,8 +123,7 @@ implements StatusProvider{
       throw e.toUnexpected();
     }
     finally {
-      lContextUCon.returnUCon(lUCon, "Check database time");
-      lContextUCon.rollbackAndCloseAll(true);
+      pContextUCon.returnUCon(lUCon, "Check database time");
     }
   }
 }
