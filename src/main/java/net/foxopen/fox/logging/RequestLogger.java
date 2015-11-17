@@ -65,21 +65,22 @@ public class RequestLogger {
 
         pDestination.addMessage("Active request counter", Integer.toString(RequestLogFilter.getActiveRequestCount()));
 
-        StatusTable lTable = pDestination.addTable("Logged Active Requests", "Request ID", "URI", "Start Datetime", "Method", "Access Info", "Track");
+        StatusTable lTable = pDestination.addTable("Logged Active Requests", "Request ID", "URI", "Start Datetime", "Method", "Access Info", "User Agent", "Track");
         lTable.setRowProvider(pRowDestination -> {
 
-          for (RequestLogEntry lActiveRequest : ACTIVE_REQUESTS.values()) {
+          ACTIVE_REQUESTS.values().stream().sorted((a, b) -> a.mRequestTime.compareTo(b.mRequestTime)).forEach(lActiveRequest -> {
 
-            StatusCollection lStatusCollection = new StatusCollection("AccessInfo");
-            lStatusCollection.addItem(new StatusMessage("Remote IP", lActiveRequest.mRemotAddr));
-            lStatusCollection.addItem(new StatusMessage("Forwarded For", lActiveRequest.mForwardedFor));
+            StatusCollection lAccessInfo = new StatusCollection("AccessInfo");
+            lAccessInfo.addItem(new StatusMessage("Remote IP", lActiveRequest.mRemotAddr));
+            lAccessInfo.addItem(new StatusMessage("Forwarded For", lActiveRequest.mForwardedFor));
 
             StatusTable.Row lRow = pRowDestination.addRow(lActiveRequest.mRequestId)
               .setColumn(lActiveRequest.mRequestId)
               .setColumn(lActiveRequest.mRequestURI)
               .setColumn(EngineStatus.formatDate(lActiveRequest.mRequestTime))
               .setColumn(lActiveRequest.mHttpMethod)
-              .setColumn(lStatusCollection);
+              .setColumn(lAccessInfo)
+              .setColumn(lActiveRequest.mUserAgent);
 
             TrackLogger lHotTrack = CacheManager.<String, TrackLogger>getCache(BuiltInCacheDefinition.HOT_TRACKS).get(lActiveRequest.mRequestId);
             if(lHotTrack != null) {
@@ -88,7 +89,7 @@ public class RequestLogger {
             else {
               lRow.setColumn("No track found");
             }
-          }
+          });
         });
       }
 
@@ -132,7 +133,7 @@ public class RequestLogger {
     final String lForwardedFor = pHttpRequest.getHeader(AuthUtil.X_FORWARDED_FOR_HEADER_NAME);
     final String lSessionId = CookieBasedFoxSession.getSessionIdFromRequest(pHttpRequest);
 
-    ACTIVE_REQUESTS.put(lRequestLogId, new RequestLogEntry(lRequestLogId, lRequestURI, lRequestTime, lHttpMethod, lRemotAddr, lForwardedFor));
+    ACTIVE_REQUESTS.put(lRequestLogId, new RequestLogEntry(lRequestLogId, lRequestURI, lRequestTime, lHttpMethod, lUserAgent, lRemotAddr, lForwardedFor));
 
     mLogWriterJobPool.submitTask(new FoxJobTask() {
       public TaskCompletionMessage executeTask() {
@@ -262,15 +263,17 @@ public class RequestLogger {
     final String mRequestURI;
     final Date mRequestTime;
     final String mHttpMethod;
+    final String mUserAgent;
 
     final String mRemotAddr;
     final String mForwardedFor;
 
-    public RequestLogEntry(String pRequestId, String pRequestURI, Date pRequestTime, String pHttpMethod, String pRemotAddr, String pForwardedFor) {
+    public RequestLogEntry(String pRequestId, String pRequestURI, Date pRequestTime, String pHttpMethod, String pUserAgent, String pRemotAddr, String pForwardedFor) {
       mRequestId = pRequestId;
       mRequestURI = pRequestURI;
       mRequestTime = pRequestTime;
       mHttpMethod = pHttpMethod;
+      mUserAgent = pUserAgent;
       mRemotAddr = pRemotAddr;
       mForwardedFor = pForwardedFor;
     }
