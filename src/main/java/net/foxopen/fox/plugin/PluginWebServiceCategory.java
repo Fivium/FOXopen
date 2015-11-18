@@ -29,7 +29,7 @@ import java.util.Map;
 public class PluginWebServiceCategory
 implements WebServiceCategory {
 
-  private static final String CATEGORY_NAME = "plugin";
+  public static final String CATEGORY_NAME = "plugin";
 
   private final PluginManager mParentManager;
 

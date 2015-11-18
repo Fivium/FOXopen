@@ -17,7 +17,7 @@ import org.apache.http.client.utils.URIBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URISyntaxException;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class RequestURIBuilderImpl
@@ -25,7 +25,7 @@ implements RequestURIBuilder {
 
   private final HttpServletRequest mHttpServletRequest;
   private final String mAppMnem;
-  private final Map<String, String> mParamMap = new HashMap<>();
+  private final Map<String, String> mParamMap = new LinkedHashMap<>(4);
 
   public static RequestURIBuilder createFromRequestContext(RequestContext pRequestContext, boolean pAllowParams) {
     if(pAllowParams) {
@@ -115,7 +115,7 @@ implements RequestURIBuilder {
       return lURIBuilder.build().toString();
     }
     catch (URISyntaxException e) {
-      throw new ExInternal("Failed to generate bang handler URI", e);
+      throw new ExInternal("Failed to generate URI", e);
     }
   }
 
