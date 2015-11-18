@@ -4,7 +4,6 @@ import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExInternal;
 import net.sf.saxon.om.Item;
 import net.sf.saxon.om.Sequence;
-import net.sf.saxon.om.SequenceIterator;
 import net.sf.saxon.option.xom.XOMNodeWrapper;
 import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.trans.XPathException;
@@ -70,13 +69,21 @@ public class FunctionUtils {
 
   static String getStringValueOrNull(Sequence[] pArguments, int pIndex, String pFunctionName)
   throws XPathException {
+    return getStringValueOrNull(pArguments, pIndex, pFunctionName, true);
+  }
+
+  static String getStringValueOrNull(Sequence[] pArguments, int pIndex, String pFunctionName, boolean pStrict)
+  throws XPathException {
     String lResult = null;
     if(pArguments.length > pIndex) {
       Item lItem = pArguments[pIndex].head();
-      if(!(lItem instanceof StringValue)) {
+      if(!(lItem instanceof StringValue) && pStrict) {
         throw new ExInternal("Argument " + (pIndex+1) + " to " + pFunctionName + " function must be a string.");
       }
-      lResult = ((StringValue) lItem).getStringValue();
+
+      if(lItem != null) {
+        lResult = lItem.getStringValue();
+      }
     }
     return lResult;
   }

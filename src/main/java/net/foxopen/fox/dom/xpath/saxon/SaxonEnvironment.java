@@ -171,6 +171,7 @@ public class SaxonEnvironment {
     gSaxonProcessor.registerExtensionFunction(new UploadTypeInfoFunction());
     gSaxonProcessor.registerExtensionFunction(new UserPrivilegeFunction());
     gSaxonProcessor.registerExtensionFunction(new CastDateSafeFunction());
+    gSaxonProcessor.registerExtensionFunction(new PluginURIFunction());
 
     //Create and set up a global XQuery compiler.
     gXQueryCompiler = gSaxonProcessor.newXQueryCompiler();
