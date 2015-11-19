@@ -75,6 +75,10 @@
     <xs:attribute ref="searchEmptySuggestionsText"/>
     <xs:attribute ref="searchLimitedSuggestionsText"/>
     <xs:attribute ref="searchMandatorySelection"/>
+    <xs:attribute ref="searchFreeTextInput"/>
+    <xs:attribute ref="searchFreeTextInputMessage"/>
+    <xs:attribute ref="searchFreeTextSuggest"/>
+    <xs:attribute ref="searchClearFilterOnBlur"/>
     <xs:attribute ref="autoResize"/>
     <xs:attribute ref="autoResizeMaxHeight"/>
     <xs:attribute ref="htmlWidgetConfig"/>
@@ -333,6 +337,10 @@
     <xs:attribute ref="searchEmptySuggestionsText"/>
     <xs:attribute ref="searchLimitedSuggestionsText"/>
     <xs:attribute ref="searchMandatorySelection"/>
+    <xs:attribute ref="searchFreeTextInput"/>
+    <xs:attribute ref="searchFreeTextInputMessage"/>
+    <xs:attribute ref="searchFreeTextSuggest"/>
+    <xs:attribute ref="searchClearFilterOnBlur"/>
     <xs:attribute ref="autoResize"/>
     <xs:attribute ref="autoResizeMaxHeight"/>
     <xs:attribute ref="htmlWidgetConfig"/>
@@ -613,6 +621,26 @@
   <xs:attribute name="searchMandatorySelection" type="fox-xpath-boolean">
     <xs:annotation>
       <xs:documentation>XPath bool for disabling the search (type/show prediction) functionality of the search-selector and disables the "x" (remove) button when in single selection mode. This allows us to reuse the nicer (HTML) output functionality of the widget while preserving legacy drop-down behaviour (such as having fox:key-null). This will become unnecessary when all browsers we aim to support can cope with native placeholder text.</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="searchFreeTextInput" type="fox-xpath-boolean">
+    <xs:annotation>
+      <xs:documentation>XPath bool for enabling free text input into the search selector</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="searchFreeTextInputMessage" type="fox-optional-xpath-string">
+    <xs:annotation>
+      <xs:documentation>Text to display as a hint next to the value they've typed to let them know it will be added as a new option</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="searchFreeTextSuggest" type="fox-xpath-boolean">
+    <xs:annotation>
+      <xs:documentation>Allow showing of previously-selected free text items in the suggestions</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="searchClearFilterOnBlur" type="fox-xpath-boolean">
+    <xs:annotation>
+      <xs:documentation>Clear any text left over in the filter input when the field loses focus</xs:documentation>
     </xs:annotation>
   </xs:attribute>
 

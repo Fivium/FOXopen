@@ -1,6 +1,9 @@
 package net.foxopen.fox.module.fieldset.fvm;
 
 
+import java.util.Collections;
+import java.util.Map;
+
 class BasicSelectOption
 implements FieldSelectOption {
 
@@ -9,6 +12,7 @@ implements FieldSelectOption {
   private final NullOptionType mNullOptionType;
   private final String mExternalValue;
   private final boolean mDisabled;
+  private final Map<String, String> mAdditionalProperties;
 
   BasicSelectOption(String pDisplayKey, boolean pIsSelected, NullOptionType pNullOptionType, String pExternalValue, boolean pDisabled) {
     mDisplayKey = pDisplayKey;
@@ -16,6 +20,16 @@ implements FieldSelectOption {
     mNullOptionType = pNullOptionType;
     mExternalValue = pExternalValue;
     mDisabled = pDisabled;
+    mAdditionalProperties = Collections.emptyMap();
+  }
+
+  BasicSelectOption(String pDisplayKey, boolean pIsSelected, NullOptionType pNullOptionType, String pExternalValue, boolean pDisabled, Map<String, String> pAdditionalProperties) {
+    mDisplayKey = pDisplayKey;
+    mIsSelected = pIsSelected;
+    mNullOptionType = pNullOptionType;
+    mExternalValue = pExternalValue;
+    mDisabled = pDisabled;
+    mAdditionalProperties = pAdditionalProperties;
   }
 
   /**
@@ -65,6 +79,6 @@ implements FieldSelectOption {
 
   @Override
   public String getAdditionalProperty(String pPropertyName) {
-    return null;
+    return mAdditionalProperties.get(pPropertyName);
   }
 }

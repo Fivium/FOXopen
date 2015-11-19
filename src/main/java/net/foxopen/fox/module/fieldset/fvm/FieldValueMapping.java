@@ -6,6 +6,7 @@ import net.foxopen.fox.module.fieldset.fieldmgr.OptionFieldMgr;
 import net.foxopen.fox.thread.ActionRequestContext;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -36,6 +37,9 @@ public abstract class FieldValueMapping {
 
   /** Prefix for external values for FieldOptions representing unrecognised values. */
   public static final String UNRECOGNISED_PREFIX = "__FX_U_";
+
+  /** Prefix for external values for FieldOptions representing free text values. */
+  public static final String FREE_TEXT_PREFIX = "__FX_FT_";
 
   /**
    * Gets the FVMOption for the given ref of this FieldValueMapping. These will be created based on the underlying FVM
@@ -75,6 +79,22 @@ public abstract class FieldValueMapping {
    */
   public FieldSelectOption createFieldSelectOption(String pDisplayKey, boolean pSelected, NullOptionType pNullOptionType, String pExternalValue) {
     return new BasicSelectOption(pDisplayKey, pSelected, pNullOptionType, pExternalValue, false);
+  }
+
+  /**
+   * Allows a consumer to create additional FieldSelectOptions for this FieldValueMapping. This can be used to augment
+   * the FVM's list of options with options from other sources, e.g. unrecognised options which the user has entered manually.
+   * The default implementation returns a BasicSelectOption; subclasses may overload this to provide different FieldSelectOption
+   * subtypes as they require.
+   * @param pDisplayKey User facing display key for the new option.
+   * @param pSelected True if the option is selected.
+   * @param pNullOptionType Type of null option (i.e. key-missing/key-null) this represents, if any. NOT_NULL indicates that this is a "real" option.
+   * @param pExternalValue Value which this option will be represented as in a posted form.
+   * @param pAdditionalProperties Map of additional properties to add to the BasicSelectOption
+   * @return A new FieldSelectOption, based on the FVM subclass.
+   */
+  public FieldSelectOption createFieldSelectOption(String pDisplayKey, boolean pSelected, NullOptionType pNullOptionType, String pExternalValue, Map<String, String> pAdditionalProperties) {
+    return new BasicSelectOption(pDisplayKey, pSelected, pNullOptionType, pExternalValue, false, pAdditionalProperties);
   }
 
   /**

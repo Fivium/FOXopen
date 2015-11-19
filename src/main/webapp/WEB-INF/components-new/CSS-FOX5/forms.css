@@ -199,6 +199,15 @@ select {
   background: #BDD9EF;
 }
 
+.tagger .suggestions ul li.addfreetext {
+  text-align: center;
+  background-color: #F1F9E5;
+}
+
+.tagger .suggestions ul li.addfreetext.focus {
+  background-color: #c9f9c6;
+}
+
 .tagger .tag .removetag {
   padding: 0 0 0 0.5em;
 }

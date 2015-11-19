@@ -16,9 +16,12 @@ extends SingleValueFieldInfo {
 
   private final FieldValueMapping mFVM;
 
-  public SingleOptionFieldInfo(String pExternalName, String pDOMRef, String pChangeActionName, String pSentValue, FieldValueMapping pFVM) {
+  private final boolean mIsFreeTextAllowed;
+
+  public SingleOptionFieldInfo(String pExternalName, String pDOMRef, String pChangeActionName, String pSentValue, FieldValueMapping pFVM, boolean pIsFreeTextAllowed) {
     super(pExternalName, pDOMRef, pChangeActionName, pSentValue);
     mFVM = pFVM;
+    mIsFreeTextAllowed = pIsFreeTextAllowed;
   }
 
   /**
@@ -50,8 +53,15 @@ extends SingleValueFieldInfo {
     if(!lPostedValue.startsWith(FieldValueMapping.UNRECOGNISED_PREFIX) && !lPostedValue.equals(getSentValue())) {
 
       DOM lTargetDOM = resolveAndClearTargetDOM(pRequestContext);
+      lTargetDOM.removeAttr(OptionFieldMgr.FREE_TEXT_ATTR);
 
-      if(!FieldValueMapping.NULL_VALUE.equals(lPostedValue)) {
+      if (mIsFreeTextAllowed && lPostedValue.startsWith(FieldValueMapping.FREE_TEXT_PREFIX)) {
+        // Make sure the element has the free text attr on it
+        lTargetDOM.setAttr(OptionFieldMgr.FREE_TEXT_ATTR, "true");
+        // Set the new free text value
+        lTargetDOM.setText(lPostedValue.substring(FieldValueMapping.FREE_TEXT_PREFIX.length()));
+      }
+      else if(!FieldValueMapping.NULL_VALUE.equals(lPostedValue)) {
         FVMOption lSelectedOption = mFVM.getFVMOptionForRef(pRequestContext, lTargetDOM, lPostedValue);
         lSelectedOption.applyToNode(pRequestContext, lTargetDOM);
       }

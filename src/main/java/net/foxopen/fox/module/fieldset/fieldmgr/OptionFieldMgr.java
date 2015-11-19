@@ -27,6 +27,8 @@ import java.util.List;
 
 public abstract class OptionFieldMgr
 extends DataFieldMgr {
+  public static final String FREE_TEXT_ATTR = "fox-freetext";
+  public static final String FREE_TEXT_ADDITIONAL_PROPERTY = "freetext";
 
   //TODO make private and add accessors
   protected final FieldSelectConfig mConfig;
@@ -86,7 +88,7 @@ extends DataFieldMgr {
 
   public static String getOptionPostedValue(String pPostedValue) {
     if(pPostedValue.indexOf('/') != -1) {
-      return pPostedValue.split("/")[1];
+      return pPostedValue.split("/", 2)[1];
     }
     else {
       return pPostedValue;
@@ -156,6 +158,21 @@ extends DataFieldMgr {
 
   protected String getSentValueForUnrecognisedEntry(DOM pUnrecognisedItemDOM) {
     return FieldValueMapping.UNRECOGNISED_PREFIX + pUnrecognisedItemDOM.getRef();
+  }
+
+  /**
+   * Gets the external value (i.e. the "value" attribute in HTML) for a Free Text entry which will never have a
+   * corresponding FVMOption because the value will have come from user input and not the FieldMgr's FVM.
+   *
+   * @param pFreeTextItemDOM DOM containing free text data.
+   * @return External value.
+   */
+  protected String getExternalValueForFreeTextEntry(DOM pFreeTextItemDOM) {
+    return getFieldId() + "/" + getSentValueForFreeTextEntry(pFreeTextItemDOM);
+  }
+
+  protected String getSentValueForFreeTextEntry(DOM pFreeTextItemDOM) {
+    return FieldValueMapping.FREE_TEXT_PREFIX + pFreeTextItemDOM.value();
   }
 
   /**
