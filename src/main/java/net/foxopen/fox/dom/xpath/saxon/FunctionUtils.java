@@ -7,6 +7,8 @@ import net.sf.saxon.om.Sequence;
 import net.sf.saxon.option.xom.XOMNodeWrapper;
 import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.trans.XPathException;
+import net.sf.saxon.value.AtomicValue;
+import net.sf.saxon.value.IntegerValue;
 import net.sf.saxon.value.StringValue;
 import nu.xom.Node;
 
@@ -86,6 +88,61 @@ public class FunctionUtils {
       }
     }
     return lResult;
+  }
+
+  /**
+   * Gets a boolean value from the given index of the argument array. Atomic values are asked for their effective boolean
+   * value; node values are assumed to be true. Empty sequences return false.
+   * @param pArguments Function arguments.
+   * @param pIndex Index of the array to inspect.
+   * @return Boolean value of the argument.
+   * @throws XPathException
+   */
+  static boolean getBooleanValue(Sequence[] pArguments, int pIndex)
+  throws XPathException {
+    if(pArguments.length > pIndex) {
+      Item lItem = pArguments[pIndex].head();
+
+      if(lItem == null) {
+        return false;
+      }
+
+      if(lItem instanceof AtomicValue) {
+        return ((AtomicValue) lItem).effectiveBooleanValue();
+      }
+      else {
+        //Assume a node which exists and is therefore true
+        return true;
+      }
+    }
+    else {
+      return false;
+    }
+  }
+
+  /**
+   * Gets an integer value from the given index of the argument array. If no item is found, null is returned. Otherwise
+   * the item is assumed to be an IntegerValue.
+   * @param pArguments Function arguments.
+   * @param pIndex Index of the array to inspect.
+   * @return Integer value at the given index, or null.
+   * @throws XPathException
+   */
+  static Integer getIntegerValueOrNull(Sequence[] pArguments, int pIndex)
+  throws XPathException {
+    if(pArguments.length > pIndex) {
+      Item lItem = pArguments[pIndex].head();
+
+      if(lItem == null) {
+        return null;
+      }
+      else {
+        return ((IntegerValue) lItem).asBigInteger().intValue();
+      }
+    }
+    else {
+      return null;
+    }
   }
 
 }
