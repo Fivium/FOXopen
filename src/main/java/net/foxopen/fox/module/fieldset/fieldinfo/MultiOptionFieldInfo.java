@@ -22,12 +22,14 @@ extends FieldInfo {
   private final Set<String> mSentValues;
   private final FieldValueMapping mFVM;
   private final String mSelectorPath;
+  private final boolean mIsFreeTextAllowed;
 
-  public MultiOptionFieldInfo(String pExternalName, String pDOMRef, String pChangeActionName, Set<String> pSentStrings, FieldValueMapping pFVM, String pSelectorPath) {
+  public MultiOptionFieldInfo(String pExternalName, String pDOMRef, String pChangeActionName, Set<String> pSentStrings, FieldValueMapping pFVM, String pSelectorPath, boolean pIsFreeTextAllowed) {
     super(pExternalName, pDOMRef, pChangeActionName);
     mSentValues = pSentStrings;
     mFVM = pFVM;
     mSelectorPath = pSelectorPath;
+    mIsFreeTextAllowed = pIsFreeTextAllowed;
   }
 
   @Override
@@ -43,7 +45,7 @@ extends FieldInfo {
       }
     }
     else if(pPostedValues == null || pPostedValues.length == 0) {
-      //If nothing was sent back this is equivelant to null being sent back
+      //If nothing was sent back this is equivalent to null being sent back
       lPostedStrings.add(FieldValueMapping.NULL_VALUE);
     }
 
@@ -89,6 +91,18 @@ extends FieldInfo {
           }
         }
       }
+      else if(lSentString.startsWith(FieldValueMapping.FREE_TEXT_PREFIX)) {
+        // User has deselected a free text option; work out its node and remove from the DOM
+        String lFreeTextValue = lSentString.substring(FieldValueMapping.FREE_TEXT_PREFIX.length());
+        DOM_LOOP:
+        for(DOM lSelectedNode : pTargetDOM.getUL(mSelectorPath)) {
+          if(lFreeTextValue.equals(lSelectedNode.value())) {
+            lSelectedNode.remove();
+            lChanged = true;
+            break DOM_LOOP;
+          }
+        }
+      }
       else if(FieldValueMapping.NULL_VALUE.equals(lSentString)) {
         //Null was sent but not received; doesn't matter
       }
@@ -123,7 +137,7 @@ extends FieldInfo {
         throw new ExInternal("Unrecognised value " + lPostedString + " was posted but not sent");
       }
       else if(FieldValueMapping.NULL_VALUE.equals(lPostedString)) {
-        //Null was posted (either explict "None" option or just nothing was selected)
+        //Null was posted (either explicit "None" option or just nothing was selected)
         if(pPostedStrings.size() > 1) {
           //Null was posted along with other values - this is currently possible (happened on legacy with multi-select selector+)
           //Tolerate for now by ignoring the null if other values have been posted
@@ -132,6 +146,30 @@ extends FieldInfo {
           //Null was only thing posted, remove all selected elements
           pTargetDOM.getUL(mSelectorPath).removeFromDOMTree();
           lChanged = true;
+        }
+      }
+      else if (mIsFreeTextAllowed && lPostedString.startsWith(FieldValueMapping.FREE_TEXT_PREFIX)) {
+        String lFreeTextValue = lPostedString.substring(FieldValueMapping.FREE_TEXT_PREFIX.length());
+        //Search for a DOM node and create if not there (avoid creating dupes if it's already been added into the document by another thread)
+        boolean lDOMAlreadyExists = false;
+        DOM_LOOP:
+        for(DOM lSelectedNode : pTargetDOM.getUL(mSelectorPath)) {
+          if(lFreeTextValue.equals(lSelectedNode.value())) {
+            lDOMAlreadyExists = true;
+            break DOM_LOOP;
+          }
+        }
+
+        if(!lDOMAlreadyExists) {
+          lChanged = true;
+          try {
+            DOM lNewRec = pTargetDOM.create1E(mSelectorPath);
+            lNewRec.setText(lFreeTextValue);
+            lNewRec.setAttr(OptionFieldMgr.FREE_TEXT_ATTR, "true");
+          }
+          catch (ExTooMany pExTooMany) {
+            throw new ExInternal("Failed to create new record in DOM for free text value", pExTooMany);
+          }
         }
       }
       else {

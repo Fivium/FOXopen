@@ -69,9 +69,6 @@ extends AbstractResourcesComponentBuilder {
     css(pSerialiser, pSerialisationContext.getContextResourceURI("/icomoon/icomoon.css"));
     css(pSerialiser, pSerialisationContext.getContextResourceURI("/icomoon/icomoon-png.css"));
 
-    css(pSerialiser, pSerialisationContext.getStaticResourceURI("css/fox.css"));
-    css(pSerialiser, pSerialisationContext.getStaticResourceURI("css/fox-ie8.css"), "IE 8");
-
     if (pSerialisationContext.getImplicatedWidgets().contains(WidgetBuilderType.SEARCH_SELECTOR)) {
       css(pSerialiser, pSerialisationContext.getStaticResourceURI("css/tagger.css"));
     }
@@ -88,6 +85,9 @@ extends AbstractResourcesComponentBuilder {
     if(pSerialisationContext.getDownloadLinks().size() > 0) {
       css(pSerialiser, pSerialisationContext.getStaticResourceURI("css/download.css"));
     }
+
+    css(pSerialiser, pSerialisationContext.getStaticResourceURI("css/fox.css"));
+    css(pSerialiser, pSerialisationContext.getStaticResourceURI("css/fox-ie8.css"), "IE 8");
 
     // Include CSS from module CSS List
     insertCSSItems(pSerialisationContext, pSerialiser);

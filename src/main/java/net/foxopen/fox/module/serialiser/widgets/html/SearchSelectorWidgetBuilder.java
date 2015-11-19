@@ -11,10 +11,14 @@ import net.foxopen.fox.module.datanode.EvaluatedNodeInfo;
 import net.foxopen.fox.module.datanode.EvaluatedNodeInfoItem;
 import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.datanode.NodeVisibility;
+import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
 import net.foxopen.fox.module.fieldset.fieldmgr.FieldMgr;
+import net.foxopen.fox.module.fieldset.fieldmgr.OptionFieldMgr;
 import net.foxopen.fox.module.fieldset.fvm.FieldSelectOption;
+import net.foxopen.fox.module.fieldset.fvm.FieldValueMapping;
 import net.foxopen.fox.module.mapset.JITMapSet;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
+import net.foxopen.fox.module.serialiser.fragmentbuilder.MustacheFragmentBuilder;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
 import net.foxopen.fox.module.serialiser.widgets.OptionWidgetUtils;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
@@ -22,11 +26,15 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
 public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoItem> {
+  private static final String SELECTOR_MUSTACHE_TEMPLATE = "html/SelectorWidget.mustache";
 
   public static final String HIDDEN_SEARCHABLE_MS_PROPERTY = "hidden-searchable";
   public static final String SUGGESTION_DISPLAY_MS_PROPERTY = "suggestion-display";
@@ -41,6 +49,8 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
   public static final String HISTORICAL_JSON_PROPERTY = "historical";
   public static final String SUGGESTABLE_JSON_PROPERTY = "suggestable";
   public static final String LIMITED_JSON_PROPERTY = "limited";
+  public static final String FREE_TEXT_JSON_PROPERTY = "freetext";
+  public static final String DISABLED_JSON_PROPERTY = "disabled";
 
   private static final WidgetBuilder<HTMLSerialiser, EvaluatedNodeInfoItem> INSTANCE = new SearchSelectorWidgetBuilder();
 
@@ -72,27 +82,8 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
       SelectorWidgetBuilder.outputReadOnlyOptions(pSerialiser, pEvalNode);
     }
     else {
-      String lSelectAttributes = "";
-      if (pEvalNode.getSelectorMaxCardinality() > 1) {
-        lSelectAttributes += " multiple=\"multiple\"";
-      }
-      if (lFieldMgr.getVisibility() == NodeVisibility.VIEW) {
-        lSelectAttributes += " readonly=\"readonly\"";
-      }
-      if (lFieldMgr.isRunnable()) {
-        lSelectAttributes += " onchange=\"javascript:" + StringEscapeUtils.escapeHtml4(getActionSubmitString(pEvalNode)) + "\"";
-      }
-      pSerialiser.append("<select id=\"" + lFieldMgr.getExternalFieldName() + "\" name=\"" + lFieldMgr.getExternalFieldName() + "\"" + lSelectAttributes + " style=\"position: absolute; left: -999em; width: 990em;\" size=\"" + lSelectOptions.size() + "\">");
-
-      for (FieldSelectOption lOption : lSelectOptions) {
-        if (lOption.isSelected()) {
-          pSerialiser.append("  <option value=\"" + lOption.getExternalFieldValue() + "\" selected=\"selected\">" + StringEscapeUtils.escapeHtml4(lOption.getDisplayKey()) + "</option>");
-        }
-        else {
-          pSerialiser.append("  <option value=\"" + lOption.getExternalFieldValue() + "\">" + StringEscapeUtils.escapeHtml4(lOption.getDisplayKey()) + "</option>");
-        }
-      }
-      pSerialiser.append("</select>");
+      // Create a hidden select element similar to the selector widget
+      buildHiddenSelectorWidget(pSerialisationContext, pSerialiser, pEvalNode, lSelectOptions);
 
       // Find image base URL (the static servlet path)
       RequestURIBuilder lURIBuilder = pSerialisationContext.createURIBuilder();
@@ -155,6 +146,42 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
     }
   }
 
+  private void buildHiddenSelectorWidget(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNodeInfoItem pEvalNode, List<FieldSelectOption> pSelectOptions) {
+    Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
+
+    // Force the style to be off screen
+    lTemplateVars.put("Style", "position: absolute; left: -999em;");
+
+    if(pEvalNode.getSelectorMaxCardinality() > 1) {
+      lTemplateVars.put("Multiple", true );
+    }
+
+    // Always set size, otherwise all fields post back with first value
+    lTemplateVars.put("Size", pSelectOptions.size());
+
+    List<Map<String, Object>> lOptions = new ArrayList<>();
+    OPTION_LOOP:
+    for (FieldSelectOption lOption : pSelectOptions) {
+      if(lOption.isHistorical() && !lOption.isSelected()) {
+        //Skip un-selected historical items
+        continue OPTION_LOOP;
+      }
+      Map<String, Object> lOptionVars = new HashMap<>(3);
+      lOptionVars.put("Key", lOption.getDisplayKey());
+      lOptionVars.put("Value", lOption.getExternalFieldValue());
+      if (lOption.isSelected()) {
+        lOptionVars.put("Selected", true);
+      }
+      if (lOption.isDisabled()) {
+        lOptionVars.put("Disabled", true);
+      }
+      lOptions.add(lOptionVars);
+    }
+    lTemplateVars.put("Options", lOptions);
+
+    MustacheFragmentBuilder.applyMapToTemplate(SELECTOR_MUSTACHE_TEMPLATE, lTemplateVars, pSerialiser.getWriter());
+  }
+
   /**
    * Establish optional search tagger widget parameters from optional search selector attributes
    *
@@ -181,7 +208,7 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
 
       String lPlaceholder = pEvalNode.getStringAttribute(NodeAttribute.PLACEHOLDER);
       if (lPlaceholder != null) {
-        lExtraParams.put("placeholder", StringEscapeUtils.escapeHtml4(lPlaceholder));
+        lExtraParams.put("placeholder", lPlaceholder);
       }
 
       String lSearchCharacterThreshold = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_CHARACTER_THRESHOLD);
@@ -211,6 +238,13 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
         lExtraParams.put("caseSensitive", true);
       }
 
+      if (pEvalNode.getBooleanAttribute(NodeAttribute.SEARCH_CLEAR_FILTER_ON_BLUR, true)) {
+        lExtraParams.put("clearFilterOnBlur", true);
+      }
+      else {
+        lExtraParams.put("clearFilterOnBlur", false);
+      }
+
       if (pEvalNode.getBooleanAttribute(NodeAttribute.SEARCH_SORTED_OUTPUT, true)) {
         lExtraParams.put("sortedOutput", true);
       }
@@ -222,19 +256,39 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
         lExtraParams.put("mandatorySelection", true);
       }
 
+      if (pEvalNode.getBooleanAttribute(NodeAttribute.SEARCH_FREE_TEXT_INPUT, false)) {
+        lExtraParams.put("freeTextInput", true);
+
+        lExtraParams.put("freeTextPrefix", pEvalNode.getExternalFieldName() + "/" + FieldValueMapping.FREE_TEXT_PREFIX);
+
+        StringAttributeResult lFreeTextMessage = pEvalNode.getStringAttributeResultOrNull(NodeAttribute.SEARCH_FREE_TEXT_INPUT_MESSAGE);
+        if (lFreeTextMessage != null) {
+          String lSafeMessage;
+          if (lFreeTextMessage.isEscapingRequired()) {
+            lSafeMessage = StringEscapeUtils.escapeHtml4(lFreeTextMessage.getString());
+          }
+          else {
+            lSafeMessage = lFreeTextMessage.getString();
+          }
+          lExtraParams.put("freeTextMessage",  lSafeMessage);
+        }
+
+        lExtraParams.put("freeTextSuggest", pEvalNode.getBooleanAttribute(NodeAttribute.SEARCH_FREE_TEXT_SUGGEST, false));
+      }
+
       String lNoSuggestionsText = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_NO_SUGGESTIONS_TEXT);
       if (lNoSuggestionsText != null) {
-        lExtraParams.put("noSuggestText",  StringEscapeUtils.escapeHtml4(lNoSuggestionsText));
+        lExtraParams.put("noSuggestText", lNoSuggestionsText);
       }
 
       String lEmptyListText = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_EMPTY_SUGGESTIONS_TEXT);
       if (lEmptyListText != null) {
-        lExtraParams.put("emptyListText",  StringEscapeUtils.escapeHtml4(lEmptyListText));
+        lExtraParams.put("emptyListText", lEmptyListText);
       }
 
       String lLimitedText = pEvalNode.getStringAttribute(NodeAttribute.SEARCH_LIMITED_SUGGESTIONS_TEXT);
       if (lLimitedText != null) {
-        lExtraParams.put("limitedText",  StringEscapeUtils.escapeHtml4(lLimitedText));
+        lExtraParams.put("limitedText", lLimitedText);
       }
     }
     catch (NumberFormatException ex) {
@@ -290,17 +344,23 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
 
       // If it was selected add that entry
       if (lSearchableItem.isSelected()) {
-        lJSONEntry.put(SELECTED_JSON_PROPERTY, "true");
+        lJSONEntry.put(SELECTED_JSON_PROPERTY, true);
       }
 
       // If it's a historical entry add that entry
       if (lSearchableItem.isHistorical()) {
-        lJSONEntry.put(HISTORICAL_JSON_PROPERTY, "true");
-        lJSONEntry.put(SUGGESTABLE_JSON_PROPERTY, "false");
+        lJSONEntry.put(HISTORICAL_JSON_PROPERTY, true);
+        lJSONEntry.put(SUGGESTABLE_JSON_PROPERTY, false);
       }
       else {
-        lJSONEntry.put(SUGGESTABLE_JSON_PROPERTY, "true");
+        lJSONEntry.put(SUGGESTABLE_JSON_PROPERTY, true);
       }
+
+      if (lSearchableItem.getAdditionalProperty(OptionFieldMgr.FREE_TEXT_ADDITIONAL_PROPERTY) != null) {
+        lJSONEntry.put(FREE_TEXT_JSON_PROPERTY, true);
+      }
+
+      lJSONEntry.put(DISABLED_JSON_PROPERTY, lSearchableItem.isDisabled());
 
       lMapsetJSON.add(lJSONEntry);
       lMapsetObject.put(lSearchableItem.getExternalFieldValue(), lJSONEntry);

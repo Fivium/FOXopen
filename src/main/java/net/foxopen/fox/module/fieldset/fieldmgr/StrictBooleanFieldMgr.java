@@ -40,7 +40,7 @@ extends SingleOptionFieldMgr {
   private static class StrictBooleanFieldInfo
   extends SingleOptionFieldInfo {
     public StrictBooleanFieldInfo(String pExternalName, String pDOMRef, String pChangeActionName, String pSentValue) {
-      super(pExternalName, pDOMRef, pChangeActionName, pSentValue, null);
+      super(pExternalName, pDOMRef, pChangeActionName, pSentValue, null, false);
     }
 
     public List<ChangeActionContext> applyPostedValues(ActionRequestContext pRequestContext, String[] pPostedValues) {

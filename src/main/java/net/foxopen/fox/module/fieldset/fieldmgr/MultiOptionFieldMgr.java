@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -34,6 +35,9 @@ extends OptionFieldMgr {
   //Small initial capacity for unrecognised options as typically there should not be any
   private final List<FieldSelectOption> mUnrecognisedOptions = new ArrayList<>(1);
   private final Set<String> mUnrecognisedSentStrings = new HashSet<>(1);
+  //Small initial capacity for free text options as typically there should not be any
+  private final List<FieldSelectOption> mFreeTextOptions = new ArrayList<>(1);
+  private final Set<String> mFreeTextSentStrings = new HashSet<>(1);
 
   /** Path to the repeating item of this FieldMgr relative to the value DOM */
   private final String mSelectorPath;
@@ -87,18 +91,32 @@ extends OptionFieldMgr {
 
     mSelectedFVMOptionRefs = new ArrayList<>(lChildElements.size());
     for(DOM lChildElement : lChildElements) {
-      String lRef = mFVM.getFVMOptionRefForItem(this, lChildElement);
 
-      if(lRef == null) {
-        //If unrecognised, create the entry now so we don't have to work it out later
-        String lUnrecognisedDisplayKey = XFUtil.nvl(getEvaluatedNodeInfoItem().getStringAttribute(NodeAttribute.KEY_UNRECOGNISED), lChildElement.value());
-        FieldSelectOption lUnrecognisedOption = mFVM.createFieldSelectOption(lUnrecognisedDisplayKey, true, NullOptionType.NOT_NULL, getExternalValueForUnrecognisedEntry(lChildElement));
-        mUnrecognisedOptions.add(lUnrecognisedOption);
-        mUnrecognisedSentStrings.add(getSentValueForUnrecognisedEntry(lChildElement));
+      if (lChildElement.hasAttr(OptionFieldMgr.FREE_TEXT_ATTR)) {
+        if (getEvaluatedNodeInfoItem().getBooleanAttribute(NodeAttribute.SEARCH_FREE_TEXT_INPUT, false)) {
+          Map<String, String> lAdditionalProperties = Collections.singletonMap(OptionFieldMgr.FREE_TEXT_ADDITIONAL_PROPERTY, "true");
+          FieldSelectOption lFreeTextOption = mFVM.createFieldSelectOption(lChildElement.value(), true, NullOptionType.NOT_NULL, getExternalValueForFreeTextEntry(lChildElement), lAdditionalProperties);
+          mFreeTextOptions.add(lFreeTextOption);
+          mFreeTextSentStrings.add(getSentValueForFreeTextEntry(lChildElement));
+        }
+        else {
+          throw new ExInternal("Found mapset data in DOM which has the '" + OptionFieldMgr.FREE_TEXT_ATTR + "' attribute on it but the field is not marked as allowing free text values: " + pEvaluatedNodeInfo.getIdentityInformation());
+        }
       }
       else {
-        //Recognised option - record the FVM option ref
-        mSelectedFVMOptionRefs.add(lRef);
+        String lRef = mFVM.getFVMOptionRefForItem(this, lChildElement);
+
+        if (lRef == null) {
+          //If unrecognised, create the entry now so we don't have to work it out later
+          String lUnrecognisedDisplayKey = XFUtil.nvl(getEvaluatedNodeInfoItem().getStringAttribute(NodeAttribute.KEY_UNRECOGNISED), lChildElement.value());
+          FieldSelectOption lUnrecognisedOption = mFVM.createFieldSelectOption(lUnrecognisedDisplayKey, true, NullOptionType.NOT_NULL, getExternalValueForUnrecognisedEntry(lChildElement));
+          mUnrecognisedOptions.add(lUnrecognisedOption);
+          mUnrecognisedSentStrings.add(getSentValueForUnrecognisedEntry(lChildElement));
+        }
+        else {
+          //Recognised option - record the FVM option ref
+          mSelectedFVMOptionRefs.add(lRef);
+        }
       }
     }
   }
@@ -106,7 +124,7 @@ extends OptionFieldMgr {
   @Override
   protected boolean isNull() {
     //Test that no recognised OR unrecognised options are selected
-    return mSelectedFVMOptionRefs.size() == 0 && mUnrecognisedOptions.size() == 0;
+    return mSelectedFVMOptionRefs.size() == 0 && mUnrecognisedOptions.size() == 0 && mFreeTextOptions.size() == 0;
   }
 
   @Override
@@ -131,8 +149,9 @@ extends OptionFieldMgr {
 
     //Augment unrecognised values into the sent set
     lSendingValues.addAll(mUnrecognisedSentStrings);
+    lSendingValues.addAll(mFreeTextSentStrings);
 
-    return new MultiOptionFieldInfo(getExternalFieldName(), getValueDOM().getRef(), getEvaluatedNodeInfoItem().getChangeActionName(), lSendingValues, mFVM, mSelectorPath);
+    return new MultiOptionFieldInfo(getExternalFieldName(), getValueDOM().getRef(), getEvaluatedNodeInfoItem().getChangeActionName(), lSendingValues, mFVM, mSelectorPath, getEvaluatedNodeInfoItem().getBooleanAttribute(NodeAttribute.SEARCH_FREE_TEXT_INPUT, false));
   }
 
   @Override
@@ -152,6 +171,7 @@ extends OptionFieldMgr {
 
     //augment pre-computed unrecognised entries
     lSelectOptions.addAll(mUnrecognisedOptions);
+    lSelectOptions.addAll(mFreeTextOptions);
 
     return lSelectOptions;
   }
