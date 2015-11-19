@@ -171,7 +171,7 @@
 
       if (this.element.is('select')) {
         // Check readonly mode
-        this.readonly = this.element.prop('readonly');
+        this.readonly = this.element.prop('readonly') || this.element.prop('disabled');
 
         // Set tabindexOffset
         if (this.options.tabindexOffset === null) {
@@ -347,6 +347,7 @@
               level: 0,
               suggestable: true,
               historical: false,
+              disabled: $(element).prop('disabled'),
               sort: index,
               freetext: (this.options.freeTextInput && $(element).val().startsWith(this.options.freeTextPrefix))};
           }, this));
@@ -370,6 +371,7 @@
                 level: 0,
                 suggestable: false,
                 historical: true,
+                disabled: $(element).prop('disabled'),
                 freetext: (this.options.freeTextInput && $(element).val().startsWith(this.options.freeTextPrefix))};
             }
             // Add tags for any selected options
@@ -384,12 +386,13 @@
             if (!this.tagsByID[preselectedTag]) {
               this.tagsByID[preselectedTag] = {
                 id: preselectedTag,
-                key: $($('option[value="'+preselectedTag+'"]', this.element)[0]).text(),
+                key: $('option[value="'+preselectedTag+'"]', this.element).first().text(),
                 suggestion: '',
                 hidden: '',
                 level: 0,
                 suggestable: false,
                 historical: true,
+                disabled: $('option[value="'+preselectedTag+'"]', this.element).first().prop('disabled'),
                 freetext: (this.options.freeTextInput && preselectedTag.startsWith(this.options.freeTextPrefix))};
             }
             // Add tags for any selected options
@@ -943,7 +946,6 @@
       // Create and add the suggestion to the suggestion list
       var suggestion = $('<li>')
         .attr("suggestion", "tag")
-        .attr("tabindex", this.tabIndex)
         .appendTo(this.taggerSuggestionsList);
 
       if (tag.suggestion && tag.suggestion !== null && tag.suggestion !== '') {
@@ -953,9 +955,17 @@
         suggestion.text(tag.key);
       }
 
-      // Bind actions to the suggestion
-      suggestion.bind('mouseup keyup keydown', $.proxy(this._handleSuggestionItemInteraction, this));
-      suggestion.bind('mouseleave mouseenter blur focus', $.proxy(this._handleSuggestionItemFocus, this));
+      if (!tag.disabled) {
+        suggestion.attr("tabindex", this.tabIndex);
+
+        // Bind actions to the suggestion
+        suggestion.bind('mouseup keyup keydown', $.proxy(this._handleSuggestionItemInteraction, this));
+        suggestion.bind('mouseleave mouseenter blur focus', $.proxy(this._handleSuggestionItemFocus, this));
+      }
+      else {
+        suggestion.addClass('extra');
+        suggestion.addClass('disabled');
+      }
 
       // Attach data to it so when it's selected we can reference what it's for
       suggestion.data("tagid", tag.id);
@@ -1452,6 +1462,7 @@
         level: 0,
         suggestable: true,
         historical: false,
+        disabled: false,
         sort: -1,
         freetext: true};
 

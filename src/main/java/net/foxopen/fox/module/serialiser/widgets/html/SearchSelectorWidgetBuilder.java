@@ -18,6 +18,7 @@ import net.foxopen.fox.module.fieldset.fvm.FieldSelectOption;
 import net.foxopen.fox.module.fieldset.fvm.FieldValueMapping;
 import net.foxopen.fox.module.mapset.JITMapSet;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
+import net.foxopen.fox.module.serialiser.fragmentbuilder.MustacheFragmentBuilder;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
 import net.foxopen.fox.module.serialiser.widgets.OptionWidgetUtils;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
@@ -25,11 +26,15 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
 public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoItem> {
+  private static final String SELECTOR_MUSTACHE_TEMPLATE = "html/SelectorWidget.mustache";
 
   public static final String HIDDEN_SEARCHABLE_MS_PROPERTY = "hidden-searchable";
   public static final String SUGGESTION_DISPLAY_MS_PROPERTY = "suggestion-display";
@@ -45,6 +50,7 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
   public static final String SUGGESTABLE_JSON_PROPERTY = "suggestable";
   public static final String LIMITED_JSON_PROPERTY = "limited";
   public static final String FREE_TEXT_JSON_PROPERTY = "freetext";
+  public static final String DISABLED_JSON_PROPERTY = "disabled";
 
   private static final WidgetBuilder<HTMLSerialiser, EvaluatedNodeInfoItem> INSTANCE = new SearchSelectorWidgetBuilder();
 
@@ -76,27 +82,8 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
       SelectorWidgetBuilder.outputReadOnlyOptions(pSerialiser, pEvalNode);
     }
     else {
-      String lSelectAttributes = "";
-      if (pEvalNode.getSelectorMaxCardinality() > 1) {
-        lSelectAttributes += " multiple=\"multiple\"";
-      }
-      if (lFieldMgr.getVisibility() == NodeVisibility.VIEW) {
-        lSelectAttributes += " readonly=\"readonly\"";
-      }
-      if (lFieldMgr.isRunnable()) {
-        lSelectAttributes += " onchange=\"javascript:" + StringEscapeUtils.escapeHtml4(getActionSubmitString(pEvalNode)) + "\"";
-      }
-      pSerialiser.append("<select id=\"" + lFieldMgr.getExternalFieldName() + "\" name=\"" + lFieldMgr.getExternalFieldName() + "\"" + lSelectAttributes + " style=\"position: absolute; left: -999em;\" size=\"" + lSelectOptions.size() + "\">");
-
-      for (FieldSelectOption lOption : lSelectOptions) {
-        if (lOption.isSelected()) {
-          pSerialiser.append("  <option value=\"" + StringEscapeUtils.escapeHtml4(lOption.getExternalFieldValue()) + "\" selected=\"selected\">" + StringEscapeUtils.escapeHtml4(lOption.getDisplayKey()) + "</option>");
-        }
-        else {
-          pSerialiser.append("  <option value=\"" + StringEscapeUtils.escapeHtml4(lOption.getExternalFieldValue()) + "\">" + StringEscapeUtils.escapeHtml4(lOption.getDisplayKey()) + "</option>");
-        }
-      }
-      pSerialiser.append("</select>");
+      // Create a hidden select element similar to the selector widget
+      buildHiddenSelectorWidget(pSerialisationContext, pSerialiser, pEvalNode, lSelectOptions);
 
       // Find image base URL (the static servlet path)
       RequestURIBuilder lURIBuilder = pSerialisationContext.createURIBuilder();
@@ -157,6 +144,42 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
       "  $('#" + lFieldMgr.getExternalFieldName() + "').tagger(" + lTaggerConfig.toJSONString() + ");\n" +
       "});");
     }
+  }
+
+  private void buildHiddenSelectorWidget(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedNodeInfoItem pEvalNode, List<FieldSelectOption> pSelectOptions) {
+    Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
+
+    // Force the style to be off screen
+    lTemplateVars.put("Style", "position: absolute; left: -999em;");
+
+    if(pEvalNode.getSelectorMaxCardinality() > 1) {
+      lTemplateVars.put("Multiple", true );
+    }
+
+    // Always set size, otherwise all fields post back with first value
+    lTemplateVars.put("Size", pSelectOptions.size());
+
+    List<Map<String, Object>> lOptions = new ArrayList<>();
+    OPTION_LOOP:
+    for (FieldSelectOption lOption : pSelectOptions) {
+      if(lOption.isHistorical() && !lOption.isSelected()) {
+        //Skip un-selected historical items
+        continue OPTION_LOOP;
+      }
+      Map<String, Object> lOptionVars = new HashMap<>(3);
+      lOptionVars.put("Key", lOption.getDisplayKey());
+      lOptionVars.put("Value", lOption.getExternalFieldValue());
+      if (lOption.isSelected()) {
+        lOptionVars.put("Selected", true);
+      }
+      if (lOption.isDisabled()) {
+        lOptionVars.put("Disabled", true);
+      }
+      lOptions.add(lOptionVars);
+    }
+    lTemplateVars.put("Options", lOptions);
+
+    MustacheFragmentBuilder.applyMapToTemplate(SELECTOR_MUSTACHE_TEMPLATE, lTemplateVars, pSerialiser.getWriter());
   }
 
   /**
@@ -336,6 +359,8 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
       if (lSearchableItem.getAdditionalProperty(OptionFieldMgr.FREE_TEXT_ADDITIONAL_PROPERTY) != null) {
         lJSONEntry.put(FREE_TEXT_JSON_PROPERTY, true);
       }
+
+      lJSONEntry.put(DISABLED_JSON_PROPERTY, lSearchableItem.isDisabled());
 
       lMapsetJSON.add(lJSONEntry);
       lMapsetObject.put(lSearchableItem.getExternalFieldValue(), lJSONEntry);

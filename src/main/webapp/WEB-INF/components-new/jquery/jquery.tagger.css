@@ -174,8 +174,8 @@
 .tagger .suggestions ul li.focus {
   background-color: #cee4f2;
 }
-.tagger .suggestions ul li .extra {
-  color: #555;
+.tagger .suggestions ul .extra {
+  color: #777;
   font-style: italic;
 }
 .tagger .suggestions ul li.missing,
@@ -186,6 +186,7 @@
 }
 .tagger .suggestions ul li.disabled {
   cursor: default;
+  background-color: #eee !important;
 }
 .tagger .suggestions ul li.message.error {
   color: #F00;
