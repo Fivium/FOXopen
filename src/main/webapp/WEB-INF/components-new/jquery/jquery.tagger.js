@@ -107,7 +107,7 @@
       availableTags       : null
     , ajaxURL             : null
     , preselectedTags     : null
-    , characterThreshold  : -1
+    , characterThreshold  : 1
     , characterLimit      : null
     , typingTimeThreshold : 200
     , caseSensitive       : false
@@ -505,16 +505,10 @@
           }
           break;
         case "mouseup":
-          // For now, only show the list automatically on click if we have a single value selected
-          // When performance of the suggestion list building is improved, we can enable this functionality
-          // for multi selectors and empty taggers - note redundant boolean logic preserved so that the following
-          // suggestion parameter is still valid if this check is removed
-          if (this.singleValue && this.tagCount === 1) {
-            // In single select mode, with a single tag selected already
-            // we should focus the first item in the suggestion list (which
-            // will be the filter input)
-            this._showSuggestions(this.singleValue && this.tagCount === 1);
-          }
+          // In single select mode, with a single tag selected already
+          // we should focus the first item in the suggestion list (which
+          // will be the filter input)
+          this._showSuggestions(this.singleValue && this.tagCount === 1);
           break;
         default:
           throw 'Cannot handle interaction of this type on the filter input: ' + event.type + ' - ' + event.target;
@@ -594,21 +588,15 @@
             event.preventDefault();
           }
 
-          // For now, only show the list automatically on click if we have a single value selected
-          // When performance of the suggestion list building is improved, we can enable this functionality
-          // for multi selectors and empty taggers - note redundant boolean logic preserved so that the following
-          // suggestion parameter is still valid if this check is removed
-          if (this.singleValue && this.tagCount === 1) {
-            // In single select mode, with a single tag selected already
-            // we should focus the first item in the suggestion list (which
-            // will be the filter input).
-            // NB: Using setTimeout because trying to do this immediately causes
-            // the focus to fail, presumably because the corresponding mouseup triggers
-            // focus elsewhere.
-            setTimeout($.proxy(function () {
-              this._showSuggestions(this.singleValue && this.tagCount === 1);
-            }, this), 0);
-          }
+          // In single select mode, with a single tag selected already
+          // we should focus the first item in the suggestion list (which
+          // will be the filter input).
+          // NB: Using setTimeout because trying to do this immediately causes
+          // the focus to fail, presumably because the corresponding mouseup triggers
+          // focus elsewhere.
+          setTimeout($.proxy(function () {
+            this._showSuggestions(this.singleValue && this.tagCount === 1);
+          }, this), 0);
         }
       }
       else if (event.type === "keyup") {
