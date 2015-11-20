@@ -79,7 +79,7 @@
 }
 
 #dev-toolbar-main-actions li {
-  display: inline-block;
+  display: inline-block !important; /* !important to override erroneous display: list-item sometimes applied by jQuery */
   margin-right: 0.5em;
   position: relative;
 }
