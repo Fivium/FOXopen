@@ -61,6 +61,7 @@ public class FormWidget extends WidgetBuilderPDFSerialiser<EvaluatedNodeInfo> {
   static {
     FORM_CELL_NESTED_CONTENT_CLASSES.put(WidgetBuilderType.FORM, "nestedForm");
     FORM_CELL_NESTED_CONTENT_CLASSES.put(WidgetBuilderType.LIST, "nestedList");
+    FORM_CELL_NESTED_CONTENT_CLASSES.put(WidgetBuilderType.FORM_LIST, "nestedList");
     FORM_CELL_NESTED_CONTENT_CLASSES.put(WidgetBuilderType.CELLMATES, "nestedCellmates");
     FORM_CELL_NESTED_CONTENT_CLASSES.put(WidgetBuilderType.RADIO, "nestedRadioGroup");
     FORM_CELL_NESTED_CONTENT_CLASSES.put(WidgetBuilderType.TICKBOX, "nestedTickboxGroup");

@@ -57,6 +57,7 @@ import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 import net.foxopen.fox.module.serialiser.widgets.pdf.CellmateWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.pdf.DateWidgetBuilder;
+import net.foxopen.fox.module.serialiser.widgets.pdf.FormListWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.pdf.FormWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.pdf.IgnoreUnimplementedWidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.pdf.InputWidgetBuilder;
@@ -100,6 +101,7 @@ public class PDFSerialiser implements OutputSerialiser {
   static {
     PDF_WIDGET_MAP.put(WidgetBuilderType.FORM, FormWidgetBuilder.getInstance());
     PDF_WIDGET_MAP.put(WidgetBuilderType.LIST, ListWidgetBuilder.getInstance());
+    PDF_WIDGET_MAP.put(WidgetBuilderType.FORM_LIST, FormListWidgetBuilder.getInstance());
     PDF_WIDGET_MAP.put(WidgetBuilderType.INPUT, InputWidgetBuilder.getInstance());
     PDF_WIDGET_MAP.put(WidgetBuilderType.TEXT, TextWidgetBuilder.getInstance());
     PDF_WIDGET_MAP.put(WidgetBuilderType.TICKBOX, TickboxWidgetBuilder.getInstance());
