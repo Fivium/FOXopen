@@ -110,6 +110,11 @@
   border: 1px solid #ddd;
 }
 
+/* Auto-width lists */
+.setoutList.autoWidthList {
+  width: auto;
+}
+
 /* Nested forms */
 .setoutList .setoutForm,
 .setoutList .setoutForm input,
