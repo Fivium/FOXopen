@@ -98,7 +98,7 @@ ul.small-tabs img {
   border-top: none;
   margin-bottom: 1em;
   padding: 1em;
-  overflow: auto;
+  overflow: visible;
   clear: both;
 }
 
