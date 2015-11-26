@@ -406,11 +406,4 @@
     <FILE_FORMAT>CHAR</FILE_FORMAT>
     <OVERLOADABLE>FALSE</OVERLOADABLE>
   </COMPONENT>
-  <COMPONENT>
-    <NAME>xslt/report_definition_to_sox_definition</NAME>
-    <TYPE>text/xml</TYPE>
-    <FILE_PATH>\WEB-INF\xslt\report_definition_to_sox_definition.xsl</FILE_PATH>
-    <FILE_FORMAT>CHAR</FILE_FORMAT>
-    <OVERLOADABLE>TRUE</OVERLOADABLE>
-  </COMPONENT>
 </COMPONENTS_LIST>
