@@ -112,7 +112,7 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
     lStartURLParams.put("context_ref", lItemRef);
 
 
-    String lOptionJSON = getWidgetOptionJSONString(pEvalNode, lItemRef, lFieldMgr.getVisibility().asInt() <  NodeVisibility.EDIT.asInt());
+    String lOptionJSON = getWidgetOptionJSONString(pEvalNode, pEvalNode.getActionContextRef(), lFieldMgr.getVisibility().asInt() <  NodeVisibility.EDIT.asInt());
     String lJS = "<script>\n" +
     "$(document).ready(function() {" +
     "  new FileUpload($('#" + lFieldId + "'), '" + lURLBase +  "', " + lStartURLParams.toJSONString() + ", " + lFileInfoJSON  + ", " + lOptionJSON + ")\n" +
@@ -125,18 +125,18 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
     //MustacheFragmentBuilder.applyMapToTemplate(MUSTACHE_TEMPLATE, null, pSerialiser.getWriter());
   }
 
-  private String getWidgetOptionJSONString(EvaluatedNodeInfoFileItem pEvalNode, String pItemRef, boolean pIsReadOnly) {
+  private String getWidgetOptionJSONString(EvaluatedNodeInfoFileItem pEvalNode, String pActionContextRef, boolean pIsReadOnly) {
 
     JSONObject lWidgetOptions = new JSONObject();
 
     String lSuccessAction = pEvalNode.getSuccessAction();
     if(!XFUtil.isNull(lSuccessAction)) {
-      lWidgetOptions.put("successAction", getActionJSON(lSuccessAction, pItemRef));
+      lWidgetOptions.put("successAction", getActionJSON(lSuccessAction, pActionContextRef));
     }
 
     String lFailAction = pEvalNode.getFailAction();
     if(!XFUtil.isNull(lFailAction)) {
-      lWidgetOptions.put("failAction", getActionJSON(lFailAction, pItemRef));
+      lWidgetOptions.put("failAction", getActionJSON(lFailAction, pActionContextRef));
     }
 
     lWidgetOptions.put("widgetMode", pEvalNode.getUploadWidgetMode());
