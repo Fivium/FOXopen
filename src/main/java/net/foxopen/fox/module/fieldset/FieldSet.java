@@ -155,7 +155,6 @@ public class FieldSet {
     mExternalRunnableActions.add(pEvaluatedNode.getActionName() + "/" + pEvaluatedNode.getActionContextRef());
   }
 
-  //TODO PN remove - added back for error ref stuff
   public void registerExternalRunnableAction(String pActionName, String pActionContextRef)  {
     mExternalRunnableActions.add(pActionName + "/" + pActionContextRef);
   }

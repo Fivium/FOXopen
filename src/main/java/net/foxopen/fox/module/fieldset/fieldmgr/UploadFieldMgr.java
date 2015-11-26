@@ -59,15 +59,17 @@ public class UploadFieldMgr extends FieldMgr {
         super.setVisibility(NodeVisibility.VIEW);
       }
 
+      String lActionContextRef = mEvaluatedNode.getActionContextRef();
+
       //Register success/fail actions as runnable actions for modal uploads
       String lSuccessAction = mEvaluatedNode.getSuccessAction();
       if(!XFUtil.isNull(lSuccessAction)) {
-        super.getOwningFieldSet().registerExternalRunnableAction(lSuccessAction, lItemContextRef);
+        super.getOwningFieldSet().registerExternalRunnableAction(lSuccessAction, lActionContextRef);
       }
 
       String lFailAction = mEvaluatedNode.getFailAction();
       if(!XFUtil.isNull(lFailAction)) {
-        super.getOwningFieldSet().registerExternalRunnableAction(lFailAction, lItemContextRef);
+        super.getOwningFieldSet().registerExternalRunnableAction(lFailAction, lActionContextRef);
       }
 
       //Register deletion client action

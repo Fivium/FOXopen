@@ -9,6 +9,7 @@ import net.foxopen.fox.download.DownloadMode;
 import net.foxopen.fox.download.DownloadServlet;
 import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.module.evaluatedattributeresult.DOMAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.FixedStringAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
 import net.foxopen.fox.module.UploadedFileInfo;
@@ -81,6 +82,20 @@ extends EvaluatedNodeInfoItem {
     mDefaultDescription = lDefaultDescription;
 
     mUploadWidgetOptions = new UploadWidgetOptions();
+  }
+
+  @Override
+  public String getActionContextRef() {
+    //Overloaded action context ref behaviour - needs to return self instead of nearest parent in the event of no action-context attribute,
+    //because upload targets should be treated as complex types despite being marked up as simple.
+
+    DOMAttributeResult lActionContextDOM = getDOMAttributeOrNull(NodeAttribute.ACTION_CONTEXT_DOM);
+    if (lActionContextDOM != null && lActionContextDOM.getDOM() != null) {
+      return lActionContextDOM.getDOM().getRef();
+    }
+    else {
+      return getDataItem().getRef();
+    }
   }
 
   private enum UploadWidgetMode {
