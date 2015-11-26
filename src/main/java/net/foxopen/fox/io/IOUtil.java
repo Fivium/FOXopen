@@ -1,54 +1,24 @@
-/*
-
-Copyright (c) 2010, UK DEPARTMENT OF ENERGY AND CLIMATE CHANGE - 
-                    ENERGY DEVELOPMENT UNIT (IT UNIT)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice, 
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, 
-      this list of conditions and the following disclaimer in the documentation 
-      and/or other materials provided with the distribution.
-    * Neither the name of the DEPARTMENT OF ENERGY AND CLIMATE CHANGE nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-$Id$
-
-*/
 package net.foxopen.fox.io;
 
-import java.io.*;
-
-import java.sql.SQLException;
-
-import java.util.HashMap;
-
-import oracle.sql.CHAR;
+import net.foxopen.fox.ex.ExInternal;
 import oracle.sql.CLOB;
-
 import oracle.sql.CharacterSet;
 
-import net.foxopen.fox.ex.ExInternal;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+import java.io.Writer;
+import java.sql.SQLException;
+import java.util.HashMap;
 
 /**
  * I/O Stream utility class.
- *
- * @author  Gary Watson, Nick Palmer
  */
 public class IOUtil {
   private static HashMap ORACLE_TO_JAVA_CHARSETS = new HashMap(5);
@@ -127,7 +97,6 @@ public class IOUtil {
       int readCount;
       while ( (readCount = is.read(transferBuf)) != -1 )
       {
-         //try { Thread.currentThread().sleep(); } catch (Throwable th){}
          os.write(transferBuf, 0, readCount);
          os.flush();
       }
@@ -175,7 +144,6 @@ public class IOUtil {
       int readCount;
       while ( (readCount = reader.read(transferBuf)) != -1 )
       {
-         //try { Thread.currentThread().sleep(); } catch (Throwable th){}
          writer.write(transferBuf, 0, readCount);
          writer.flush();
       }
@@ -213,12 +181,12 @@ public class IOUtil {
    * @exception IOException thrown if an error occurs
    * during the transfer.
    */
-   public static void transfer(Reader reader, OutputStream os, int bufferSize) throws IOException 
+   public static void transfer(Reader reader, OutputStream os, int bufferSize) throws IOException
    {
      char transferBuf[] = new char[bufferSize];
      int readCount;
      while ((readCount = reader.read(transferBuf)) != -1 )
-     {         
+     {
        String lString = String.valueOf(transferBuf);
        os.write(lString.getBytes(), 0, readCount);
        os.flush();
@@ -339,7 +307,7 @@ public class IOUtil {
 
       return line;
    }
-   
+
   public static InputStream clobCharacterSetConversion (CLOB pClobRef, String pOutputEncoding) {
     String lEncodingOut = "UTF-8";
     if (pOutputEncoding != null) {
@@ -349,11 +317,11 @@ public class IOUtil {
     try {
       Short CharacterSetID = new Short(pClobRef.getConnection().getPhysicalConnection().getDbCsId());
       String lDBCharacterSet = (String)ORACLE_TO_JAVA_CHARSETS.get(CharacterSetID);
-      
+
       if (lDBCharacterSet == null) {
         throw new ExInternal("Database character set not supported");
       }
-      
+
       StringBuffer lDBBuffer = new StringBuffer();
       try {
         InputStreamReader lInputReader = new InputStreamReader(pClobRef.binaryStreamValue(), lDBCharacterSet);
@@ -362,19 +330,19 @@ public class IOUtil {
         while ((lChar = lReader.read()) > -1) {
           lDBBuffer.append((char)lChar);
         }
-        lReader.close();                
+        lReader.close();
       }
       catch (IOException e) {
         throw new ExInternal("Error processing CLOB data from StreamParcel", e);
       }
-      
+
       try {
         return new ByteArrayInputStream(lDBBuffer.toString().getBytes(lEncodingOut));
       }
       catch (UnsupportedEncodingException e) {
         throw new ExInternal("Error processing CLOB data from StreamParcel", e);
       }
-      
+
       //return mClobRef.getAsciiStream();
     }
     catch (SQLException e) {

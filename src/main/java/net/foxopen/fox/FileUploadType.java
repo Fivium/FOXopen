@@ -1,35 +1,3 @@
-/*
-
-Copyright (c) 2010, UK DEPARTMENT OF ENERGY AND CLIMATE CHANGE -
-                    ENERGY DEVELOPMENT UNIT (IT UNIT)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-    * Neither the name of the DEPARTMENT OF ENERGY AND CLIMATE CHANGE nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-$Id$
-
-*/
 package net.foxopen.fox;
 
 
@@ -65,8 +33,8 @@ public class FileUploadType{
   private final String mDescription;
   private final Set<String> mAllowedExtensions;
   private final Set<String> mDisallowedExtensions;
-  private final Set<String> mAllowedMimeTypes = new HashSet<String>();
-  private final Set<String> mDisallowedMimeTypes = new HashSet<String>();
+  private final Set<String> mAllowedMimeTypes = new HashSet<>();
+  private final Set<String> mDisallowedMimeTypes = new HashSet<>();
   private final String mAllowedMimeTypesDesc;
   private final String mDisallowedMimeTypesDesc;
   private final long mMinSize;
@@ -89,7 +57,7 @@ public class FileUploadType{
   /**
    * Mapping of file extensions (lower case) to one or more MIME types. Access to this map should be synchronized.
    */
-  private static Map<String, Set<String>> gExtensionToMimeTypesMap = new HashMap<String, Set<String>>();
+  private static Map<String, Set<String>> gExtensionToMimeTypesMap = new HashMap<>();
 
   private static int gAdditionalMimeTypeCount = 0;
 
@@ -99,7 +67,7 @@ public class FileUploadType{
 
   /**
    * Populates the extension Map from a BufferedReader. An exception will be thrown if the stream contents is invalid.
-   * @param pReader Reader for the defintion file.
+   * @param pReader Reader for the definition file.
    * @return Number of extension mappings read.
    */
   private static int readExtensionDefinitions(BufferedReader pReader){
@@ -359,7 +327,7 @@ public class FileUploadType{
      */
     Collection lMimeTypes = new MimeUtil().getMimeTypes(pFirstPacket);
 
-    Set<String> lMimeTypeStrings = new HashSet<String>();
+    Set<String> lMimeTypeStrings = new HashSet<>();
 
     //log MIME type data
     for(Iterator it = lMimeTypes.iterator(); it.hasNext();){
@@ -412,7 +380,7 @@ public class FileUploadType{
    * is acceptable.<br><br>
    *
    * Note that in both cases FOX may let unacceptable files through if the user changes the extension or browser MIME
-   * type. This is considered preferrable to rejecting files which cannot be recognised (i.e. by magic MIME).
+   * type. This is considered preferable to rejecting files which cannot be recognised (i.e. by magic MIME).
    *
    * @param pFileExtension Extension of the file (can be empty or null).
    * @param pBrowserMime The MIME type of the file as reported by the user's browser.
@@ -448,7 +416,7 @@ public class FileUploadType{
           throw new ExUploadValidation(UNRECOGNISED_CONTENT_MESSAGE + "Uploaded files must have a valid file extension. ", ExUploadValidation.ValidationErrorType.UNRECOGNISED_CONTENT, pBrowserMime);
         }
         else if(!mAllowedExtensions.contains(pFileExtension)){
-          //The file extensin is not in the whitelist
+          //The file extension is not in the whitelist
           throw new ExUploadValidation(INVALID_EXTENSION_MESSAGE, ExUploadValidation.ValidationErrorType.INVALID_CONTENT, pBrowserMime);
         }
       }
@@ -520,7 +488,7 @@ public class FileUploadType{
       return lFileExtensionMimes.iterator().next();
     }
     else if((mUseWhitelistLogic && mAllowedMimeTypes.contains(pBrowserMime)) || (!mUseWhitelistLogic && !mDisallowedMimeTypes.contains(pBrowserMime))){
-      //No file extension mappings avaialable. The browser MIME is acceptable according to the white/black list then use that
+      //No file extension mappings available. The browser MIME is acceptable according to the white/black list then use that
       return pBrowserMime;
     }
     else if(mUseWhitelistLogic){

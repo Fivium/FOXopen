@@ -49,7 +49,7 @@ implements StatusProvider {
           }
           : new Comparator<FoxXPath>() {
             public int compare(FoxXPath xp1, FoxXPath xp2) {
-              return (int) ((xp2.getCumulativExecTimeMS() / xp2.getUsageCount()) - (xp1.getCumulativExecTimeMS() / xp1.getUsageCount()));
+              return (int) ((xp2.getCumulativeExecTimeMS() / xp2.getUsageCount()) - (xp1.getCumulativeExecTimeMS() / xp1.getUsageCount()));
             }
           }
         );
@@ -59,7 +59,7 @@ implements StatusProvider {
             .setColumn(lXPath.getProcessedPath())
             .setColumn(Long.toString(lXPath.getCompileTime()))
             .setColumn(Integer.toString(lXPath.getUsageCount()))
-            .setColumn(Double.toString(lXPath.getUsageCount() > 0 ? lXPath.getCumulativExecTimeMS() / lXPath.getUsageCount() : 0))
+            .setColumn(Double.toString(lXPath.getUsageCount() > 0 ? lXPath.getCumulativeExecTimeMS() / lXPath.getUsageCount() : 0))
             .setColumn(lXPath.getLabelSet() != null ? Joiner.on(", ").join(lXPath.getLabelSet()) : "")
             .setColumn(Boolean.toString(lXPath.usesContextItemOrDocument()));
         }

@@ -1,41 +1,4 @@
-/*
-
-Copyright (c) 2010, UK DEPARTMENT OF ENERGY AND CLIMATE CHANGE -
-                    ENERGY DEVELOPMENT UNIT (IT UNIT)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-    * Neither the name of the DEPARTMENT OF ENERGY AND CLIMATE CHANGE nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-$Id$
-
-*/
 package net.foxopen.fox.command.builtin;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 import net.foxopen.fox.ContextLabel;
 import net.foxopen.fox.ContextUElem;
@@ -52,12 +15,15 @@ import net.foxopen.fox.ex.ExTooMany;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.thread.ActionRequestContext;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
 
 /**
  * Implementation of a FOX command that assigns a value to a
  * target nodelist.
- *
- * @author Gary Watson
  */
 public class AssignmentCommand
 extends BuiltInCommand {
@@ -74,7 +40,7 @@ extends BuiltInCommand {
      int count =
        (commandElement.hasAttr("setTarget") ? 1 : 0 )
      + (commandElement.hasAttr("initTarget") ? 1 : 0 )
-     + (commandElement.hasAttr("target") ? 1 : 0 );  // LEGACY TODO REMOVE LATER
+     + (commandElement.hasAttr("target") ? 1 : 0 );
      if(count != 1) {
        throw new ExInternal(getName()+" command: Expected one of: setTarget or initTarget");
      }
@@ -87,7 +53,7 @@ extends BuiltInCommand {
        mTargetXPATH  = getAttribute("initTarget", ".");
        mCreateNodes = true;
      }
-     else if (commandElement.hasAttr("target")) {  // LEGACY REMOVE LATER
+     else if (commandElement.hasAttr("target")) {
        mTargetXPATH  = getAttribute("target", ".");
        mCreateNodes = true;
      }
@@ -101,12 +67,12 @@ extends BuiltInCommand {
      if (mConstantValue == null && mXPathValue == null)
      {
        throw new ExInternal("Error parsing \""+getName()+"\" command - "+
-                            "expected a \"mConstantValue\" or \"expr\" arttribute specifting the value to assign!");
+                            "expected a \"mConstantValue\" or \"expr\" attribute specifying the value to assign!");
      }
      else if (mConstantValue != null && mXPathValue != null)
      {
        throw new ExInternal("Error parsing \""+getName()+"\" command - "+
-                            "expected a \"mConstantValue\" or \"expr\" arttribute, but not both!");
+                            "expected a \"mConstantValue\" or \"expr\" attribute, but not both!");
      }
    }
 

@@ -1,36 +1,3 @@
-/*
-
-Copyright (c) 2012, UK DEPARTMENT OF ENERGY AND CLIMATE CHANGE -
-                    ENERGY DEVELOPMENT UNIT (IT UNIT)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-    * Neither the name of the DEPARTMENT OF ENERGY AND CLIMATE CHANGE nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-$Id$
-
-*/
-
 package net.foxopen.fox.dom.xpath;
 
 import net.foxopen.fox.ContextUElem;
@@ -307,7 +274,7 @@ implements FoxPath {
         lContextNode = pContextUElem.getUElem(mContextItemLabel);
         //Check the labelled DOM has not been removed from its DOM tree
         if(!lContextNode.isAttached()) {
-          //This should probably throw/invalidate label mapping - warn for now so we can assess impact - FOXRD-661
+          //TODO This should probably throw/invalidate label mapping - warn for now so we can assess impact - FOXRD-661
           Track.alert("SimplePathUnattachedContextLabel", "Context label " + mContextItemLabel + " points to an unattached node - XPath may produce unexpected results " +
             "(this message will become an error in a future release)", TrackFlag.CRITICAL);
         }
@@ -346,7 +313,7 @@ implements FoxPath {
     //If the expression is wrapped in string(), or a STRING or NUMBER result was requested, evaluate accordingly
     lResult = applyStringEvalToResult(lResult, pResultType);
 
-    //PN TODO this is probably redundant
+    //TODO this is probably redundant
     if(!(lResult instanceof String) && (pResultType == FoxXPathResultType.STRING || pResultType == FoxXPathResultType.NUMBER)){
       throw new ExInternal("FoxSimplePath '" + getOriginalPath() + "' did not return a String despite String or Number ResultType being specified. Instead returned a " + lResult.getClass().getName());
     }

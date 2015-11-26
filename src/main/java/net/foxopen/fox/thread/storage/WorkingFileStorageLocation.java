@@ -1,35 +1,3 @@
-/*
-
-Copyright (c) 2010, UK DEPARTMENT OF ENERGY AND CLIMATE CHANGE -
-                    ENERGY DEVELOPMENT UNIT (IT UNIT)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-    * Neither the name of the DEPARTMENT OF ENERGY AND CLIMATE CHANGE nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-$Id$
-
-*/
 package net.foxopen.fox.thread.storage;
 
 import net.foxopen.fox.ContextUElem;
@@ -72,9 +40,9 @@ extends WorkingStorageLocation<FileStorageLocation>  {
 
   /**
    * Creates a new WorkDoc for this WSL. This must be opened, manipulated and closed using the standard LOBWorkDoc API.
-   * @param pReadOnly If true, the WorkDoc will be read only. If false it will be writeable. Note that if this WSL is
-   * not writeable, it will not be able to create a writeable WorkDoc. Note this is specified separately to the writeability
-   * of the WSL because you may want to create a read-only "view" of a writeable WSL (this should be preferred unless writing
+   * @param pReadOnly If true, the WorkDoc will be read only. If false it will be writable. Note that if this WSL is
+   * not writable, it will not be able to create a writable WorkDoc. Note this is specified separately to the writablity
+   * of the WSL because you may want to create a read-only "view" of a writable WSL (this should be preferred unless writing
    * is definitely needed).
    * @return New LOBWorkDoc.
    */
@@ -84,7 +52,7 @@ extends WorkingStorageLocation<FileStorageLocation>  {
     }
     else {
       if(isReadOnly()) {
-        throw new ExInternal("Cannot create a Writeable WorkDoc for a read only WorkingFileStorageLocation");
+        throw new ExInternal("Cannot create a Writable WorkDoc for a read only WorkingFileStorageLocation");
       }
       return new WriteableLOBWorkDoc<>(mLOBClass, this);
     }

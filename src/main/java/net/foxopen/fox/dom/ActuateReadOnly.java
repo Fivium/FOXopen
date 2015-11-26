@@ -1,34 +1,3 @@
-/*
-
-Copyright (c) 2010, UK DEPARTMENT OF ENERGY AND CLIMATE CHANGE -
-                    ENERGY DEVELOPMENT UNIT (IT UNIT)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-    * Neither the name of the DEPARTMENT OF ENERGY AND CLIMATE CHANGE nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-*/
 package net.foxopen.fox.dom;
 
 
@@ -286,7 +255,7 @@ extends ActuateNoAccess
     // Exit loop when parent located
     } while(node!=pNode);
 
-    // Return relatice path
+    // Return relative path
     return path.toString();
 
   }
@@ -390,7 +359,7 @@ extends ActuateNoAccess
       throw new ExInternal("Not an Element", x);
     }
     // Build HashMap
-    Map<String, String> lAttrMap = new HashMap<String, String>();
+    Map<String, String> lAttrMap = new HashMap<>();
     //NamedNodeMap lAttrList = lElement.getAttributes();
     int lAttrCount = lElement.getAttributeCount();
     Attribute lAttr;
@@ -409,7 +378,7 @@ extends ActuateNoAccess
    * @return A list of fully-qualified attribute names in an arbitrary order.
    */
   public ArrayList<String> getAttrNames (Node pNode) {
-    return new ArrayList<String>(getAttributes(pNode).keySet());
+    return new ArrayList<>(getAttributes(pNode).keySet());
   }
 
 
@@ -701,7 +670,7 @@ extends ActuateNoAccess
           }
         }
 
-      } // end LISTNOE_LOOP
+      } // end LISTNODE_LOOP
 
       // Carry forward into new source list for next pathname word
       sourceList = forwardList;
@@ -757,7 +726,7 @@ extends ActuateNoAccess
   }
 
   /** Return immediate text content of node but process it to remove whitespace that may have been added
-   *  by some XML transformation processes (such as Oracle XML SQL). Whitespace is NOT just trimed away -
+   *  by some XML transformation processes (such as Oracle XML SQL). Whitespace is NOT just trimmed away -
    *  the whitespace is actually looked at critically to identify leading/trailing NL SP SP* sequences.
    *  E.g:  String: [\n] [ ] [ ] [ ] [ ][R] [e] [f] [ ] [\n] [ ] [ ] [ ] [ ] [\n] [ ] [ ] [ ] [ ]
    *       becomes: [R] [e] [f] [ ]
@@ -765,9 +734,9 @@ extends ActuateNoAccess
   public String valueWhitespaceIntelligent(Node pNode)
   throws ExInternal
   {
-    // Get value in using standard implemenation
+    // Get value in using standard implementation
     String lValue = DOM.toJavaString(value(pNode, false));
-    // When value not comming from text or element - return unchanged
+    // When value not coming from text or element - return unchanged
     if(!(pNode instanceof Element) && !(pNode instanceof Text)) {
       return lValue;
     }
@@ -1035,8 +1004,8 @@ extends ActuateNoAccess
    * Note that in this implementation DOM B is a subset of DOM A when:
    *      [1] the same element nodes are identified in the same order at each level
    *          (additional nodes in DOM-A are allowed before, between, and after matched nodes)
-   *  and [2] the local concatinated text content of matched elements (including passed elements)
-   *          is identical (with whitepsace trimmed if pTrimWhitespace is true) or matching white space.
+   *  and [2] the local concatenated text content of matched elements (including passed elements)
+   *          is identical (with whitespace trimmed if pTrimWhitespace is true) or matching white space.
    */
   public final boolean contentEqualsOrSuperSetOf(
     Node pSupSetNode

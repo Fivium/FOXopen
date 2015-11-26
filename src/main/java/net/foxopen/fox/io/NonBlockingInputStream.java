@@ -1,35 +1,3 @@
-/*
-
-Copyright (c) 2010, UK DEPARTMENT OF ENERGY AND CLIMATE CHANGE -
-                    ENERGY DEVELOPMENT UNIT (IT UNIT)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-    * Neither the name of the DEPARTMENT OF ENERGY AND CLIMATE CHANGE nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-$Id$
-
-*/
 package net.foxopen.fox.io;
 
 import net.foxopen.fox.ex.ExInternal;
@@ -134,7 +102,7 @@ public class NonBlockingInputStream extends InputStream {
 
   public int read(byte pByteArray[], int pOffset, int pLength)
   throws IOException{
-   //TODO move to a finally so any remaing frame is read
+   //TODO move to a finally so any remaining frame is read
     synchronized(this){
       //The ReadThread may have encountered an IOException or a general RuntimeException; check and throw here.
       if(mException != null){
@@ -201,7 +169,7 @@ public class NonBlockingInputStream extends InputStream {
   }
 
   /**
-   * Gets the frame which the loadingFrame poiner points to. The frame will not
+   * Gets the frame which the loadingFrame pointer points to. The frame will not
    * necessarily have a status of CLEAR - i.e. it may not be possible to load into
    * it. Use nextLoadingFrame() to get the next loadable frame.
    * @return The next frame which should be loaded into.
@@ -241,7 +209,7 @@ public class NonBlockingInputStream extends InputStream {
   /**
    * If an exception occurs in the ReadThread, it is set here and thrown to the caller
    * when it requests the next read.
-   * @param pException the exception which occured.
+   * @param pException the exception which occurred.
    */
   private void setException(Throwable pException){
     mException = pException;
@@ -399,7 +367,7 @@ public class NonBlockingInputStream extends InputStream {
       boolean lForceFail = false;
 
       try{
-        //Kill thread if it's interrupted, read is EOF, an exception occured or the parent object was GC'd
+        //Kill thread if it's interrupted, read is EOF, an exception occurred or the parent object was GC'd
         NonBlockingInputStream lParentNBIS;
         while(!Thread.interrupted() && lBytesRead != -1 && !lForceFail  && (lParentNBIS = (NonBlockingInputStream) mParentNBISRef.get())!=null){
 
@@ -423,7 +391,7 @@ public class NonBlockingInputStream extends InputStream {
           } else {
             //No frame is ready for loading - the consumer needs to completely read
             //at least one frame to clear it. Wait on the parent object - it will notify
-            //this thread when a clear frame is avaiable.
+            //this thread when a clear frame is available.
             synchronized(lParentNBIS){
               try {
                 lParentNBIS.wait();
@@ -444,7 +412,7 @@ public class NonBlockingInputStream extends InputStream {
         }
       }
       //The thread will die gracefully when the InputStream is completely read
-      //or an exception occured.
+      //or an exception occurred.
     }
   }
 

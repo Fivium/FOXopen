@@ -1,73 +1,26 @@
-/*
-
-Copyright (c) 2010, UK DEPARTMENT OF ENERGY AND CLIMATE CHANGE - 
-                    ENERGY DEVELOPMENT UNIT (IT UNIT)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice, 
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, 
-      this list of conditions and the following disclaimer in the documentation 
-      and/or other materials provided with the distribution.
-    * Neither the name of the DEPARTMENT OF ENERGY AND CLIMATE CHANGE nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-$Id$
-
-*/
 package net.foxopen.fox.image;
 
 import ch.randelshofer.media.jpeg.JPEGImageIO;
+import net.foxopen.fox.ex.ExInternal;
+import oracle.sql.BLOB;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Transparency;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageTypeSpecifier;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.IndexColorModel;
-import java.awt.image.RenderedImage;
-
-import java.io.File;
 import java.io.IOException;
-
 import java.sql.SQLException;
-
-import javax.imageio.ImageIO;
-
-import javax.imageio.ImageTypeSpecifier;
-
-import oracle.sql.BLOB;
-
-import net.foxopen.fox.ex.ExInternal;
 
 
 public class ImageUtils {
 
   private static final Object THUMB_KEY_INTERPOLATION = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
   private static final Object THUMB_KEY_RENDERING = RenderingHints.VALUE_RENDER_QUALITY;
-  
+
   public static Dimension getResizedDimensions(int pCurrentWidth, int pCurrentHeight, double lScalingFactor, int lMaxBoundarySize) {
     if (lScalingFactor != 0) {//If scaling factor specified then calculate the new height and width using this
     } else if (lMaxBoundarySize != 0) {//If no scaling factor specified and max boundary given, calculate new height and width so largest boundary is size given
@@ -77,15 +30,15 @@ public class ImageUtils {
     }
     return new Dimension((int)Math.round(pCurrentWidth * lScalingFactor),(int)Math.round(pCurrentHeight * lScalingFactor));
   }
-  
+
   public static BufferedImage resizeImage(BufferedImage pBufferedImage, double pScalingFactor, int pMaxBoundarySize) {
     int lWidth = pBufferedImage.getWidth();
     int lHeight = pBufferedImage.getHeight();
     Dimension lDim = getResizedDimensions(lWidth,lHeight,pScalingFactor,pMaxBoundarySize);
-    
+
     return renderNewImage(pBufferedImage, (int)lDim.getWidth(), (int)lDim.getHeight());
   }
-  
+
   private static BufferedImage createBufferedImage(BufferedImage pBufferedImage, int pNewWidth, int pNewHeight) {
     int lImageType = pBufferedImage.getType();
     ColorModel lColorModel = pBufferedImage.getColorModel();
@@ -99,37 +52,37 @@ public class ImageUtils {
       return new BufferedImage(pNewWidth, pNewHeight, lImageType);
     }
   }
-  
+
   private static BufferedImage createBufferedImage(BufferedImage pBufferedImage, Dimension pDim) {
     return createBufferedImage(pBufferedImage,(int)pDim.getWidth(),(int)pDim.getHeight());
   }
-  
+
   //Takes in a BufferedImage item and re-scales it to pNewWidth and pNewHeight
   private static BufferedImage renderNewImage(BufferedImage pBufferedImage, int pNewWidth, int pNewHeight) {
     BufferedImage lTempImage = createBufferedImage(pBufferedImage,pNewWidth,pNewHeight);
-    
+
     Graphics2D g2 = lTempImage.createGraphics();
     g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, THUMB_KEY_INTERPOLATION);
     g2.setRenderingHint(RenderingHints.KEY_RENDERING, THUMB_KEY_RENDERING);
     g2.drawImage(pBufferedImage, 0, 0, pNewWidth, pNewHeight, null);
     g2.dispose();
-    
+
     return lTempImage;
   }
-  
+
   public static BufferedImage generateTextImage(int pWidth, int pHeight, String pText) {
     BufferedImage lTempImage = new BufferedImage(pWidth,pHeight,BufferedImage.TYPE_INT_ARGB);
-    
+
     Graphics2D g = lTempImage.createGraphics();
     g.setColor(Color.WHITE);
     g.drawRect(0,0,pWidth,pHeight);
     g.setColor(Color.BLACK);
     g.drawString(pText,0,pHeight/2);
     g.dispose();
-    
+
     return lTempImage;
   }
-  
+
   public static int getNormalisedRotation(int pRotation) {
     pRotation = pRotation % 360;
     if(pRotation < 0) {
@@ -137,7 +90,7 @@ public class ImageUtils {
     }
     return pRotation;
   }
-  
+
   public static Dimension getRotatedDimensions(int pCurrentWidth, int pCurrentHeight, int pDegrees) {
     pDegrees = getNormalisedRotation(pDegrees);
     if(pDegrees == 0 || pDegrees == 180) {
@@ -150,13 +103,13 @@ public class ImageUtils {
       throw new ExInternal("Unsupported rotation operation: "+pDegrees);
     }
   }
-  
+
   public static BufferedImage rotate(BufferedImage pBufferedImage, int pDegrees) {
     int lImageWidth = pBufferedImage.getWidth();
     int lImageHeight = pBufferedImage.getHeight();
     BufferedImage lRotatedBufferedImage = null;
     AffineTransform tx = new AffineTransform();
-    
+
     pDegrees = getNormalisedRotation(pDegrees);
     if(pDegrees==0) return pBufferedImage;
 
@@ -179,7 +132,7 @@ public class ImageUtils {
 
     return lRotatedBufferedImage;
   }
-  
+
   public static BufferedImage convertBlobToImage (BLOB pBlob) throws SQLException, IOException {
     BufferedImage bi;
     try {
@@ -194,7 +147,7 @@ public class ImageUtils {
     if(bi == null) {
       throw new ExInternal("Reading image failed");
     }
-    
+
     return bi;
   }
 
@@ -212,7 +165,7 @@ public class ImageUtils {
   /**
    * Draw a string onto a graphics2d object, wrapping words at pWidth pixels wide.
    * If a word has to be cut, if less than 75% is cut off it's added back on and the word shrunk, if pShrinkWords == true
-   * 
+   *
    * @param pString Words to draw
    * @param pG Graphics2D object reference used to draw
    * @param pX Top left ordinate of where to start drawing down from
@@ -310,7 +263,7 @@ public class ImageUtils {
               break;
             }
             pG.setFont(lDrawFont);
-            
+
             lLineBuffer.setLength(0);
             lLineBuffer.append(lCharacters[i]);
             lLastSpace = null;
@@ -360,7 +313,7 @@ public class ImageUtils {
               break;
             }
             pG.setFont(lDrawFont);
-            
+
             lLineBuffer.setLength(0);
             lLineBuffer.append(lCharacters[i]);
             lLastSpace = null;
@@ -372,7 +325,7 @@ public class ImageUtils {
 
         //Find the next Y position for the new line
         lY += lFontHeight + (lFirstLine?-lFontMetrics.getDescent():lLeading);
-        
+
         if ((lY + lFontHeight) > pHeight && pYOverflow == false) {
           //Break loop if it's hit the Y limit
           break;
@@ -396,7 +349,7 @@ public class ImageUtils {
     if (!lSuppressLastLine) {
       //Find the next Y position for the new line
       lY = lY + lFontHeight + (lFirstLine?-lFontMetrics.getDescent():lLeading);
-  
+
       //Draw the line
       if (pDraw) {
         drawLine(lLineBuffer.toString(), pG, pX, lY, pWidth, pJustification);
@@ -411,8 +364,8 @@ public class ImageUtils {
   } // drawString
 
   /**
-   * Draw a line of text with justifiction
-   * 
+   * Draw a line of text with justification
+   *
    * @param pLine String of text to draw
    * @param pG Graphics object to draw on
    * @param pX Position to start at
