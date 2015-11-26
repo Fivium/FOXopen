@@ -1,35 +1,3 @@
-/*
-
-Copyright (c) 2010, UK DEPARTMENT OF ENERGY AND CLIMATE CHANGE -
-                    ENERGY DEVELOPMENT UNIT (IT UNIT)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-    * Neither the name of the DEPARTMENT OF ENERGY AND CLIMATE CHANGE nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-$Id$
-
-*/
 package net.foxopen.fox.command.builtin;
 
 import net.foxopen.fox.ContextUElem;
@@ -55,8 +23,6 @@ import java.util.Collections;
 
 /**
  * Simple command that logs some message.
- *
- * @author Gary Watson
  */
 public class InitCommand
 extends BuiltInCommand {
@@ -75,7 +41,7 @@ extends BuiltInCommand {
   private final String mTargetParentXPATH;
 
   /**
-  * Contructs the command from the XML element specified.
+  * Constructs the command from the XML element specified.
   *
   * @param module the module where the command resides
   * @param commandElement the element from which the command will
@@ -213,7 +179,7 @@ extends BuiltInCommand {
             , "The \""+getName()+"\" command has been incorrectly used. The specified target XPath, \""+originalXPathExpression+
              "\", did not find any Data or Model DOM nodes so the \"for-schema\" attribute used, \""+mForSchemaXPath+"\",  "+
              "cannot be interpreted in this instance (not relative to any Model DOM node). Try specifying the "+
-             "new-target-count, min-occurs atribute in order to create some new target instances.");
+             "new-target-count, min-occurs attribute in order to create some new target instances.");
           }
 
           DOMList modelDOMTargets;
@@ -254,7 +220,6 @@ extends BuiltInCommand {
       } // TARGET_PARENT_LOOP
     }
     catch (ExActionFailed e){
-      //TODO fix this hack
       throw new ExInternal("init command", e);
     }
 
@@ -324,14 +289,14 @@ extends BuiltInCommand {
                        firstNodeNodeInfo.getModelDOMElem().getName().equals(thisNodeInfo.getModelDOMElem().getName()));
             if ( !allSameType ) {
               throw new ExActionFailed("COMMAND",
-                               "The use of the \"init\" command is in error - the targetted nodes, using XPath \""+originalXPathExpression+
+                               "The use of the \"init\" command is in error - the targeted nodes, using XPath \""+originalXPathExpression+
                                ", are not all of the same type. The schema type of the first target node is \""+firstNodeNodeInfo.getModelDOMElem()+
                                "\" which conflicts with that of another node that has schema type \""+thisNodeInfo.getModelDOMElem()+"\".");
             }
           }
           catch (ExInternal ex) {
             throw new ExActionFailed("COMMAND",
-                             "The use of the \"init\" command is in error - the targetted nodes, using XPath \""+originalXPathExpression+
+                             "The use of the \"init\" command is in error - the targeted nodes, using XPath \""+originalXPathExpression+
                              ", are not all of the same type. The schema type of the first target node is \""+firstNodeNodeInfo.getModelDOMElem()+
                              "\" which conflicts with that of another node that has an unknown schema type \""+nodes.item(n).absolute()+"\".");
           }
@@ -349,7 +314,7 @@ extends BuiltInCommand {
    * target nodes should be created, under a common parent container.
    *
    * @param newTargetRequestCount the number of explicitly requested new targets
-   * @param minOccursOrNegative the ninimum number of required occurrences, including
+   * @param minOccursOrNegative the minimum number of required occurrences, including
    *      any existing nodes. Can be negative.
    * @param maxOccursOrNegative the maximum number of required occurrences, including
    *      any existing nodes. Can be negative.

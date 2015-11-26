@@ -1,35 +1,3 @@
-/*
-
-Copyright (c) 2010, UK DEPARTMENT OF ENERGY AND CLIMATE CHANGE -
-                    ENERGY DEVELOPMENT UNIT (IT UNIT)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-    * Neither the name of the DEPARTMENT OF ENERGY AND CLIMATE CHANGE nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-$Id$
-
-*/
 package net.foxopen.fox.command.util;
 
 import java.util.ArrayList;
@@ -92,7 +60,7 @@ public class CommandUtil
     * @param contextUCon the DB connection context of this function
     * @param initialisationHandler an initialiser to perform the initialisation function for the
     *        Data DOM node(s) created.
-    * @throws ExInternal thrown if an unexpeted error occurs
+    * @throws ExInternal thrown if an unexpected error occurs
     * @exception ExActionFailed thrown if an error occurs performing the initialisation.
     * @see initialiseDataDOMFromMetaModelDOM(DOM,DOM,XThread,ContextUElem,ContextUCon)
     */
@@ -192,7 +160,7 @@ public class CommandUtil
     * @param userThread the user thread performing this function
     * @param contextUElem the attach context of this function
     * @param contextUCon the DB connection context of this function
-    * @throws ExInternal thrown if an unexpeted error occurs
+    * @throws ExInternal thrown if an unexpected error occurs
     * @exception ExActionFailed thrown if an error occurs performing the initialisation.
     */
    public static final void initialiseDataDOMFromMetaModelDOM(ActionRequestContext pRequestContext,
@@ -222,7 +190,7 @@ public class CommandUtil
     * @param contextUCon the DB connection context of this function
     * @param initialisationHandler an initialiser to perform the initialisation function for the
     *        Data DOM node(s) created.
-    * @throws ExInternal thrown if an unexpeted error occurs
+    * @throws ExInternal thrown if an unexpected error occurs
     * @exception ExActionFailed thrown if an error occurs performing the initialisation.
     * @see initialiseDataDOMFromMetaModelDOM(DOM,DOM,XThread,ContextUElem,ContextUCon)
     *
@@ -256,7 +224,7 @@ public class CommandUtil
     * @param userThread the user thread performing this function
     * @param contextUElem the attach context of this function
     * @param contextUCon the DB connection context of this function
-    * @throws ExInternal thrown if an unexpeted error occurs
+    * @throws ExInternal thrown if an unexpected error occurs
     * @exception ExActionFailed thrown if an error occurs performing the initialisation.
     * @see initialiseDataDOMFromMetaModelDOM(DOM,DOM,XThread,ContextUElem,ContextUCon)
     *
@@ -279,7 +247,7 @@ public class CommandUtil
     * @param contentNodes the nodes to add, if not currently present under the parent.
     * @param deeply true if content is to be deeply created (all ancestors), false if only
     *        the top-level nodes of <i>contentNodes</i> are to be used.
-    * @throws ExInternal thrown if an unexpeted error occurs.
+    * @throws ExInternal thrown if an unexpected error occurs.
     */
    public static final void augmentContent(DOM parentNode,
                                            DOMList contentNodes,
@@ -301,7 +269,7 @@ public class CommandUtil
          }
          else
          {
-            // We have one or more existig nodes with the same name as this one
+            // We have one or more existing nodes with the same name as this one
             // Decide whether we need to augment or add as new, depending on
             // the current node index.
             ArrayList contentNodesWithSameNameList = new ArrayList(contentNodes.getLength());
@@ -315,7 +283,7 @@ public class CommandUtil
             if (currentContentNodeIndexInList < existingNodesOfSameName.getLength())
             {
                // Augment the existing node with the same name with the corresponding
-               // relativecontent node
+               // relative content node
                augmentContent(existingNodesOfSameName.item(currentContentNodeIndexInList),
                               contentNode.getChildElements(),
                               deeply);
@@ -345,7 +313,7 @@ public class CommandUtil
     *
     * @param parentNode the parent node, under which new content will be created.
     * @param contentNodes the nodes to add, if not currently present under the parent.
-    * @throws ExInternal thrown if an unexpeted error occurs.
+    * @throws ExInternal thrown if an unexpected error occurs.
     */
    public static final void augmentContentDeeply(DOM parentNode,
                                                  DOMList contentNodes)

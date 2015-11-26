@@ -1,35 +1,3 @@
-/*
-
-Copyright (c) 2010, UK DEPARTMENT OF ENERGY AND CLIMATE CHANGE -
-                    ENERGY DEVELOPMENT UNIT (IT UNIT)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-    * Neither the name of the DEPARTMENT OF ENERGY AND CLIMATE CHANGE nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-$Id$
-
-*/
 package net.foxopen.fox.command.builtin;
 
 import net.foxopen.fox.ContextLabel;
@@ -121,7 +89,7 @@ public class ValidateCommand
    */
   private boolean mCheckCardinality = true;
   /**
-   *  True to indicate any missing requred nodes when validating (e.g. if
+   *  True to indicate any missing required nodes when validating (e.g. if
    *  minoccurs =3 and no nodes exist then 3 will be created)
    */
   private boolean mCreateWhenMissing = true;
@@ -148,7 +116,7 @@ public class ValidateCommand
   private int mErrorLimit = 100;
 
   /**
-   * Processes the commant to validate and/or format the a dom structure
+   * Processes the command to validate and/or format the a dom structure
    * against its associated schema
    *
    * @param pMod The current module
@@ -231,7 +199,7 @@ public class ValidateCommand
       mClearOldSummaryErrors = true;
     }
     else if (param.equalsIgnoreCase("BOTH")) {
-      // TODO: get JB to change this to all
+      // TODO - change this to ALL
       mClearOldNodeErrors = true;
       mClearOldSummaryErrors = true;
     }
@@ -346,7 +314,7 @@ public class ValidateCommand
             continue NODE_LOOP;
           }
 
-          // assuming the xpath dosnt pick the same node twice clear any old errors
+          // assuming the xpath doesn't pick the same node twice clear any old errors
           if (mClearOldNodeErrors) {
             // delete all node errors
             checkNodes.item(loop).xpathUL("fox-error", null).removeFromDOMTree();
@@ -357,7 +325,7 @@ public class ValidateCommand
             checkValue(pRequestContext, checkNodes.item(loop), lModule, errorCtx, lContextUElem);
           }
 
-          // Check this node and siblings min / max occurences
+          // Check this node and siblings min / max occurrences
           if (mCheckCardinality) {
             checkOccurs(checkNodes.item(loop), lModule, errorCtx);
           }
@@ -812,7 +780,7 @@ public class ValidateCommand
 
 
    /**
-    *  Checks the minimum occurences of the model DOM element against the data
+    *  Checks the minimum occurrences of the model DOM element against the data
     *  dom element
     *
     *@param  pNodeToCheck    Description of the Parameter
@@ -905,7 +873,7 @@ public class ValidateCommand
 
 
    /**
-    *  Checks the minimum/maximum occurences of the DOM element
+    *  Checks the minimum/maximum occurrences of the DOM element
     *
     *@param  pNodeToCheck    Description of the Parameter
     *@param  pXThread        Description of the Parameter
@@ -923,7 +891,7 @@ public class ValidateCommand
       {
          return;
          // For now just exit if no node info found
-         // todo: ask jason if this should be an exception
+         //TODO - Possibly throw an error
       }
 
       Integer minOccurs = null;
@@ -984,7 +952,7 @@ public class ValidateCommand
 
 
    /**
-    *  Validates the given UELEM data bvalue against its attribute directives
+    *  Validates the given UELEM data value against its attribute directives
     *
     *@param  pDataToCheck    Dom containing the data to validate
     *@param  pXThread        Description of the Parameter
@@ -994,7 +962,7 @@ public class ValidateCommand
    private void checkValue(ActionRequestContext pRequestContext, DOM pDataToCheck, Mod pModule, ErrorCtx pErrorCtx, ContextUElem pContextUElem)
    throws ExActionFailed
    {
-      // todo: think about adding a "check if already proccessed" here like in checkOccurs
+      // TODO think about adding a "check if already processed" here like in checkOccurs
       // however it may actually be more processing work than not doing anything
 
       String dataVal = pDataToCheck.value();
@@ -1019,7 +987,7 @@ public class ValidateCommand
          {
             // Flag item as blank
             // NOTE: Code added so flag only set when item contains no significant elements - JB
-            // NOTE: This was required for validation of complex items derrived from complex "data" map-sets
+            // NOTE: This was required for validation of complex items derived from complex "data" map-sets
             // NOTE: that where not marked up as complex in the modules schema.
             if(!dataDfn.getIsItem()
             || 0 == pDataToCheck.getChildElements().removeAllNamesFromList("fox-error").removeAllNamesFromList("fox-history").getLength()
@@ -1160,7 +1128,7 @@ public class ValidateCommand
          // do nothing
          else
          {
-            // Ennumeration (valid values)
+            // Enumeration (valid values)
             if (dataDfn.getSchemaEnumerationOrNull() != null)
             {
                if (dataDfn.getSchemaEnumerationOrNull().contains(dataVal))
@@ -1171,7 +1139,7 @@ public class ValidateCommand
                else
                {
                   // only add this error if the entry is not blank
-                  // blank entries willl be validated later on in the mandatory validation
+                  // blank entries will be validated later on in the mandatory validation
                   if (!blankEntry)
                   {
                      addError(pDataToCheck, "Unrecognized entry", pErrorCtx);
@@ -1194,7 +1162,7 @@ public class ValidateCommand
 
               if (patternMatched == false) {
                 // only add this error if the entry is not blank
-                // blank entries willl be validated later on in the mandatory validation
+                // blank entries will be validated later on in the mandatory validation
                 if (!blankEntry) {
                   addError(pDataToCheck, "Entry is in an incorrect format", pErrorCtx);
                 }
@@ -1279,9 +1247,6 @@ public class ValidateCommand
 
    /**
     *  Nested class to store error context information
-    *
-    *@author     Clayton
-    *@created    June 9, 2003
     */
    private static class ErrorCtx {
       /**
@@ -1297,7 +1262,7 @@ public class ValidateCommand
        */
       ContextUCon mContextUCon;
       /**
-       *  All errors found during the validate used aminly for debugging
+       *  All errors found during the validate used mainly for debugging
        *  Purposes
        */
       ArrayList mErrorsFound = new ArrayList();
@@ -1322,7 +1287,7 @@ public class ValidateCommand
 
 
       /**
-       *  Retuns the number of errors currently loaded in the instance
+       *  Returns the number of errors currently loaded in the instance
        *
        *@return    The total number of errors
        */
@@ -1332,23 +1297,12 @@ public class ValidateCommand
 
    }
 
-
-   /**
-    *  Nested class to store information about errors recorded
-    *
-    *@author     Clayton
-    *@created    June 9, 2003
-    */
-
    /**
     *  A local error store (used mainly for debugging)
-    *
-    *@author     Clayton
-    *@created    June 9, 2003
     */
    private static class StoreErrors {
       /**
-       *  Xpath to retreive nodes to validate
+       *  Xpath to retrieve nodes to validate
        */
       String mXpath;
       // Xpath to tag name todo: see if this includes iteration e.g. [2]

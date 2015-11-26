@@ -1,35 +1,3 @@
-/*
-
-Copyright (c) 2010, UK DEPARTMENT OF ENERGY AND CLIMATE CHANGE -
-                    ENERGY DEVELOPMENT UNIT (IT UNIT)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-    * Neither the name of the DEPARTMENT OF ENERGY AND CLIMATE CHANGE nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-$Id$
-
-*/
 package net.foxopen.fox.queue;
 
 import net.foxopen.fox.XFUtil;
@@ -236,7 +204,7 @@ public class ServiceQueueHandler {
 
     // Initial sync is required here while suspending the current thread as we want the monitor of the work item to be held so a
     // queue worker can pass control back at a later time using notify on the work item used in this method.  Must be performed to ensure
-    // that worker doesnt try and return control to original thread before the thread starts to wait.  Subtle so be careful when editing.
+    // that worker doesn't try and return control to original thread before the thread starts to wait.  Subtle so be careful when editing.
     ITEM_SYNC: synchronized (pWorkItem) {
       try {
 
@@ -259,7 +227,7 @@ public class ServiceQueueHandler {
 
             lQueueIterator = mServiceQueueNameToServiceQueueMap.values().iterator();
 
-          // Can't add an item to a queue if you havnt added a queue to the system
+          // Can't add an item to a queue if you haven't added a queue to the system
           if (!lQueueIterator.hasNext()) {
             throw new ExInternal("Failed to add work item to queue using Queue Handler: \"" + mQueueHandlerName + "\".  No queues have been added to this handlers queue listing.");
           }
@@ -332,7 +300,6 @@ public class ServiceQueueHandler {
         // Validate and return work item
         if(lWorkItem != null) {
           if(lWorkItem.isFailed()) {
-//            Track.trackAddElementChild("WorkToProcess", "THIS SHOULD NEVER HAPPEN: Found work item in queue that has been failed with class type \""+lWorkItem.getWorkItemType()+"\".  Failed work items should be removed from service queues on check in.");
             throw new ExInternal("Found work item in queue that has been failed with class type \""+lWorkItem.getWorkItemType()+"\".  Failed work items should be removed from service queues on check in.");
           }
           return lWorkItem;

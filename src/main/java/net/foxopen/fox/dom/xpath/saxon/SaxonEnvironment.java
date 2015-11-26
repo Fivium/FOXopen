@@ -1,35 +1,3 @@
-/*
-
-Copyright (c) 2012, UK DEPARTMENT OF ENERGY AND CLIMATE CHANGE -
-                    ENERGY DEVELOPMENT UNIT (IT UNIT)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-    * Neither the name of the DEPARTMENT OF ENERGY AND CLIMATE CHANGE nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-$Id$
-
-*/
 package net.foxopen.fox.dom.xpath.saxon;
 
 import net.foxopen.fox.ContextUElem;
@@ -65,7 +33,7 @@ import java.util.regex.Pattern;
 
 
 /**
- * This class holds static references to Saxon configration objects and methods.
+ * This class holds static references to Saxon configuration objects and methods.
  * These are thread-safe and reusable so they are encapsulated here for convenience.
  */
 public class SaxonEnvironment {
@@ -394,8 +362,8 @@ public class SaxonEnvironment {
     return lXPath;
   }
 
-  public static FoxXsltErrorListner newFoxXsltErrorListener() {
-    return new FoxXsltErrorListner();
+  public static FoxXsltErrorListener newFoxXsltErrorListener() {
+    return new FoxXsltErrorListener();
   }
 
   /**
@@ -437,10 +405,10 @@ public class SaxonEnvironment {
   /**
    * Basic class for tracking XSLT compilation errors.
    */
-  public static class FoxXsltErrorListner
+  public static class FoxXsltErrorListener
   implements ErrorListener {
 
-    ArrayList<Exception> mExceptionList = new ArrayList<Exception>();
+    ArrayList<Exception> mExceptionList = new ArrayList<>();
 
     public void warning(TransformerException pException) {
       Track.alert("XsltCompilationWarning", pException.getMessage());
@@ -458,7 +426,7 @@ public class SaxonEnvironment {
 
     public void processErrors() {
       if (mExceptionList.size() > 0) {
-        throw new ExInternal(mExceptionList.size() + " exception(s) occured during transform. " +
+        throw new ExInternal(mExceptionList.size() + " exception(s) occurred during transform. " +
                              "See nested for first; examine Track for all.", mExceptionList.get(0));
       }
     }

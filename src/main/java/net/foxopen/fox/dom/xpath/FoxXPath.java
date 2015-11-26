@@ -1,35 +1,3 @@
-/*
-
-Copyright (c) 2012, UK DEPARTMENT OF ENERGY AND CLIMATE CHANGE -
-                    ENERGY DEVELOPMENT UNIT (IT UNIT)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-    * Neither the name of the DEPARTMENT OF ENERGY AND CLIMATE CHANGE nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-$Id$
-
-*/
 package net.foxopen.fox.dom.xpath;
 
 import net.foxopen.fox.ContextUElem;
@@ -91,7 +59,7 @@ implements FoxPath {
   /**
    * Overall time in MS spent executing this XPath.
    */
-  private long mCumulativExecTimeMS = 0;
+  private long mCumulativeExecTimeMS = 0;
 
   /**
    * Set of the :{context} labels implicated by this XPath.
@@ -108,7 +76,7 @@ implements FoxPath {
   private final boolean mUsesContextDocument;
 
   /**
-   * Constuct a new FoxXPath for the given XPath string.
+   * Construct a new FoxXPath for the given XPath string.
    * @param pXPathDefinition XPath definition containing a FOX-compliant executable XPath string, possibly containing :{contexts} and/or custom FOX functions.
    * @param pUseXPathBackwardsCompatibility If true, switches XPath 1.0 backwards compatibility mode on.
    * @param pNamespaceMap Optional map for namespace-aware XPath processing.
@@ -181,7 +149,7 @@ implements FoxPath {
       if(pContextUElem != null){
         SaxonEnvironment.clearThreadLocalContextUElem();
       }
-      mCumulativExecTimeMS += System.currentTimeMillis() - lStartTimeMS; //not thread safe but not important enough to incur the overhead
+      mCumulativeExecTimeMS += System.currentTimeMillis() - lStartTimeMS; //not thread safe but not important enough to incur the overhead
     }
   }
 
@@ -285,8 +253,8 @@ implements FoxPath {
   /**
    * Returns the cumulative time in milliseconds spent executing this XPath.
    */
-  public long getCumulativExecTimeMS(){
-    return mCumulativExecTimeMS;
+  public long getCumulativeExecTimeMS(){
+    return mCumulativeExecTimeMS;
   }
 
   /**
@@ -309,7 +277,7 @@ implements FoxPath {
       return ContextualityLevel.ITEM;
     }
 
-    //The context node's contextuality should not be overriden by a label reference if it is higher than a label's
+    //The context node's contextuality should not be overridden by a label reference if it is higher than a label's
     ContextualityLevel lMaxContextualityLevel = mUsesContextItem ? pContextNodeContextualityLevel : ContextualityLevel.CONSTANT;
     //Loop through context labels and establish the one with the highest (i.e. most contextual) level
     if(mLabelSet != null){
@@ -322,7 +290,7 @@ implements FoxPath {
       return lMaxContextualityLevel;
     }
 
-    //No labels in the path, but an overriden contextuality level was provided for the context node - so use that
+    //No labels in the path, but an overridden contextuality level was provided for the context node - so use that
     if(mUsesContextItem){
       return pContextNodeContextualityLevel;
     }

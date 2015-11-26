@@ -1,35 +1,3 @@
-/*
-
-Copyright (c) 2010, UK DEPARTMENT OF ENERGY AND CLIMATE CHANGE -
-                    ENERGY DEVELOPMENT UNIT (IT UNIT)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-    * Neither the name of the DEPARTMENT OF ENERGY AND CLIMATE CHANGE nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-$Id$
-
-*/
 package net.foxopen.fox;
 
 import net.foxopen.fox.dom.DOM;
@@ -181,22 +149,6 @@ public abstract class XFUtil {
     return pReplaceNullsWith;
   }
 
-//  /** (OVERLOADED) SQL like Null value replace utility */
-//  public static final int nvl(Integer pValue, Integer pReplaceNullsWith){
-//    if (pValue!=null){
-//      return pValue.intValue();
-//    }
-//    return pReplaceNullsWith.intValue();
-//  }
-
-//  /** (OVERLOADED) SQL like Null value replace utility */
-//  public static final int nvl(Integer pValue, int pReplaceNullsWith){
-//    if (pValue!=null){
-//      return pValue.intValue();
-//    }
-//    return pReplaceNullsWith;
-//  }
-
   /** (OVERLOADED) SQL like Null value replace utility */
   public static final int nvl(String pValue, int pReplaceNullsWith) {
     if (pValue!=null && pValue.length()!=0){
@@ -240,7 +192,7 @@ public abstract class XFUtil {
     return lInitCappedResult.toString();
   }
 
-  /** Global replace all occurances of string */
+  /** Global replace all occurrences of string */
   public static final String replace(String find, String replace, String str)
   {
     if(str.indexOf(find) == -1) { // Duplicated initial search NOT EFFICIENT
@@ -267,7 +219,7 @@ public abstract class XFUtil {
     return c;
   }
 
-  /** Global replace all occurances of string */
+  /** Global replace all occurrences of string */
   /**
    * @deprecated use StringBuilder version
    */
@@ -287,7 +239,7 @@ public abstract class XFUtil {
     return c;
   }
 
-  /** Global replace all occurances of string */
+  /** Global replace all occurrences of string */
   public static final int replaceRegexpExhaustive(String pRegexp, String pReplacement, StringBuffer pBuf) {
     // Compile regexp and matcher with buffer contents
     Pattern p = Pattern.compile(pRegexp);
@@ -310,7 +262,7 @@ public abstract class XFUtil {
     return count;
   }
 
-  /** Global replace all occurances of string iteratively until all occurances exhausted */
+  /** Global replace all occurrences of string iteratively until all occurrences exhausted */
   //DO NOT REMOVE - used by docgen plugin
   public static final int replaceExhaustive (String find, String replace, StringBuffer buf) {
     // NOT EFFICIENT (nested char loops)
@@ -328,7 +280,7 @@ public abstract class XFUtil {
 
   @Deprecated
   public static final String pathPopHead(StringBuffer buf, boolean skip_lead_slashes) {
-    // Remove leading slashs
+    // Remove leading slashes
     if(skip_lead_slashes) {
       while (buf.length()>0 && buf.charAt(0)=='/') {
         buf.deleteCharAt(0);
@@ -341,11 +293,11 @@ public abstract class XFUtil {
     // Extract and remove head string
     String str = buf.substring(0,p);
     buf.delete(0,p);
-    // Remove intermediate slashs
+    // Remove intermediate slashes
     while (buf.length()>0 && buf.charAt(0)=='/') {
       buf.deleteCharAt(0);
     }
-    // Return extraced string
+    // Return extracted string
     return str;
   }
 
@@ -430,7 +382,7 @@ public abstract class XFUtil {
       return "";
     }
 
-    // Remove leading slashs
+    // Remove leading slashes
     if(pSkipLeadSlashes) {
       pathStripLeadSlashes(pPath);
     }
@@ -449,7 +401,7 @@ public abstract class XFUtil {
     // Remove intermediate slashes from the remaining path
     pathStripLeadSlashes(pPath);
 
-    // Return extraced string
+    // Return extracted string
     return lPoppedHead;
   }
 
@@ -740,7 +692,7 @@ public abstract class XFUtil {
      return (String[]) al.toArray(new String[0]);
   }
 
-  /** Interigates java call stack returning class names as an array - not efficient use only for diagnostic code */
+  /** Interrogates java call stack returning class names as an array - not efficient use only for diagnostic code */
   public static final String[] getJavaStackClasses(int pMaxArraySize) {
     Exception x = new Exception();
 
@@ -1161,7 +1113,7 @@ public abstract class XFUtil {
       int upos = 1; // day = 1, month = 2, validate month = 3, year = 4
       int apos = 0; // array positions
       int cpos = 0; // actual positions in current section DELETE
-      int sep = 0; // Number of seperators found
+      int sep = 0; // Number of separators found
       StringBuffer monthSB = new StringBuffer();
       boolean valid = true;
       if (date.length < 6) {

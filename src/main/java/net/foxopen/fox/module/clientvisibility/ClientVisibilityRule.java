@@ -1,35 +1,3 @@
-/*
-
-Copyright (c) 2013, UK DEPARTMENT OF ENERGY AND CLIMATE CHANGE -
-                    ENERGY DEVELOPMENT UNIT (IT UNIT)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-    * Neither the name of the DEPARTMENT OF ENERGY AND CLIMATE CHANGE nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-$Id$
-
-*/
 package net.foxopen.fox.module.clientvisibility;
 
 import net.foxopen.fox.ContextUElem;
@@ -48,7 +16,7 @@ import java.util.Map;
 
 
 /**
- * Representation of a client visibility rule as defined in module markup. Client visbility rules are composed of
+ * Representation of a client visibility rule as defined in module markup. Client visibility rules are composed of
  * Operations which are effectively different forms of boolean logic. ClientVisibilityRules are evaluated against contextual
  * information in order to create an {@link EvaluatedClientVisibilityRule} which can then be used to determine the target's
  * visibility.
@@ -138,7 +106,7 @@ public class ClientVisibilityRule {
 
     mRuleName = pDOM.getAttrOrNull("name");
     if(XFUtil.isNull(mRuleName)){
-      throw new ExModule("Client visiblity rule must have a name.");
+      throw new ExModule("Client visibility rule must have a name.");
     }
 
     mUseVisibilityXPath = XFUtil.nvl(pDOM.getAttrOrNull("use-css-visibility"), "false()");
@@ -147,7 +115,7 @@ public class ClientVisibilityRule {
       mOperation = parseOperation(pDOM.get1E("fm:condition/*"), pMod);
     }
     catch (ExCardinality e) {
-      throw new ExModule("Client visiblity rule must have exactly one element below its fm:condition element.", e);
+      throw new ExModule("Client visibility rule must have exactly one element below its fm:condition element.", e);
     }
   }
 
@@ -197,7 +165,7 @@ public class ClientVisibilityRule {
     else if("fm:nested-rule".equals(lElemName)){
       String lNestedName = pDOM.getAttrOrNull("name");
       if(XFUtil.isNull(lNestedName)){
-        throw new ExModule("Client visiblity rule " + getRuleName() + " - nested rule must have a 'name' attribute");
+        throw new ExModule("Client visibility rule " + getRuleName() + " - nested rule must have a 'name' attribute");
       }
       try {
         //Get the definition for the nested rule and extract its root operation
@@ -205,7 +173,7 @@ public class ClientVisibilityRule {
         return lNestedRule.mOperation;
       }
       catch(ExModule e){
-        throw new ExModule("Client visiblity rule " + getRuleName() + " - failed to find nested rule named '" + lNestedName + "'. " +
+        throw new ExModule("Client visibility rule " + getRuleName() + " - failed to find nested rule named '" + lNestedName + "'. " +
           "Note that rules must be defined before they are referenced.");
       }
     }
@@ -213,7 +181,7 @@ public class ClientVisibilityRule {
       return new BinaryOperation(pDOM, pMod);
     }
     else {
-      throw new ExModule("Client visiblity rule " + getRuleName() + " - " + lElemName + " not recognised as an Operation; must be one of fm:widget, fm:nested-rule, fm:fixed-xpath, fm:and or fm:or");
+      throw new ExModule("Client visibility rule " + getRuleName() + " - " + lElemName + " not recognised as an Operation; must be one of fm:widget, fm:nested-rule, fm:fixed-xpath, fm:and or fm:or");
     }
   }
 
@@ -242,11 +210,11 @@ public class ClientVisibilityRule {
 
       //Validate markup
       if(!(XFUtil.exists(pDOM.getAttrOrNull(TARGET_ATTR)) ^ XFUtil.exists(pDOM.getAttrOrNull(USE_TARGET_FROM_SCHEMA_ATTR)))){
-        throw new ExModule("Client visiblity rule " + getRuleName() + " - 'target' and 'use-target-from-schema' attributes are mutually exclusive (one must be specified)");
+        throw new ExModule("Client visibility rule " + getRuleName() + " - 'target' and 'use-target-from-schema' attributes are mutually exclusive (one must be specified)");
       }
 
       if(pDOM.hasAttr(USE_TARGET_FROM_SCHEMA_ATTR) && !"yes".equals(pDOM.getAttr(USE_TARGET_FROM_SCHEMA_ATTR))){
-        throw new ExModule("Client visiblity rule " + getRuleName() + " - 'use-target-from-schema' attribute must be 'yes'");
+        throw new ExModule("Client visibility rule " + getRuleName() + " - 'use-target-from-schema' attribute must be 'yes'");
       }
 
       mTargetXPath = pDOM.getAttrOrNull(TARGET_ATTR);
@@ -254,7 +222,7 @@ public class ClientVisibilityRule {
 
       String lConditionTypeString = pDOM.getAttrOrNull("condition-type");
       if(XFUtil.isNull(lConditionTypeString)){
-        throw new ExModule("Client visiblity rule " + getRuleName() + " - widget condition must specify a condition type ('condition-type' attribute)");
+        throw new ExModule("Client visibility rule " + getRuleName() + " - widget condition must specify a condition type ('condition-type' attribute)");
       }
 
       mConditionType = ConditionType.fromExternalString(lConditionTypeString);
@@ -264,7 +232,7 @@ public class ClientVisibilityRule {
         //For equals and not equals operations a value to check must also be specified.
 
         if(pDOM.hasAttr(VALUE_ATTR) && pDOM.hasAttr(USE_VALUE_FROM_SCHEMA_ATTR)){
-          throw new ExModule("Client visiblity rule " + getRuleName() + " - 'value' and 'use-value-from-schema' attributes are mutually exclusive");
+          throw new ExModule("Client visibility rule " + getRuleName() + " - 'value' and 'use-value-from-schema' attributes are mutually exclusive");
         }
 
         if(pDOM.hasAttr(USE_VALUE_FROM_SCHEMA_ATTR) && !"yes".equals(pDOM.getAttr(USE_VALUE_FROM_SCHEMA_ATTR))){
@@ -275,7 +243,7 @@ public class ClientVisibilityRule {
         mUseValueFromSchema = pDOM.hasAttr(USE_VALUE_FROM_SCHEMA_ATTR);
 
         if(XFUtil.isNull(mValueXPath) && !mUseValueFromSchema){
-          throw new ExModule("Client visiblity rule " + getRuleName() + " - equals/not-equals widget condition must specify a value " +
+          throw new ExModule("Client visibility rule " + getRuleName() + " - equals/not-equals widget condition must specify a value " +
                               "('" + VALUE_ATTR + "' or '" + USE_VALUE_FROM_SCHEMA_ATTR + "' attribute)");
         }
       }
@@ -312,7 +280,7 @@ public class ClientVisibilityRule {
         throw new ExModule("Operation type not supported"); //This is here to satisfy the compiler (operation type field is final)
       }
 
-      mNestedOperationList = new ArrayList<Operation>();
+      mNestedOperationList = new ArrayList<>();
       DOMList lChildList = pDOM.getUL("*");
 
       //Assert we have at least 2 nested operations to perform.
