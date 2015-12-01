@@ -43,6 +43,7 @@ import net.foxopen.fox.module.parsetree.presentationnode.BufferPresentationNode;
 import net.foxopen.fox.module.serialiser.HtmlDoctype;
 import net.foxopen.fox.page.PageDefinition;
 import net.foxopen.fox.security.SecurityTable;
+import net.foxopen.fox.thread.assertion.ModuleAssertionConfig;
 import net.foxopen.fox.thread.storage.DataDOMStorageLocation;
 import net.foxopen.fox.thread.storage.FileStorageLocation;
 import nu.xom.Element;
@@ -111,6 +112,9 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
   public final String mModuleName;
 
   private final String mAuthRequired;
+
+  /** Null if this is not an assertion module */
+  private final ModuleAssertionConfig mAssertionConfig;
 
   /** The module's title. */
   private String mTitle;
@@ -281,6 +285,13 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
     mTitle = (mTitle != null ? mTitle : mModuleName);
     mDescription = (mDescription != null ? mDescription : mTitle);
     mAuthRequired = mHashHeader.get("fm:authentication");
+
+    if(lModuleDOM.get1EOrNull("fm:control/fm:assertion-module") != null) {
+      mAssertionConfig = ModuleAssertionConfig.fromMarkupDOM(lModuleDOM.get1EOrNull("fm:control/fm:assertion-module"));
+    }
+    else {
+      mAssertionConfig = null;
+    }
 
     // Process schema and libraries
     //mModuleParseUCon = FoxRequest.getCurrentFoxRequest().getReusableUCon(mApp.getConnectKey(), "Loading Module Libs");
@@ -1191,6 +1202,22 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
 
   public boolean isAuthenticationRequired() {
     return !"not-required".equals(mAuthRequired);
+  }
+
+  /**
+   * @return True if this module is marked as an assertion module.
+   */
+  public boolean isAssertionModule() {
+    return mAssertionConfig != null;
+  }
+
+  /**
+   * Gets the assertion configuration options for this module. This will not be null if {@link #isAssertionModule()} returns
+   * true.
+   * @return Assertion config for an assertion module, or null.
+   */
+  public ModuleAssertionConfig getAssertionConfig() {
+    return mAssertionConfig;
   }
 
   @Override

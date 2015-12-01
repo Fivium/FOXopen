@@ -471,6 +471,11 @@ public class ModuleXPathVariableManagerTest {
     }
 
     @Override
+    public boolean isAssertionMode() {
+      return false;
+    }
+
+    @Override
     public ThreadInfoProvider getThreadInfoProvider() {
       return null;
     }

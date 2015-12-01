@@ -4,7 +4,6 @@ import net.foxopen.fox.command.Command;
 import net.foxopen.fox.command.CommandFactory;
 import net.foxopen.fox.command.XDoCommandList;
 import net.foxopen.fox.command.XDoRunner;
-import net.foxopen.fox.command.builtin.AssertCommand.AssertionResult;
 import net.foxopen.fox.command.flow.XDoControlFlow;
 import net.foxopen.fox.command.flow.XDoControlFlowContinue;
 import net.foxopen.fox.command.flow.XDoControlFlowError;
@@ -12,6 +11,7 @@ import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExDoSyntax;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.thread.ActionRequestContext;
+import net.foxopen.fox.thread.assertion.AssertionFailsResult;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -50,29 +50,15 @@ extends BuiltInCommand {
       lErrorMsg = ((XDoControlFlowError) lCommandResult).getMessage();
     }
 
-    pRequestContext.addXDoResult(new AssertFailsResult(mMessage, lErrorMsg, lFailed));
+    AssertionFailsResult lAssertionResult = new AssertionFailsResult(mMessage, lErrorMsg, lFailed);
 
-    return XDoControlFlowContinue.instance();
+    //Behaviour after an assertion failure depends on the request's assertion mode
+    return AssertCommand.handleAssertionResult(pRequestContext, lAssertionResult);
   }
 
   @Override
   public boolean isCallTransition() {
     return false;
-  }
-
-  public static class AssertFailsResult
-  extends AssertionResult {
-
-    private final String mErrorMessage;
-
-    public AssertFailsResult(String pMessage, String pErrorMessage, boolean pPassed) {
-      super("", pMessage, pPassed);
-      mErrorMessage = pErrorMessage;
-    }
-
-    public String getFullMessage() {
-      return (mPassed ? "PASSED" : "FAILED") + " (assert-fails): " + mMessage + " - " + (mPassed ? "failed with error: '" +  mErrorMessage + "'": "expected error but no error thrown");
-    }
   }
 
   public static class Factory

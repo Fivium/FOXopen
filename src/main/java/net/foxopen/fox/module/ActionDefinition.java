@@ -26,6 +26,7 @@ implements Validatable {
   private final NamespaceAttributeTable mNamespaceAttributes;
   private final AutoActionType mAutoActionType; //Can be null
   private final boolean mApplyFlag;
+  private final boolean mAssertionFlag;
 
   private final Collection<InvokePrecondition> mInvokePreconditions;
 
@@ -84,18 +85,21 @@ implements Validatable {
       }
     }
 
+    boolean lAssertionFlag = pDefinitionElement.hasAttr("assertion");
+
     return new ActionDefinition(lActionName, pStateName, lXDoCommandList, pDefinitionElement.getNamespaceAttributeTable(), lAutoActionType,
-                                lApplyFlag, Collections.unmodifiableCollection(lInvokePreconditions));
+                                lApplyFlag, lAssertionFlag, Collections.unmodifiableCollection(lInvokePreconditions));
   }
 
   private ActionDefinition(String pActionName, String pStateName, XDoCommandList pXDoCommandList, NamespaceAttributeTable pNamespaceAttributes, AutoActionType pAutoActionType,
-                           boolean pApplyFlag, Collection<InvokePrecondition> pInvokePreconditions) {
+                           boolean pApplyFlag, boolean pAssertionFlag, Collection<InvokePrecondition> pInvokePreconditions) {
     mActionName = pActionName;
     mStateName = pStateName;
     mXDoCommandList = pXDoCommandList;
     mNamespaceAttributes = pNamespaceAttributes;
     mAutoActionType = pAutoActionType;
     mApplyFlag = pApplyFlag;
+    mAssertionFlag = pAssertionFlag;
     mInvokePreconditions = pInvokePreconditions;
   }
 
@@ -104,7 +108,7 @@ implements Validatable {
   }
 
   /**
-   * Creates an ActionIdentifer which can be used to identify and run this ActionDefintion.
+   * Creates an ActionIdentifier which can be used to identify and run this ActionDefintion.
    * @param pIncludeStateName If true, the state name will be included in the identifier. This should be true for actions
    *                          which are not in the current state.
    * @return New ActionIdentifier for this action.
@@ -121,6 +125,13 @@ implements Validatable {
 
   public boolean isApplyFlag() {
     return mApplyFlag;
+  }
+
+  /**
+   * @return True if this action has been marked up as an assertion.
+   */
+  public boolean isAssertion() {
+    return mAssertionFlag;
   }
 
   public NamespaceAttributeTable getNamespaceAttributeTable() {
