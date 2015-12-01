@@ -158,7 +158,7 @@ extends EntryPointServlet {
     return new ThreadLockManager.LockedThreadRunnable<DownloadParcel>() {
       @Override
       public DownloadParcel doWhenLocked(RequestContext pRequestContext, final StatefulXThread pXThread) {
-        return pXThread.processAction(pRequestContext, pActionName, pContextRef, new ThreadActionResultGenerator<DownloadParcel>() {
+        return pXThread.processAction(pRequestContext, pActionName, pContextRef, true, new ThreadActionResultGenerator<DownloadParcel>() {
           @Override
           public DownloadParcel establishResult(ActionRequestContext pRequestContext) {
             List<DownloadLinkXDoResult> lDownloadResults = pRequestContext.getXDoResults(DownloadLinkXDoResult.class);

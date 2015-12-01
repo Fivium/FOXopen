@@ -82,6 +82,16 @@
                   </xs:restriction>
                 </xs:simpleType>
               </xs:element>
+              <xs:element minOccurs="0" name="assertion-module">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="0" name="entry-theme" type="xs:string"/>
+                    <xs:element minOccurs="0" name="before-action" type="xs:string"/>
+                    <xs:element minOccurs="0" name="after-action" type="xs:string"/>
+                    <xs:element minOccurs="0" name="test-categories" type="xs:string"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
               <xs:element name="transaction-mode-new" minOccurs="0">
                 <xs:simpleType>
                   <xs:restriction base="fm:entered-string">
@@ -2663,6 +2673,7 @@ Can also be used to replace all states on the state-call stack with the state sp
           <xs:attribute name="no-apply" type="fm:yn-flag"/>
           <xs:attribute name="type" type="fm:action-types"/>
           <xs:attribute name="stub-overload"/>
+          <xs:attribute name="assertion" fixed="."/>
           <xs:attribute name="build-only"/>
           <xs:attributeGroup ref="fox:zzz-action-attr-grp"/>
           <xs:anyAttribute namespace="##other" processContents="skip"/>

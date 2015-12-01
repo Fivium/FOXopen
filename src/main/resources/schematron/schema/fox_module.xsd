@@ -82,6 +82,16 @@
                   </xs:restriction>
                 </xs:simpleType>
               </xs:element>
+              <xs:element minOccurs="0" name="assertion-module">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="0" name="entry-theme" type="xs:string"/>
+                    <xs:element minOccurs="0" name="before-action" type="xs:string"/>
+                    <xs:element minOccurs="0" name="after-action" type="xs:string"/>
+                    <xs:element minOccurs="0" name="test-categories" type="xs:string"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
               <xs:element name="transaction-mode-new" minOccurs="0">
                 <xs:simpleType>
                   <xs:restriction base="fm:entered-string">
@@ -1863,12 +1873,12 @@ Mapsets can have the following structures:
                 <xs:documentation>The destination storage location of the generated document, when generating using method storage-location</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="debug"  type="xs:boolean" default="false"  use="optional">
+            <xs:attribute name="debug" type="xs:boolean" default="false" use="optional">
               <xs:annotation>
                 <xs:documentation>Whether or not to display debug elements in the output</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="ignore-unsupported" type="xs:boolean" default="false"  use="optional">
+            <xs:attribute name="ignore-unsupported" type="xs:boolean" default="false" use="optional">
               <xs:annotation>
                 <xs:documentation>If true unsupported components and widgets will be ignored instead of throwing an exception when they are encountered. Ignored components and widgets are displayed in the track. Note that ignoring unsupported is not recommended as it causes regression issues if an unsupported component or widget is implemented in the future.</xs:documentation>
               </xs:annotation>
@@ -2663,6 +2673,7 @@ Mapsets can have the following structures:
           <xs:attribute name="no-apply" type="fm:yn-flag"/>
           <xs:attribute name="type" type="fm:action-types"/>
           <xs:attribute name="stub-overload"/>
+          <xs:attribute name="assertion" fixed="."/>
           <xs:attribute name="build-only"/>
           <xs:attributeGroup ref="fox:zzz-action-attr-grp"/>
           <xs:anyAttribute namespace="##other" processContents="skip"/>

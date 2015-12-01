@@ -169,6 +169,11 @@ public class StoredXPathTranslationTest {
     }
 
     @Override
+    public boolean isAssertionMode() {
+      return false;
+    }
+
+    @Override
     public ThreadInfoProvider getThreadInfoProvider() {
       return null;
     }

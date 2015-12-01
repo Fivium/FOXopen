@@ -52,11 +52,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 public class App {
 
@@ -116,7 +116,7 @@ public class App {
    * Used to find out if a component can be found in this app without a db lookup each request.
    * Populated JIT
    */
-  private Set<String> mComponentNameSet;
+  private final Set<String> mComponentNameSet;
 
   /**
    * Create an App performing any set up processing required on it.
@@ -235,7 +235,7 @@ public class App {
     mResourceQueryDefinitions = new AppResourceQueryDefinitions(mAppMnem, mResourceTableList);
 
     //Generate list of component names in the database
-    mComponentNameSet = null; //This gets populated JIT
+    mComponentNameSet = retrieveComponentNames();
 
     DOM lSpatialRendererList = pAppDefinition.getPropertyAsDOM(AppProperty.SPATIAL_RENDERER_LIST);
     if (lSpatialRendererList != null) {
@@ -481,17 +481,32 @@ public class App {
     return lFileUploadType;
   }
 
-  private final void populateComponentNameSet (UCon pLoadUCon) throws ExApp {
+  /**
+   * Establishes a database connection and retrieves a set of all the names of components defined for this app.
+   * @return All component names for this app.
+   * @throws ExApp If query fails.
+   */
+  private Set<String> retrieveComponentNames() throws ExApp {
+
     try {
-      List<UConStatementResult> lComponentNames = pLoadUCon.queryMultipleRows(mResourceQueryDefinitions.getResourceNamesParsedStatement());
-      Set<String> lComponentNameSet = new HashSet<>(lComponentNames.size());
-      for (UConStatementResult lRow : lComponentNames) {
-        lComponentNameSet.add(lRow.getString("NAME"));
+      UCon lUCon = ConnectionAgent.getConnection(mConnectionPoolName, "App getComponentNameSet");
+      try {
+        List<UConStatementResult> lComponentNames = lUCon.queryMultipleRows(mResourceQueryDefinitions.getResourceNamesParsedStatement());
+
+        return lComponentNames
+          .stream()
+          .map(lRow -> lRow.getString("NAME"))
+          .collect(Collectors.toSet());
       }
-      mComponentNameSet = lComponentNameSet;
+      catch (Throwable ex) {
+        throw new ExApp("Failed to populate component names list", ex);
+      }
+      finally {
+        lUCon.closeForRecycle();
+      }
     }
-    catch (Throwable ex) {
-      throw new ExApp("Failed to populate component names list", ex);
+    catch (ExServiceUnavailable e) {
+      throw new ExApp("Failed to get UCon to get component names list", e);
     }
   }
 
@@ -592,7 +607,7 @@ public class App {
     StringBuilder lComponentPath = new StringBuilder(pComponentPath);
     StringBuilder lPoppedComponentParts = new StringBuilder();
     while(lComponentPath.length() > 0) {
-      if(mComponentNameSet != null && mComponentNameSet.contains(lComponentPath.toString())) {
+      if(mComponentNameSet.contains(lComponentPath.toString())) {
         return lComponentPath.toString();
       }
 
@@ -621,12 +636,6 @@ public class App {
     UCon lUCon = null;
     Track.pushInfo("GetComponent", pComponentPath);
     try {
-      // If the component name set is empty, make sure it's populated JIT
-      if (mComponentNameSet == null || mComponentNameSet.size() == 0) {
-        lUCon = ConnectionAgent.getConnection(mConnectionPoolName, UCON_PURPOSE);
-        populateComponentNameSet(lUCon);
-      }
-
       UConStatementResult lRow = null;
 
       // Attempt to find a valid component name from the component path
@@ -744,7 +753,7 @@ public class App {
   }
 
   public Set<String> getComponentNameSet() {
-    return Collections.unmodifiableSet(mComponentNameSet == null ? Collections.<String>emptySet() : mComponentNameSet);
+    return Collections.unmodifiableSet(mComponentNameSet);
   }
 
   public Collection<VirusScanner> createVirusScanners() {

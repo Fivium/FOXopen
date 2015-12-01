@@ -2,6 +2,7 @@ package net.foxopen.fox.entrypoint.engine;
 
 import net.foxopen.fox.entrypoint.ws.WebService;
 import net.foxopen.fox.entrypoint.ws.WebServiceCategory;
+import net.foxopen.fox.thread.assertion.AssertWebService;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -20,6 +21,7 @@ implements WebServiceCategory {
     return Arrays.asList(
       new AliveWebService(),
       new AppCacheWebService(),
+      new AssertWebService(),
       new ThreadWebService(),
       new MapSetWebService(),
       new SpatialWebService()

@@ -1,8 +1,6 @@
 package net.foxopen.fox.command;
 
 import net.foxopen.fox.ContextLabel;
-import net.foxopen.fox.command.builtin.AssertCommand;
-import net.foxopen.fox.command.builtin.AssertCommand.AssertionResult;
 import net.foxopen.fox.command.flow.XDoControlFlow;
 import net.foxopen.fox.command.flow.XDoControlFlowCST;
 import net.foxopen.fox.command.flow.XDoControlFlowContinue;
@@ -11,7 +9,6 @@ import net.foxopen.fox.command.flow.XDoControlFlowIgnore;
 import net.foxopen.fox.command.flow.XDoControlFlowThrownCode;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.entrypoint.FoxGlobals;
-import net.foxopen.fox.ex.ExAssertion;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.thread.ExitResponse;
@@ -22,9 +19,6 @@ import net.foxopen.fox.thread.stack.ModuleCall;
 import net.foxopen.fox.thread.stack.ModuleCallStack;
 import net.foxopen.fox.thread.stack.transform.CallStackTransformation;
 import net.foxopen.fox.track.Track;
-import net.foxopen.fox.track.TrackFlag;
-
-import java.util.List;
 
 
 /**
@@ -137,18 +131,6 @@ public class XDoRunner {
    * @param pModuleCallStack Optional ModuleCallStack to invoke any transformations on.
    */
   public void processCompletion(ActionRequestContext pRequestContext, ModuleCallStack pModuleCallStack){
-
-    //Loop through assertions and throw an error if there was a failure
-    //TODO improve assertion functionality i.e. have option to fail immediately
-    List<AssertionResult> lAsserionResults = pRequestContext.getXDoResults(AssertCommand.AssertionResult.class);
-    for(AssertionResult lAssertionResult : lAsserionResults) {
-      if(!lAssertionResult.assertionPassed()) {
-        throw ExAssertion.createFromAssertionResultList(lAsserionResults);
-      }
-      else {
-        Track.info("AssertionPassed", lAssertionResult.getFullMessage(), TrackFlag.ASSERTION);
-      }
-    }
 
     if(mControlFlow instanceof XDoControlFlowError) {
       Track.info("RethrowError");

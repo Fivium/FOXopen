@@ -669,26 +669,22 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
   }
 
   /**
-   * Ramps up the XThread and runs an external action against it. The action name and context ref tuple is validated against
+   * Ramps up the XThread and runs an external action against it. The action name and context ref tuple can be validated against
    * the outgoing FieldSet to ensure it is valid. After running the action, the provided ThreadActionResultGenerator is used
    * to determine a result object to return. If this is null the return value of the method will be null.
    * @param pRequestContext Current RequestContext.
    * @param pActionName Name of the action to run.
    * @param pActionRef Context ref identifying the :{action} context node.
+   * @param pValidateAction If true, the action name/ref tuple is validated against the thread's current FieldSet. For security
+   *                        reasons, this should be true for externally invoked actions.
    * @param pResultGenerator Used to establish a result to be returned.
    * @param <T> Result type returned by the ThreadActionResultGenerator.
    * @return The result of running the action. Can be null depending on the return value or absence of the ThreadActionResultGenerator.
    */
-  public <T> T processAction(RequestContext pRequestContext, final String pActionName, final String pActionRef, ThreadActionResultGenerator<T> pResultGenerator) {
-    RampedThreadRunnable lActionRunner = new RampedThreadRunnable() {
-      @Override
-      public void run(ActionRequestContext pActionRequestContext) throws ExUserRequest {
-        processExternalAction(pActionRequestContext, pActionName, pActionRef, true);
-      }
-    };
-
-    return rampAndRun(pRequestContext, "ProcessAction", lActionRunner, pResultGenerator);
+  public <T> T processAction(RequestContext pRequestContext, final String pActionName, final String pActionRef, boolean pValidateAction, ThreadActionResultGenerator<T> pResultGenerator) {
+    return rampAndRun(pRequestContext, "ProcessAction", pARC -> processExternalAction(pARC, pActionName, pActionRef, pValidateAction), pResultGenerator);
   }
+
 
   /** The FieldSet this thread has most recently sent out. May be null if this thread is yet to perform a generate. */
   public FieldSet getFieldSetOut() {
@@ -1330,5 +1326,12 @@ implements XThreadInterface, ThreadInfoProvider, Persistable {
 
   public TempResourceProvider getTempResourceProvider() {
     return mTempResourceProvider;
+  }
+
+  /**
+   * @return True if the assertion mode parameter for this XThread is true.
+   */
+  boolean isAssertionMode() {
+    return mThreadPropertyMap.getBooleanProperty(ThreadProperty.Type.IS_ASSERTION_MODE);
   }
 }

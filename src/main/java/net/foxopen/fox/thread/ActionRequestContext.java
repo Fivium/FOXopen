@@ -150,4 +150,10 @@ extends RequestContext {
    */
   public XPathVariableManager getXPathVariableManager();
 
+  /**
+   * @return True if this request is in "assertion mode". In assertion mode, assertion command failures should not immediately
+   * error, but should be handled gracefully so they can be reported in bulk by the assertion runner.
+   */
+  public boolean isAssertionMode();
+
 }

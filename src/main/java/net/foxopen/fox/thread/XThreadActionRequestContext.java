@@ -253,4 +253,9 @@ implements ActionRequestContext {
   public XPathVariableManager getXPathVariableManager() {
     return mXThread.getTopModuleCall().getXPathVariableManager();
   }
+
+  @Override
+  public boolean isAssertionMode() {
+    return mXThread.isAssertionMode();
+  }
 }
