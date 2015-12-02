@@ -160,13 +160,14 @@ public class AssertionRunner {
    */
   private void runModuleAssertionActions(RequestContext pRequestContext, Mod pMod) {
 
-    StatefulXThread lXThread = createXThread(pRequestContext, pMod);
-
     ModuleAssertionConfig lAssertionConfig = pMod.getAssertionConfig();
-    //Establish default attach point for action running
-    String lAttach = lXThread.getModuleCallStack().getTopModuleCall().getContextUElem().attachDOM().getFoxId();
-
     for (ActionDefinition lAction : pMod.getActionDefinitionMap().values()) {
+      //Create a new XThread for each action
+      StatefulXThread lXThread = createXThread(pRequestContext, pMod);
+
+      //Establish default attach point for action running
+      String lAttach = lXThread.getModuleCallStack().getTopModuleCall().getContextUElem().attachDOM().getFoxId();
+
       //Only run assertion actions
       if (lAction.isAssertion()) {
         Track.pushInfo("AssertionAction", lAction.getActionName());
