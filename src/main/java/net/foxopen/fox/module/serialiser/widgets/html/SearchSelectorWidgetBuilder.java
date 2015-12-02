@@ -156,8 +156,8 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
       lTemplateVars.put("Multiple", true );
     }
 
-    // Always set size, otherwise all fields post back with first value
-    lTemplateVars.put("Size", pSelectOptions.size());
+    // Always set size greater than 2, otherwise all fields post back with first value
+    lTemplateVars.put("Size", Math.max(2, pSelectOptions.size()));
 
     List<Map<String, Object>> lOptions = new ArrayList<>();
     OPTION_LOOP:
