@@ -83,12 +83,31 @@
                 </xs:simpleType>
               </xs:element>
               <xs:element minOccurs="0" name="assertion-module">
+                <xs:annotation>
+                  <xs:documentation>The existence of this element marks the module as an assertion module which can be executed by the assertion runner. Child elements can be used to refine the behavior of the module when it is accessed as an assertion module.</xs:documentation>
+                </xs:annotation>
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element minOccurs="0" name="entry-theme" type="xs:string"/>
-                    <xs:element minOccurs="0" name="before-action" type="xs:string"/>
-                    <xs:element minOccurs="0" name="after-action" type="xs:string"/>
-                    <xs:element minOccurs="0" name="test-categories" type="xs:string"/>
+                    <xs:element minOccurs="0" name="entry-theme" type="xs:string">
+                      <xs:annotation>
+                        <xs:documentation>Specifies the entry theme which is used when the module is invoked by the assertion runner. If not specified, the module's default entry theme is used.</xs:documentation>
+                      </xs:annotation>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="before-action" type="xs:string">
+                      <xs:annotation>
+                        <xs:documentation>Defines an action which is run before each assertion action. This can be used to provide generic setup code for all assertion actions in the module. Errors in the before action will prevent the assertion action from running.</xs:documentation>
+                      </xs:annotation>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="after-action" type="xs:string">
+                      <xs:annotation>
+                        <xs:documentation>Defines an action which is run after each assertion action. This can be used to provide generic cleandown code for all assertion actions in the module. The after action is always run, even in the event of an error.</xs:documentation>
+                      </xs:annotation>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="test-categories" type="xs:string">
+                      <xs:annotation>
+                        <xs:documentation>A CSV list of test categories which the assertion module belongs to. This is used by the category endpoint to select assertion modules to run.</xs:documentation>
+                      </xs:annotation>
+                    </xs:element>
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
@@ -2673,7 +2692,11 @@ Mapsets can have the following structures:
           <xs:attribute name="no-apply" type="fm:yn-flag"/>
           <xs:attribute name="type" type="fm:action-types"/>
           <xs:attribute name="stub-overload"/>
-          <xs:attribute name="assertion" fixed="."/>
+          <xs:attribute name="assertion" fixed=".">
+            <xs:annotation>
+              <xs:documentation>Marks this action as an assertion action which will be executed by the assertion runner. The module must be marked up as an assertion module - see fm:assertion-module in the fm:control section.</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
           <xs:attribute name="build-only"/>
           <xs:attributeGroup ref="fox:zzz-action-attr-grp"/>
           <xs:anyAttribute namespace="##other" processContents="skip"/>
