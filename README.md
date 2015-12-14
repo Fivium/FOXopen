@@ -1,13 +1,13 @@
-# FOX
-[FOX](http://www.foxopen.net/) is an open source (GPL v3) Java based web framework enabling rapid development of secure 
-workflow-based web systems.
+# FOXopen
+[FOXopen](http://www.foxopen.net/) is an open source (GPL v3) Java based web framework enabling rapid development of
+secure workflow-based web systems.
 
 ## Learn More
 
-- [Building FOX](wiki/building)
-- [Running FOX](wiki/running)
-- [Developing applications with FOX](wiki/developing)
-- [Contributing to FOX](wiki/contributing)
+- [Building FOXopen](https://github.com/Fivium/FOXopen/wiki/Building-FOXopen)
+- [Running FOXopen](https://github.com/Fivium/FOXopen/wiki/Running-FOXopen)
+- [Developing FOXopen Applications](https://github.com/Fivium/FOXopen/wiki/Developing-FOXopen-Applications)
+- [Contributing to FOXopen](https://github.com/Fivium/FOXopen/wiki/Contributing-to-FOXopen)
 
 ## License
 FOX5 is released as open source software under the [GPL v3](https://opensource.org/licenses/gpl-3.0.html) 
