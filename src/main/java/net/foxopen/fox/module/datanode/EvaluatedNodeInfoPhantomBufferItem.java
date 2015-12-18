@@ -5,6 +5,7 @@ import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExModule;
 import net.foxopen.fox.module.evaluatedattributeresult.DOMAttributeResult;
+import net.foxopen.fox.module.evaluatedattributeresult.EvaluatedBufferAttributeResult;
 import net.foxopen.fox.module.evaluatedattributeresult.StringAttributeResult;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedPresentationNode;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.GenericAttributesEvaluatedPresentationNode;
@@ -87,7 +88,8 @@ extends EvaluatedNodeInfoItem {
     // Phantom buffers don't have a prompt by default. If no NodeAttribute.PROMPT specified, or it's set to "" then no prompt.
     // If the attribute is defined as anything then the prompt appears normally
     StringAttributeResult lPrompt = getStringAttributeResultOrNull(NodeAttribute.PROMPT);
-    return (lPrompt != null && !XFUtil.isNull(lPrompt.getString()));
+    EvaluatedBufferAttributeResult lPromptBuffer = getEvaluatedBufferAttributeOrNull(NodeAttribute.PROMPT_BUFFER);
+    return (lPrompt != null && !XFUtil.isNull(lPrompt.getString())) || lPromptBuffer != null;
   }
 
   @Override
