@@ -1522,7 +1522,8 @@
      */
     _fireOnChangeAction: function () {
       if (this.element[0].onchange) {
-        this.element[0].onchange();
+        // Put the call to onchange in a setTimeout to stop IE11 hard crashing due to internal IE11 bug
+        setTimeout(this.element[0].onchange, 0);
       }
     }
   });
