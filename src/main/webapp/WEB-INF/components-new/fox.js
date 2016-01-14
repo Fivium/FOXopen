@@ -335,7 +335,7 @@ var FOXjs = {
       closeButton.style.display = "block";
     }, 1000*60*5); // 5 minutes
     // Stop resubmission in IE
-    if ("activeElement" in document) {
+    if ("activeElement" in document && document.activeElement !== document.body) {
       document.activeElement.blur();
     }
     this.blockSubmit("The page is already loading. Please wait for the page to finish loading before performing further actions.");
