@@ -100,6 +100,7 @@ public class App {
   private final String mDefaultModuleName;
   private final String mTimeoutModuleName;
   private final String mSecurityCheckModuleName;
+  private final String mPasswordExpiredModuleName;
 
   private final String mErrorComponentName;
   private final String mResponseMethod;
@@ -213,6 +214,7 @@ public class App {
     mDefaultModuleName = pAppDefinition.getPropertyAsString(AppProperty.MODULE_DEFAULT_MODULE);
     mTimeoutModuleName = pAppDefinition.getPropertyAsString(AppProperty.MODULE_TIMEOUT_MODULE);
     mSecurityCheckModuleName = pAppDefinition.getPropertyAsString(AppProperty.MODULE_SECURITY_CHECK_MODULE);
+    mPasswordExpiredModuleName = pAppDefinition.getPropertyAsString(AppProperty.MODULE_PASSWORD_EXPIRED_MODULE);
 
     mErrorComponentName = pAppDefinition.getPropertyAsString(AppProperty.ERROR_COMPONENT_NAME);
 
@@ -731,21 +733,53 @@ public class App {
   }
 
   /**
-   * Gets the entry theme to which a user should be directed in the event that they fail a privilege check.
-   * @return
+   * Establishes a module and entry theme from a name string specified in resource master config. If the string contains
+   * a "/" character, the first part is treated as the module name and the second part is the entry theme name. If no
+   * entry theme is specified, the module's default entry theme is used.
+   * @param pModuleName Module name with optional entry theme after a slash.
+   * @return EntryTheme specified by the input string.
+   */
+  private EntryTheme establishEntryThemeFromModuleName(String pModuleName) {
+
+    try {
+      String lModuleName;
+      String lEntryThemeName;
+      if(pModuleName.contains("/")) {
+        String[] lSplit = pModuleName.split("/", 2);
+        lModuleName = lSplit[0];
+        lEntryThemeName = lSplit[1];
+
+        return getMod(lModuleName).getEntryTheme(lEntryThemeName);
+      }
+      else {
+        return getMod(pModuleName).getDefaultEntryTheme();
+      }
+    }
+    catch (Throwable th) {
+      throw new ExInternal("Failed to retrieve module/entry theme for App '" + mAppMnem + "', module name '" + pModuleName +  "'", th);
+    }
+  }
+
+  /**
+   * @return The EntryTheme to which a user should be directed in the event that they fail a privilege check.
    */
   public EntryTheme getSecurityCheckEntryTheme() {
     if (XFUtil.isNull(mSecurityCheckModuleName)) {
-      throw new ExInternal("Failed to locate security check module for App '" + mAppMnem + "'");
+      throw new ExInternal("No security check module specified for App '" + mAppMnem + "'");
     }
 
-    //TODO PN - improve this so entry theme can be specified in the property
-    try {
-      return getMod(mSecurityCheckModuleName).getEntryTheme("new");
+    return establishEntryThemeFromModuleName(mSecurityCheckModuleName);
+  }
+
+  /**
+   * @return The EntryTheme to which a user should be directed in the event that their password has expired.
+   */
+  public EntryTheme getPasswordExpiredEntryTheme() {
+    if (XFUtil.isNull(mPasswordExpiredModuleName)) {
+      throw new ExInternal("No password expired module specified for App '" + mAppMnem + "'");
     }
-    catch (Throwable th) {
-      throw new ExInternal("Failed to parse security check module for App '" + mAppMnem + "' (module name = '" + mSecurityCheckModuleName +  "')");
-    }
+
+    return establishEntryThemeFromModuleName(mPasswordExpiredModuleName);
   }
 
   public ImageWidgetProcessing getImageWidgetProcessing() {

@@ -23,6 +23,7 @@ public enum AppProperty {
   MODULE_DEFAULT_MODULE("/*/module-properties/default-module", false),
   MODULE_TIMEOUT_MODULE("/*/module-properties/timeout-module", false),
   MODULE_SECURITY_CHECK_MODULE("/*/module-properties/security-check-module", false),
+  MODULE_PASSWORD_EXPIRED_MODULE("/*/module-properties/password-expired-module", false),
   ERROR_COMPONENT_NAME("/*/error-component", false),
   RESPONSE_METHOD("/*/response-method", false, false),
   HTML_WIDGET_CONFIG("/*/html-widget-config", false, false, HTMLWidgetConfig.STANDARD_NAME),

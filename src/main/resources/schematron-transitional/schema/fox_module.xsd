@@ -463,6 +463,11 @@
                     </xs:simpleType>
                   </xs:attribute>
                   <xs:attribute name="default" type="xs:boolean" use="optional" default="false"/>
+                  <xs:attribute name="allow-expired-access" type="xs:boolean" use="optional" default="false">
+                    <xs:annotation>
+                      <xs:documentation>If true, this entry theme may be directly entered by a user with an expired password. Otherwise, if the user's password is expired, they will be redirected to the app's expired password module.</xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
                 </xs:complexType>
               </xs:element>
             </xs:sequence>
