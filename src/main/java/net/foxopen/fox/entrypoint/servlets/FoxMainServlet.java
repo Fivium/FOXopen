@@ -4,7 +4,6 @@ import net.foxopen.fox.App;
 import net.foxopen.fox.ContextUCon;
 import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.FoxResponse;
-import net.foxopen.fox.FoxResponseCHAR;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.auth.AuthUtil;
 import net.foxopen.fox.auth.AuthenticationContext;
@@ -188,7 +187,7 @@ extends EntryPointServlet {
 
             //TODO - if thread has 0 state calls, interpret as a timeout and redirect to timeout screen (so UX is improved when user exits, hits back and tries another action)
 
-            if(lAuthResult.getCode() != AuthenticationResult.Code.VALID && lAuthResult.getCode() != AuthenticationResult.Code.GUEST){
+            if(lAuthResult.getCode() == AuthenticationResult.Code.INVALID){
 
               //TODO disallow guest access for auth required modules
               App lCurrentApp = FoxGlobals.getInstance().getFoxEnvironment().getAppByMnem(pXThread.getThreadAppMnem(), true);
@@ -198,6 +197,8 @@ extends EntryPointServlet {
               lFoxResponse = handleTimeout(pRequestContext, lCurrentApp);
             }
             else {
+              //Note auth result may be VALID, GUEST or PASSWORD_EXPIRED - in all cases a resume is allowed, because authentication logic is checked on thread create
+
               FoxRequest lFoxRequest = pRequestContext.getFoxRequest();
               if(RESUME_PARAM_TRUE_VALUE.equals(lFoxRequest.getParameter(RESUME_PARAM_NAME))) {
                 //If this is an external resume, do not attempt to process an action
@@ -318,9 +319,8 @@ extends EntryPointServlet {
         lFoxResponse = handleTimeout(pRequestContext, lApp);
       }
       else if (lAuthResult.getCode() == AuthenticationResult.Code.PASSWORD_EXPIRED && !lEntryTheme.isAllowedPasswordExpiredAccess()) {
-        // TODO - Show expired screen
         Track.info("PasswordExpired", "Auth result password expired and current entry theme does not allow access");
-        lFoxResponse = new FoxResponseCHAR("text/html", new StringBuffer("Password expired"), 0);
+        lFoxResponse = handlePasswordExpiry(pRequestContext, lApp, lAuthContext);
       }
       else {
         //Authentication passed - create the new thread
@@ -356,21 +356,44 @@ extends EntryPointServlet {
   }
 
   /**
-   * Create a new thread, with the given app's timeout module as the entry point.
-   *
+   * Creates a new thread, with the given app's timeout module as the entry point.
    * @param pRequestContext Current RequestContext.
    * @param pRequestApp The current App, to get the timeout module from
    * @return FoxResponse from the timeout module's entry theme.
-   * @throws ExUserRequest Thrown if it fails to get the timeout module
+   * @throws ExUserRequest If the timeout modules's entry theme markup is invalid.
    */
   private FoxResponse handleTimeout(RequestContext pRequestContext, App pRequestApp) throws ExUserRequest {
     EntryTheme lTimeoutEntryTheme = pRequestApp.getTimeoutMod().getDefaultEntryTheme();
+    //Redirect with a "guest user" authentication context
+    return handleRedirect(pRequestContext, pRequestApp, lTimeoutEntryTheme, new StandardAuthenticationContext(pRequestContext));
+  }
 
-    XThreadBuilder lXThreadBuilder = new XThreadBuilder(pRequestApp.getMnemonicName(), new StandardAuthenticationContext(pRequestContext));
+  /**
+   * Creates a new thread, with the given app's password expired module as the entry point.
+   * @param pRequestContext Current RequestContext.
+   * @param pRequestApp The current App, to get the timeout module from
+   * @param pAuthenticationContext AuthenticationContext for the session with an expired password.
+   * @return FoxResponse from the password expired module's entry theme.
+   */
+  private FoxResponse handlePasswordExpiry(RequestContext pRequestContext, App pRequestApp, AuthenticationContext pAuthenticationContext) {
+    EntryTheme lExpiredPasswordEntryTheme = pRequestApp.getPasswordExpiredEntryTheme();
+    return handleRedirect(pRequestContext, pRequestApp, lExpiredPasswordEntryTheme, pAuthenticationContext);
+  }
+
+  /**
+   * Creates a new thread to redirect the user to.
+   * @param pRequestContext Current RequestContext.
+   * @param pRequestApp Current App.
+   * @param pEntryTheme Entry theme to start new thread in.
+   * @param pAuthenticationContext AuthenticationContext to assign to the new thread.
+   * @return FoxResponse from running the new thread's entry theme.
+   */
+  private FoxResponse handleRedirect(RequestContext pRequestContext, App pRequestApp, EntryTheme pEntryTheme, AuthenticationContext pAuthenticationContext) {
+    XThreadBuilder lXThreadBuilder = new XThreadBuilder(pRequestApp.getMnemonicName(), pAuthenticationContext);
 
     //TODO - mark thread as not requiring persistence
 
     StatefulXThread lNewThread = lXThreadBuilder.createXThread(pRequestContext);
-    return lNewThread.startThread(pRequestContext, new ModuleCall.Builder(lTimeoutEntryTheme), true);
+    return lNewThread.startThread(pRequestContext, new ModuleCall.Builder(pEntryTheme), true);
   }
 }

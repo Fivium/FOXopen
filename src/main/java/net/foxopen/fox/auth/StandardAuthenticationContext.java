@@ -120,8 +120,9 @@ implements AuthenticationContext {
 
     AuthenticationResult.Code lAuthResultCode = AuthenticationResult.Code.fromString(lStatus);
 
-    if(lAuthResultCode == AuthenticationResult.Code.VALID){
+    if(lAuthResultCode == AuthenticationResult.Code.VALID || lAuthResultCode == AuthenticationResult.Code.PASSWORD_EXPIRED){
       //User authenticated and Session Id valid, continue normally
+      //Note: password expiry is treated as a "valid" session, but the user should be restricted to the password reset screen
       mSessionTimeoutMins = lTimeoutMins;
 
       //See if we have the latest user DOM - if we do we can skip the refresh
@@ -130,7 +131,7 @@ implements AuthenticationContext {
       //Refresh the session ID - is this necessary? Probably not but was legacy behaviour
       setSessionId(lSessionID);
 
-      return new AuthenticationResult(AuthenticationResult.Code.VALID, lMessage, mSessionId);
+      return new AuthenticationResult(lAuthResultCode, lMessage, mSessionId);
     }
     else {
       //No way to differentiate invalid session and timeout - TODO PN XTHREAD enhance (needs DB change)
