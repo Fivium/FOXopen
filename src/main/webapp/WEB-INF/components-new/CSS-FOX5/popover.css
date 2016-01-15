@@ -7,6 +7,7 @@
   z-index: 500;
   background: rgba(0,0,0,0.5);
   overflow: auto;
+  text-align: center;
 }
 
 .modal-popover {
@@ -17,6 +18,8 @@
   max-width: 98%;
   margin: 5% auto 140px auto;
   position: relative;
+  display: inline-block;
+  text-align: left;
 }
 
 .modal-popover.large-popover {
@@ -25,6 +28,10 @@
 
 .modal-popover.small-popover {
   width: 380px;
+}
+
+.modal-popover.dynamic-popover {
+  width: auto;
 }
 
 .modal-popover h2 {

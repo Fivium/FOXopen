@@ -9,7 +9,7 @@ import java.util.Map;
 public class ModalPopoverOptions {
 
   public enum PopoverSize {
-    LARGE, REGULAR, SMALL
+    LARGE, REGULAR, SMALL, DYNAMIC
   }
 
   private final String mTitle;

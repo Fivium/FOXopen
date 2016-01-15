@@ -2338,6 +2338,7 @@ Mapsets can have the following structures:
                   <xs:enumeration value="regular"/>
                   <xs:enumeration value="large"/>
                   <xs:enumeration value="small"/>
+                  <xs:enumeration value="dynamic"/>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
