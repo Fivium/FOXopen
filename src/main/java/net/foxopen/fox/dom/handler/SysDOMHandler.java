@@ -76,8 +76,7 @@ implements DOMHandler, ModuleStateChangeListener {
 //    mSysDOM.getCreate1ENoCardinalityEx("portal_urls/return_url").setText(mThreadDOM.get1SNoEx("return_url"));
 
     //Add a URL pointing to the main FOX servlet entry point - used by edge cases such as the payment module which needs to tell the user how to get back to FOX
-    String lEngineURL = pRequestURIBuilder.buildServletURI(FoxMainServlet.SERVLET_PATH);
-    mSysDOM.getCreate1ENoCardinalityEx("portal_urls/engine_url").setText(pRequestURIBuilder.convertToAbsoluteURL(lEngineURL));
+    refreshEngineURL(pRequestURIBuilder);
 
     try {
       mSysDOM.getCreate1ENoCardinalityEx("host/hostname").setText(InetAddress.getLocalHost().getHostName());
@@ -92,11 +91,23 @@ implements DOMHandler, ModuleStateChangeListener {
     refreshModuleInfo(pThread.getModuleCallStack());
   }
 
+  /**
+   * Refreshes the DOM's engine URL element.
+   * @param pRequestURIBuilder For generating the absolute URI.
+   */
+  private void refreshEngineURL(RequestURIBuilder pRequestURIBuilder) {
+    String lEngineURL = pRequestURIBuilder.buildServletURI(FoxMainServlet.SERVLET_PATH);
+    mSysDOM.getCreate1ENoCardinalityEx("portal_urls/engine_url").setText(pRequestURIBuilder.convertToAbsoluteURL(lEngineURL));
+  }
+
   @Override
   public void open(ActionRequestContext pRequestContext) {
 
+    //Engine access URL may change throughout a thread's life (i.e. if bootstrapped on a different app server) - refresh it every churn
+    refreshEngineURL(pRequestContext.createURIBuilder());
+
     //Refresh sysdate and sysdatetime components
-    try{
+    try {
       UCon lUCon = pRequestContext.getContextUCon().getUCon("Sys DOM");
       try {
         UConStatementResult lSysdateQueryResult = lUCon.querySingleRow(SYSDATE_PARSED_STATEMENT);
@@ -185,11 +196,11 @@ implements DOMHandler, ModuleStateChangeListener {
   @Override
   public void handleStateChange(RequestContext pRequestContext, EventType pEventType, ModuleCallStack pCallStack) {
 
-    if(pEventType == net.foxopen.fox.thread.stack.ModuleStateChangeListener.EventType.MODULE) {
+    if(pEventType == ModuleStateChangeListener.EventType.MODULE) {
       refreshModuleInfo(pCallStack);
       refreshStateInfo(pCallStack);
     }
-    else if(pEventType == net.foxopen.fox.thread.stack.ModuleStateChangeListener.EventType.STATE) {
+    else if(pEventType == ModuleStateChangeListener.EventType.STATE) {
       refreshStateInfo(pCallStack);
     }
 
