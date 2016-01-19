@@ -128,7 +128,7 @@ extends WidgetBuilder<HTMLSerialiser, EN>  {
   }
 
   protected String getActionSubmitString(EN pEvaluatedNode) {
-    String lSubmitSection = "FOXjs.action(" + getActionSubmitJSONString(pEvaluatedNode.getActionName(), pEvaluatedNode.getActionContextRef(),  pEvaluatedNode.getConfirmMessage()) + ");";
+    String lSubmitSection = "FOXjs.action(" + getActionSubmitJSONString(pEvaluatedNode.getActionName(), pEvaluatedNode.getActionContextRef(),  pEvaluatedNode.getConfirmMessage()) + ", this);";
 
     // If submit section has been resolved to null then set string to void(0)
     return XFUtil.nvl(lSubmitSection, "void(0);");
