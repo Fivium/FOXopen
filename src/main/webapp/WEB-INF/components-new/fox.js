@@ -344,13 +344,14 @@ var FOXjs = {
   /**
    * Run a server side action. Make sure the main form is up to date and post it.
    * @param {object} options Information about the action to run
+   * @param {HTMLElement} [triggerElement] Element used to trigger the action
    */
-  action: function(options) {
+  action: function(options, triggerElement) {
     var settings = $.extend({
-      ref: null
-      , ctxt: null
-      , confirm: null
-      , params: null
+      ref: null,
+      ctxt: null,
+      confirm: null,
+      params: null
     }, options);
 
     if (settings.ref === null) {
@@ -369,7 +370,8 @@ var FOXjs = {
     }
     else if (settings.confirm) {
       // Can't run an action if a confirm is defined and not okay'd by the user
-      FOXalert.textConfirm(settings.confirm, {}, function() { that._runAction(settings); }, null);
+      // Note if confirm fails, option widgets (selectors/tickboxes/radios) must be reset to their initial value
+      FOXalert.textConfirm(settings.confirm, {}, function() { that._runAction(settings); },  function() { FOXoptions.resetToInitialValue(triggerElement); } );
     }
     else {
       this._runAction(settings);
