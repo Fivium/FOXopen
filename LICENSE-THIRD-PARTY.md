@@ -61,6 +61,7 @@ Library                                                                 | Licens
 [OpenLayers](http://openlayers.org/)                                    | BSD 2-Clause
 [Accessible Modal](https://github.com/gdkraus/accessible-modal-dialog)  | BSD 3-Clause
 [JSON2](http://www.JSON.org/js.html)                                    | Public Domain
+[TinyMCE](https://www.tinymce.com/)                                     | LGPL-2.1
 
 ## Fonts
 
@@ -68,6 +69,7 @@ Font                                                          | License
 --------------------------------------------------------------|-----------
 [Open Sans](https://www.google.com/fonts/specimen/Open+Sans)  | Apache-2.0
 [DejaVu](http://dejavu-fonts.org/wiki/Main_Page)              | Bitstream Vera Fonts Copyright / Arev Fonts Copyright / Public Domain
+[IcoMoon](https://icomoon.io)                                 | CC BY 4.0 / GPL
 
 ## License Information
 
@@ -75,7 +77,9 @@ Font                                                          | License
 - [Bitstream Vera Fonts Copyright / Arev Fonts Copyright](http://dejavu-fonts.org/wiki/License)
 - [BSD 3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 - [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)
+- [CC BY 4.0](http://creativecommons.org/licenses/by/4.0/)
 - [AGPL-3.0](https://opensource.org/licenses/AGPL-3.0)
+- [GPL](https://opensource.org/licenses/GPL-1.0)
 - [GPL-2.0](https://opensource.org/licenses/GPL-2.0)
 - [LGPL-2.1](https://opensource.org/licenses/LGPL-2.1)
 - [LGPL-3.0](https://opensource.org/licenses/LGPL-3.0)
