@@ -77,20 +77,7 @@ public class HTMLWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
       //             or perhaps it could clone the original result of the call to getGenericTemplateVars()?
       Map<String, Object> lJSTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
 
-      // TODO - NP - Re-enable this if we reimplement spellcheck
-//      if (lFieldMgr.isSpellEnabled() && lFieldMgr.isSpellIcon()) {
-//        lJSTemplateVars.put("SpellCheckIcon", false);
-//      }
-      boolean lSpellcheckerIconEnabled = false;//(lFieldMgr.isSpellEnabled() && lFieldMgr.isSpellIcon());
-
-      String lToolbarConfig = lHTMLWidgetConfig.getToolbarConfig();
-      if(lSpellcheckerIconEnabled) {
-        lToolbarConfig = lToolbarConfig.replace("#spellcheck#", "| foxopenspellchecker");
-      }
-      else {
-        lToolbarConfig = lToolbarConfig.replace("#spellcheck#", "");
-      }
-      lJSTemplateVars.put("ToolbarConfig", lToolbarConfig);
+      lJSTemplateVars.put("ToolbarConfig", lHTMLWidgetConfig.getToolbarConfig());
 
       lJSTemplateVars.put("AdditionalPlugins", lHTMLWidgetConfig.getAdditionalPlugins());
       lJSTemplateVars.put("AdditionalConfig", lHTMLWidgetConfig.getAdditionalConfig());

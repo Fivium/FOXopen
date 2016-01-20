@@ -4,11 +4,11 @@
     <xs:annotation>
       <xs:documentation>A resource master specifies 1 or more fox-environments (usually only 1) which contain engine and application level configuration. All the information stored here should be versioned and promotable.
 
-Properties are now overridden as they go down the table hierachy. A look up for a property will look at application properties first, then environment properties table, then application (promoted xml) table and then the fox environment (promoted xml) table. So most of the properties can be defined at environment level and do not need to be redefined unless different for each application. 
+Properties are now overridden as they go down the table hierachy. A look up for a property will look at application properties first, then environment properties table, then application (promoted xml) table and then the fox environment (promoted xml) table. So most of the properties can be defined at environment level and do not need to be redefined unless different for each application.
 
 This is versionable because no passwords are stored and app agnostic because no URLs are stored. Passwords for users are now stored at !CONFIGURE. Other configuration including URL's is stored in one of two properties tables for application or environment.
 
-An example of the environment property would be the logout URL. The application properties can contain a list of app aliases which will allow any app to be accessed through that alias as well. 
+An example of the environment property would be the logout URL. The application properties can contain a list of app aliases which will allow any app to be accessed through that alias as well.
 
 A common use case here is to have one app (e.g. "fox5") checked in. On each promote, the application properties alias can be set to reflect whether the app is dev/st/live - e.g. "fox5dev", "fox5st".</xs:documentation>
     </xs:annotation>
@@ -109,9 +109,9 @@ A common use case here is to have one app (e.g. "fox5") checked in. On each prom
                     </xs:element>
                     <xs:element name="env-display-attribute-list" nillable="false" type="display-attribute-list-type" minOccurs="0">
                       <xs:annotation>
-                        <xs:documentation>These attributes describe the default presentation values used when setting out fox screens. This list is merged with app-display-attribute-list. Then this overall attribute list is merged from here to the module and state. 
+                        <xs:documentation>These attributes describe the default presentation values used when setting out fox screens. This list is merged with app-display-attribute-list. Then this overall attribute list is merged from here to the module and state.
 
-Almost any attribute you can place on a set-out or a schema element can be placed in this list. 
+Almost any attribute you can place on a set-out or a schema element can be placed in this list.
 
 The format is <display-attribute name="formMaxCols">5</display-attribute> .
 
@@ -179,7 +179,7 @@ Refer to the fox schema for information about these attributes.</xs:documentatio
   </xs:complexType>
   <xs:complexType name="virus-scanner-list-type">
     <xs:annotation>
-      <xs:documentation>Used to define virus scanners. 
+      <xs:documentation>Used to define virus scanners.
 
 If you do not require a virus scanner create an instance with type 'IGNORE'. Note that on production this value must be 'IGNORE-PRODUCTION'.</xs:documentation>
     </xs:annotation>
@@ -360,22 +360,6 @@ If you do not require a virus scanner create an instance with type 'IGNORE'. Not
       <xs:documentation>Name of the component to use as an error-page from the components table for this application.</xs:documentation>
     </xs:annotation>
   </xs:element>
-  <xs:complexType name="dictionary-properties-type">
-    <xs:sequence>
-      <xs:element name="dictionary-list">
-        <xs:complexType>
-          <xs:sequence>
-            <xs:element maxOccurs="unbounded" minOccurs="0" name="dictionary" type="xs:string"/>
-          </xs:sequence>
-        </xs:complexType>
-      </xs:element>
-      <xs:element name="default-dictionary-name">
-        <xs:annotation>
-          <xs:documentation>The name of the default dictionary used for spell check. </xs:documentation>
-        </xs:annotation>
-      </xs:element>
-    </xs:sequence>
-  </xs:complexType>
   <xs:complexType name="fox-application-type">
     <xs:sequence>
       <xs:element name="app-mnem" type="xs:string" minOccurs="0">
@@ -399,11 +383,6 @@ If you do not require a virus scanner create an instance with type 'IGNORE'. Not
           <xs:documentation>Not currently used in FOX5, preserved for legacy compatibility.</xs:documentation>
         </xs:annotation>
       </xs:element>
-      <xs:element name="dictionary-properties" nillable="false" type="dictionary-properties-type" minOccurs="0">
-        <xs:annotation>
-          <xs:documentation>Not currently used in FOX5, preserved for legacy compatibility.</xs:documentation>
-        </xs:annotation>
-      </xs:element>
       <xs:element name="module-properties" nillable="false" type="module-properties-type" minOccurs="0"> </xs:element>
       <xs:element name="security-properties" nillable="false" type="security-properties-type" minOccurs="0"> </xs:element>
       <xs:element name="file-properties" nillable="false" type="file-properties-type" minOccurs="0"> </xs:element>
@@ -417,7 +396,7 @@ If you do not require a virus scanner create an instance with type 'IGNORE'. Not
             <xs:element name="oracle-map-viewer-renderer" minOccurs="0" maxOccurs="1">
               <xs:annotation>
                 <xs:documentation>
-                  Use this element to let FOX generate spatial images using an Oracle MapViewer servlet. 
+                  Use this element to let FOX generate spatial images using an Oracle MapViewer servlet.
                   The connection-pool-name attribute is passed in the render XML so Oracle MapViewer must have a datasource defined for the same name.</xs:documentation>
               </xs:annotation>
               <xs:complexType>
