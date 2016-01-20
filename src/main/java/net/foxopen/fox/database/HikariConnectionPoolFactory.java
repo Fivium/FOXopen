@@ -1,6 +1,8 @@
 package net.foxopen.fox.database;
 
 
+import net.foxopen.fox.ex.ExInternal;
+
 public class HikariConnectionPoolFactory
 implements ConnectionPoolFactory {
 
@@ -15,6 +17,11 @@ implements ConnectionPoolFactory {
 
   @Override
   public ConnectionPool createPool(ConnectionPoolConfig pPoolConfig) {
-    return new HikariConnectionPool(pPoolConfig);
+    try {
+      return new HikariConnectionPool(pPoolConfig);
+    }
+    catch (Throwable th) {
+      throw new ExInternal("Error during creation of Hikari pool " + pPoolConfig.getPoolName(), th);
+    }
   }
 }
