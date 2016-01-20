@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="fox-environment-list">
+    <xs:annotation>
+      <xs:documentation>A resource master specifies 1 or more fox-environments (usually only 1) which contain engine and application level configuration. All the information stored here should be versioned and promotable.
+
+Properties are now overridden as they go down the table hierachy. A look up for a property will look at application properties first, then environment properties table, then application (promoted xml) table and then the fox environment (promoted xml) table. So most of the properties can be defined at environment level and do not need to be redefined unless different for each application. 
+
+This is versionable because no passwords are stored and app agnostic because no URLs are stored. Passwords for users are now stored at !CONFIGURE. Other configuration including URL's is stored in one of two properties tables for application or environment.
+
+An example of the environment property would be the logout URL. The application properties can contain a list of app aliases which will allow any app to be accessed through that alias as well. 
+
+A common use case here is to have one app (e.g. "fox5") checked in. On each promote, the application properties alias can be set to reflect whether the app is dev/st/live - e.g. "fox5dev", "fox5st".</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="fox-environment" maxOccurs="unbounded" minOccurs="1">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="environment-key" type="xs:string">
+                <xs:annotation>
+                  <xs:documentation>The key used to identify this environment. For most use cases, one environment will be used as 'default'. However, you can effectively have multiple engines running off separate resource masters now by providing different fox environments. </xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name="fox-engine-config">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="default-application" type="xs:string">
+                      <xs:annotation>
+                        <xs:documentation>The default application for this environment. The engine will use this application whenever a specific application has not been specified for the request it is processing.</xs:documentation>
+                      </xs:annotation>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="database">
+                      <xs:annotation>
+                        <xs:documentation>Settings for database access.</xs:documentation>
+                      </xs:annotation>
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="binary-xml-reader-strategy" default="binary" minOccurs="0">
+                            <xs:annotation>
+                              <xs:documentation>Defines how XML should be read from columns known to contain binary XML. "binary" uses a custom reading method which may not work on all database versions. "standard" uses the standard JDBC reading mechanism which may not be as performant. The default is "binary".</xs:documentation>
+                            </xs:annotation>
+                            <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                <xs:enumeration value="standard"/>
+                                <xs:enumeration value="binary"/>
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element name="binary-xml-writer-strategy" default="standard" minOccurs="0">
+                            <xs:annotation>
+                              <xs:documentation>Defines how XML should be written columns known to contain binary XML. "binary" uses a custom SAX-based writing method. "standard" uses the standard JDBC update mechanism. Different performance characteristics have been observed on different database versions. The default is "standard".</xs:documentation>
+                            </xs:annotation>
+                            <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                <xs:enumeration value="standard"/>
+                                <xs:enumeration value="binary"/>
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element name="standard-xml-writer-method" default="bytes" minOccurs="0">
+                            <xs:annotation>
+                              <xs:documentation>Defines how XML character data should be sent to the database if the "standard" writer is specified in binary-xml-writer-strategy. "bytes" sends the data as a byte stream which is preferred as it allows the database to perform byte aware character set conversion. "characters" sends UTF-8 encoded character data and should be used to work around issues with non UTF-8 databases. The default is "bytes".</xs:documentation>
+                            </xs:annotation>
+                            <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                <xs:enumeration value="bytes"/>
+                                <xs:enumeration value="characters"/>
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="file-properties" minOccurs="0">
+                      <xs:annotation>
+                        <xs:documentation>Settings for uploads.</xs:documentation>
+                      </xs:annotation>
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="file-transfer-service" nillable="false" minOccurs="0">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="overall-concurrent-channels" type="xs:integer">
+                                  <xs:annotation>
+                                    <xs:documentation>The number simultaneous download and upload connections allowed to the engine. Defaults to 10. </xs:documentation>
+                                  </xs:annotation>
+                                </xs:element>
+                                <xs:element name="concurrent-upload-channels" type="xs:integer">
+                                  <xs:annotation>
+                                    <xs:documentation>The number of simultaneous upload connections allowed to the engine. Defaults to 5. </xs:documentation>
+                                  </xs:annotation>
+                                </xs:element>
+                                <xs:element name="concurrent-download-channels" type="xs:integer">
+                                  <xs:annotation>
+                                    <xs:documentation>The number of simultaneous downlaod connections allowed to the engine. Defaults to 5.</xs:documentation>
+                                  </xs:annotation>
+                                </xs:element>
+                                <xs:element name="worker-sleep-time-ms" type="xs:integer">
+                                  <xs:annotation>
+                                    <xs:documentation>The number of seconds each thread waits before checking for connection requests. Defaults to 5 milliseconds.</xs:documentation>
+                                  </xs:annotation>
+                                </xs:element>
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="env-display-attribute-list" nillable="false" type="display-attribute-list-type" minOccurs="0">
+                      <xs:annotation>
+                        <xs:documentation>These attributes describe the default presentation values used when setting out fox screens. This list is merged with app-display-attribute-list. Then this overall attribute list is merged from here to the module and state. 
+
+Almost any attribute you can place on a set-out or a schema element can be placed in this list. 
+
+The format is <display-attribute name="formMaxCols">5</display-attribute> .
+
+Some sensible attributes you may want to set include:
+formMaxCols
+formColChars
+fieldHeight
+fieldwidth
+
+Refer to the fox schema for information about these attributes.</xs:documentation>
+                      </xs:annotation>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="fox-application-config">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="fox-application" type="fox-application-type"/>
+                    <xs:element name="fox-application-list">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="fox-application" type="fox-application-type" maxOccurs="unbounded"> </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                      <xs:unique name="fox-application-unique">
+                        <xs:selector xpath="./app-mnem"/>
+                        <xs:field xpath="."/>
+                      </xs:unique>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+    <xs:unique name="fox-environment-unique">
+      <xs:selector xpath="environment-key"/>
+      <xs:field xpath="."/>
+    </xs:unique>
+  </xs:element>
+  <xs:complexType name="display-attribute-list-type">
+    <xs:sequence>
+      <xs:element maxOccurs="unbounded" minOccurs="0" name="display-attribute">
+        <xs:complexType>
+          <xs:simpleContent>
+            <xs:extension base="xs:string">
+              <xs:attribute name="name"/>
+            </xs:extension>
+          </xs:simpleContent>
+        </xs:complexType>
+        <xs:unique name="display-attribute-unique">
+          <xs:selector xpath="./*"/>
+          <xs:field xpath="@name"/>
+        </xs:unique>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="resource-table-list-type">
+    <xs:sequence>
+      <xs:element name="resource-table" type="xs:string" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="virus-scanner-list-type">
+    <xs:annotation>
+      <xs:documentation>Used to define virus scanners. 
+
+If you do not require a virus scanner create an instance with type 'IGNORE'. Note that on production this value must be 'IGNORE-PRODUCTION'.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element maxOccurs="unbounded" minOccurs="0" name="virus-scanner" nillable="false">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="type">
+              <xs:annotation>
+                <xs:documentation>The type of virus scanner. The types allowed are CLAMD and IGNORE/IGNORE-PRODUCTION.</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="CLAMD"/>
+                  <xs:enumeration value="IGNORE"/>
+                  <xs:enumeration value="IGNORE-PRODUCTION"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:element>
+            <xs:element name="host" type="xs:string" minOccurs="0"/>
+            <xs:element name="port" type="xs:integer" minOccurs="0"/>
+            <xs:element name="timeout-seconds" type="xs:integer" minOccurs="0"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="file-properties-type">
+    <xs:sequence>
+      <xs:element name="file-transfer-queue-list" nillable="false" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="file-transfer-queue">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="name" type="xs:string"/>
+                  <xs:element name="min-file-bytes" type="xs:integer" nillable="true" minOccurs="0">
+                    <xs:annotation>
+                      <xs:documentation>The minimum number of bytes a file has to be, 0 is the default. </xs:documentation>
+                    </xs:annotation>
+                  </xs:element>
+                  <xs:element name="max-file-bytes" type="xs:integer" nillable="true" minOccurs="0">
+                    <xs:annotation>
+                      <xs:documentation>The maximum number of bytes a file has be to be. 999999999 is the default. </xs:documentation>
+                    </xs:annotation>
+                  </xs:element>
+                  <xs:element name="max-upload-channels" type="xs:integer" nillable="true" minOccurs="0">
+                    <xs:annotation>
+                      <xs:documentation>The maximum number of upload channels, 1 is the default. </xs:documentation>
+                    </xs:annotation>
+                  </xs:element>
+                  <xs:element name="max-download-channels" type="xs:integer" nillable="true" minOccurs="0">
+                    <xs:annotation>
+                      <xs:documentation>The maximum number of download channels, 1 is the default.</xs:documentation>
+                    </xs:annotation>
+                  </xs:element>
+                </xs:sequence>
+              </xs:complexType>
+              <xs:unique name="file-transfer-queue-unique">
+                <xs:selector xpath="./name"/>
+                <xs:field xpath="."/>
+              </xs:unique>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="file-upload-type-list" nillable="false" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="file-upload-type">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="name">
+                    <xs:complexType>
+                      <xs:simpleContent>
+                        <xs:extension base="xs:string"> </xs:extension>
+                      </xs:simpleContent>
+                    </xs:complexType>
+                  </xs:element>
+                  <xs:element name="allowed-extension-csv-list" type="xs:string" minOccurs="0"/>
+                  <xs:element name="disallowed-extension-csv-list" type="xs:string" minOccurs="0"/>
+                  <xs:element minOccurs="0" name="allowed-mime-type-csv-list" type="xs:string"/>
+                  <xs:element minOccurs="0" name="disallowed-mime-type-csv-list" type="xs:string"/>
+                  <xs:element name="min-size-bytes" type="xs:integer" minOccurs="0">
+                    <xs:annotation>
+                      <xs:documentation>The minimum number of bytes for a file upload type. Defaults to 0.</xs:documentation>
+                    </xs:annotation>
+                  </xs:element>
+                  <xs:element name="max-size-bytes" type="xs:integer" minOccurs="0">
+                    <xs:annotation>
+                      <xs:documentation>The maximum number of bytes for a single file upload, defaults to 99999999.</xs:documentation>
+                    </xs:annotation>
+                  </xs:element>
+                </xs:sequence>
+                <xs:attribute name="default" type="xs:boolean"/>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="image-properties-type">
+    <xs:annotation>
+      <xs:documentation>Table used with foxmgr for all image processing queries.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="processed-image-table" type="xs:string" minOccurs="0"/>
+      <xs:element name="processed-image-series-list" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="processed-image-series" maxOccurs="unbounded">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="image-size" type="xs:string"/>
+                  <xs:element name="image-cache" type="xs:string"/>
+                  <xs:element name="image-max-width-px" type="xs:integer"/>
+                  <xs:element name="image-max-height-px" type="xs:integer"/>
+                  <xs:element name="image-max-colour-depth" type="xs:integer"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="security-properties-type">
+    <xs:sequence>
+      <xs:element name="pre-session-timeout-prompt-secs" type="xs:integer">
+        <xs:annotation>
+          <xs:documentation>How long in seconds before a timeout warning is displayed.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="secure-cookies" type="xs:boolean" nillable="false" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>Whether to set the "secure" flag on generated cookies. It is recommended this is left as false and allow the proxy/load balancer to set the correct value.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="external-entry-theme-security" type="xs:boolean" nillable="false" minOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Whether external entry themes are disallowed unless specific mark up is placed ont he entry theme. Otherwise all external entry themes are allowed.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="url-protocol" type="xs:string" nillable="false" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>Not currently used by FOX5.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="module-properties-type">
+    <xs:sequence>
+      <xs:element name="default-module" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Default module to use when the system is entered directly and no target module is specified in the URL.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="timeout-module" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Module to redirect a user to when their session times out, or if they attempt to enter the system with an invalid session.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="security-check-module" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Module to redirect a user to if in the event of an entry theme's fm:security check failure. You may specify the entry theme after a slash (e.g. "MODULE_NAME/entry-theme") - the module's default entry theme is used if one is not specified.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="password-expired-module" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Module to redirect a user to if their password has expired and they attempt a direct entry to the system. You may specify the entry theme after a slash (e.g. "MODULE_NAME/entry-theme") - the module's default entry theme is used if one is not specified.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="error-component" type="xs:string">
+    <xs:annotation>
+      <xs:documentation>Name of the component to use as an error-page from the components table for this application.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:complexType name="dictionary-properties-type">
+    <xs:sequence>
+      <xs:element name="dictionary-list">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="dictionary" type="xs:string"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="default-dictionary-name">
+        <xs:annotation>
+          <xs:documentation>The name of the default dictionary used for spell check. </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="fox-application-type">
+    <xs:sequence>
+      <xs:element name="app-mnem" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>The identifier of this application, used in the URL when navigating to the fox engine.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" name="connection-pool-name" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>The connection used by this application for any work such as serialising it's threads and parsing modules. </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="resource-table-list" nillable="false" type="resource-table-list-type" minOccurs="0"/>
+      <xs:element name="app-display-attribute-list" nillable="false" type="display-attribute-list-type" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>See env-display-attribute-list</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="image-properties" nillable="false" type="image-properties-type" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>Not currently used in FOX5, preserved for legacy compatibility.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="dictionary-properties" nillable="false" type="dictionary-properties-type" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>Not currently used in FOX5, preserved for legacy compatibility.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="module-properties" nillable="false" type="module-properties-type" minOccurs="0"> </xs:element>
+      <xs:element name="security-properties" nillable="false" type="security-properties-type" minOccurs="0"> </xs:element>
+      <xs:element name="file-properties" nillable="false" type="file-properties-type" minOccurs="0"> </xs:element>
+      <xs:element name="virus-scanner-list" nillable="false" type="virus-scanner-list-type" minOccurs="0"/>
+      <xs:element name="spatial-renderer-list" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>List containing configuration options for spatial renderers</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="oracle-map-viewer-renderer" minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+                  Use this element to let FOX generate spatial images using an Oracle MapViewer servlet. 
+                  The connection-pool-name attribute is passed in the render XML so Oracle MapViewer must have a datasource defined for the same name.</xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="url" type="xs:string" minOccurs="1" maxOccurs="1">
+                    <xs:annotation>
+                      <xs:documentation>Provide a URL to an Oracle MapViewer servlet accessible from the app server</xs:documentation>
+                    </xs:annotation>
+                  </xs:element>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="fox-internal-spatial-renderer" minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>Use this element to let FOX generate spatial images using its own internal spatial renderer</xs:documentation>
+              </xs:annotation>
+            </xs:element>
+          </xs:sequence>
+          <xs:attribute name="connection-pool-name" type="xs:string" use="required">
+            <xs:annotation>
+              <xs:documentation>Provide the name of the connection pool to use when generating spatial images</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+        </xs:complexType>
+      </xs:element>
+      <xs:element minOccurs="0" ref="error-component"/>
+      <xs:element minOccurs="0" name="default-html-doctype" default="HTML5">
+        <xs:annotation>
+          <xs:documentation>HTML document type to use for generated HTML if not specified in the state or module. Default is HTML5 if nothing is specified at any level.</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="HTML5"/>
+            <xs:enumeration value="HTML4_TRANSITIONAL"/>
+            <xs:enumeration value="HTML4_STRICT"/>
+            <xs:enumeration value="XHTML1_TRANSITIONAL"/>
+            <xs:enumeration value="XHTML1_STRICT"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element minOccurs="0" name="html-widget-config" default="standard">
+        <xs:annotation>
+          <xs:documentation>Name of HTML widget configuration settings to use by default if not specified directly on an HTML widget.</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="standard"/>
+            <xs:enumeration value="expanded"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="exit-page" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>Module name or absolute URL (i.e. starting with http/s) that the user should be redirected to if they exit all modules on the module call stack.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" name="response-method">
+        <xs:annotation>
+          <xs:documentation>Controls how HTML pages generated by this app are sent to the user's browser. 'streaming' streams the page as it is generated, which in most cases should be faster and is the default. 'buffered' generates the whole page on the server before it is sent, so the browser spends less time receiving the page, but has to wait while it is generated.</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="streaming"/>
+            <xs:enumeration value="buffered"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>
