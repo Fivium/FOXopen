@@ -13,8 +13,8 @@ public class HTMLWidgetConfig {
   public static final String STANDARD_NAME = "standard";
   public static final String EXPANDED_NAME = "expanded";
 
-  private static final String STANDARD_TOOLBAR = "bold italic underline | alignleft aligncenter alignright alignjustify | paste pastetext #spellcheck# | code";
-  private static final String EXPANDED_TOOLBAR = "undo redo | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | paste pastetext #spellcheck# | " +
+  private static final String STANDARD_TOOLBAR = "bold italic underline | alignleft aligncenter alignright alignjustify | paste pastetext | code";
+  private static final String EXPANDED_TOOLBAR = "undo redo | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | paste pastetext | " +
     "bullist numlist | subscript superscript | code";
 
   private static final String DEFAULT_ADDITIONAL_CONFIG =

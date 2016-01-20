@@ -37,7 +37,6 @@ import net.foxopen.fox.module.entrytheme.EntryTheme;
 import net.foxopen.fox.module.fieldset.transformer.html.HTMLWidgetConfig;
 import net.foxopen.fox.module.serialiser.HtmlDoctype;
 import net.foxopen.fox.spatial.SpatialEngine;
-import net.foxopen.fox.spell.Dictionary;
 import net.foxopen.fox.sql.SQLManager;
 import net.foxopen.fox.track.Track;
 
@@ -55,7 +54,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class App {
@@ -82,10 +80,6 @@ public class App {
 
   private final HtmlDoctype mDefaultDocumentType;
   private final String mConnectionPoolName;
-
-  // Dictionary Properties
-  private final Dictionary mDefaultDictionary;
-  private final Dictionary mDictionary;
 
   // File properties
   private final FileProperties mFileProperties;
@@ -130,21 +124,6 @@ public class App {
     return lApp;
   }
 
-  private Dictionary createDictionary(DOM lDictionaryDOM) throws ExApp {
-    if (lDictionaryDOM != null) {
-      String lDictionaryName = lDictionaryDOM.getAttr("name");
-      List<String> lDictionaryList = loadDomListValuesIntoStringList(lDictionaryDOM, "*");
-      TreeSet<String> lDictionaryTreeSet = new TreeSet<String>();
-      for (String lCurrentDictionary : lDictionaryList) {
-        lDictionaryTreeSet.add(lCurrentDictionary);
-      }
-      return Dictionary.getOrCreateDictionary(lDictionaryName, lDictionaryTreeSet);
-    }
-    else {
-      return null;
-    }
-  }
-
   /**
    * Construct the App object from the XML validating it first.
    *
@@ -184,9 +163,6 @@ public class App {
         throw new ExInternal("Failed to connect to virus scanner '"  + lTestScanner.getType() + "' on host '" +  lTestScanner.getHost() + "' during construction of App '" + mAppMnem + "'. Message: " + lTestScanner.getScanResultString());
       }
     }
-
-    mDictionary = createDictionary(pAppDefinition.getPropertyAsDOM(AppProperty.DICTIONARY_LIST));
-    mDefaultDictionary = createDictionary(pAppDefinition.getPropertyAsDOM(AppProperty.DICTIONARY_LIST));
 
     mDefaultDocumentType = HtmlDoctype.getByNameOrNull(pAppDefinition.getPropertyAsString(AppProperty.DEFAULT_HTML_DOCTYPE));
 
@@ -246,14 +222,6 @@ public class App {
     else {
       mSpatialEngine = null;
     }
-  }
-
-  public Dictionary getDefaultDictionary() {
-    return mDefaultDictionary;
-  }
-
-  public Dictionary getDictionary() {
-    return mDictionary;
   }
 
   private String getConnectKeyFromDatabase(String pFoxEnvironment, String pEngineLocator) throws ExApp {
