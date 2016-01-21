@@ -212,15 +212,16 @@
 /* Result count */
 .result-count {
   text-align: right;
-  color: #999;
+  color: #666;
   font-size: 0.8em;
   padding: 1em 0;
 }
 
 .list-actions .result-count {
-  margin-top: 0.2em;
+  margin-top: 0.5em;
   float: right;
   padding: 0;
+  font-size: 0.8em;
 }
 
 /* formList setous */
