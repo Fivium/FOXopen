@@ -76,6 +76,7 @@ ul.modal-popover-actions,
   margin: 1em -1em -1em -1em;
   background: rgba(9, 121, 198, 0.01);
   border-radius: 0 0 3px 3px;
+  clear: both;
 }
 
 ul.modal-popover-actions li {
