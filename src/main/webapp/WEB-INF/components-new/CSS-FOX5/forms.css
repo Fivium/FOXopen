@@ -115,6 +115,7 @@ textarea.noBottomMargin,
 .radio-or-tickbox-group.noBottomMargin,
 .mce-panel.noBottomMargin,
 .prompt.noBottomMargin,
+.noBottomMargin>.prompt,
 .noBottomMargin {
   margin-bottom: 0em;
 }
