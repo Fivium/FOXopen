@@ -37,6 +37,7 @@ import net.foxopen.fox.command.builtin.RefreshMapsetCommand;
 import net.foxopen.fox.command.builtin.RefreshPagerCommand;
 import net.foxopen.fox.command.builtin.RemoveCommand;
 import net.foxopen.fox.command.builtin.RenameCommand;
+import net.foxopen.fox.command.builtin.ResumeLoginCommand;
 import net.foxopen.fox.command.builtin.RunApiCommand;
 import net.foxopen.fox.command.builtin.RunQueryCommand;
 import net.foxopen.fox.command.builtin.SecurityScopeCommand;
@@ -131,6 +132,7 @@ public class CommandProvider {
     registerCommandFactory(new RefreshPagerCommand.Factory());
     registerCommandFactory(new RemoveCommand.Factory());
     registerCommandFactory(new RenameCommand.Factory());
+    registerCommandFactory(new ResumeLoginCommand.Factory());
     registerCommandFactory(new RunApiCommand.Factory());
     registerCommandFactory(new RunQueryCommand.Factory());
     registerCommandFactory(new SecurityScopeCommand.Factory());

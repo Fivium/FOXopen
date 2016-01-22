@@ -5,10 +5,27 @@ import net.foxopen.fox.ex.ExInternal;
 public class AuthenticationResult {
 
   public enum Code {
-    VALID,
-    INVALID,
-    GUEST,
-    PASSWORD_EXPIRED;
+    VALID(true),
+    INVALID(false),
+    GUEST(true),
+    PASSWORD_EXPIRED(true), //we still have a session if even password is expired, so auth "succeeded"
+    TFA_CHALLENGE(false),
+    SUSPENDED(false),
+    TFA_TOKEN_TIMEOUT(false);
+
+    private final boolean mAuthenticationSucceeded;
+
+    Code(boolean mAuthenticationSucceeded) {
+      this.mAuthenticationSucceeded = mAuthenticationSucceeded;
+    }
+
+    /**
+     * @return True if this Code represents a successful authentication attempt (note: "GUEST" and "PASSWORD_EXPIRED" are
+     * considered successful). False implies the authentication attempt was invalid for some reason.
+     */
+    public boolean isAuthenticationSucceeded() {
+      return mAuthenticationSucceeded;
+    }
 
     public static Code fromString(String pCode) {
       if(pCode == null) {
@@ -24,6 +41,12 @@ public class AuthenticationResult {
           return INVALID;
         case "CNGPASSWORD":
           return PASSWORD_EXPIRED;
+        case "2FA_CHALLENGE":
+          return TFA_CHALLENGE;
+        case "SUSPENDED":
+          return SUSPENDED;
+        case "2FA_TOKEN_TIMEOUT":
+          return TFA_TOKEN_TIMEOUT;
         default:
           throw new ExInternal("Unrecognised Auth code " + pCode);
       }

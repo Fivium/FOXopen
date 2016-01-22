@@ -1,6 +1,7 @@
 package net.foxopen.fox.auth;
 
 import net.foxopen.fox.auth.loginbehaviours.LoginBehaviour;
+import net.foxopen.fox.auth.loginbehaviours.ResumeLoginBehaviour;
 import net.foxopen.fox.dom.handler.DOMHandler;
 import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.thread.RequestContext;
@@ -11,6 +12,14 @@ public interface AuthenticationContext
 extends ModuleStateChangeListener {
 
   AuthenticationResult login (RequestContext pRequestContext, LoginBehaviour pLoginBehaviour);
+
+  /**
+   * Resumes a partially completed login attempt (i.e. for two-factor authentication).
+   * @param pRequestContext Current RequestContext.
+   * @param pLoginBehaviour Method for resuming a login (e.g. using a validation hash code)
+   * @return The result of the resume attempt.
+   */
+  AuthenticationResult resumeLogin (RequestContext pRequestContext, ResumeLoginBehaviour pLoginBehaviour);
 
   AuthenticationResult verifySession(RequestContext pRequestContext, String pClientInfo, String pAppInfo);
 

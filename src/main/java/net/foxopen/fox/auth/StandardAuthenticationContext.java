@@ -3,6 +3,7 @@ package net.foxopen.fox.auth;
 import net.foxopen.fox.StringUtil;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.auth.loginbehaviours.LoginBehaviour;
+import net.foxopen.fox.auth.loginbehaviours.ResumeLoginBehaviour;
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.UConBindMap;
 import net.foxopen.fox.database.UConStatementResult;
@@ -67,12 +68,28 @@ implements AuthenticationContext {
     AuthenticationResult lAuthenticationResult = pLoginBehaviour.login(pRequestContext);
 
     // create cookie/session for any status that isn't INVALID
-    if (lAuthenticationResult.getCode() != AuthenticationResult.Code.INVALID) {
+    if (lAuthenticationResult.getCode().isAuthenticationSucceeded()) {
       setSessionId(lAuthenticationResult.getSessionId());
     }
 
     //TODO update request log - outside
     //Fox.updateRequestLog(FoxRequest.getCurrentFoxRequest(), "wus_id", lAuthDescriptor.getSessionId());
+
+    refreshUserInfo(pRequestContext, pRequestContext.getCurrentSecurityScope(), true);
+
+    //Force a new FOX Session ID to reflect the change in authentication state
+    pRequestContext.getFoxSession().forceNewFoxSessionID(pRequestContext, mSessionId);
+
+    return lAuthenticationResult;
+  }
+
+  public AuthenticationResult resumeLogin(RequestContext pRequestContext, ResumeLoginBehaviour pLoginBehaviour) {
+    // Login using the LoginBehaviour
+    AuthenticationResult lAuthenticationResult = pLoginBehaviour.resumeLogin(pRequestContext);
+
+    if (lAuthenticationResult.getCode() == AuthenticationResult.Code.VALID || lAuthenticationResult.getCode() == AuthenticationResult.Code.PASSWORD_EXPIRED) {
+      setSessionId(lAuthenticationResult.getSessionId());
+    }
 
     refreshUserInfo(pRequestContext, pRequestContext.getCurrentSecurityScope(), true);
 
