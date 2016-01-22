@@ -2114,6 +2114,28 @@ Mapsets can have the following structures:
             <xs:attribute name="authentication-domain" use="optional"/>
           </xs:complexType>
         </xs:element>
+        <xs:element name="resume-login">
+          <xs:annotation>
+            <xs:documentation>Creates a session for a portal user attempting two factor authentication. The current FOX session is then owned by the specified user.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:attribute name="hash-code" type="fm:fox-xpath-type" use="required">
+              <xs:annotation>
+                <xs:documentation>The hash code created on the initial log in attempt.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="status-code" type="fm:fox-xpath-type" use="optional">
+              <xs:annotation>
+                <xs:documentation>Passes back the status of the login attempt (e.g. VALID,SUSPENDED,TFA_TOKEN_TIMEOUT). Note if this is not specified, the resume fails and a hard error occurs.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="status-message" type="fm:fox-xpath-type" use="optional">
+              <xs:annotation>
+                <xs:documentation>Passes back the message which is relevant to the status code. Note if this is not specified, the resume fails and a hard error occurs.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
         <xs:element name="user-logout">
           <xs:annotation>
             <xs:documentation>Logs out the current user from the portal. The user is returned to the

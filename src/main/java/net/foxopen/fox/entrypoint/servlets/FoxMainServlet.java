@@ -187,7 +187,7 @@ extends EntryPointServlet {
 
             //TODO - if thread has 0 state calls, interpret as a timeout and redirect to timeout screen (so UX is improved when user exits, hits back and tries another action)
 
-            if(lAuthResult.getCode() == AuthenticationResult.Code.INVALID){
+            if (!lAuthResult.getCode().isAuthenticationSucceeded()){
 
               //TODO disallow guest access for auth required modules
               App lCurrentApp = FoxGlobals.getInstance().getFoxEnvironment().getAppByMnem(pXThread.getThreadAppMnem(), true);
@@ -311,7 +311,7 @@ extends EntryPointServlet {
         Track.pop("RequestAuthentication");
       }
 
-      boolean lNotAuthenticated = lAuthResult.getCode() == AuthenticationResult.Code.INVALID || lAuthResult.getCode() == AuthenticationResult.Code.GUEST;
+      boolean lNotAuthenticated = !lAuthResult.getCode().isAuthenticationSucceeded() || lAuthResult.getCode() == AuthenticationResult.Code.GUEST;
 
       if (lNotAuthenticated && lEntryTheme.getModule().isAuthenticationRequired()) {
         // TODO TIMEOUT HANDLING, differentiate between authenticated/guest
