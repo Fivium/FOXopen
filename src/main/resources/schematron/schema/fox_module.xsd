@@ -2376,6 +2376,67 @@ Mapsets can have the following structures:
             </xs:attribute>
           </xs:complexType>
         </xs:element>
+        <xs:element name="odf-metadata-read">
+          <xs:annotation>
+            <xs:documentation>Read metadata fields from ODF files into the DOM</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:attribute name="file-storage-location" type="fm:entered-string" use="required">
+              <xs:annotation>
+                <xs:documentation>File storage location to take an ODF file from for metadata reading</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="metadata-output" type="fm:fox-xpath-type" use="required">
+              <xs:annotation>
+                <xs:documentation>XPath pointing to a DOM where metadata information will be put</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="odf-process">
+          <xs:annotation>
+            <xs:documentation>Process an ODF file: setting metadata, mail-merging fields, converting to other formats</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:attribute name="file-storage-location" type="fm:entered-string" use="required">
+              <xs:annotation>
+                <xs:documentation>File storage location to take an ODF file from for processing</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="destination-storage-location" type="fm:entered-string" use="required">
+              <xs:annotation>
+                <xs:documentation>File storage location to write the processed ODF file to</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="output-format" default="ODT" use="optional">
+              <xs:annotation>
+                <xs:documentation>Optionally convert the ODF file to another output format</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="fm:entered-string">
+                  <xs:enumeration value="ODT"/>
+                  <xs:enumeration value="PDF"/>
+                  <xs:enumeration value="XHTML"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="metadata" type="fm:fox-xpath-type" use="optional">
+              <xs:annotation>
+                <xs:documentation>XPath pointing to a metadata element in the DOM which conforms to the ODF metadata schema for the ODF plugin defining metadata values to set</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="fields" type="fm:fox-xpath-type" use="optional">
+              <xs:annotation>
+                <xs:documentation>XPath pointing to a fields element in the DOM defining field names and values to merge in</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="status" type="fm:fox-xpath-type" use="optional">
+              <xs:annotation>
+                <xs:documentation>XPath pointing to a DOM where any errors from the ODF processing will be written</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
       </xs:choice>
       <xs:choice minOccurs="0">
         <xs:element name="call-module">
