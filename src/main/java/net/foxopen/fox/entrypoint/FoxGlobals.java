@@ -1,5 +1,6 @@
 package net.foxopen.fox.entrypoint;
 
+import net.foxopen.fox.boot.EngineInitialisationController;
 import net.foxopen.fox.configuration.FoxBootConfig;
 import net.foxopen.fox.configuration.UnconfiguredFoxBootConfig;
 import net.foxopen.fox.configuration.resourcemaster.model.FoxEnvironment;
@@ -37,9 +38,6 @@ public class FoxGlobals {
 
   /** Tracks if this class has been initialised */
   private boolean mGlobalsInitialised = false;
-
-  /** Tracks if the engine has been successfully initialised */
-  private boolean mEngineInitialised = false;
 
   /** Version info as read from version.xml if available (or an "unknown" instance if not) */
   private EngineVersionInfo mEngineVersionInfo;
@@ -254,10 +252,6 @@ public class FoxGlobals {
 
   public String getEngineConnectionPoolName() {
     return "FOX_ENGINE_INTERNAL";
-//    if (mFoxBootConfig == null) {
-//      return null;
-//    }
-//    return mFoxBootConfig.getDbUser().toUpperCase();
   }
 
   private String getBootFilePath() {
@@ -276,11 +270,7 @@ public class FoxGlobals {
   }
 
   public boolean isEngineInitialised() {
-    return mEngineInitialised;
-  }
-
-  public void setEngineInitialised(boolean pEngineInitialised) {
-    mEngineInitialised = pEngineInitialised;
+    return EngineInitialisationController.isEngineInitialised();
   }
 
   public String getEngineSecurityToken() {

@@ -36,6 +36,8 @@ implements StatusProvider{
       pDestination.addMessage("Build Time", lGlobals.getEngineVersionInfo().getBuildTime());
 
       pDestination.addMessage("Context Name", lGlobals.getContextName());
+
+      pDestination.addMessage("Last Initialised", EngineStatus.formatDate(new Date(EngineInitialisationController.getLastInitAttemptTime())));
     }
     catch (Throwable th) {
       pDestination.addMessage("GLOBAL STATUS ERROR", th.getMessage(), MessageLevel.ERROR);

@@ -1,40 +1,30 @@
 package net.foxopen.fox.entrypoint.servlets;
 
-import com.google.common.primitives.Ints;
-import net.foxopen.fox.ContextUCon;
+import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.FoxRequestHttp;
 import net.foxopen.fox.FoxResponse;
 import net.foxopen.fox.FoxResponseCHAR;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.banghandler.InternalAuthLevel;
 import net.foxopen.fox.banghandler.InternalAuthentication;
+import net.foxopen.fox.boot.EngineInitialisationController;
 import net.foxopen.fox.boot.FoxBootStatusProvider;
+import net.foxopen.fox.boot.InitialisationResult;
 import net.foxopen.fox.boot.RuntimeStatusProvider;
-import net.foxopen.fox.cache.CacheManager;
 import net.foxopen.fox.configuration.FoxConfigHandler;
-import net.foxopen.fox.configuration.FoxConfigHelper;
-import net.foxopen.fox.configuration.resourcemaster.model.UnconfiguredFoxEnvironment;
-import net.foxopen.fox.database.ConnectionAgent;
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.UConStatementResult;
 import net.foxopen.fox.database.parser.ParsedStatement;
 import net.foxopen.fox.database.parser.StatementParser;
 import net.foxopen.fox.enginestatus.EngineStatus;
-import net.foxopen.fox.entrypoint.ComponentManager;
 import net.foxopen.fox.entrypoint.FoxGlobals;
-import net.foxopen.fox.ex.ExBadPath;
 import net.foxopen.fox.ex.ExDB;
 import net.foxopen.fox.ex.ExFoxConfiguration;
 import net.foxopen.fox.ex.ExInternalConfiguration;
 import net.foxopen.fox.ex.ExParser;
-import net.foxopen.fox.ex.ExServiceUnavailable;
 import net.foxopen.fox.ex.ExTooFew;
 import net.foxopen.fox.ex.ExTooMany;
-import net.foxopen.fox.job.FoxJobPool;
 import net.foxopen.fox.logging.FoxLogger;
-import net.foxopen.fox.plugin.PluginManager;
-import net.foxopen.fox.queue.ServiceQueueHandler;
-import net.foxopen.fox.thread.persistence.DatabaseSharedDOMManager;
 import oracle.jdbc.OracleConnection;
 import oracle.jdbc.OracleDriver;
 import org.apache.log4j.PropertyConfigurator;
@@ -57,11 +47,9 @@ extends HttpServlet {
 
   public static final String BOOT_SERVLET_PATH = "foxboot";
 
-  private final static String FOX_ENVIRONMENT_POOL_NAME = "fox-environment-connection";
   private final static String FOX_ENVIRONMENT_COL_NAME = "ENVIRONMENT_KEY";
-  private final static int TEST_CONNECTION_VALID_TIMEOUT_MILLIS = Ints.checkedCast(TimeUnit.SECONDS.toMillis(10));
 
-  private static Throwable gLastBootError;
+  private final static int TEST_CONNECTION_VALID_TIMEOUT_MS = (int) TimeUnit.SECONDS.toMillis(10);
 
   static {
     EngineStatus.instance().registerStatusProvider(new RuntimeStatusProvider());
@@ -80,7 +68,6 @@ extends HttpServlet {
     System.setProperty("javax.xml.parsers.SAXParserFactory", "com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl");
 
     if (FoxGlobals.getInstance().isEngineInitialised()) {
-      // TODO - Clear down and re-call initReal(pServletConfig)
       FoxLogger.getLogger().info("FoxBoot: already initialised");
       return;
     }
@@ -88,103 +75,16 @@ extends HttpServlet {
       //Initialise globals object with retrieved servlet config
       FoxGlobals.getInstance().initialise(pServletConfig.getServletContext());
 
-      initReal();
+      EngineInitialisationController.initialiseEngine(false);
     }
 
     FoxLogger.getLogger().info("FoxBoot init");
   }
 
-  private void initReal() {
-    try {
-      //Start by setting to UNCONFIGURED so we don't end up with an old configured environment if anything goes wrong
-      FoxGlobals.getInstance().setFoxEnvironment(new UnconfiguredFoxEnvironment());
-
-      // Load internal components
-      ComponentManager.loadInternalComponents();
-
-      // Scan for plugins and get names ready to post when registering engine
-      PluginManager.instance().scanPluginDirectory();
-
-      // Load initial enum fox caches
-      CacheManager.reloadFoxCaches();
-
-      // Load config (do this safe)
-      FoxConfigHelper.getInstance().loadEngineBootConfig();
-
-      // Set the global info for freshly created connections
-      UCon.setGlobalInfo("/" + FoxGlobals.getInstance().getContextName());
-
-      // Register a default engine connection pool
-      FoxGlobals.getInstance().initialiseEngineConnectionPool();
-
-      ContextUCon lContextUCon = ContextUCon.createContextUCon(FoxGlobals.getInstance().getEngineConnectionPoolName(), "FOX Boot connection");
-      // Registers the engine, loads connections from the database and constructs the fox environment including all apps
-      try {
-        lContextUCon.pushConnection("FOX Boot");
-        FoxConfigHelper.getInstance().loadResourceMaster(lContextUCon);
-        lContextUCon.popConnection("FOX Boot");
-      }
-      finally {
-        lContextUCon.rollbackAndCloseAll(true);
-      }
-
-      // TODO - NP - This should probably happen as part of loadResourceMaster() above
-      //initAuthenticationPackage();
-
-      //Re-parse cached queries in case database user changed
-      DatabaseSharedDOMManager.parseQueries();
-
-      //Mark engine as initialised
-      FoxGlobals.getInstance().setEngineInitialised(true);
-
-      // Scan plugin directory and load configured plugins now we're configured
-      PluginManager.instance().scanAndLoadPlugins();
-
-      gLastBootError = null;
-    }
-    catch (Throwable th) {
-      gLastBootError = th;
-      FoxLogger.getLogger().error("FoxBoot init failed", th);
-      FoxGlobals.getInstance().setEngineInitialised(false);
-    }
-  }
-
   @Override
   public void destroy() {
     super.destroy();
-    FoxLogger.getLogger().info("Fox shutting down...");
-
-    // Deregister engine, ignore all errors
-    FoxLogger.getLogger().trace("de-registering engine from engines table");
-    if (FoxGlobals.getInstance().getEngineConnectionPoolName() != null) {
-      UCon lPrimaryDBUCon = null;
-      try {
-        lPrimaryDBUCon = ConnectionAgent.getConnection(FoxGlobals.getInstance().getEngineConnectionPoolName(), "Deregistering engine");
-        FoxConfigHelper.getInstance().deleteEngine(lPrimaryDBUCon, FoxGlobals.getInstance().getFoxBootConfig().getFoxEnvironmentKey(), FoxGlobals.getInstance().getEngineLocator());
-      }
-      catch (Throwable th) {
-        FoxLogger.getLogger().error("Error when deregistering the engine on shutdown on the database", th);
-        // ignore any destroy errors here
-      }
-      finally {
-        if (lPrimaryDBUCon != null) {
-          lPrimaryDBUCon.closeForRecycle();
-        }
-      }
-    }
-
-    // Shut down upload service queues
-    synchronized(ServiceQueueHandler.class) {
-      ServiceQueueHandler.destroyAllQueueHandlers();
-    }
-
-    // Shut down jobs
-    FoxJobPool.shutdownAllPools();
-
-    // Shut down connection pools
-    ConnectionAgent.shutdownAllPools();
-
-    FoxLogger.getLogger().info("FOX shutdown complete");
+    EngineInitialisationController.shutdownEngine();
   }
 
   @Override
@@ -199,7 +99,7 @@ extends HttpServlet {
     processHttpRequest(pRequest, pResponse);
   }
 
-  public final void processHttpRequest(HttpServletRequest pRequest, HttpServletResponse pResponse) {
+  private void processHttpRequest(HttpServletRequest pRequest, HttpServletResponse pResponse) {
     FoxRequestHttp lFoxRequest = new FoxRequestHttp(pRequest, pResponse);
 
     boolean lAuthResult = InternalAuthentication.instance().authenticate(lFoxRequest, InternalAuthLevel.INTERNAL_ADMIN);
@@ -221,58 +121,16 @@ extends HttpServlet {
       FoxConfigHandler.processSecurityHandleRequest(lFoxRequest).respond(lFoxRequest);
     }
     else if(lCommand.startsWith("!HANDLECONFIGURE")) {
-      try {
-        FoxResponse lFoxResponse = FoxConfigHandler.processConfigureHandleRequest(lFoxRequest);
-        //Note: this suppressed all errors
-        initReal();
-        //TODO PN - report save success but initReal failure to consumer
-        lFoxResponse.respond(lFoxRequest);
-      }
-      catch (ExFoxConfiguration|ExTooFew|ExTooMany|ExBadPath|ExServiceUnavailable e) {
-        throw new ExInternalConfiguration("Could not process handle configure command.", e);
-      }
+      processHandleConfigureRequest(lFoxRequest);
     }
     else if (lCommand.startsWith("!INIT")) {
-      initReal();
-      new FoxResponseCHAR("text/plain", new StringBuffer("Engine initialised"), 0).respond(lFoxRequest);
+      processInitRequest(lFoxRequest);
     }
     else if(lCommand.equalsIgnoreCase("!TESTCONNECTION")) {
-      boolean lIsConnectionSuccess = false;
-
-      try {
-        OracleConnection lConnection = getDatabaseConnectionFromRequest(pRequest);
-        lConnection.close();
-        lIsConnectionSuccess = true;
-      }
-      catch (ExInternalConfiguration | SQLException e) {
-        createJsonError("Connection test failed: " + e.getMessage()).respond(lFoxRequest);
-      }
-
-      JSONObject lJSONConnectionResult = new JSONObject();
-      lJSONConnectionResult.put("status", lIsConnectionSuccess ? "success" : "failure");
-      new FoxResponseCHAR("application/json", new StringBuffer(lJSONConnectionResult.toJSONString()), 0).respond(lFoxRequest);
+      processTestConnectionRequest(lFoxRequest);
     }
     else if (lCommand.equalsIgnoreCase("!GETFOXENVIRONMENTS")) {
-      JSONObject lJSONEnvironmentResult = new JSONObject();
-      boolean lIsSuccess = false;
-
-      try {
-        List<String> lFoxEnvironments = getFoxEnvironmentsFromRequest(pRequest);
-        if (!lFoxEnvironments.isEmpty()) {
-          lJSONEnvironmentResult.put("fox_environment_list", lFoxEnvironments);
-        }
-        else {
-          throw new ExInternalConfiguration("No fox environments were returned from the query. Please check your fox environments table.");
-        }
-
-        lIsSuccess = true;
-      }
-      catch (ExInternalConfiguration e) {
-        createJsonError("Failed to get fox environments: " + e.getMessage()).respond(lFoxRequest);
-      }
-
-      lJSONEnvironmentResult.put("status", lIsSuccess ? "success" : "failure");
-      new FoxResponseCHAR("application/json", new StringBuffer(lJSONEnvironmentResult.toJSONString()), 0).respond(lFoxRequest);
+      processGetFoxEnvironmentsRequest(lFoxRequest);
     }
     else {
       try {
@@ -284,7 +142,84 @@ extends HttpServlet {
     }
   }
 
-  private List<String> getFoxEnvironmentsFromRequest(HttpServletRequest pRequest) {
+  private static void processHandleConfigureRequest(FoxRequestHttp pFoxRequest) {
+    JSONObject lResponse = new JSONObject();
+    try {
+      FoxConfigHandler.processConfigureHandleRequest(pFoxRequest);
+
+      //Note: this suppresses all errors
+      InitialisationResult lInitialisationResult = EngineInitialisationController.initialiseEngine(false);
+
+      if (!lInitialisationResult.isEngineInitialised()) {
+        throw new ExInternalConfiguration("Configuration saved successfully, but engine initialisation failed", lInitialisationResult.asException());
+      }
+
+      lResponse.put("message", "Configuration saved and engine initialised successfully.");
+      lResponse.put("status", "success");
+    }
+    catch (Throwable th) {
+      lResponse.put("message", XFUtil.getJavaStackTraceInfo(th));
+      lResponse.put("status", "failed");
+    }
+
+    new FoxResponseCHAR("application/json", new StringBuffer(lResponse.toJSONString()), 0).respond(pFoxRequest);
+  }
+
+  private static void processInitRequest(FoxRequest pFoxRequest) {
+    InitialisationResult lInitialisationResult = EngineInitialisationController.initialiseEngine(false);
+
+    String lInitResult;
+    if (lInitialisationResult.isEngineInitialised()) {
+      lInitResult = "Engine initialised";
+    }
+    else {
+      lInitResult = XFUtil.getJavaStackTraceInfo(lInitialisationResult.asException());
+    }
+
+    new FoxResponseCHAR("text/plain", new StringBuffer(lInitResult), 0).respond(pFoxRequest);
+  }
+
+  private static void processTestConnectionRequest(FoxRequest pFoxRequest) {
+    boolean lIsConnectionSuccess = false;
+
+    try {
+      OracleConnection lConnection = getDatabaseConnectionFromRequest(pFoxRequest.getHttpRequest());
+      lConnection.close();
+      lIsConnectionSuccess = true;
+    }
+    catch (ExInternalConfiguration | SQLException e) {
+      createJsonError("Connection test failed: " + e.getMessage()).respond(pFoxRequest);
+    }
+
+    JSONObject lJSONConnectionResult = new JSONObject();
+    lJSONConnectionResult.put("status", lIsConnectionSuccess ? "success" : "failure");
+    new FoxResponseCHAR("application/json", new StringBuffer(lJSONConnectionResult.toJSONString()), 0).respond(pFoxRequest);
+  }
+
+  private static void processGetFoxEnvironmentsRequest(FoxRequest pFoxRequest) {
+    JSONObject lJSONEnvironmentResult = new JSONObject();
+    boolean lIsSuccess = false;
+
+    try {
+      List<String> lFoxEnvironments = getFoxEnvironmentsFromRequest(pFoxRequest.getHttpRequest());
+      if (!lFoxEnvironments.isEmpty()) {
+        lJSONEnvironmentResult.put("fox_environment_list", lFoxEnvironments);
+      }
+      else {
+        throw new ExInternalConfiguration("No fox environments were returned from the query. Please check your fox environments table.");
+      }
+
+      lIsSuccess = true;
+    }
+    catch (ExInternalConfiguration e) {
+      createJsonError("Failed to get fox environments: " + e.getMessage()).respond(pFoxRequest);
+    }
+
+    lJSONEnvironmentResult.put("status", lIsSuccess ? "success" : "failure");
+    new FoxResponseCHAR("application/json", new StringBuffer(lJSONEnvironmentResult.toJSONString()), 0).respond(pFoxRequest);
+  }
+
+  private static List<String> getFoxEnvironmentsFromRequest(HttpServletRequest pRequest) {
     OracleConnection lConnection;
     try {
       lConnection = getDatabaseConnectionFromRequest(pRequest);
@@ -312,7 +247,7 @@ extends HttpServlet {
     return lFoxEnvironments;
   }
 
-  private List<String> getFoxEnvironments(OracleConnection pConnection) throws ExInternalConfiguration {
+  private static List<String> getFoxEnvironments(OracleConnection pConnection) throws ExInternalConfiguration {
     String lUsername;
 
     try {
@@ -340,7 +275,7 @@ extends HttpServlet {
     }
   }
 
-  private OracleConnection getDatabaseConnectionFromRequest(HttpServletRequest pRequest) throws ExInternalConfiguration {
+  private static OracleConnection getDatabaseConnectionFromRequest(HttpServletRequest pRequest) throws ExInternalConfiguration {
     String lDBURL = pRequest.getParameter("db_url");
     String lDBUsername = pRequest.getParameter("db_user");
 
@@ -355,7 +290,7 @@ extends HttpServlet {
    * @param pNewPassword The password value on the form
    * @return The updated password or the current password from config if not updated
    */
-  private String getUpdatedDatabaseUserPassword(String pUsername, String pNewPassword) {
+  private static String getUpdatedDatabaseUserPassword(String pUsername, String pNewPassword) {
     String lPassword;
 
     if (XFUtil.isObfuscatedValue(pNewPassword)) {
@@ -382,7 +317,7 @@ extends HttpServlet {
    * @param pDBPassword
    * @return
    */
-  private OracleConnection getDatabaseConnection(String pDBURL, String pDBUsername, String pDBPassword) throws ExInternalConfiguration {
+  private static OracleConnection getDatabaseConnection(String pDBURL, String pDBUsername, String pDBPassword) throws ExInternalConfiguration {
     if (XFUtil.isNull(pDBURL) || XFUtil.isNull(pDBUsername) || XFUtil.isNull(pDBPassword)) {
       throw new ExInternalConfiguration("You must provide a database URL, username and password to connect.");
     }
@@ -399,10 +334,10 @@ extends HttpServlet {
         throw new ExInternalConfiguration("Connection could not be opened as the database driver cannot open the URL");
       }
 
-      if (!lConnection.isValid(TEST_CONNECTION_VALID_TIMEOUT_MILLIS)) {
+      if (!lConnection.isValid(TEST_CONNECTION_VALID_TIMEOUT_MS)) {
         lConnection.close();
         throw new ExInternalConfiguration("Connection opened but is not valid after "
-                                          + TimeUnit.MILLISECONDS.toSeconds(TEST_CONNECTION_VALID_TIMEOUT_MILLIS)
+                                          + TimeUnit.MILLISECONDS.toSeconds(TEST_CONNECTION_VALID_TIMEOUT_MS)
                                           + " seconds");
       }
 
@@ -414,14 +349,10 @@ extends HttpServlet {
     }
   }
 
-  private FoxResponse createJsonError(String pErrorMessage) {
+  private static FoxResponse createJsonError(String pErrorMessage) {
     JSONObject lJSONResponse = new JSONObject();
     lJSONResponse.put("status", "false");
     lJSONResponse.put("message", pErrorMessage);
     return new FoxResponseCHAR("application/json", new StringBuffer(lJSONResponse.toJSONString()), 0);
-  }
-
-  public static Throwable getLastBootError() {
-    return gLastBootError;
   }
 }

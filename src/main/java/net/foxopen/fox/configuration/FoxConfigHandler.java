@@ -6,11 +6,9 @@ import net.foxopen.fox.FoxResponseCHAR;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.entrypoint.FoxGlobals;
-import net.foxopen.fox.ex.ExBadPath;
 import net.foxopen.fox.ex.ExFoxConfiguration;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExInternalConfiguration;
-import net.foxopen.fox.ex.ExServiceUnavailable;
 import net.foxopen.fox.ex.ExTooFew;
 import net.foxopen.fox.ex.ExTooMany;
 import net.foxopen.fox.logging.FoxLogger;
@@ -97,26 +95,18 @@ public class FoxConfigHandler {
     return null; // no response needed, a request has already been forwarded.
   }
 
-  public static FoxResponse processConfigureHandleRequest (FoxRequest pFoxRequest)
-  throws ExInternal, ExFoxConfiguration, ExTooFew, ExTooMany, ExBadPath, ExServiceUnavailable {
-
-    JSONObject lResponse = new JSONObject();
-    try {
-      // Create new Boot Config from posted parameters
-      //NOTE: this saves the config to disk then immeidately re-reads it...
-      FileBasedFoxBootConfig.createFoxBootConfig(pFoxRequest.getHttpRequest());
-      //Re-read
-      FoxConfigHelper.getInstance().loadEngineBootConfig();
-      lResponse.put("message", "Configuration saved successfully.");
-      lResponse.put("status", "success");
-    }
-    catch (Throwable th) {
-      ExFoxConfiguration lError = new ExFoxConfiguration("Error loading configuration: ", th);
-      lResponse.put("message", XFUtil.getJavaStackTraceInfo(lError));
-      lResponse.put("status", "failed");
-    }
-
-    return new FoxResponseCHAR("application/json", new StringBuffer(lResponse.toJSONString()), 0);
+  /**
+   * Attempts to save configuration information from the given FoxRequest to disk, then loads it into the engine.
+   * @param pFoxRequest Request containing configuration information in parameters.
+   * @throws ExFoxConfiguration If the configuration attempt fails.
+   */
+  public static void processConfigureHandleRequest (FoxRequest pFoxRequest)
+  throws ExFoxConfiguration {
+    // Create new Boot Config from posted parameters
+    //NOTE: this saves the config to disk then immediately re-reads it...
+    FileBasedFoxBootConfig.createFoxBootConfig(pFoxRequest.getHttpRequest());
+    //Re-read
+    FoxConfigHelper.getInstance().loadEngineBootConfig();
   }
 
   public static FoxResponse processSecurityHandleRequest(FoxRequest pFoxRequest) {
