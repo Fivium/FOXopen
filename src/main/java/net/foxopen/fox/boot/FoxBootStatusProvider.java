@@ -1,6 +1,7 @@
 package net.foxopen.fox.boot;
 
 import net.foxopen.fox.ContextUCon;
+import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.configuration.FoxBootConfig;
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.UConStatementResult;
@@ -9,6 +10,7 @@ import net.foxopen.fox.enginestatus.EngineStatus;
 import net.foxopen.fox.enginestatus.MessageLevel;
 import net.foxopen.fox.enginestatus.StatusDestination;
 import net.foxopen.fox.enginestatus.StatusProvider;
+import net.foxopen.fox.enginestatus.StatusText;
 import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.ex.ExDB;
 
@@ -38,6 +40,11 @@ implements StatusProvider{
       pDestination.addMessage("Context Name", lGlobals.getContextName());
 
       pDestination.addMessage("Last Initialised", EngineStatus.formatDate(new Date(EngineInitialisationController.getLastInitAttemptTime())));
+
+      Throwable lLastInitError = EngineInitialisationController.getLastInitError();
+      if (lLastInitError != null) {
+        pDestination.addDetailMessage("Last Initialise Error", () -> new StatusText(XFUtil.getJavaStackTraceInfo(lLastInitError), true, MessageLevel.ERROR));
+      }
     }
     catch (Throwable th) {
       pDestination.addMessage("GLOBAL STATUS ERROR", th.getMessage(), MessageLevel.ERROR);

@@ -91,12 +91,7 @@ implements StatusProvider {
       }
     }
     else {
-      pDestination.addDetailMessage("Environment configuration error", new StatusDetail.Provider() {
-        @Override
-        public StatusItem getDetailMessage() {
-          return new StatusText(XFUtil.getJavaStackTraceInfo(EngineInitialisationController.getLastInitError()), MessageLevel.ERROR);
-        }
-      });
+      pDestination.addDetailMessage("Environment configuration error", () -> new StatusText(XFUtil.getJavaStackTraceInfo(EngineInitialisationController.getLastInitError()), true, MessageLevel.ERROR));
       pDestination.addAction("Reinitialise engine", FoxBootServlet.BOOT_SERVLET_PATH + "/!INIT");
     }
   }

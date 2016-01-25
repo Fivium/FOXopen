@@ -103,7 +103,7 @@ implements WebServiceCategory {
 
         StatusDetail lStatusDetail = WebServiceImpl.this.mStatusCategory.resolveDetail(pParamMap.get(DETAIL_PATH_PARAM));
         StringWriter lStringWriter = new StringWriter();
-        lStatusDetail.getContent(lStringWriter);
+        lStatusDetail.getContent(pRequestContext.getFoxRequest(), lStringWriter);
 
         Map<String, ?> lResultMap = Collections.singletonMap("detail", lStringWriter.toString());
         return new GenericWebServiceResponse(lResultMap);

@@ -60,7 +60,7 @@ implements BangHandler {
       if(!XFUtil.isNull(lDetailPath)) {
         //Resolve the given detail path and return its contents
         StatusDetail lStatusDetail = EngineStatus.instance().getCategory(lCategory).resolveDetail(lDetailPath);
-        lStatusDetail.getContent(lStringWriter);
+        lStatusDetail.getContent(pFoxRequest, lStringWriter);
       }
       else {
         //Refresh the whole category

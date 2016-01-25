@@ -473,7 +473,7 @@ public class PluginManager {
           pDestination.addDetailMessage("Directory Scan Exception", new StatusDetail.Provider() {
             @Override
             public StatusItem getDetailMessage() {
-              return new StatusText(XFUtil.getJavaStackTraceInfo(mLastScanException), MessageLevel.ERROR);
+              return new StatusText(XFUtil.getJavaStackTraceInfo(mLastScanException), true, MessageLevel.ERROR);
             }
           });
         }
