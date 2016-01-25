@@ -1,6 +1,7 @@
 package net.foxopen.fox.enginestatus;
 
 
+import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.ex.ExInternal;
 
 import java.io.IOException;
@@ -72,7 +73,7 @@ implements NamedStatusItem {
     serialiseHTML(pWriter, pSerialisationContext, mTitle);
   }
 
-  public String getContent(StringWriter pWriter) {
+  public String getContent(FoxRequest pFoxRequest, StringWriter pWriter) {
 
     pWriter.append("<html><body>");
 
@@ -81,8 +82,7 @@ implements NamedStatusItem {
     }
 
     try {
-      //TODO PN not null
-      mProvider.getDetailMessage().serialiseHTML(pWriter, new StatusSerialisationContext(null));
+      mProvider.getDetailMessage().serialiseHTML(pWriter, new StatusSerialisationContext(pFoxRequest.getHttpRequest()));
     }
     catch (IOException e) {
       throw new ExInternal("Failed to generate detail message", e);
