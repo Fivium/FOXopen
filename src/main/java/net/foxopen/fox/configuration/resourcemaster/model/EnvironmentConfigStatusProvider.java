@@ -1,6 +1,7 @@
 package net.foxopen.fox.configuration.resourcemaster.model;
 
 import net.foxopen.fox.XFUtil;
+import net.foxopen.fox.boot.EngineInitialisationController;
 import net.foxopen.fox.configuration.resourcemaster.definition.AppProperty;
 import net.foxopen.fox.configuration.resourcemaster.definition.FoxApplicationDefinition;
 import net.foxopen.fox.configuration.resourcemaster.definition.FoxEnvironmentDefinition;
@@ -93,7 +94,7 @@ implements StatusProvider {
       pDestination.addDetailMessage("Environment configuration error", new StatusDetail.Provider() {
         @Override
         public StatusItem getDetailMessage() {
-          return new StatusText(XFUtil.getJavaStackTraceInfo(FoxBootServlet.getLastBootError()), MessageLevel.ERROR);
+          return new StatusText(XFUtil.getJavaStackTraceInfo(EngineInitialisationController.getLastInitError()), MessageLevel.ERROR);
         }
       });
       pDestination.addAction("Reinitialise engine", FoxBootServlet.BOOT_SERVLET_PATH + "/!INIT");

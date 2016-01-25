@@ -5,6 +5,8 @@ import net.foxopen.fox.ContextUCon;
 import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.FoxRequestHttp;
 import net.foxopen.fox.XFUtil;
+import net.foxopen.fox.boot.EngineInitialisationController;
+import net.foxopen.fox.boot.InitialisationResult;
 import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.entrypoint.FoxSession;
 import net.foxopen.fox.entrypoint.filter.RequestLogFilter;
@@ -34,13 +36,10 @@ extends HttpServlet {
   public static final String REQUEST_ATTRIBUTE_APP_MNEM = "net.foxopen.fox.entrypoint.servlet.EntryPointServlet.AppMnem";
 
   private void checkInitialised() throws ExInternal {
-    if (!FoxGlobals.getInstance().isEngineInitialised()) {
-      if (FoxBootServlet.getLastBootError() != null) {
-        throw new ExInternal("This FOX instance has not yet been successfully initialised, last error:", FoxBootServlet.getLastBootError());
-      }
-      else {
-        throw new ExInternal("This FOX instance has not yet been successfully initialised");
-      }
+    //Checks if engine is initialised, and attempts a throttled init attempt if not
+    InitialisationResult lInitialisationResult = EngineInitialisationController.checkAndInitialise();
+    if (!lInitialisationResult.isEngineInitialised()) {
+      throw lInitialisationResult.asException();
     }
   }
 
