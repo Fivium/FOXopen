@@ -105,6 +105,10 @@ label {
   margin-bottom: 0.3em;
 }
 
+.tightForm .fieldDescription {
+  margin-top: 0;
+}
+
 .setoutForm.noBottomMargin,
 span.noBottomMargin,
 input.noBottomMargin,
