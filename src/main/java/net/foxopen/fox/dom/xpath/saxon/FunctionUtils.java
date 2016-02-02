@@ -8,7 +8,7 @@ import net.sf.saxon.option.xom.XOMNodeWrapper;
 import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.value.AtomicValue;
-import net.sf.saxon.value.IntegerValue;
+import net.sf.saxon.value.NumericValue;
 import net.sf.saxon.value.StringValue;
 import nu.xom.Node;
 
@@ -122,7 +122,8 @@ public class FunctionUtils {
 
   /**
    * Gets an integer value from the given index of the argument array. If no item is found, null is returned. Otherwise
-   * the item is assumed to be an IntegerValue.
+   * the item is assumed to be a NumericValue and is converted to an integer (decimal values are rounded to the nearest
+   * integer).
    * @param pArguments Function arguments.
    * @param pIndex Index of the array to inspect.
    * @return Integer value at the given index, or null.
@@ -137,7 +138,7 @@ public class FunctionUtils {
         return null;
       }
       else {
-        return ((IntegerValue) lItem).asBigInteger().intValue();
+        return (int) ((NumericValue) lItem).round(0).getDoubleValue();
       }
     }
     else {
