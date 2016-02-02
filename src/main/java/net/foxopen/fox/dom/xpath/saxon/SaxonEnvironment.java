@@ -136,6 +136,7 @@ public class SaxonEnvironment {
     gSaxonProcessor.registerExtensionFunction(new MapSetKeyFunction());
     gSaxonProcessor.registerExtensionFunction(new MapSetFunction());
     gSaxonProcessor.registerExtensionFunction(new PagerStatusFunction());
+    gSaxonProcessor.registerExtensionFunction(new PluraliseFunction());
     gSaxonProcessor.registerExtensionFunction(new UploadTypeInfoFunction());
     gSaxonProcessor.registerExtensionFunction(new UserPrivilegeFunction());
     gSaxonProcessor.registerExtensionFunction(new CastDateSafeFunction());
