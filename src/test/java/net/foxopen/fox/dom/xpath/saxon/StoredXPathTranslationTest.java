@@ -1,43 +1,13 @@
 package net.foxopen.fox.dom.xpath.saxon;
 
-import net.foxopen.fox.App;
-import net.foxopen.fox.ContextUCon;
-import net.foxopen.fox.ContextUElem;
-import net.foxopen.fox.FoxRequest;
-import net.foxopen.fox.auth.AuthenticationContext;
-import net.foxopen.fox.auth.SecurityScope;
-import net.foxopen.fox.command.XDoCommandList;
-import net.foxopen.fox.command.XDoIsolatedRunner;
-import net.foxopen.fox.command.XDoResult;
-import net.foxopen.fox.command.XDoRunner;
-import net.foxopen.fox.command.flow.XDoControlFlow;
-import net.foxopen.fox.dbinterface.InterfaceQuery;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.DOMList;
-import net.foxopen.fox.download.DownloadManager;
-import net.foxopen.fox.entrypoint.FoxSession;
-import net.foxopen.fox.entrypoint.uri.RequestURIBuilder;
 import net.foxopen.fox.ex.ExBadPath;
 import net.foxopen.fox.ex.ExTooFew;
 import net.foxopen.fox.ex.ExTooMany;
-import net.foxopen.fox.module.Mod;
-import net.foxopen.fox.module.State;
-import net.foxopen.fox.module.entrytheme.EntryTheme;
-import net.foxopen.fox.module.facet.ModuleFacetProvider;
-import net.foxopen.fox.module.mapset.MapSet;
-import net.foxopen.fox.module.serialiser.ThreadInfoProvider;
 import net.foxopen.fox.thread.ActionRequestContext;
-import net.foxopen.fox.thread.DOMHandlerProvider;
-import net.foxopen.fox.thread.ExitResponse;
-import net.foxopen.fox.thread.XThreadInterface;
-import net.foxopen.fox.thread.devtoolbar.DevToolbarContext;
-import net.foxopen.fox.thread.persistence.PersistenceContext;
-import net.foxopen.fox.thread.stack.ModuleCall;
-import net.foxopen.fox.thread.stack.transform.StateStackTransformation;
-import net.foxopen.fox.thread.storage.TempResourceProvider;
 import org.junit.Test;
-
-import java.util.List;
+import org.mockito.Mockito;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -120,7 +90,9 @@ public class StoredXPathTranslationTest {
   public void testXPathIntegration()
   throws ExTooMany, ExTooFew, ExBadPath {
     //Tests the XPath engine can use the local RequestContext to translate XPath references
-    TestActionRequestContext lRequestContext = new TestActionRequestContext();
+    ActionRequestContext lRequestContext = Mockito.mock(ActionRequestContext.class);
+    Mockito.when(lRequestContext.getStoredXPathResolver()).thenReturn(new TestXPathResolver());
+
     SaxonEnvironment.setThreadLocalRequestContext(lRequestContext);
 
     DOM lDOM = DOM.createDocumentFromXMLString("<ROOT><ELEMENT_1/><ELEMENT_2/><ELEMENT_3/></ROOT>");
@@ -137,8 +109,28 @@ public class StoredXPathTranslationTest {
     assertEquals("XPath selected 2 elements (complex XPath UL)", 2, lListResult.getLength());
   }
 
+  @Test
+  public void testXPathReplacementContents() {
+    //Tests XPaths with special characters in are substituted into the result XPath string correctly
+    //Uses a FixedXPathResolver which always returns a fixed string regardless of the stored XPath name provided
+
+    final String XPATH_STRING = "${xp}";
+
+    String lResult = StoredXPathTranslator.instance().translateXPathReferences(new FixedXPathResolver("/*/SIMPLE"), XPATH_STRING);
+    assertEquals("Simple XPath is replaced correctly", "/*/SIMPLE", lResult);
+
+    lResult = StoredXPathTranslator.instance().translateXPathReferences(new FixedXPathResolver("for $i in //text() return $i"), XPATH_STRING);
+    assertEquals("XPath containing $ is replaced correctly", "for $i in //text() return $i", lResult);
+
+    lResult = StoredXPathTranslator.instance().translateXPathReferences(new FixedXPathResolver("//*[text() = 'A\\B']"), XPATH_STRING);
+    assertEquals("XPath containing \\ is replaced correctly", "//*[text() = 'A\\B']", lResult);
+
+    lResult = StoredXPathTranslator.instance().translateXPathReferences(new FixedXPathResolver("//*[text() = '$A\\B$']"), XPATH_STRING);
+    assertEquals("XPath containing $ and \\ is replaced correctly", "//*[text() = '$A\\B$']", lResult);
+  }
+
   private class TestXPathResolver
-  implements StoredXPathResolver{
+  implements StoredXPathResolver {
     @Override
     public String resolveXPath(String pXPathName) {
       switch (pXPathName) {
@@ -152,221 +144,18 @@ public class StoredXPathTranslationTest {
     }
   }
 
-  /**
-   * ActionRequestContext which only provides a TestXPath resolver.
-   */
-  public class TestActionRequestContext
-  implements ActionRequestContext {
+  private class FixedXPathResolver
+  implements StoredXPathResolver {
 
-    @Override
-    public StoredXPathResolver getStoredXPathResolver() {
-      return new TestXPathResolver();
+    private final String mXPath;
+
+    public FixedXPathResolver(String pXPath) {
+      mXPath = pXPath;
     }
 
     @Override
-    public XPathVariableManager getXPathVariableManager() {
-      return null;
-    }
-
-    @Override
-    public boolean isAssertionMode() {
-      return false;
-    }
-
-    @Override
-    public ThreadInfoProvider getThreadInfoProvider() {
-      return null;
-    }
-
-    @Override
-    public ContextUElem getContextUElem() {
-      return null;
-    }
-
-    @Override
-    public App getModuleApp() {
-      return null;
-    }
-
-    @Override
-    public Mod getCurrentModule() {
-      return null;
-    }
-
-    @Override
-    public State getCurrentState() {
-      return null;
-    }
-
-    @Override
-    public EntryTheme getCurrentTheme() {
-      return null;
-    }
-
-    @Override
-    public App getRequestApp() {
-      return null;
-    }
-
-    @Override
-    public AuthenticationContext getAuthenticationContext() {
-      return null;
-    }
-
-    @Override
-    public XDoCommandList resolveActionName(String pActionName) {
-      return null;
-    }
-
-    @Override
-    public XDoRunner createCommandRunner(boolean pIsTopLevel) {
-      return null;
-    }
-
-    @Override
-    public XDoIsolatedRunner createIsolatedCommandRunner(boolean pErrorOnTransformation) {
-      return null;
-    }
-
-    @Override
-    public void addXDoResult(XDoResult pXDoResult) {
-
-    }
-
-    @Override
-    public <T extends XDoResult> List<T> getXDoResults(Class<T> pForClass) {
-      return null;
-    }
-
-    @Override
-    public DOMHandlerProvider getDOMHandlerProvider() {
-      return null;
-    }
-
-    @Override
-    public ExitResponse getDefaultExitResponse() {
-      return null;
-    }
-
-    @Override
-    public XDoControlFlow handleStateStackTransformation(StateStackTransformation pTransformation) {
-      return null;
-    }
-
-    @Override
-    public XThreadInterface createNewXThread(ModuleCall.Builder pModuleCallBuilder, boolean pSameSession) {
-      return null;
-    }
-
-    @Override
-    public void addSysDOMInfo(String pPath, String pContent) {
-
-    }
-
-    @Override
-    public void changeAttachPoint(String pAttachToXPath) {
-
-    }
-
-    @Override
-    public void changeSecurityScope(SecurityScope pSecurityScope) {
-
-    }
-
-    @Override
-    public MapSet resolveMapSet(String pMapSetName, DOM pItemDOM, String pMapSetAttachXPath) {
-      return null;
-    }
-
-    @Override
-    public MapSet resolveMapSet(String pMapSetName, DOM pItemDOM, DOM pMapSetAttachDOM) {
-      return null;
-    }
-
-    @Override
-    public InterfaceQuery resolveInterfaceQuery(String pDBInterfaceName, String pQueryName) {
-      return null;
-    }
-
-    @Override
-    public void refreshMapSets(String pMapSetName) {
-
-    }
-
-    @Override
-    public void postDOM(String pDOMLabel) {
-
-    }
-
-    @Override
-    public PersistenceContext getPersistenceContext() {
-      return null;
-    }
-
-    @Override
-    public DevToolbarContext getDevToolbarContext() {
-      return null;
-    }
-
-    @Override
-    public DownloadManager getDownloadManager() {
-      return null;
-    }
-
-    @Override
-    public TempResourceProvider getTempResourceProvider() {
-      return null;
-    }
-
-    @Override
-    public <T extends ModuleFacetProvider> T getModuleFacetProvider(Class<T> pProviderClass) {
-      return null;
-    }
-
-    @Override
-    public String getCurrentCallId() {
-      return null;
-    }
-
-    @Override
-    public void applyClientActions(String pClientActionJSON) {
-
-    }
-
-    @Override
-    public FoxRequest getFoxRequest() {
-      return null;
-    }
-
-    @Override
-    public ContextUCon getContextUCon() {
-      return null;
-    }
-
-    @Override
-    public String getRequestAppMnem() {
-      return null;
-    }
-
-    @Override
-    public FoxSession getFoxSession() {
-      return null;
-    }
-
-    @Override
-    public void forceNewFoxSession(FoxSession pNewSession) {
-
-    }
-
-    @Override
-    public SecurityScope getCurrentSecurityScope() {
-      return null;
-    }
-
-    @Override
-    public RequestURIBuilder createURIBuilder() {
-      return null;
+    public String resolveXPath(String pXPathName) {
+      return mXPath;
     }
   }
-
 }
