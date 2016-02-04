@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class TextWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode> {
   private static final WidgetBuilder<HTMLSerialiser, EvaluatedNode> INSTANCE = new TextWidgetBuilder();
-  private static final String TEXT_MUSTACHE_TEMPLATE = "html/TextWidget.mustache";
+  static final String TEXT_MUSTACHE_TEMPLATE = "html/TextWidget.mustache";
 
   public static final WidgetBuilder<HTMLSerialiser, EvaluatedNode> getInstance() {
     return INSTANCE;

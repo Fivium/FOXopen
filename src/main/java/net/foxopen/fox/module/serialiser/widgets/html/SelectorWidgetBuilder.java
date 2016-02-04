@@ -30,15 +30,16 @@ public class SelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Evaluated
   private SelectorWidgetBuilder () {
   }
 
-  static void outputReadOnlyOptions(HTMLSerialiser pSerialiser, EvaluatedNodeInfoItem pEvaluatedNode) {
+  static void outputReadOnlyOptions(HTMLSerialiser pSerialiser, EvaluatedNodeInfoItem pEvaluatedNode, Map<String, Object> pTemplateVars) {
     //Output all selected values, unless they represent a key-missing entry ("Select one" etc)
     List<String> lSelectedExternalStrings = OptionWidgetUtils.filteredReadOnlySelectorOptions(pEvaluatedNode)
       .map(FieldSelectOption::getDisplayKey)
       .collect(Collectors.toList());
 
-    pSerialiser.append("<span class=\"text-widget\">");
-    pSerialiser.append(Joiner.on("<br>").join(lSelectedExternalStrings));
-    pSerialiser.append("</span>");
+    pTemplateVars.put("UnescapedValue", Joiner.on("<br>").join(lSelectedExternalStrings));
+    pTemplateVars.merge("Class", "text-widget", (pOld, pNew) -> pNew + " " + pOld);
+
+    MustacheFragmentBuilder.applyMapToTemplate(TextWidgetBuilder.TEXT_MUSTACHE_TEMPLATE, pTemplateVars, pSerialiser.getWriter());
   }
 
   @Override
@@ -46,7 +47,7 @@ public class SelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Evaluated
     FieldMgr lFieldMgr = pEvalNode.getFieldMgr();
 
     if (!pEvalNode.isPlusWidget() && lFieldMgr.getVisibility() == NodeVisibility.VIEW) {
-      outputReadOnlyOptions(pSerialiser, pEvalNode);
+      outputReadOnlyOptions(pSerialiser, pEvalNode, super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode));
     }
     else {
       Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);

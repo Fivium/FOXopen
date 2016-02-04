@@ -79,7 +79,7 @@ public class SearchSelectorWidgetBuilder extends WidgetBuilderHTMLSerialiser<Eva
     List<FieldSelectOption> lSelectOptions = filteredOptionList(pEvalNode);
 
     if (!pEvalNode.isPlusWidget() && lFieldMgr.getVisibility() == NodeVisibility.VIEW) {
-      SelectorWidgetBuilder.outputReadOnlyOptions(pSerialiser, pEvalNode);
+      SelectorWidgetBuilder.outputReadOnlyOptions(pSerialiser, pEvalNode, super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode));
     }
     else {
       // Create a hidden select element similar to the selector widget
