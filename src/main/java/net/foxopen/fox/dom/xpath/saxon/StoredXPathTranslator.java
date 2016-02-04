@@ -20,6 +20,9 @@ public class StoredXPathTranslator {
   private static final Pattern FOX_STORED_XPATH_NAME_PATTERN = Pattern.compile("[^\\s\\${}]+?");
   private static final Pattern FOX_STORED_XPATH_MATCH_PATTERN = Pattern.compile("\\$\\{([^\\s]+?)\\}");
 
+  /** Pattern to match $ and \ characters, which need to be escaped before the string can be used as a replacement value */
+  private static final Pattern SPECIAL_CHAR_ESCAPE_PATTERN = Pattern.compile("[\\$\\\\]");
+
   public static StoredXPathTranslator instance() {
     return INSTANCE;
   }
@@ -74,6 +77,9 @@ public class StoredXPathTranslator {
       if(XFUtil.isNull(lResolvedXPath)) {
         throw new ExInternal("No XPath definition found for name '" + lRef + "'");
       }
+
+      //Escape $ and \ by replacing each char with itself preceded by a backslash - otherwise, appendReplacement() treats the characters specially
+      lResolvedXPath = SPECIAL_CHAR_ESCAPE_PATTERN.matcher(lResolvedXPath).replaceAll("\\\\$0");
 
       lMatcher.appendReplacement(lResult, lResolvedXPath);
     }
