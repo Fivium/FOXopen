@@ -36,6 +36,16 @@ public class FxpWebServiceResponse {
   }
 
   /**
+   * Creates an overridden XML response. The XML will be returned directly to the client with no modifications.
+   * @param pXML XML to return.
+   * @param pStatusCode Response status code.
+   * @return
+   */
+  public static FxpWebServiceResponse xmlResponse(FxpDOM pXML, int pStatusCode) {
+    return new FxpWebServiceResponse(new XMLWebServiceResponse((DOM) pXML, pStatusCode));
+  }
+
+  /**
    * Creates a generic response which can be returned as either XML or JSON depending on the client's preference. The
    * property map should be a map with sensible string keys, with values which are either strings, primitives or collections.
    * @param pResultMap Name/value pairs to return.
@@ -43,6 +53,17 @@ public class FxpWebServiceResponse {
    */
   public static FxpWebServiceResponse genericResponse(Map<String, ? extends Object> pResultMap) {
     return new FxpWebServiceResponse(new GenericWebServiceResponse(pResultMap));
+  }
+
+  /**
+   * Creates a generic response which can be returned as either XML or JSON depending on the client's preference. The
+   * property map should be a map with sensible string keys, with values which are either strings, primitives or collections.
+   * @param pResultMap Name/value pairs to return.
+   * @param pStatusCode Response status code.
+   * @return
+   */
+  public static FxpWebServiceResponse genericResponse(Map<String, ? extends Object> pResultMap, int pStatusCode) {
+    return new FxpWebServiceResponse(new GenericWebServiceResponse(pResultMap, pStatusCode));
   }
 
   /**

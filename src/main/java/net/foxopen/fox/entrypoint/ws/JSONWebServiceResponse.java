@@ -24,7 +24,7 @@ extends WebServiceResponse {
     mStatusCode = HttpServletResponse.SC_OK;
   }
 
-  JSONWebServiceResponse(JSONAware pJSONObject, int pStatusCode) {
+  public JSONWebServiceResponse(JSONAware pJSONObject, int pStatusCode) {
     mJSONObject = pJSONObject;
     mStatusCode = pStatusCode;
   }
