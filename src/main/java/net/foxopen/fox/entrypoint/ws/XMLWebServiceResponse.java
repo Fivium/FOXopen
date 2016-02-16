@@ -24,7 +24,7 @@ extends WebServiceResponse {
     mStatusCode = HttpServletResponse.SC_OK;
   }
 
-  XMLWebServiceResponse(DOM pXML, int pStatusCode) {
+  public XMLWebServiceResponse(DOM pXML, int pStatusCode) {
     mXML = pXML;
     mStatusCode = pStatusCode;
   }

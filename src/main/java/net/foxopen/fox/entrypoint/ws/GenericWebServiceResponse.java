@@ -29,6 +29,11 @@ extends WebServiceResponse {
     mStatusCode = HttpServletResponse.SC_OK;
   }
 
+  public GenericWebServiceResponse(Map<String, ?> pPropertyMap, int pStatusCode) {
+    mPropertyMap = pPropertyMap;
+    mStatusCode = pStatusCode;
+  }
+
   @Override
   boolean isTypeSupported(Type pType) {
     //This response object supports all response types
