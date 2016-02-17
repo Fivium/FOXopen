@@ -81,24 +81,24 @@ A common use case here is to have one app (e.g. "fox5") checked in. On each prom
                           <xs:element name="file-transfer-service" nillable="false" minOccurs="0">
                             <xs:complexType>
                               <xs:sequence>
-                                <xs:element name="overall-concurrent-channels" type="xs:integer">
+                                <xs:element name="overall-concurrent-channels" type="xs:integer" default="10">
                                   <xs:annotation>
                                     <xs:documentation>The number simultaneous download and upload connections allowed to the engine. Defaults to 10. </xs:documentation>
                                   </xs:annotation>
                                 </xs:element>
-                                <xs:element name="concurrent-upload-channels" type="xs:integer">
+                                <xs:element name="concurrent-upload-channels" type="xs:integer" default="5">
                                   <xs:annotation>
                                     <xs:documentation>The number of simultaneous upload connections allowed to the engine. Defaults to 5. </xs:documentation>
                                   </xs:annotation>
                                 </xs:element>
-                                <xs:element name="concurrent-download-channels" type="xs:integer">
+                                <xs:element name="concurrent-download-channels" type="xs:integer" default="5">
                                   <xs:annotation>
                                     <xs:documentation>The number of simultaneous downlaod connections allowed to the engine. Defaults to 5.</xs:documentation>
                                   </xs:annotation>
                                 </xs:element>
-                                <xs:element name="worker-sleep-time-ms" type="xs:integer">
+                                <xs:element name="worker-sleep-time-ms" type="xs:integer" default="5">
                                   <xs:annotation>
-                                    <xs:documentation>The number of seconds each thread waits before checking for connection requests. Defaults to 5 milliseconds.</xs:documentation>
+                                    <xs:documentation>The number of milliseconds each thread waits before checking for connection requests. Defaults to 5 milliseconds.</xs:documentation>
                                   </xs:annotation>
                                 </xs:element>
                               </xs:sequence>
@@ -216,22 +216,22 @@ If you do not require a virus scanner create an instance with type 'IGNORE'. Not
               <xs:complexType>
                 <xs:sequence>
                   <xs:element name="name" type="xs:string"/>
-                  <xs:element name="min-file-bytes" type="xs:integer" nillable="true" minOccurs="0">
+                  <xs:element name="min-file-bytes" type="xs:integer" nillable="true" minOccurs="0" default="0">
                     <xs:annotation>
                       <xs:documentation>The minimum number of bytes a file has to be, 0 is the default. </xs:documentation>
                     </xs:annotation>
                   </xs:element>
-                  <xs:element name="max-file-bytes" type="xs:integer" nillable="true" minOccurs="0">
+                  <xs:element name="max-file-bytes" type="xs:integer" nillable="true" minOccurs="0" default="999999999">
                     <xs:annotation>
                       <xs:documentation>The maximum number of bytes a file has be to be. 999999999 is the default. </xs:documentation>
                     </xs:annotation>
                   </xs:element>
-                  <xs:element name="max-upload-channels" type="xs:integer" nillable="true" minOccurs="0">
+                  <xs:element name="max-upload-channels" type="xs:integer" nillable="true" minOccurs="0" default="1">
                     <xs:annotation>
                       <xs:documentation>The maximum number of upload channels, 1 is the default. </xs:documentation>
                     </xs:annotation>
                   </xs:element>
-                  <xs:element name="max-download-channels" type="xs:integer" nillable="true" minOccurs="0">
+                  <xs:element name="max-download-channels" type="xs:integer" nillable="true" minOccurs="0" default="1">
                     <xs:annotation>
                       <xs:documentation>The maximum number of download channels, 1 is the default.</xs:documentation>
                     </xs:annotation>
@@ -262,13 +262,25 @@ If you do not require a virus scanner create an instance with type 'IGNORE'. Not
                   <xs:element name="allowed-extension-csv-list" type="xs:string" minOccurs="0"/>
                   <xs:element name="disallowed-extension-csv-list" type="xs:string" minOccurs="0"/>
                   <xs:element minOccurs="0" name="allowed-mime-type-csv-list" type="xs:string"/>
-                  <xs:element minOccurs="0" name="disallowed-mime-type-csv-list" type="xs:string"/>
-                  <xs:element name="min-size-bytes" type="xs:integer" minOccurs="0">
+                  <xs:element minOccurs="0" name="disallowed-mime-type-csv-list">
+                    <xs:complexType>
+                      <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                          <xs:attribute name="description">
+                            <xs:annotation>
+                              <xs:documentation>The description of the group of disallowed mime types. This is displayed to the user as a part of the file widget</xs:documentation>
+                            </xs:annotation>
+                          </xs:attribute>
+                        </xs:extension>
+                      </xs:simpleContent>
+                    </xs:complexType>
+                  </xs:element>
+                  <xs:element name="min-size-bytes" type="xs:integer" minOccurs="0" default="0">
                     <xs:annotation>
                       <xs:documentation>The minimum number of bytes for a file upload type. Defaults to 0.</xs:documentation>
                     </xs:annotation>
                   </xs:element>
-                  <xs:element name="max-size-bytes" type="xs:integer" minOccurs="0">
+                  <xs:element name="max-size-bytes" type="xs:integer" minOccurs="0" default="99999999">
                     <xs:annotation>
                       <xs:documentation>The maximum number of bytes for a single file upload, defaults to 99999999.</xs:documentation>
                     </xs:annotation>
@@ -453,7 +465,7 @@ If you do not require a virus scanner create an instance with type 'IGNORE'. Not
           <xs:documentation>Module name or absolute URL (i.e. starting with http/s) that the user should be redirected to if they exit all modules on the module call stack.</xs:documentation>
         </xs:annotation>
       </xs:element>
-      <xs:element minOccurs="0" name="response-method">
+      <xs:element minOccurs="0" name="response-method" default="streaming">
         <xs:annotation>
           <xs:documentation>Controls how HTML pages generated by this app are sent to the user's browser. 'streaming' streams the page as it is generated, which in most cases should be faster and is the default. 'buffered' generates the whole page on the server before it is sent, so the browser spends less time receiving the page, but has to wait while it is generated.</xs:documentation>
         </xs:annotation>
