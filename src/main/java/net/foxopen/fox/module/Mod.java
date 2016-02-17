@@ -2608,14 +2608,11 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
   {
 
     // Get section name
-    String lName = pSourceElementDOM.getAttrOrNull("namespace");
+    String lName = XFUtil.nvl(pSourceElementDOM.getAttrOrNull("namespace"), pSourceElementDOM.getAttrOrNull("namespace-groups"));
     String lNameContext = pSourceElementContext+'('+lName+')';
     if(lName==null) {
-      throw new ExModule("Namespace not specified in "+lNameContext);
+      throw new ExModule("Namespace and namespace-groups not specified in "+lNameContext);
     }
-
-    // Identify valid target complement section for name
-    DOMList lComplementList = pParentTargetNode.getElementsByAttrValue(pSourceElementName, "namespace", lName);
 
     // Merge (clone copy) new definition
     DOM lCopiedNode = pSourceElementDOM.copyToParent(pParentTargetNode);
