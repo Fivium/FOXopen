@@ -129,6 +129,15 @@
 .setoutList input[type='button'],
 .setoutList .button {
   margin: 0.1em 0.2em;
+  font-size: 1em;
+}
+
+.setoutList .small-button {
+  font-size: 0.8em;
+}
+
+.setoutList .big-button {
+  font-size: 1.2em;
 }
 
 .setoutList .column,
