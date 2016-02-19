@@ -198,8 +198,27 @@
         // Remove any loading divs
         this.element.siblings(this.options.loadingClass).remove();
 
+        var originalElementID = this.element.prop('id');
+        this.taggerID = 'tagger' + originalElementID;
+        this.suggestionsListID = 'suggestions' + originalElementID;
+
         // Construct tagger widget
-        this.taggerWidget = $('<div>').addClass('tagger').insertAfter(this.element);
+        this.taggerWidget = $('<div>')
+          .addClass('tagger')
+          .prop('tabindex', 0)
+          .attr('role', 'combobox')
+          .attr('aria-expanded', 'false')
+          .attr('aria-autocomplete', 'list')
+          .attr('aria-owns', this.suggestionsListID)
+          .insertAfter(this.element);
+
+        if (this.element.attr('aria-label')) {
+          this.taggerWidget.attr('aria-label', this.element.attr('aria-label'));
+        }
+        if ($('label[for=' + this.element.prop('id') + ']')) {
+          this.taggerWidget.attr('aria-labelledby', $('label[for=' + this.element.prop('id') + ']').first().prop('id'));
+        }
+
         if (this.readonly) {
           this.taggerWidget.addClass('tagger-readonly');
         }
@@ -218,7 +237,13 @@
 
         if (!this.readonly) {
           // Add the suggestion drop arrow and and text input if not readonly
-          this.taggerInput = $('<input>').attr('type', 'text').attr('autocomplete', 'off').addClass('intxt').appendTo(this.taggerWidget);
+          this.taggerInput = $('<input>')
+            .attr('type', 'text')
+            .attr('autocomplete', 'off')
+            .addClass('intxt')
+            .attr('role', 'textbox')
+            .attr('aria-label', 'Autocomplete input box')
+            .appendTo(this.taggerWidget);
           this.taggerButtonsPanel = $('<div>').addClass('tagger-buttons');
           this.taggerButtonsPanel.appendTo(this.taggerWidget);
 
@@ -228,14 +253,22 @@
               .addClass('hittarget')
               .bind('mouseup keyup', $.proxy(this._handleSuggestionsButtonInteraction, this))
               .appendTo(this.taggerButtonsPanel);
-            $('<img>').attr('src', this.options.baseURL + this.options.imgDownArrow).appendTo(this.taggerSuggestionsButton);
+            $('<img>')
+              .attr('src', this.options.baseURL + this.options.imgDownArrow)
+              .attr('alt', 'Toggle option display')
+              .attr('role', 'presentation')
+              .appendTo(this.taggerSuggestionsButton);
           }
           else {
             this.taggerSuggestionsButton = $('<div>')
               .addClass('search')
               .bind('mouseup keyup', $.proxy(this._handleSuggestionsButtonInteraction, this))
               .appendTo(this.taggerButtonsPanel);
-            $('<img>').attr('src', this.options.baseURL + this.options.imgSearch).attr('title', this.options.searchTooltipText).appendTo(this.taggerSuggestionsButton);
+            $('<img>')
+              .attr('src', this.options.baseURL + this.options.imgSearch)
+              .attr('alt', this.options.searchTooltipText)
+              .attr('role', 'presentation')
+              .appendTo(this.taggerSuggestionsButton);
           }
 
           this.taggerSuggestionsButton.attr("tabindex", this.tabIndex);
@@ -254,8 +287,11 @@
 
           // Esc should hide the tagger suggestions globally
           this.taggerWidget.bind('keydown', $.proxy(function (event) {
-            if (event.target && event.which === 27) { // Esc
-              this.taggerSuggestions.hide();
+            if (event.target && event.which === this.keyCodes.ESC) { // Esc
+              this._hideSuggestions();
+
+              // Select the widget itself again
+              this._getWidgetFocusable().focus();
             }
           }, this));
 
@@ -285,7 +321,10 @@
             this.taggerFilterInput.hide();
           }
 
-          this.taggerSuggestionsList = $('<ul>').appendTo(this.taggerSuggestions);
+          this.taggerSuggestionsList = $('<ul>')
+            .prop('id', this.suggestionsListID)
+            .attr('role', 'listbox')
+            .appendTo(this.taggerSuggestions);
 
           // Event listener to hide suggestions list if clicking outside this tagger widget
           // Using mousedown because IE11 reports the event.target for a mouseup as the HTML
@@ -312,23 +351,23 @@
           // If the select was in focus already, make the tagger input focused
           if (this.element.is(':focus')) {
             this._focusWidget();
-            this.taggerInput.focus();
+            this._getWidgetFocusable().focus();
           }
           // Capture focus on the underlying element and redirect that focus to the tagger
           this.element.focus($.proxy(function (e) {
             this._focusWidget();
-            this.taggerInput.focus();
+            this._getWidgetFocusable().focus();
             e.preventDefault();
           }, this));
           // For some reason the jQuery focus overload doesn't fully work so we need both methods?
           this.element.get(0).focus = $.proxy(function () {
             this._focusWidget();
-            this.taggerInput.focus();
+            this._getWidgetFocusable().focus();
           }, this);
           // Add a focus handler to any labels that are for the underlying select
           $('label[for=' + this.element.prop('id') + ']').bind('mouseup', $.proxy(function () {
             this._focusWidget();
-            this.taggerInput.focus();
+            this._getWidgetFocusable().focus();
           }, this));
         }
 
@@ -471,7 +510,10 @@
                 }
                 break;
               case this.keyCodes.ESC: // Esc
-                this.taggerSuggestions.hide();
+                this._hideSuggestions();
+
+                // Select the widget itself again
+                this._getWidgetFocusable().focus();
                 event.preventDefault();
                 break;
               default:
@@ -533,7 +575,7 @@
         else {
           // If the suggestion list is visible already, then toggle it off
           if (this.taggerSuggestions.is(":visible")) {
-            this.taggerSuggestions.hide();
+            this._hideSuggestions();
           }
           // otherwise show it
           else {
@@ -628,7 +670,7 @@
     _blurWidget: function() {
       this.taggerWidget.removeClass('focus');
 
-      this.taggerSuggestions.hide();
+      this._hideSuggestions();
 
       // If we're losing focus from the tagger optionally clear any left over filter text
       if (this.options.clearFilterOnBlur && this.taggerInput.val().length > 0) {
@@ -759,7 +801,14 @@
       this.taggerSuggestionsList.children().remove();
 
       // Add message
-      $('<li>').addClass('extra').addClass('message').addClass(className).text(msg).appendTo(this.taggerSuggestionsList);
+      $('<li>')
+        .attr('role', 'option')
+        .attr('aria-selected', 'false')
+        .addClass('extra')
+        .addClass('message')
+        .addClass(className)
+        .text(msg)
+        .appendTo(this.taggerSuggestionsList);
     },
 
     /**
@@ -771,8 +820,26 @@
       if (this.taggerFilterInput && this.taggerFilterInput.is(":visible")) {
         return this.taggerFilterInput;
       }
-      else {
+      else if (this.taggerInput && this.taggerInput.is(":visible")) {
         return this.taggerInput;
+      }
+      else {
+        return this.taggerWidget;
+      }
+    },
+
+    /**
+     * Return the main tagger input, if it's visible, or the widget itself if the input is not visible (e.g. an item has
+     * been selected)
+     * @returns jQuery wrapped Element
+     * @protected
+     */
+    _getWidgetFocusable: function() {
+      if (this.taggerInput && this.taggerInput.is(":visible")) {
+        return this.taggerInput;
+      }
+      else {
+        return this.taggerWidget;
       }
     },
 
@@ -887,6 +954,8 @@
         }
 
         $('<li>')
+          .attr('role', 'option')
+          .attr('aria-selected', 'false')
           .addClass('extra')
           .addClass('addfreetext')
           .attr("tabindex", this.tabIndex)
@@ -900,6 +969,8 @@
       if (suggestableTagArray.length === 0) {
         // Add message if filtering meant no items to suggest
         $('<li>')
+          .attr('role', 'option')
+          .attr('aria-selected', 'false')
           .addClass('extra')
           .addClass('missing')
           .text(this.options.noSuggestText)
@@ -909,6 +980,8 @@
       // Add message if nothing ended up in the list (e.g. all selectable items selected)
       if (this.taggerSuggestionsList.children().length === 0) {
         $('<li>')
+          .attr('role', 'option')
+          .attr('aria-selected', 'false')
           .addClass('extra')
           .addClass('missing')
           .text(this.options.emptyListText)
@@ -917,6 +990,8 @@
 
       if (suggestableTags.limited) {
         $('<li>')
+          .attr('role', 'option')
+          .attr('aria-selected', 'false')
           .addClass('extra')
           .addClass('limited')
           .text(this.options.limitedText)
@@ -934,6 +1009,8 @@
       // Create and add the suggestion to the suggestion list
       var suggestion = $('<li>')
         .attr("suggestion", "tag")
+        .attr('role', 'option')
+        .attr('aria-selected', 'false')
         .appendTo(this.taggerSuggestionsList);
 
       if (tag.suggestion && tag.suggestion !== null && tag.suggestion !== '') {
@@ -1060,7 +1137,7 @@
       else if (event.type === "mouseleave") {
         $(event.target).removeClass('focus');
         $(event.target).blur();
-        this._getVisibleInput().focus();
+        //this._getWidgetFocusable().focus();
       }
     },
 
@@ -1127,7 +1204,7 @@
       else if (this.loadedFiltered) {
         if (hideSuggestions) {
           // Hide it
-          this.taggerSuggestions.hide();
+          this._hideSuggestions();
         }
         // Reload in all suggestions
         this._loadSuggestions(this.tagsByID, true);
@@ -1150,6 +1227,9 @@
 
       // Show the container
       this.taggerSuggestions.show();
+
+      // Mark the aria expanded attr to true
+      this.taggerInput.attr('aria-expanded', 'true');
 
       // Show the filter if necessary
       if (this.singleValue && this.taggerFilterInput && this.tagCount === 1) {
@@ -1175,6 +1255,8 @@
         // If there are more than 300 items, show a loading item first as it could take a while
         if ($.map(this.tagsByID, function(n, i) { return i;}).length > 300) {
           $('<li>')
+            .attr('role', 'option')
+            .attr('aria-selected', 'false')
             .addClass('extra')
             .addClass('missing')
             .text('Loading...')
@@ -1192,6 +1274,14 @@
           this.taggerSuggestions.find('[tabindex]:visible').first().focus();
         }
       }
+    },
+
+    _hideSuggestions: function() {
+      // Hide the container
+      this.taggerSuggestions.hide();
+
+      // Mark the aria expanded attr to false
+      this.taggerInput.attr('aria-expanded', 'false');
     },
 
     /**
@@ -1245,10 +1335,10 @@
       // Set the flag to show it's not loaded filtered results
       this.loadedFiltered = false;
       // Focus input
-      this._getVisibleInput().focus();
+      this._getWidgetFocusable().focus();
       // Hide suggestion list
       if (shouldHideMenu) {
-        this.taggerSuggestions.hide();
+        this._hideSuggestions();
       }
     },
 
@@ -1307,7 +1397,7 @@
           tag.addClass('freetext');
         }
 
-        var tagRemover = $('<span class="removetag hittarget"><img src="' + this.options.baseURL + this.options.imgRemove + '" /></span>');
+        var tagRemover = $('<span class="removetag hittarget" role="presentation"><img src="' + this.options.baseURL + this.options.imgRemove + '" alt="Deselect tag" /></span>');
 
         // Reusable tag removal closure
         var tagRemoveProcessing = function () {
