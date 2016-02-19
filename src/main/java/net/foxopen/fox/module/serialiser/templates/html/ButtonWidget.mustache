@@ -1,5 +1,5 @@
 {{^Disabled}}
-  <button {{#FieldName}}id="{{FieldName}}" name="{{FieldName}}" {{/FieldName}}type="{{InputType}}"{{> OnClickAttribute}}{{> ClassAttribute}}{{> StyleAttribute}}{{#AccessiblePromptText}} aria-label="{{AccessiblePromptText}}"{{/AccessiblePromptText}}>
+  <button {{#FieldName}}id="{{FieldName}}" name="{{FieldName}}" {{/FieldName}}type="{{InputType}}"{{> OnClickAttribute}}{{> ClassAttribute}}{{> StyleAttribute}}{{> HintAttributes}}{{#AccessiblePromptText}} aria-label="{{AccessiblePromptText}}"{{/AccessiblePromptText}}>
   {{^ButtonImageURL}}
     {{Value}}{{/ButtonImageURL}}
   {{#ButtonImageURL}}

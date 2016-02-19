@@ -210,8 +210,11 @@ extends WidgetBuilder<HTMLSerialiser, EN>  {
       addActionTemplateVars(pSerialisationContext, pEvalNode, lTemplateVars);
     }
 
-    if (pEvalNode.hasHint() && pEvalNode.isEnableFocusHintDisplay()) {
-      lTemplateVars.put("HintID", pEvalNode.getHint().getHintID());
+    if (pEvalNode.hasHint()) {
+      lTemplateVars.put("HintContentID", pEvalNode.getHint().getHintContentID());
+      if (pEvalNode.isEnableFocusHintDisplay()) {
+        lTemplateVars.put("HintID", pEvalNode.getHint().getHintID());
+      }
     }
 
     return lTemplateVars;

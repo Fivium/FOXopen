@@ -223,8 +223,8 @@ extends WriterOutputSerialiser {
       String lHintTitle = getSafeStringAttribute(pHint.getTitle());
 
       append("<div id=\"");
-      append(pHint.getHintID());
-      append("-content\" role=\"tooltip\" class=\"hint-content\">");
+      append(pHint.getHintContentID());
+      append("\" role=\"tooltip\" class=\"hint-content\">");
       if (!XFUtil.isNull(lHintTitle)) {
         append("<h4>");
         append(escapeNewlines(lHintTitle));
@@ -255,15 +255,15 @@ extends WriterOutputSerialiser {
         append("<div id=\"");
         append(pHint.getHintID());
         append("\" aria-describedby=\"");
-        append(pHint.getHintID());
-        append("-content\" class=\"hint icon-info\"></div>");
+        append(pHint.getHintContentID());
+        append("\" class=\"hint icon-info\"></div>");
 
         if (XFUtil.exists(pHint.getHintURL())) {
           append("</a>");
         }
       }
       else {
-        mEvalParseTree.addConditionalLoadJavascript("FOXjs.addHintToTarget($('#" + pTargetID + "'), '" + pHint.getHintID() + "-content');");
+        mEvalParseTree.addConditionalLoadJavascript("FOXjs.addHintToTarget($('#" + pTargetID + "'), '" + pHint.getHintContentID() + "');");
       }
     }
   }
