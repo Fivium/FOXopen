@@ -27,6 +27,11 @@ public class OutputHint {
     return mHintID;
   }
 
+
+  public String getHintContentID() {
+    return mHintID + "-content";
+  }
+
   public StringAttributeResult getTitle() {
     return mTitle;
   }
