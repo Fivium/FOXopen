@@ -274,6 +274,10 @@ input[type='checkbox'] {
   overflow:hidden;
 }
 
+.button-option-label label {
+  cursor: pointer;
+}
+
 .input-group {
   display: table-row;
   /*  margin-bottom: 0.8em;*/
