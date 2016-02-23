@@ -14,13 +14,23 @@
   box-shadow: 0 3px 10px rgba(0,0,0,0.3);
 }
 
-.flash-message-close {
+.flash-message-close,
+.flash-message-close:focus {
   float: right;
   font-weight: bold;
   cursor: pointer;
   margin-left: 1em;
-  opacity: 0.4;
+  opacity: 0.7;
   font-size: 0.8em;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.flash-message-close:hover,
+.flash-message-close:active {
+  opacity: 1;
+  background: none;
 }
 
 .flash-message-close:before {
