@@ -20,6 +20,7 @@ import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 import net.foxopen.fox.thread.devtoolbar.DevToolbarContext;
 import net.foxopen.fox.track.Track;
+import net.foxopen.fox.track.TrackFlag;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.util.Collection;
@@ -91,6 +92,17 @@ public class ListWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
       }
       pSerialiser.append(">");
 
+
+      // Add a caption element to the table for accessibility purposes (hide it from visual users however)
+      StringAttributeResult lAccessiblePrompt = pEvalNode.getStringAttributeResultOrNull(NodeAttribute.ACCESSIBLE_PROMPT);
+      if (lAccessiblePrompt != null && !XFUtil.isNull(lAccessiblePrompt.getString())) {
+        pSerialiser.append("<caption class=\"screen-reader-only\">");
+        pSerialiser.append(pSerialiser.getSafeStringAttribute(lAccessiblePrompt));
+        pSerialiser.append("</caption>");
+      }
+      else {
+        Track.alert("Accessibility", "No accessiblePrompt defined explaining what the data is in in a list setout: " + pEvalNode.getIdentityInformation(), TrackFlag.ACCESSIBILITY);
+      }
 
       // Build header block
       pSerialiser.append("<thead><tr>");

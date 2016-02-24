@@ -31,7 +31,10 @@ public enum TrackFlag {
   ASSERTION(true),
 
   /** Messages logged via the Logging.sysLogWarn() */
-  FOX_SYS_LOG_WARNING(true);
+  FOX_SYS_LOG_WARNING(true),
+
+  /** Messages regarding things that will make the screen fail accessibility audits */
+  ACCESSIBILITY(true);
 
   private final boolean mRequiresAttention;
 
