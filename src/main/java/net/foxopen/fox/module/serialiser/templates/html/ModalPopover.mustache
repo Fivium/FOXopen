@@ -1,9 +1,9 @@
 <div id="engine-modal-popover" role="dialog"{{#title}} aria-labelledby="engine-modal-popover-title"{{/title}} class="modal-popover-container"{{#scroll-position}} data-initial-scroll-position="{{scroll-position}}"{{/scroll-position}}>
-  <div class="modal-popover {{size}}-popover {{cssClass}}">
+  <div class="modal-popover {{size}}-popover {{cssClass}}" tabindex="0">
     <div class="modal-popover-content">
       {{#title}}<h2 id="engine-modal-popover-title">{{title}}</h2>{{/title}}
       {{{content}}}
     </div>
   </div>
 </div>
-<script type="text/javascript">$('body').addClass('contains-popover');</script>
+<script type="text/javascript">$('body').addClass('contains-popover'); $('#engine-modal-popover > .modal-popover').focus();</script>
