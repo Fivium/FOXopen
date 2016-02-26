@@ -21,12 +21,6 @@ public class EvaluatedNodeInfoStub extends EvaluatedNodeInfo {
     if (getWidgetBuilderType().isAction() && !XFUtil.isNull(getActionName()) && !isRunnable() && !isPlusWidget()) {
       setVisibility(NodeVisibility.DENIED);
     }
-
-    // If this item is in a list, check it for content and mark the column up as containing content on the list
-    if ((isAttributeDefined(NodeAttribute.HAS_CONTENT) && getBooleanAttribute(NodeAttribute.HAS_CONTENT, false))
-      || (!isAttributeDefined(NodeAttribute.HAS_CONTENT) && XFUtil.exists(pNodeEvaluationContext.getDataItem().value(true)))) {
-      pParent.registerNonCollapsibleColumn(pNodeInfo);
-    }
   }
 
   @Override
