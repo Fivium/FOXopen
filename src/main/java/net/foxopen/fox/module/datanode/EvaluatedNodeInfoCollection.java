@@ -29,6 +29,8 @@ public class EvaluatedNodeInfoCollection extends EvaluatedNodeInfoGeneric {
 
     mExternalFoxId = getEvaluatedParseTree().getFieldSet().getExternalFoxId(pNodeEvaluationContext.getDataItem());
 
+    registerCollapsibleColumnStatus();
+
     addChildren();
   }
 

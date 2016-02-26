@@ -63,14 +63,7 @@ public class EvaluatedNodeInfoItem extends EvaluatedNodeInfoGeneric {
       setVisibility(NodeVisibility.DENIED);
     }
 
-    // If this item is in a list, check it for content and mark the column up as containing content on the list
-    if (getParent() instanceof EvaluatedNodeInfoCollection && getParent().getParent() instanceof EvaluatedNodeInfoList) {
-      EvaluatedNodeInfoList lListContainer = (EvaluatedNodeInfoList)getParent().getParent();
-      if ((isAttributeDefined(NodeAttribute.HAS_CONTENT) && getBooleanAttribute(NodeAttribute.HAS_CONTENT, false))
-        || (!isAttributeDefined(NodeAttribute.HAS_CONTENT) && XFUtil.exists(pNodeEvaluationContext.getDataItem().value(true)))) {
-        lListContainer.registerNonCollapsibleColumn(pNodeInfo);
-      }
-    }
+    registerCollapsibleColumnStatus();
 
     mFieldMgr = super.getEvaluatedParseTree().getFieldSet().createFieldMgr(this);
   }
