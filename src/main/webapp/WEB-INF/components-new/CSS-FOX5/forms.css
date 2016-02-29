@@ -226,13 +226,6 @@ textarea[readonly] {
   background: #eee;
 }
 
-input:focus,
-select:focus,
-textarea:focus,
-.tagger {
-  outline-color: #69CAE8
-}
-
 input[type='text'],
 input[type='password'],
 input[type='date'],

@@ -38,6 +38,11 @@ body.disabled .modal-popover-container {
   filter: alpha(opacity = 0);
 }
 
+/* un-reset element focus outline style */
+*:focus {
+  outline: auto #69CAE8;
+}
+
 /* un-reset list item style */
 ul, ol {
   padding-left: 40px;
