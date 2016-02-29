@@ -87,6 +87,18 @@ var FOXjs = {
     // Glyphs have to be ones that are more than 1em wide otherwise this doesn't work in IE
     fontSpy("icomoon", {glyphs: "\ue9be\ue90e\ue91b\ue920"});
 
+    // Init sticky panels
+    $( document ).ready(function(){$(".sticky").stick_in_parent({parent: '.container'});});
+
+    //https://github.com/leafo/sticky-kit/issues/31
+    $('.sticky')
+    .on('sticky_kit:bottom', function(e) {
+        $(this).parent().css('position', 'static');
+    })
+    .on('sticky_kit:unbottom', function(e) {
+        $(this).parent().css('position', 'relative');
+    })
+
     // Preserve scroll position
     var scrollPosition = parseInt(document.mainForm.scroll_position.value);
     if (scrollPosition > 0) {

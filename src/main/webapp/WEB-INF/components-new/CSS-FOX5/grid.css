@@ -126,6 +126,14 @@ img { -ms-interpolation-mode: bicubic; }
 .row:after, .clearfix:after { clear: both; }
 .row, .clearfix { zoom: 1; }
 
+/* Put a border on sticky elements to force their dimensions to contain the top margin of the first element
+into account (otherwise that top margin spill out of the top of the .sticky element and the offset top of the
+element is calculated incorrectly) */
+.sticky {
+  border-top: 1px solid transparent;
+  margin-top: -1px;
+}
+
 /*
 IE compat
 */

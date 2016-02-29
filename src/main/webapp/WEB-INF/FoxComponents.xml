@@ -66,6 +66,7 @@
     <TYPE>text/javascript</TYPE>
     <FILE_PATH_LIST>
       <FILE_PATH>\WEB-INF\components-new\jquery\jquery.fontspy.js</FILE_PATH>
+      <FILE_PATH>\WEB-INF\components-new\jquery\jquery.sticky-kit.min.js</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\fox.js</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\tabs.js</FILE_PATH>
       <FILE_PATH>\WEB-INF\components-new\accessibleModal.js</FILE_PATH>
