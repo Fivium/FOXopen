@@ -181,6 +181,9 @@ var FOXjs = {
       }
     });
 
+    // Enable onchange attribute on selectors in a keyboard-accessible way
+    this._overrideSelectorOnChange();
+
     // Run page scripts or catch erroneous navigation
     if (!this.isExpired()) {
       successFunction();
@@ -226,6 +229,98 @@ var FOXjs = {
       interactive: (hintContentElement.find('a').length > 0)
     });
   },
+
+  /**
+   * Set up selector elements to deal with OnChange events in a more accessible way
+   */
+  _overrideSelectorOnChange: function() {
+    /**
+     * Handle onchange event for the selector
+     *
+     * @param theElement
+     * @returns {boolean}
+     */
+    function selectChanged(theElement) {
+      var theSelect;
+
+      if (theElement && theElement.value) {
+        theSelect = theElement;
+      }
+      else {
+        theSelect = this;
+      }
+
+      // Return false if nothing was noted as being changed and the element wasn't turned into a tagger
+      if (!theSelect.changed && !$(theSelect).data('isTagger')) {
+        return false;
+      }
+
+      theSelect.originalonchange();
+
+      return true;
+    }
+
+    /**
+     * Handle onclick events for the selector, marking it as changed as the click will have come from someone selecting
+     * and item.
+     */
+    function selectClicked() {
+      this.changed = true;
+    }
+
+    /**
+     * Handle the focus event by storing the original value so we can test later to see if it actually changed before
+     * firing the onchange event
+     * @returns {boolean}
+     */
+    function selectFocused() {
+      this.initValue = this.value;
+      return true;
+    }
+
+    /**
+     * Handle keydown events
+     * @param e
+     * @returns {boolean}
+     */
+    function selectKeyed(e) {
+      var theEvent;
+      var keyCodeTab = 9; // Tab
+      var keyCodeEnter = 13; // Enter
+      var keyCodeEsc = 27; // Esc
+
+      if (e) {
+        theEvent = e;
+      }
+      else {
+        theEvent = event;
+      }
+
+      if ((theEvent.keyCode === keyCodeEnter || theEvent.keyCode === keyCodeTab) && this.value !== this.initValue) {
+        this.changed = true;
+        selectChanged(this);
+      }
+      else if (theEvent.keyCode === keyCodeEsc) {
+        this.value = this.initValue;
+      }
+      else {
+        this.changed = false;
+      }
+
+      return true;
+    }
+
+    $('select[onchange]').map(function(pIndex, pElement) {
+      pElement.changed = false;
+      pElement.originalonchange = pElement.onchange;
+      pElement.onfocus = selectFocused;
+      pElement.onchange = selectChanged;
+      pElement.onkeydown = selectKeyed;
+      pElement.onclick = selectClicked;
+    });
+  },
+
+
 
   /**
    * Show an alert with information telling the user that because of their backwards navigation links will not work until

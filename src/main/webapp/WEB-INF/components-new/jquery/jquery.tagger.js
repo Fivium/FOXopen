@@ -170,6 +170,9 @@
       this.canFireActions = false;
 
       if (this.element.is('select')) {
+        // Add a data attribute to the select so other code can reliably tell that it's been turned into a tagger
+        this.element.data('isTagger', true);
+
         // Check readonly mode
         this.readonly = this.element.prop('readonly') || this.element.prop('disabled');
 
