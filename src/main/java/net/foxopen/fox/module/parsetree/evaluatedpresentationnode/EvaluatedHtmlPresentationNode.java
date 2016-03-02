@@ -124,7 +124,7 @@ extends GenericAttributesEvaluatedPresentationNode<HtmlPresentationNode> {
       // Warn about images missing alt attributes
       StringAttributeResult lAltTag = pAttributeMap.get("alt");
       if (lAltTag == null || lAltTag.getString() == null) {
-        Track.alert("MissingAttribute", "Image tag [@src='" + lImageSource + "'] found without an alt attribute. When specifying an img element always put an alt tag explaining the image contents for accessibility purposes.", TrackFlag.BAD_MARKUP);
+        Track.alert("MissingAttribute", "Image tag [@src='" + lImageSource + "'] found without an alt attribute. When specifying an img element always put an alt tag explaining the image contents for accessibility purposes.", TrackFlag.ACCESSIBILITY);
       }
 
       lResolvedAttributeMap.put("src", new FixedStringAttributeResult(pEvaluatedParseTree.getStaticResourceOrFixedURI(lImageSource.getString())));
