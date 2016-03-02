@@ -222,6 +222,10 @@
           this.taggerWidget.attr('aria-labelledby', $('label[for=' + this.element.prop('id') + ']').first().prop('id'));
         }
 
+        if (this.element.attr('aria-required')) {
+          this.taggerWidget.attr('aria-required', this.element.attr('aria-required'));
+        }
+
         if (this.readonly) {
           this.taggerWidget.addClass('tagger-readonly');
         }
