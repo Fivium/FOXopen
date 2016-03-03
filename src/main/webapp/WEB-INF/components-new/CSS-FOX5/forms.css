@@ -79,6 +79,7 @@ label {
 
 .setoutForm input,
 .setoutForm button,
+.setoutForm .button,
 .setoutForm select,
 .setoutForm textarea,
 .setoutForm .tagger,
@@ -95,6 +96,7 @@ label {
 
 .tightForm input,
 .tightForm button,
+.tightForm .button,
 .tightForm select,
 .tightForm textarea,
 .tightForm .tagger,
@@ -112,6 +114,7 @@ label {
 .setoutForm.noBottomMargin,
 span.noBottomMargin,
 input.noBottomMargin,
+button.noBottomMargin,
 select.noBottomMargin,
 textarea.noBottomMargin,
 .tagger.noBottomMargin,
@@ -442,6 +445,7 @@ button[disabled],
 
 /* Button sizes */
 button.big-button,
+a.big-button,
 .big-button,
 .big-menu-out button,
 .big-menu-out .button {
@@ -450,6 +454,7 @@ button.big-button,
 }
 
 button.small-button,
+a.small-button,
 .small-button,
 .small-menu-out button,
 .small-menu-out .button {

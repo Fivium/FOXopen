@@ -4,6 +4,14 @@ var SERVER_ERROR_START = 'start';
 var SERVER_ERROR_RECEIVE = 'receive';
 var POLL_STATUS_INTERVAL = 200;
 
+function isIE( version, comparison ){
+  var $div = $('<div style="display:none;"/>').appendTo($('body'));
+  $div.html('<!--[if '+(comparison||'')+' IE '+(version||'')+']><a>&nbsp;</a><![endif]-->');
+  var ieTest = $div.find('a').length;
+  $div.remove();
+  return ieTest;
+}
+
 function FileUpload (container, urlBase, urlParams, fileList, widgetOptions) {
   this.container = container;
   this.urlBase = urlBase;
@@ -106,6 +114,28 @@ function FileUpload (container, urlBase, urlParams, fileList, widgetOptions) {
     ////Called in the event of a serious error (i.e. 500 response/request abort)
     _this.handleFail(null, data.files[0]._foxFileInfo, SERVER_ERROR_RECEIVE);
   });
+
+  //Attach event listener to the upload link for keyboard accessibility
+  $(this.container.selector + ' a.fileUploadLink').on('keydown', function(e){
+    //Enter or Space
+    if(e.keyCode==13 || e.keyCode==32) {
+      /*
+      IE<10 don't actually upload the file when the click() event is called programmatically,
+      and Firefox doesn't allow us to call the click event, so we focus on the file input
+      and the keydown gets forwarded there. In IE this activates it if the
+      space bar was pressed, but not if the enter key was pressed, because it focuses the textbox
+      part of the file widget rather than the button part
+      */
+      if(isIE(9,'lte') || navigator.userAgent.toLowerCase().indexOf('firefox') > -1) {
+        $(this).siblings('input[type=file]').focus();
+      }
+      //Webkit browsers handle the click event as expected
+      else {
+        $(this).siblings('input[type=file]').click();
+      }
+    }
+  });
+
 }
 
 // Prototype definition

@@ -25,6 +25,8 @@
 
 .fileUploadInputContainer {
   position: relative;
+  display: inline-block;
+  overflow: hidden;
 }
 
 .disableUpload .fileUploadInputContainer {
@@ -32,28 +34,7 @@
 }
 
 .fileUploadLink {
-  font-weight: 400;
-  padding: 0;
-  text-align: left;
-  text-decoration: underline;
-  color: #0979C6;
-  cursor: pointer;
-  overflow: hidden;
-  position: relative;
   display: inline-block;
-}
-
-.fileUploadLink:hover {
-  color: #0C71AA;
-}
-
-ul.flow-across .fileUploadLink {
-  padding-right: 0.5em;
-  display: inline;
-}
-
-ul.small-menu-out .fileUploadLink {
-  font-size: 0.8em;
 }
 
 .fileUploadInput {
@@ -95,29 +76,9 @@ ul.small-menu-out .fileUploadLink {
   position: relative;
 }
 
-.fileUploadLink.button {
-  padding: 0.3em 1.3em 0.32em;
-  text-decoration: none;
-}
-
-.fileUploadLink.inline-link-button.button {
-  padding: 0;
-}
-
-.setoutList .fileUploadLink.button {
-  box-sizing: border-box;
-  margin: 0.1em 0.2em;
-}
-
 .fileUpload.modal .fileInfo.currentUpload {
   z-index: 11000;
   position: relative;
-}
-
-.fileUpload.modalx .progressBar {
-  height: 10px;
-  width: 270px;
-  float: left;
 }
 
 .modalUploadBlocker {
