@@ -70,7 +70,7 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
       insertDropzoneDiv(pSerialiser, lFieldId);
     }
 
-    pSerialiser.append("<div class=\"fileUploadInputContainer\">");
+    pSerialiser.append("<div class=\"fileUploadInputContainer\" role=\"menu\">");
 
     //TODO PN need to handle all attributes (like generic template vars for other widgets) e.g. tightField, etc
 
@@ -78,10 +78,10 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
     List<String> lDefaultStyles = pEvalNode.getStringAttributes(NodeAttribute.STYLE, NodeAttribute.FIELD_STYLE);
 
     if(lFieldMgr.getVisibility() == NodeVisibility.EDIT) {
-      pSerialiser.append("<label class=\"fileUploadLink " + StringUtils.join(lClasses, " ") + "\" for=\"file" + lFieldId + "\" style=\"" +  StringUtils.join(lDefaultStyles, " ") + "\">" + pEvalNode.getUploadChoosePrompt() + "</label>");
+      pSerialiser.append("<a href=\"#\" role=\"menuitem\" class=\"fileUploadLink " + StringUtils.join(lClasses, " ") + "\" style=\"" +  StringUtils.join(lDefaultStyles, " ") + "\" aria-label=\"" + pEvalNode.getPrompt().getString() + ": " + pEvalNode.getUploadChoosePrompt() + "\">" + pEvalNode.getUploadChoosePrompt() + "</a>");
 
-      pSerialiser.append("<input type=\"file\" " + (pEvalNode.getMaxFilesAllowed() > 1 ? "multiple" : "") + " name=\"file" + lFieldId + "\" " +
-        "class=\"uploadControl fileUploadInput\" aria-label=\"" + pEvalNode.getPrompt().getString() + ": " + pEvalNode.getUploadChoosePrompt() +"\">");
+      pSerialiser.append("<input type=\"file\" tabindex=\"-1\" " + (pEvalNode.getMaxFilesAllowed() > 1 ? "multiple" : "") + " name=\"file" + lFieldId + "\" " +
+        "class=\"uploadControl fileUploadInput\">");
     }
 
     pSerialiser.append("</div>");
@@ -115,7 +115,7 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
     String lOptionJSON = getWidgetOptionJSONString(pEvalNode, pEvalNode.getActionContextRef(), lFieldMgr.getVisibility().asInt() <  NodeVisibility.EDIT.asInt());
     String lJS = "<script>\n" +
     "$(document).ready(function() {" +
-    "  new FileUpload($('#" + lFieldId + "'), '" + lURLBase +  "', " + lStartURLParams.toJSONString() + ", " + lFileInfoJSON  + ", " + lOptionJSON + ")\n" +
+    "  new FileUpload($('#" + lFieldId + "'), '" + lURLBase +  "', " + lStartURLParams.toJSONString() + ", " + lFileInfoJSON  + ", " + lOptionJSON + ");\n" +
     "});\n" +
     "</script>";
 
