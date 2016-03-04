@@ -10,13 +10,21 @@ import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedTabGr
 import net.foxopen.fox.module.parsetree.presentationnode.TabGroupPresentationNode;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
 import net.foxopen.fox.module.serialiser.components.ComponentBuilder;
+import net.foxopen.fox.module.serialiser.fragmentbuilder.MustacheFragmentBuilder;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
 import net.foxopen.fox.module.tabs.EvaluatedTabInfo;
 import net.foxopen.fox.module.tabs.TabGroup;
 import net.foxopen.fox.track.Track;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class TabGroupComponentBuilder
 extends ComponentBuilder<HTMLSerialiser, EvaluatedTabGroupPresentationNode> {
+  private static final String CONTROLS_MUSTACHE_TEMPLATE = "html/TabControls.mustache";
+  private static final String CONTENT_MUSTACHE_TEMPLATE = "html/TabContent.mustache";
 
   private static final ComponentBuilder<HTMLSerialiser, EvaluatedTabGroupPresentationNode> GROUP_BUILDER_INSTANCE = new TabGroupComponentBuilder();
   private static final ComponentBuilder<HTMLSerialiser, EvaluatedTabPromptPresentationNode> PROMPT_BUILDER_INSTANCE = new TabPromptComponentBuilder();
@@ -32,12 +40,22 @@ extends ComponentBuilder<HTMLSerialiser, EvaluatedTabGroupPresentationNode> {
   private TabGroupComponentBuilder() {
   }
 
-  private static void serialiseTabContentDiv(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedTabGroupPresentationNode pEvalNode, String pTabGroupKey, EvaluatedTabInfo pEvalTabInfo,String pClass, String pStyle) {
-    //TODO PN should this tab class be controllable?
-    pSerialiser.append("<div class=\"tab-content " + pClass + "\" style=\"" + pStyle + "\" data-tab-group=\"" + pTabGroupKey  + "\" data-tab-key=\"" + pEvalTabInfo.getTabKey() + "\">");
+  private static void serialiseTabContentDiv(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedTabGroupPresentationNode pEvalNode, String pTabGroupKey, EvaluatedTabInfo pEvalTabInfo,String pClass, String pStyle, boolean pSelected) {
+    Map<String, Object> lTemplateVars = new HashMap<>();
+    lTemplateVars.put("ContentID", ("tc" + pTabGroupKey + pEvalTabInfo.getTabKey()).replace("/", "-"));
+    lTemplateVars.put("KeyID", ("tk" + pTabGroupKey + pEvalTabInfo.getTabKey()).replace("/", "-"));
+    lTemplateVars.put("Class", pClass);
+    lTemplateVars.put("Style", pStyle);
+    lTemplateVars.put("TabGroupKey", pTabGroupKey);
+    lTemplateVars.put("TabKey", pEvalTabInfo.getTabKey());
+    lTemplateVars.put("Hidden", pSelected ? "false" : "true");
+
+    HTMLSerialiser.HTMLTempSerialiser lTempSerialiser = pSerialiser.getTempSerialiser();
     EvaluatedPresentationNode lContentEvalNode = pEvalNode.getEvaluatedContentNode(pEvalTabInfo.getTabKey());
-    pSerialiser.getComponentBuilder(lContentEvalNode.getPageComponentType()).buildComponent(pSerialisationContext, pSerialiser, lContentEvalNode);
-    pSerialiser.append("</div>");
+    lTempSerialiser.getComponentBuilder(lContentEvalNode.getPageComponentType()).buildComponent(pSerialisationContext, lTempSerialiser, lContentEvalNode);
+    lTemplateVars.put("TabContent", lTempSerialiser.getOutput());
+
+    MustacheFragmentBuilder.applyMapToTemplate(CONTENT_MUSTACHE_TEMPLATE, lTemplateVars, pSerialiser.getWriter());
   }
 
   private static String establishTabClass(EvaluatedTabGroupPresentationNode pEvalNode) {
@@ -74,45 +92,48 @@ extends ComponentBuilder<HTMLSerialiser, EvaluatedTabGroupPresentationNode> {
 
     String lTabClass = establishTabClass(pEvalNode);
 
-    OPEN_UL: {
-      pSerialiser.append("<ul class=\"tabs");
-      if(!XFUtil.isNull(pEvalNode.getTabSize())) {
-        pSerialiser.append(" " + pEvalNode.getTabSize() + "-tabs");
-      }
+    Map<String, Object> lTemplateVars = new HashMap<>();
+    lTemplateVars.put("Class", pEvalNode.getTabSize() + "-tabs " + lTabClass);
+    lTemplateVars.put("TabGroupKey", lTabGroup.getTabGroupKey());
 
-      pSerialiser.append(" " + lTabClass);
-
-      pSerialiser.append("\" data-tab-group=\"" + lTabGroup.getTabGroupKey()  + "\" >");
-    }
-
+    List<Map<String, String>> lTabItems = new ArrayList<>();
     EvaluatedTabInfo lSelectedTabInfo = null;
     for(EvaluatedTabInfo lTabInfo : lTabGroup.getTabInfoList()) {
+      Map<String, String> lTabItem = new HashMap<>(6);
+
+      lTabItem.put("KeyID", ("tk" + lTabGroup.getTabGroupKey() + lTabInfo.getTabKey()).replace("/", "-"));
+      lTabItem.put("ContentID", ("tc" + lTabGroup.getTabGroupKey() + lTabInfo.getTabKey()).replace("/", "-"));
 
       String lTabLiClass = "";
-      pSerialiser.append("<li");
       if(lTabGroup.isTabSelected(lTabInfo)) {
         lTabLiClass = "current-tab";
         lSelectedTabInfo = lTabInfo;
+        lTabItem.put("Selected", "true");
+      }
+      else {
+        lTabItem.put("Selected", "false");
       }
       if(!lTabInfo.isEnabled()) {
         lTabLiClass += " disabled-tab";
       }
 
-      if(lTabLiClass.length() > 0) {
-        pSerialiser.append(" class=\"" + lTabLiClass.trim() + "\"");
-      }
+      lTabItem.put("Class", lTabLiClass.trim());
+      lTabItem.put("TabKey", lTabInfo.getTabKey());
 
-      pSerialiser.append(" data-tab-key=\"" +  lTabInfo.getTabKey() + "\">");
-
+      HTMLSerialiser.HTMLTempSerialiser lTempSerialiser = pSerialiser.getTempSerialiser();
       EvaluatedPresentationNode lPromptEvalNode = pEvalNode.getEvaluatedPromptNode(lTabInfo.getTabKey());
-      pSerialiser.getComponentBuilder(lPromptEvalNode.getPageComponentType()).buildComponent(pSerialisationContext, pSerialiser, lPromptEvalNode);
+      lTempSerialiser.getComponentBuilder(lPromptEvalNode.getPageComponentType()).buildComponent(pSerialisationContext, lTempSerialiser, lPromptEvalNode);
+      lTabItem.put("ItemHTML", lTempSerialiser.getOutput());
 
+      lTabItems.add(lTabItem);
     }
-    pSerialiser.append("</ul>");
+    lTemplateVars.put("TabItems", lTabItems);
+
+    MustacheFragmentBuilder.applyMapToTemplate(CONTROLS_MUSTACHE_TEMPLATE, lTemplateVars, pSerialiser.getWriter());
 
     //Always serialise the selected tab
     if(lSelectedTabInfo != null) {
-      serialiseTabContentDiv(pSerialisationContext, pSerialiser, pEvalNode, lTabGroup.getTabGroupKey(), lSelectedTabInfo, lTabClass, "");
+      serialiseTabContentDiv(pSerialisationContext, pSerialiser, pEvalNode, lTabGroup.getTabGroupKey(), lSelectedTabInfo, lTabClass, "", true);
     }
     else {
       Track.alert("NoSelectedTabs", "No selected tabs in tab group " + lTabGroup.getTabGroupKey());
@@ -122,7 +143,7 @@ extends ComponentBuilder<HTMLSerialiser, EvaluatedTabGroupPresentationNode> {
     if(pEvalNode.isClientSide()) {
       for(EvaluatedTabInfo lTabInfo : lTabGroup.getTabInfoList()) {
         if(lTabInfo != lSelectedTabInfo) {
-          serialiseTabContentDiv(pSerialisationContext, pSerialiser, pEvalNode, lTabGroup.getTabGroupKey(), lTabInfo, lTabClass, "display: none;");
+          serialiseTabContentDiv(pSerialisationContext, pSerialiser, pEvalNode, lTabGroup.getTabGroupKey(), lTabInfo, lTabClass, "display: none;", false);
         }
       }
 
