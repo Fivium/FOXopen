@@ -98,9 +98,9 @@ nav.menu-out a.current-nav-item {
 
 /* Skip links */
 #skiplinks{
-       position: absolute;
-       left: -999em;
-       width: 990em;
+  position: absolute;
+  left: -999em;
+  width: 990em;
 }
 
 #skiplinks a:focus,
@@ -119,7 +119,9 @@ nav.menu-out a.current-nav-item {
   background-color: #ffffff;
 }
 .skipTarget {
-  display: none;
+  position:absolute;
+  left: -999em;
+  overflow:hidden;
 }
 
 /* debug info */
