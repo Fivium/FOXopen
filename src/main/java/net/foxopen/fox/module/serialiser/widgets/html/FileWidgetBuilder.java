@@ -31,12 +31,16 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
     return INSTANCE;
   }
 
-  private static void insertDropzoneDiv(HTMLSerialiser pSerialiser, String pFieldId) {
-    pSerialiser.append("<div class=\"dropzone\" data-dropzone-id=\"" + pFieldId + "\" style=\"display:none;\"><div class=\"dropzone-text-container\"><div class=\"dropzone-text icon-download\">Drop files here<div class=\"dropzone-max-files-text\"></div></div></div></div>");
+  private static void insertDropzoneDiv(HTMLSerialiser pSerialiser, String pContainerId) {
+    pSerialiser.append("<div class=\"dropzone\" data-dropzone-id=\"" + pContainerId + "\" style=\"display:none;\"><div class=\"dropzone-text-container\"><div class=\"dropzone-text icon-download\">Drop files here<div class=\"dropzone-max-files-text\"></div></div></div></div>");
   }
 
   private static String getFieldId(FieldMgr pFieldMgr) {
-    return "FileUpload-" + pFieldMgr.getExternalFieldName();
+    return pFieldMgr.getExternalFieldName();
+  }
+
+  private static String getContainerId(FieldMgr pFieldMgr) {
+    return "fileUploadContainer-"+getFieldId(pFieldMgr);
   }
 
   private static boolean singleDropzoneRequired(SerialisationContext pSerialisationContext) {
@@ -48,7 +52,7 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
     //If there's exactly 1 file widget on the page, and it's marked up to allow a whole page dropzone, add the dropzone now (in the body tag)
     if(singleDropzoneRequired(pSerialisationContext)) {
       EvaluatedNode lSingleFileENI = pSerialisationContext.getEvaluatedNodesByWidgetBuilderType(WidgetBuilderType.FILE).iterator().next();
-      insertDropzoneDiv(pSerialiser, getFieldId(lSingleFileENI.getFieldMgr()));
+      insertDropzoneDiv(pSerialiser, getContainerId(lSingleFileENI.getFieldMgr()));
     }
   }
 
@@ -59,15 +63,16 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
 
     FieldMgr lFieldMgr = pEvalNode.getFieldMgr();
     String lFieldId = getFieldId(lFieldMgr);
+    String lContainerId = getContainerId(lFieldMgr);
 
     String lWidgetMode =  pEvalNode.getUploadWidgetMode();
-    pSerialiser.append("<div class=\"fileUpload " + lWidgetMode + "\" id=\"" + lFieldId + "\">");
+    pSerialiser.append("<div class=\"fileUpload " + lWidgetMode + "\" id=\"" + lContainerId + "\">");
 
     pSerialiser.append("<ul class=\"fileList\"></ul>");
 
     //Add the dropzone within the file upload container if it's not a whole page dropzone
     if(!singleDropzoneRequired(pSerialisationContext)) {
-      insertDropzoneDiv(pSerialiser, lFieldId);
+      insertDropzoneDiv(pSerialiser, lContainerId);
     }
 
     pSerialiser.append("<div class=\"fileUploadInputContainer\" role=\"menu\">");
@@ -80,7 +85,7 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
     if(lFieldMgr.getVisibility() == NodeVisibility.EDIT) {
       pSerialiser.append("<a href=\"#\" role=\"menuitem\" class=\"fileUploadLink " + StringUtils.join(lClasses, " ") + "\" style=\"" +  StringUtils.join(lDefaultStyles, " ") + "\" aria-label=\"" + pEvalNode.getPrompt().getString() + ": " + pEvalNode.getUploadChoosePrompt() + "\">" + pEvalNode.getUploadChoosePrompt() + "</a>");
 
-      pSerialiser.append("<input type=\"file\" tabindex=\"-1\" " + (pEvalNode.getMaxFilesAllowed() > 1 ? "multiple" : "") + " name=\"file" + lFieldId + "\" " +
+      pSerialiser.append("<input type=\"file\" tabindex=\"-1\" " + (pEvalNode.getMaxFilesAllowed() > 1 ? "multiple" : "") + " id=\"" + lFieldId + "\" name=\"" + lFieldId + "\" " +
         "class=\"uploadControl fileUploadInput\">");
     }
 
@@ -115,7 +120,7 @@ extends WidgetBuilderHTMLSerialiser<EvaluatedNodeInfoFileItem> {
     String lOptionJSON = getWidgetOptionJSONString(pEvalNode, pEvalNode.getActionContextRef(), lFieldMgr.getVisibility().asInt() <  NodeVisibility.EDIT.asInt());
     String lJS = "<script>\n" +
     "$(document).ready(function() {" +
-    "  new FileUpload($('#" + lFieldId + "'), '" + lURLBase +  "', " + lStartURLParams.toJSONString() + ", " + lFileInfoJSON  + ", " + lOptionJSON + ");\n" +
+    "  new FileUpload($('#" + lContainerId + "'), '" + lURLBase +  "', " + lStartURLParams.toJSONString() + ", " + lFileInfoJSON  + ", " + lOptionJSON + ");\n" +
     "});\n" +
     "</script>";
 
