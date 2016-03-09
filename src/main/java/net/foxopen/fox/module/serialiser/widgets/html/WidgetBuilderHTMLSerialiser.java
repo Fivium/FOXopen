@@ -221,7 +221,9 @@ extends WidgetBuilder<HTMLSerialiser, EN>  {
   }
 
   /**
-   * Add PromptBuffer or PromptText value to the pTemplateVars map
+   * Add PromptBuffer or PromptText value to the pTemplateVars map.
+   *
+   * Note that if there is a prompt buffer (or prompt-short-buffer) this will mean PromptText is NOT set
    *
    * @param pSerialisationContext
    * @param pSerialiser
@@ -229,10 +231,10 @@ extends WidgetBuilder<HTMLSerialiser, EN>  {
    * @param pTemplateVars
    */
   private void setPromptOrPromptBufferTemplateVariable(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EN pEvalNode, Map<String, Object> pTemplateVars) {
-    EvaluatedPresentationNode<? extends PresentationNode> lEvaluatedPresentationNode = pEvalNode.getPromptBuffer();
-    if (lEvaluatedPresentationNode != null) {
+    EvaluatedPresentationNode<? extends PresentationNode> lPromptBufferEPN = pEvalNode.getPromptBuffer();
+    if (lPromptBufferEPN != null) {
       TempSerialiser lTempSerialiser = pSerialiser.getTempSerialiser();
-      lEvaluatedPresentationNode.render(pSerialisationContext, lTempSerialiser);
+      lPromptBufferEPN.render(pSerialisationContext, lTempSerialiser);
       pTemplateVars.put("PromptBuffer", lTempSerialiser.getOutput());
     }
     else {
