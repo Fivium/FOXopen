@@ -40,6 +40,9 @@ public class LinkWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode
 
     Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
 
+    // Make sure PromptText is defined (it might not have been if it has a prompt-short-buffer)
+    lTemplateVars.put("PromptText", XFUtil.nvl(lTemplateVars.get("PromptText"), pSerialiser.getSafeStringAttribute(pEvalNode.getPrompt())));
+
     // Links without prompts can be hard for developers to spot, so hard error as they don't have any purpose and could lead to actions being set out by mistake
     if (XFUtil.isNull(lTemplateVars.get("PromptText"))) {
       throw new ExInternal("Link widget found with no prompt, this is invisible on the page but the action is still there and likely not intended: " + pEvalNode.getIdentityInformation());
