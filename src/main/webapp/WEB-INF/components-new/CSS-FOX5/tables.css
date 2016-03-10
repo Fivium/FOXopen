@@ -132,6 +132,12 @@
   font-size: 1em;
 }
 
+.setoutList input[type='button'].small-label,
+.setoutList .button.small-label {
+  font-size: 0.7em;
+  font-size: 0.7rem;
+}
+
 .setoutList .small-button {
   font-size: 0.8em;
 }
