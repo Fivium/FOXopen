@@ -8,7 +8,7 @@ import java.util.Map;
  * Should be ALL attributes allowed in a fox schema node. TODO add default value property
  */
 public enum NodeAttribute {
-  ACCESSIBLE_PROMPT("accessiblePrompt", ValueType.CONSTANT, ResultType.STRING),
+  ACCESSIBLE_PROMPT("accessiblePrompt", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   ACTION("action", ValueType.CONSTANT, ResultType.STRING),
   ACTION_CLASS("actionClass", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   ACTION_CONTEXT_DOM("action-context", ValueType.EVALUATABLE_XPATH, ResultType.DOM),
