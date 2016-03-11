@@ -42,8 +42,8 @@ extends ComponentBuilder<HTMLSerialiser, EvaluatedTabGroupPresentationNode> {
 
   private static void serialiseTabContentDiv(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedTabGroupPresentationNode pEvalNode, String pTabGroupKey, EvaluatedTabInfo pEvalTabInfo,String pClass, String pStyle, boolean pSelected) {
     Map<String, Object> lTemplateVars = new HashMap<>();
-    lTemplateVars.put("ContentID", ("tc" + pTabGroupKey + pEvalTabInfo.getTabKey()).replace("/", "-"));
-    lTemplateVars.put("KeyID", ("tk" + pTabGroupKey + pEvalTabInfo.getTabKey()).replace("/", "-"));
+    lTemplateVars.put("KeyID", getExternalTabKeyID(pTabGroupKey, pEvalTabInfo.getTabKey()));
+    lTemplateVars.put("ContentID", getExternalTabContentID(pTabGroupKey, pEvalTabInfo.getTabKey()));
     lTemplateVars.put("Class", pClass);
     lTemplateVars.put("Style", pStyle);
     lTemplateVars.put("TabGroupKey", pTabGroupKey);
@@ -101,8 +101,8 @@ extends ComponentBuilder<HTMLSerialiser, EvaluatedTabGroupPresentationNode> {
     for(EvaluatedTabInfo lTabInfo : lTabGroup.getTabInfoList()) {
       Map<String, String> lTabItem = new HashMap<>(6);
 
-      lTabItem.put("KeyID", ("tk" + lTabGroup.getTabGroupKey() + lTabInfo.getTabKey()).replace("/", "-"));
-      lTabItem.put("ContentID", ("tc" + lTabGroup.getTabGroupKey() + lTabInfo.getTabKey()).replace("/", "-"));
+      lTabItem.put("KeyID", getExternalTabKeyID(lTabGroup.getTabGroupKey(), lTabInfo.getTabKey()));
+      lTabItem.put("ContentID", getExternalTabContentID(lTabGroup.getTabGroupKey(), lTabInfo.getTabKey()));
 
       String lTabLiClass = "";
       if(lTabGroup.isTabSelected(lTabInfo)) {
@@ -151,6 +151,14 @@ extends ComponentBuilder<HTMLSerialiser, EvaluatedTabGroupPresentationNode> {
       pSerialiser.append("<input type=\"hidden\" data-tab-group=\"" + lTabGroup.getTabGroupKey()  + "\" " +
         "name=\"" + lHiddenField.getExternalFieldName() + "\" value=\"" + lHiddenField.getSendingValue() + "\"/>");
     }
+  }
+
+  public static String getExternalTabKeyID(String pTabGroupKey, String pTabKey) {
+    return ("tk" + pTabGroupKey + pTabKey).replace("/", "-");
+  }
+
+  public static String getExternalTabContentID(String pTabGroupKey, String pTabKey) {
+    return ("tc" + pTabGroupKey + pTabKey).replace("/", "-");
   }
 
   private static class TabPromptComponentBuilder

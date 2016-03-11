@@ -18,12 +18,15 @@ import net.foxopen.fox.module.serialiser.fragmentbuilder.MustacheFragmentBuilder
 import net.foxopen.fox.module.serialiser.html.HTMLAlertSerialiser;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
 import net.foxopen.fox.module.serialiser.widgets.html.FileWidgetBuilder;
+import net.foxopen.fox.thread.FieldFocusResult;
 import net.foxopen.fox.thread.FocusResult;
 import net.foxopen.fox.thread.PopupXDoResult;
+import net.foxopen.fox.thread.TabFocusResult;
 import net.foxopen.fox.thread.devtoolbar.DevToolbarUtils;
 import net.foxopen.fox.thread.stack.transform.ModelessCall.ModelessPopup;
 import net.foxopen.fox.track.Track;
 import net.foxopen.fox.track.TrackFlag;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -252,11 +255,27 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
     }
   }
 
+  /**
+   * Output some javascript with the serialiser to focus elements if FOX needs to. Currently focus might be for a field,
+   * due to running an fm:focus command, or a tab, due to switching tabs.
+   *
+   * @param pSerialiser
+   * @param pSerialisationContext
+   */
   private void insertFocusJS(HTMLSerialiser pSerialiser, SerialisationContext pSerialisationContext) {
     FocusResult lFocusResult = pSerialisationContext.getFocusResult();
     if(lFocusResult != null) {
-      String lExternalFoxId = pSerialisationContext.getFieldSet().getExternalFoxId(lFocusResult.getNodeRef());
-      pSerialiser.append("FOXjs.focus('" + lExternalFoxId + "', " + lFocusResult.getScrollYOffset() + ");");
+      switch (lFocusResult.getFocusType()) {
+        case FIELD:
+          FieldFocusResult lFieldFocusResult = (FieldFocusResult)lFocusResult;
+          String lExternalFoxId = pSerialisationContext.getFieldSet().getExternalFoxId(lFieldFocusResult.getNodeRef());
+          pSerialiser.append("FOXjs.focus('" + lExternalFoxId + "', " + lFieldFocusResult.getScrollYOffset() + ");");
+          break;
+        case TAB:
+          TabFocusResult lTabFocusResult = (TabFocusResult)lFocusResult;
+          pSerialiser.append("$('#" + StringEscapeUtils.escapeEcmaScript(lTabFocusResult.getTabKeyRef()) + ">a').focus();");
+          break;
+      }
     }
   }
 
