@@ -16,6 +16,7 @@ import net.foxopen.fox.ex.ExCardinality;
 import net.foxopen.fox.ex.ExDoSyntax;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.Mod;
+import net.foxopen.fox.thread.FieldFocusResult;
 import net.foxopen.fox.thread.FocusResult;
 import net.foxopen.fox.thread.ActionRequestContext;
 import net.foxopen.fox.track.Track;
@@ -108,7 +109,7 @@ public class FocusCommand extends BuiltInCommand {
       // Non-critical
     }
 
-    FocusResult lFocusResult = new FocusResult(selectedNode.getRef(), lStartPos, lEndPos, lYOffset);
+    FocusResult lFocusResult = new FieldFocusResult(selectedNode.getRef(), lStartPos, lEndPos, lYOffset);
     pRequestContext.addXDoResult(lFocusResult);
 
     return XDoControlFlowContinue.instance();

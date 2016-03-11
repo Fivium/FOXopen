@@ -7,9 +7,11 @@ import net.foxopen.fox.command.XDoIsolatedRunner;
 import net.foxopen.fox.command.flow.XDoControlFlow;
 import net.foxopen.fox.command.flow.XDoControlFlowContinue;
 import net.foxopen.fox.ex.ExUserRequest;
+import net.foxopen.fox.module.serialiser.components.html.TabGroupComponentBuilder;
 import net.foxopen.fox.module.tabs.TabGroup;
 import net.foxopen.fox.module.tabs.TabGroupProvider;
 import net.foxopen.fox.thread.ActionRequestContext;
+import net.foxopen.fox.thread.TabFocusResult;
 
 import java.util.Map;
 
@@ -43,6 +45,9 @@ implements InternalAction {
       if(!XFUtil.isNull(mTabDOMContextRef)) {
         lContextUElem.setUElem(ContextLabel.ACTION, lContextUElem.getElemByRef(mTabDOMContextRef));
       }
+
+      // Add a tab focus result so the HTML serialiser can focus the tab  after churn
+      pRequestContext.addXDoResult(new TabFocusResult(TabGroupComponentBuilder.getExternalTabKeyID(mTabGroupKey, mTabKey)));
 
       XDoControlFlow lPreTabResult = XDoControlFlowContinue.instance();
       if(!XFUtil.isNull(mPreTabAction)) {
