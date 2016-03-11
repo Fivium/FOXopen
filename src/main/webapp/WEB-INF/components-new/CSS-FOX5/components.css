@@ -39,8 +39,19 @@ body.disabled .modal-popover-container {
 }
 
 /* un-reset element focus outline style */
-*:focus {
-  outline: auto #69CAE8;
+input:focus,
+button:focus,
+select:focus,
+textarea:focus,
+a:focus,
+.button-option-label label:focus {
+  outline: 2px solid #69CAE8;
+  outline: 2px solid rgba(105, 202, 232, 0.6);
+  outline-offset: -2px;
+}
+
+a:active {
+  outline: none;
 }
 
 /* un-reset list item style */
