@@ -184,6 +184,9 @@ var FOXjs = {
     // Enable onchange attribute on selectors in a keyboard-accessible way
     this._overrideSelectorOnChange();
 
+    // Enable focussing on tickboxes/radio buttons that have been styled like buttons
+    this._enableTickboxButtonFocus();
+
     // Run page scripts or catch erroneous navigation
     if (!this.isExpired()) {
       successFunction();
@@ -320,7 +323,28 @@ var FOXjs = {
     });
   },
 
+  /**
+   * For tickboxes and radio buttons that have been styled like buttons, allow focusing on the label and pass the
+   * click through to the input
+   */
+  _enableTickboxButtonFocus: function() {
+    $('.button-option-label input').on('focus',function(){
+      $(this).attr('tabindex','-1');
+      $('label[for='+$(this).attr('id').replace('/','\\/')+']').attr('tabindex','0').focus();
+    });
 
+    $('.button-option-label label').on('blur',function(){
+      $(this).removeAttr('tabindex');
+      $('input[id='+$(this).attr('for').replace('/','\\/')+']').removeAttr('tabindex');
+    });
+
+    $('.button-option-label label').on('keydown', function(e){
+      //Enter or Space
+      if(e.keyCode==13 || e.keyCode==32) {
+        $('input[id='+$(this).attr('for').replace('/','\\/')+']').click();
+      }
+    });
+  },
 
   /**
    * Show an alert with information telling the user that because of their backwards navigation links will not work until
