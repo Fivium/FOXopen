@@ -81,13 +81,12 @@ public abstract class FoxComponent {
 
       // Load Fox Module
       if("module".equals(pType)) {
-        // Load Fox Module
         Track.pushInfo("ConstructModule", pName, TrackTimer.MODULE_LOAD);
-        if (pReader == null) {
-          // Belt and races check
-          throw new ExInternal("Failed to create module: " + pName + ", no CLOB data found and reader ended up null");
-        }
         try {
+          if (pReader == null) {
+            throw new ExInternal("Failed to create module: " + pName + ", no CLOB data found and reader ended up null");
+          }
+
           // Load fox module source
           StringWriter lStringWriter = new StringWriter();
           try {
@@ -96,6 +95,7 @@ public abstract class FoxComponent {
           catch (IOException e) {
             throw new ExInternal("Error reading module clob for module " + pName, e);
           }
+
           // Parse module to DOM
           DOM lUElem;
           try {
@@ -104,8 +104,8 @@ public abstract class FoxComponent {
           catch (Throwable th) {
             throw new ExInternal("Error parsing DOM for module " + pName, th);
           }
-          // Construct fox module
 
+          // Construct fox module
           try {
             Mod mod = new Mod(pName, lUElem, pApp);
             mod.validate(mod);
