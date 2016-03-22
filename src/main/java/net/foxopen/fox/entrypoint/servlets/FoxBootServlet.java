@@ -20,6 +20,7 @@ import net.foxopen.fox.enginestatus.EngineStatus;
 import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.ex.ExDB;
 import net.foxopen.fox.ex.ExFoxConfiguration;
+import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExInternalConfiguration;
 import net.foxopen.fox.ex.ExParser;
 import net.foxopen.fox.ex.ExTooFew;
@@ -29,6 +30,8 @@ import oracle.jdbc.OracleConnection;
 import oracle.jdbc.OracleDriver;
 import org.apache.log4j.PropertyConfigurator;
 import org.json.simple.JSONObject;
+import org.opensaml.DefaultBootstrap;
+import org.opensaml.xml.ConfigurationException;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -66,6 +69,15 @@ extends HttpServlet {
     // Avoid the oracle XML parsers being used for document building and SAX parsing
     System.setProperty("javax.xml.parsers.DocumentBuilderFactory", "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
     System.setProperty("javax.xml.parsers.SAXParserFactory", "com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl");
+
+
+    // Initializes the OpenSAML library, loading default configurations
+    try {
+      DefaultBootstrap.bootstrap();
+    }
+    catch (ConfigurationException e) {
+      throw new ExInternal("Failed to initialise the OpenSAML library, loading default configurations", e);
+    }
 
     if (FoxGlobals.getInstance().isEngineInitialised()) {
       FoxLogger.getLogger().info("FoxBoot: already initialised");
