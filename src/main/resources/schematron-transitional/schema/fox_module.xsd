@@ -459,6 +459,7 @@
                       <xs:restriction base="fm:entered-string">
                         <xs:enumeration value="portal"/>
                         <xs:enumeration value="http"/>
+                        <xs:enumeration value="saml"/>
                       </xs:restriction>
                     </xs:simpleType>
                   </xs:attribute>
