@@ -2,6 +2,7 @@ package net.foxopen.fox.security;
 
 import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.XFUtil;
+import net.foxopen.fox.auth.SSOAuthenticatedInfo;
 import net.foxopen.fox.dom.DOM;
 
 import java.util.ArrayList;
@@ -12,6 +13,8 @@ import java.util.List;
  * user coming in on a request.
  * Values for result members can be determined by the various methods supported such
  * as retrieval from HTTP headers or from an LDAP lookup result
+ *
+ * TODO - This code should be split up and shouldn't be so stateful, see SSOAuthenticatedInfo for a start
  */
 public class AuthenticatedInfo {
 
@@ -85,13 +88,8 @@ public class AuthenticatedInfo {
    * @return DOM representation of info
    */
   public DOM getDOM() {
-    DOM lDOM = DOM.createDocument("AUTHENTICATED_INFO");
-    lDOM.addElem("UID", mUID);
-    lDOM.addElem("LOGIN_ID",mLoginId);
-    lDOM.addElem("FORENAME",mForename);
-    lDOM.addElem("SURNAME",mSurname);
-    lDOM.addElem("PRIMARY_EMAIL_ADDRESS",mPrimaryEmail);
-    return lDOM;
+    SSOAuthenticatedInfo lSSOAuthenticatedInfo = new SSOAuthenticatedInfo(mUID, mLoginId, mForename, mSurname, mPrimaryEmail);
+    return lSSOAuthenticatedInfo.getDOM();
   }
 
   /**
