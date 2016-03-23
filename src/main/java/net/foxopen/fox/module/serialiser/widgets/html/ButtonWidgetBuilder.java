@@ -54,6 +54,11 @@ public class ButtonWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNo
     if (lImageURL != null) {
       lTemplateVars.put("ButtonImageURL", pSerialisationContext.getImageURI(lImageURL));
       lTemplateVars.put("Class", "image-button");
+
+      // If it's a non-runnable image with a hint, add the hint ID so it can show hints on focus
+      if (!pEvalNode.isRunnable() && pEvalNode.hasHint()) {
+        lTemplateVars.put("HintID", lTemplateVars.get("FieldName"));
+      }
     }
     else {
       String lNoPromptActionClass = null;

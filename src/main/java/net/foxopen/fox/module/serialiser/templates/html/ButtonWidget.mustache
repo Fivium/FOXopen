@@ -9,4 +9,4 @@
   {{^ButtonImageURL}}
     <button {{#FieldName}}id="{{FieldName}}" name="{{FieldName}}" {{/FieldName}}type="{{InputType}}"{{> DisabledAttribute}}{{> ClassAttribute}}{{> StyleAttribute}}{{#AccessiblePromptText}} aria-label="{{AccessiblePromptText}}"{{/AccessiblePromptText}}>{{Value}}</button>{{/ButtonImageURL}}
   {{#ButtonImageURL}}
-    <img {{#FieldName}}id="{{FieldName}}" {{/FieldName}}src="{{ButtonImageURL}}"{{> ClassAttribute}}{{> StyleAttribute}}{{> AltAttribute}}{{#AccessiblePromptText}} aria-label="{{AccessiblePromptText}}"{{/AccessiblePromptText}}/>{{/ButtonImageURL}}{{/Disabled}}
+    <img {{#FieldName}}id="{{FieldName}}" {{/FieldName}}src="{{ButtonImageURL}}"{{> ClassAttribute}}{{> StyleAttribute}}{{> AltAttribute}}{{#AccessiblePromptText}} aria-label="{{AccessiblePromptText}}"{{/AccessiblePromptText}}{{#HintContentID}} tabindex="0"{{/HintContentID}}{{> HintAttributes}}/>{{/ButtonImageURL}}{{/Disabled}}
