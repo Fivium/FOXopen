@@ -65,6 +65,8 @@ public enum NodeAttribute {
   FIELD_MIN_WIDTH("fieldMinWidth", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   FIELD_MAX_HEIGHT("fieldMaxHeight", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   FIELD_MIN_HEIGHT("fieldMinHeight", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
+  FIELD_PREFIX("fieldPrefix", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
+  FIELD_SUFFIX("fieldSuffix", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   FILE_STORAGE_LOCATION("file-storage-location", ValueType.CONSTANT, ResultType.STRING),
   FLOW("flow", ValueType.CONSTANT, ResultType.STRING),
   FORCE_VISIBLE("forceVisible", ValueType.CONSTANT, ResultType.BOOLEAN),

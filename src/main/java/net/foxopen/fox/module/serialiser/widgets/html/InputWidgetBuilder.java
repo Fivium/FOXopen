@@ -1,5 +1,6 @@
 package net.foxopen.fox.module.serialiser.widgets.html;
 
+import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.datanode.NodeVisibility;
@@ -40,6 +41,25 @@ public class InputWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNod
 
       String lTextValue = pEvalNode.getFieldMgr().getSingleTextValue();
       lTemplateVars.put("Value", lTextValue);
+
+      String lPrefix = pSerialiser.getSafeStringAttribute(pEvalNode.getPrefix());
+      lTemplateVars.put("Prefix",lPrefix);
+
+      String lSuffix = pSerialiser.getSafeStringAttribute(pEvalNode.getSuffix());
+      lTemplateVars.put("Suffix",lSuffix);
+
+      if (!XFUtil.isNull(lPrefix) || !XFUtil.isNull(lSuffix)) {
+        lTemplateVars.put("HasPrefixOrSuffix", true);
+        lTemplateVars.put("Class", "prefixed-or-suffixed-input " + XFUtil.nvl(lTemplateVars.get("Class"), ""));
+      }
+
+      if (!XFUtil.isNull(lPrefix)) {
+        lTemplateVars.put("Class", "has-prefix " + XFUtil.nvl(lTemplateVars.get("Class"), ""));
+      }
+
+      if (!XFUtil.isNull(lSuffix)) {
+        lTemplateVars.put("Class", "has-suffix " + XFUtil.nvl(lTemplateVars.get("Class"), ""));
+      }
 
       if (pEvalNode.getMaxDataLength() != Integer.MAX_VALUE) {
         lTemplateVars.put("MaxLength", pEvalNode.getMaxDataLength());
