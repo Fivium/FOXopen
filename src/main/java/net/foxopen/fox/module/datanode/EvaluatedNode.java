@@ -642,6 +642,22 @@ implements DisplayOrderSortable {
   }
 
   /**
+   * Gets the prefix to display read-only before an input
+   * @return Prefix for this node
+   */
+  public StringAttributeResult getPrefix() {
+    return getStringAttributeResultOrNull(NodeAttribute.FIELD_PREFIX);
+  }
+
+  /**
+   * Gets the suffix to display read-only after an input
+   * @return Suffix for this node
+   */
+  public StringAttributeResult getSuffix() {
+    return getStringAttributeResultOrNull(NodeAttribute.FIELD_SUFFIX);
+  }
+
+  /**
    * By default all nodes are not mandatory, though implementations with a NodeInfo might provide a non-false result
    * depending on attributes on the element and the type of field.
    *

@@ -86,7 +86,8 @@ label {
 .setoutForm .text-widget,
 .setoutForm .radio-or-tickbox-group,
 .setoutForm .mce-panel,
-.setoutForm .prompt {
+.setoutForm .prompt,
+.setoutForm .prefixed-or-suffixed-input {
   margin-bottom: 1em;
 }
 
@@ -103,7 +104,8 @@ label {
 .tightForm .text-widget,
 .tightForm .radio-or-tickbox-group,
 .tightForm .mce-panel,
-.tightForm .prompt {
+.tightForm .prompt,
+.tightForm .prefixed-or-suffixed-input {
   margin-bottom: 0.3em;
 }
 
@@ -123,6 +125,7 @@ textarea.noBottomMargin,
 .mce-panel.noBottomMargin,
 .prompt.noBottomMargin,
 .noBottomMargin>.prompt,
+.prefixed-or-suffixed-input.noBottomMargin,
 .noBottomMargin {
   margin-bottom: 0em;
 }
@@ -327,6 +330,52 @@ input[type='checkbox'] {
   display: none;
 }
 
+.prefixed-or-suffixed-input {
+  display: table;
+  width: 100%;
+}
+
+.input-prefix,
+.input-suffix {
+  display: table-cell;
+  width: 1%;
+  border: 1px solid #ccc;
+  background: #F4F4F4;
+  font-size: 0.8em;
+  font-weight: 600;
+  color: #666;
+  padding: 0.3em 0.75em;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.input-prefix {
+  border-right: none;
+  border-radius: 3px 0 0 3px;
+}
+
+.input-suffix {
+  border-left: none;
+  border-radius: 0 3px 3px 0;
+}
+
+.prefixed-or-suffixed-input input[type='text'] {
+  display: block;
+  vertical-align: middle;
+  margin-bottom: 0;
+  font-size: 0.81em;
+}
+
+.has-prefix input[type='text'] {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.has-suffix input[type='text'] {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
 .individual-input {
   display: block;
 }
@@ -347,6 +396,7 @@ input[type='checkbox'] {
 }
 
 .input-error input,
+.input-error .prefixed-or-suffixed-input,
 .input-error select,
 .input-error textarea,
 .input-error .tagger {
