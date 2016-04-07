@@ -1,6 +1,7 @@
 package net.foxopen.fox.module.serialiser.components.html;
 
 
+import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.download.DownloadLinkXDoResult;
 import net.foxopen.fox.entrypoint.servlets.FoxMainServlet;
 import net.foxopen.fox.ex.ExInternal;
@@ -17,6 +18,7 @@ import net.foxopen.fox.module.serialiser.components.HTMLComponentUtils;
 import net.foxopen.fox.module.serialiser.fragmentbuilder.MustacheFragmentBuilder;
 import net.foxopen.fox.module.serialiser.html.HTMLAlertSerialiser;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
+import net.foxopen.fox.module.serialiser.widgets.WidgetBuilderType;
 import net.foxopen.fox.module.serialiser.widgets.html.FileWidgetBuilder;
 import net.foxopen.fox.thread.FieldFocusResult;
 import net.foxopen.fox.thread.FocusResult;
@@ -123,11 +125,25 @@ public class HTMLComponentBuilder extends ComponentBuilder<HTMLSerialiser, Evalu
       pSerialiser.append("<form method=\"post\" name=\"mainForm\" action=\"");
       pSerialiser.append(FoxMainServlet.buildFormPostDestinationURI(pSerialisationContext.createURIBuilder(), pSerialisationContext.getApp().getAppMnem()));
       pSerialiser.append("\" onSubmit=\"javascript: return false;\"");
-      // Set autocomplete off if set with a attribute at RM/State level
+
+      // Set form autocomplete attr if its correctly defined
       String lAutoComplete = pSerialisationContext.getState().getStateAttributes().get("form-autocomplete");
-      if (lAutoComplete != null && "OFF".equals(lAutoComplete.toUpperCase())) {
+      if(!XFUtil.isNull(lAutoComplete)) {
+        String lAutoCompleteLowerCase = lAutoComplete.toLowerCase();
+        if ("on".equals(lAutoCompleteLowerCase) || "off".equals(lAutoCompleteLowerCase)) {
+          pSerialiser.append(" autocomplete=\"");
+          pSerialiser.append(lAutoCompleteLowerCase);
+          pSerialiser.append("\"");
+        }
+        else {
+          throw new ExInternal("Invalid value '" + lAutoCompleteLowerCase + "' for display-attr form-autocomplete. Expected 'on' or 'off'.");
+        }
+      }
+      // If not defined and a password widget is in this form, default to "off"
+      else if (pSerialisationContext.getImplicatedWidgets().contains(WidgetBuilderType.PASSWORD)) {
         pSerialiser.append(" autocomplete=\"off\"");
       }
+
       pSerialiser.append(" accept-charset=\"UTF-8\">");
 
       // Include hidden fields
