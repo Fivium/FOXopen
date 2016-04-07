@@ -115,6 +115,8 @@
     <xs:attribute ref="hintDisplayMode"/>
     <xs:attribute ref="mandatoryDisplayMode"/>
     <xs:attribute ref="renderType"/>
+    <xs:attribute ref="fieldPrefix"/>
+    <xs:attribute ref="fieldSuffix"/>
   </xs:attributeGroup>
   <xs:attributeGroup name="zzz-set-menu-attr-group">
     <xs:attribute ref="mode" use="optional"/>
@@ -419,6 +421,8 @@
     <xs:attribute ref="mandatoryDisplayMode"/>
     <xs:attribute ref="renderType"/>
     <xs:attribute ref="formList"/>
+    <xs:attribute ref="fieldPrefix"/>
+    <xs:attribute ref="fieldSuffix"/>
   </xs:attributeGroup>
   <xs:attributeGroup name="zzz-cellmate-attr-grp">
     <xs:attribute ref="cellmateKey"/>
@@ -1230,11 +1234,11 @@
       </xs:restriction>
     </xs:simpleType>
   </xs:attribute>
-    <xs:attribute name="action-context" type="fox-xpath-type">
-      <xs:annotation>
-        <xs:documentation>Sets :{action} to the node specified by this XPath</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
+  <xs:attribute name="action-context" type="fox-xpath-type">
+    <xs:annotation>
+      <xs:documentation>Sets :{action} to the node specified by this XPath</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
   <xs:attribute name="phantom-menu-mode" type="fox-xpath-type">
     <xs:annotation>
       <xs:documentation>XPath to decide if the namespace the attribute is under is used for a phantom-menu.</xs:documentation>
@@ -1314,7 +1318,7 @@
       </xs:restriction>
     </xs:simpleType>
   </xs:attribute>
-   <xs:attribute name="downloadAsAttachment" type="fox-xpath-type">
+  <xs:attribute name="downloadAsAttachment" type="fox-xpath-type">
     <xs:annotation>
       <xs:documentation>Controls whether the download from a file widget is served as an attachment (i.e. user is prompted with a 'Save As...' dialog) or not (i.e. the browser will attempt to open the file directly). Default is true.</xs:documentation>
     </xs:annotation>
@@ -1365,5 +1369,15 @@
         <xs:enumeration value="print"/>
       </xs:restriction>
     </xs:simpleType>
+  </xs:attribute>
+  <xs:attribute name="fieldPrefix">
+    <xs:annotation>
+      <xs:documentation>Text to display read-only before the field. Only show for single-line input/input+ widgets</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="fieldSuffix">
+    <xs:annotation>
+      <xs:documentation>Text to display read-only after the field. Only show for single-line input/input+ widgets</xs:documentation>
+    </xs:annotation>
   </xs:attribute>
 </xs:schema>

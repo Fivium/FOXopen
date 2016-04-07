@@ -114,6 +114,8 @@
     <xs:attribute ref="hintDisplayMode"/>
     <xs:attribute ref="mandatoryDisplayMode"/>
     <xs:attribute ref="renderType"/>
+    <xs:attribute ref="fieldPrefix"/>
+    <xs:attribute ref="fieldSuffix"/>    
   </xs:attributeGroup>
   <xs:attributeGroup name="zzz-set-menu-attr-group">
     <xs:attribute ref="mode" use="optional"/>
@@ -381,6 +383,8 @@
     <xs:attribute ref="renderType"/>
     <xs:attribute ref="forceVisible" use="optional"/>
     <xs:attribute ref="formList"/>
+    <xs:attribute ref="fieldPrefix"/>
+    <xs:attribute ref="fieldSuffix"/>
   </xs:attributeGroup>
   <xs:attributeGroup name="zzz-cellmate-attr-grp">
     <xs:attribute ref="cellmateKey"/>
@@ -450,7 +454,6 @@
       </xs:restriction>
     </xs:simpleType>
   </xs:attribute>
-
   <xs:attribute name="action" type="entered-string">
     <xs:annotation>
       <xs:documentation>The name of an action to run if the field is runnable</xs:documentation>
@@ -487,7 +490,6 @@
       </xs:restriction>
     </xs:simpleType>
   </xs:attribute>
-
   <xs:attribute name="emptyText" type="fox-xpath-string">
     <xs:annotation>
       <xs:documentation>Text to show when this field is set out as a readonly text field with no text content</xs:documentation>
@@ -498,8 +500,6 @@
       <xs:documentation>Text to put as placeholder in the input</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
-
   <xs:attribute name="map-set" type="entered-string">
     <xs:annotation>
       <xs:documentation>The name of a map-set definition to convert key/value data with and populate selector/tickbox/radio options</xs:documentation>
@@ -515,7 +515,6 @@
       <xs:documentation>XPath targeting one nested node which specifies cardinality generator for multi-select map-set widgets.</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="radio-owner" type="fox-xpath-dom">
     <xs:annotation>
       <xs:documentation>XPATH expression that locates an element that when common with another radio item, and the same radio-group label is in use, the item joins the logical radio set. The default is "." indicating the current record. This allows radio groups to be defined across records (i.e. within a common parent or super-parent list e.g. ".."  See also radio-group.</xs:documentation>
@@ -526,7 +525,6 @@
       <xs:documentation>Label string that associates distinct items to form a logical radio group. This default value is the absolute path of the item in the schema definition. This attribute allows radio groups to be defined across items. When used with radio-owner, across records can also be acheived. See also radio-owner.</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="key-true" type="fox-optional-xpath-string">
     <xs:annotation>
       <xs:documentation>The display key for true in boolean selector widgets. Default to Yes</xs:documentation>
@@ -557,7 +555,6 @@
       <xs:documentation>XPath boolean. If true, multi-select widgets will not show unselected options when in read only mode. Default is false.</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="searchDisplayHierarchy" type="fox-xpath-boolean">
     <xs:annotation>
       <xs:documentation>XPath bool whether to show indented suggestion lists</xs:documentation>
@@ -643,13 +640,11 @@
       <xs:documentation>Clear any text left over in the filter input when the field loses focus</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="linkTitle" type="fox-xpath-string">
     <xs:annotation>
       <xs:documentation>Value to use as the title attribute on a link when the field is using the link widget</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="prompt" type="fox-optional-xpath-string">
     <xs:annotation>
       <xs:documentation>Value to use as the prompt for this field in form set-out</xs:documentation>
@@ -690,7 +685,6 @@
       <xs:documentation>Where to display the prompt relative to the field it's for. Either above (north) or to the left (west)</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="fieldMinWidth" type="fox-xpath-number">
     <xs:annotation>
       <xs:documentation>Minimum characters wide the field should be when displayed not with 100% width</xs:documentation>
@@ -721,7 +715,7 @@
       <xs:documentation>Maximum rows of text high the field should be</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-    <xs:attribute name="autoResize" type="fox-xpath-boolean">
+  <xs:attribute name="autoResize" type="fox-xpath-boolean">
     <xs:annotation>
       <xs:documentation>Make the widget to resize itself to fit the contents</xs:documentation>
     </xs:annotation>
@@ -731,7 +725,6 @@
       <xs:documentation>Limit the height a widget can expand to in pixels</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="formColumns" type="fox-xpath-number">
     <xs:annotation>
       <xs:documentation>How many columns there are in the form set-out. Currently capped at 12.</xs:documentation>
@@ -752,19 +745,16 @@
       <xs:documentation>How many columns of formColumns should the element be offset by inserting an empty column before that spans offsetSpan columns</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="tightField" type="fox-xpath-boolean">
     <xs:annotation>
       <xs:documentation>Add the tight-field CSS class to the widget so CSS can style its width to be auto instead of 100%</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="itemsPerRow" type="fox-xpath-number">
     <xs:annotation>
       <xs:documentation>How many columns of radio/checbox widgets to display</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="rowBreak">
     <xs:annotation>
       <xs:documentation>Should this element force a new row in form set-out before this widget (including prompt), after, or both (to force it on its own row)</xs:documentation>
@@ -788,7 +778,6 @@
       <xs:documentation>Should this element force a new row in form set-out after this widget</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="displayOrder" type="fox-xpath-number">
     <xs:annotation>
       <xs:documentation>Number or XPath of number to use when comparing to other elements with a displayOrder to define the order elements are displayed in</xs:documentation>
@@ -804,7 +793,6 @@
       <xs:documentation>String or XPath string of sibling element name for the element to display after</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="hint" type="fox-xpath-string">
     <xs:annotation>
       <xs:documentation>Value to use as the hint for this field in form set-out</xs:documentation>
@@ -830,7 +818,6 @@
       <xs:documentation>Attach point to use when evaluating the hint-buffer</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="description" type="fox-xpath-string">
     <xs:annotation>
       <xs:documentation>Description for the field, typically a short piece of guidance which can be expanded on using a hint if necessary.</xs:documentation>
@@ -863,7 +850,6 @@
       <xs:documentation>Controls where description is displayed, south or north of the field.</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="mand" type="fox-xpath-boolean">
     <xs:annotation>
       <xs:documentation>Item is mandatory, default is not mandatory.</xs:documentation>
@@ -904,7 +890,6 @@
       <xs:documentation>XPath boolean. If true, the node will be validated by XPath commands. Default is true if unspecified.</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="error-url-prompt" type="fox-xpath-string">
     <xs:annotation>
       <xs:documentation>Text to use when generating a link at the end of an error message taking users to the URL specified in error-url, defaults to 'Read more...'</xs:documentation>
@@ -915,19 +900,16 @@
       <xs:documentation>When an error occurs a link can be displayed at the end of the error text with this URL</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="navAction" type="entered-string">
     <xs:annotation>
       <xs:documentation>The action that navigates to the screen to edit the value if an error occurs</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="forceVisible" type="xs:boolean">
     <xs:annotation>
       <xs:documentation>Allows the columns headings to be hidden when a list set-out has no rows</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="init-db-interface" type="entered-string">
     <xs:annotation>
       <xs:documentation>The name of a FOX module DB Interface used to initialise a node.</xs:documentation>
@@ -943,13 +925,11 @@
       <xs:documentation>An XPath expression that will be used to initialise a node.</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="debug" type="xs:boolean">
     <xs:annotation>
       <xs:documentation>Display debug information for this field when output generator runs</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="flow">
     <xs:annotation>
       <xs:documentation>Sets direction for items to be set out</xs:documentation>
@@ -961,7 +941,6 @@
       </xs:restriction>
     </xs:simpleType>
   </xs:attribute>
-
   <xs:attribute name="menuClass" type="fox-optional-xpath-string">
     <xs:annotation>
       <xs:documentation>Add this string to the class attribute on the menu-out element</xs:documentation>
@@ -972,7 +951,6 @@
       <xs:documentation>Add this string to the style attribute on the menu-out element</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="menuType">
     <xs:annotation>
       <xs:documentation>Display debug information for this field when output generator runs</xs:documentation>
@@ -984,10 +962,6 @@
       </xs:restriction>
     </xs:simpleType>
   </xs:attribute>
-
-
-
-
   <xs:attribute name="class" type="fox-optional-xpath-string">
     <xs:annotation>
       <xs:documentation>Add this string to the class attribute</xs:documentation>
@@ -998,7 +972,6 @@
       <xs:documentation>Add this string to the style attribute</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="promptClass" type="fox-optional-xpath-string">
     <xs:annotation>
       <xs:documentation>Add this string to the class attribute of the prompt container element</xs:documentation>
@@ -1019,7 +992,6 @@
       <xs:documentation>Add this string to the style attribute of the field element</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="cellmateClass" type="fox-optional-xpath-string">
     <xs:annotation>
       <xs:documentation>Add this string to the style attribute of the cellmate container element</xs:documentation>
@@ -1030,7 +1002,6 @@
       <xs:documentation>Add this string to the class attribute of the cellmate container element</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="formClass" type="fox-optional-xpath-string">
     <xs:annotation>
       <xs:documentation>Add this string to the class attribute of the form container element</xs:documentation>
@@ -1066,7 +1037,6 @@
       <xs:documentation>Add a responsiveList class to the list container and add data-title attributes to each cell with the column prompt. CSS can then make this look good on small screens where tables don't usually respond well</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="nestedClass" type="fox-optional-xpath-string">
     <xs:annotation>
       <xs:documentation>Add this string to the class attribute only when this element is being set out nested in another form/list</xs:documentation>
@@ -1117,7 +1087,6 @@
       <xs:documentation>Add this string to the style attribute only when this form is not being set out nested in another form/list</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="cellClass" type="fox-optional-xpath-string">
     <xs:annotation>
       <xs:documentation>Add this string to the class attribute to the containing element of the prompt/field for this element</xs:documentation>
@@ -1158,7 +1127,6 @@
       <xs:documentation>Add this string to the style attribute to the containing element of the prompt/field for this element only when set out in a list</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="mandatoryClass" type="fox-optional-xpath-string">
     <xs:annotation>
       <xs:documentation>Add this string to the class attribute to the containing element of the mandatory/optional text</xs:documentation>
@@ -1169,7 +1137,6 @@
       <xs:documentation>Add this string to the style attribute to the containing element of the mandatory/optional text</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="keyClass" type="fox-optional-xpath-string">
     <xs:annotation>
       <xs:documentation>Add this string to the class attribute to the containing element of the mapset key text</xs:documentation>
@@ -1180,7 +1147,6 @@
       <xs:documentation>Add this string to the style attribute to the containing element of the mapset key text</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="actionClass" type="fox-optional-xpath-string">
     <xs:annotation>
       <xs:documentation>Add this string to the class attribute to the field if the widget type is an Action type</xs:documentation>
@@ -1191,13 +1157,11 @@
       <xs:documentation>Add this string to the style attribute to the field if the widget type is an Action type</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="href" type="fox-xpath-string">
     <xs:annotation>
       <xs:documentation>Set the location a URL widget should take you to</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="email" type="fox-xpath-string">
     <xs:annotation>
       <xs:documentation>Pre-define an email recipient to go into the mailto link when using the mailto widget</xs:documentation>
@@ -1213,7 +1177,6 @@
       <xs:documentation>Pre-define a CSV List of email addresses when using the mailto widget</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="clean">
     <xs:annotation>
       <xs:documentation>Data can have whitespace trimmed, or not, when going into/out of the DOM</xs:documentation>
@@ -1252,20 +1215,13 @@
       </xs:restriction>
     </xs:simpleType>
   </xs:attribute>
-
-
-
-
-
   <xs:attribute name="client-visibility-rule" type="xs:string"/>
   <xs:attribute name="client-visibility-rule-value" type="xs:string"/>
   <xs:attribute name="client-visibility-rule-target" type="xs:string"/>
-
   <xs:attribute name="spatial-definition" type="xs:string"/>
   <xs:attribute name="spatial-interface" type="xs:string"/>
   <xs:attribute name="canvas-callback-action" type="xs:string"/>
   <xs:attribute name="canvas-cache-key" type="xs:string"/>
-
   <xs:attribute name="htmlWidgetConfig">
     <xs:annotation>
       <xs:documentation>HTML Widget configuration</xs:documentation>
@@ -1277,19 +1233,16 @@
       </xs:restriction>
     </xs:simpleType>
   </xs:attribute>
-
   <xs:attribute name="layoutMethod" type="fox-xpath-type">
     <xs:annotation>
       <xs:documentation>Layout method to use when doing a form set-out. Currently there is 'form' and 'test'.</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="formList" type="fox-xpath-boolean">
     <xs:annotation>
       <xs:documentation>If this is set to true lists will set out a list of form set-outs for each row instead of displaying the data in a table</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="collapseColumns" type="fox-xpath-type">
     <xs:annotation>
       <xs:documentation>XPath boolean to determine a list set-out should hide empty columns, where empty means there's no value in the dom for any row or hasContent is set to false.</xs:documentation>
@@ -1300,7 +1253,6 @@
       <xs:documentation>XPath boolean to determine if this column should be shown when collapseColumns is enabled.</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="mandatoryText" type="entered-string">
     <xs:annotation>
       <xs:documentation>Text to show when an element is mand/mandatory and mandatoryDisplay is "both" or "mandatory". Default is "*"</xs:documentation>
@@ -1324,8 +1276,6 @@
       </xs:restriction>
     </xs:simpleType>
   </xs:attribute>
-
-
   <xs:attribute name="phantom-data-xpath" type="fox-xpath-dom">
     <xs:annotation>
       <xs:documentation>XPath to another element to set out (read only mode only) in place of this phantom element</xs:documentation>
@@ -1346,7 +1296,6 @@
       <xs:documentation>Attach point to use when evaluating the phantom-buffer.</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="emptyListBuffer" type="fox-xpath-string">
     <xs:annotation>
       <xs:documentation>Name of a buffer to display in place of a list when the list has 0 rows inside it.</xs:documentation>
@@ -1357,7 +1306,6 @@
       <xs:documentation>Attach point to use when evaluating the empty list buffer.</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="enableListsInForms" type="xs:boolean" default="false">
     <xs:annotation>
       <xs:documentation>Show lists that are nested under forms. FOX4 didn't allow this but FOX5 can.</xs:documentation>
@@ -1368,19 +1316,16 @@
       <xs:documentation>Enable showing of hints when fields get focus instead of only when using the mouse to hover the hint icon</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="namespacePreference" type="fox-xpath-type">
     <xs:annotation>
       <xs:documentation>Which namespaces, if enabled, should be checked first when looking for attributes. This attribute should be prefixed with the fox namespace only</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="cellmateKey" type="entered-string">
     <xs:annotation>
       <xs:documentation>You can set this to '.' if you want a key to be auto-generated or manually set a key to display to aid in debugging issues with cellmates, can be used to have multiple cellmate sequences defined separately aggregate into one wherever the first one is defined</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="downloadAsAttachment" type="fox-xpath-type">
     <xs:annotation>
       <xs:documentation>Controls whether the download from a file widget is served as an attachment (i.e. user is prompted with a 'Save As...' dialog) or not (i.e. the browser will attempt to open the file directly). Default is true.</xs:documentation>
@@ -1396,7 +1341,6 @@
       <xs:documentation>Controls whether the true/false values should be reversed for display of a xs:boolean field - i.e. false before true (the default is always true before false). Must be an XPath that resolves to true (i.e. "true()" or ".").</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="descriptionDisplayMode" type="display-mode-enum" default="always">
     <xs:annotation>
       <xs:documentation>Control when to show the description based on the element's visibility level (ro/edit)</xs:documentation>
@@ -1412,13 +1356,10 @@
       <xs:documentation>Control when to show the mandatory display based on the element's visibility level (ro/edit)</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-
   <xs:attribute name="default-item-widget"/>
   <xs:attribute name="default-selector-widget"/>
   <xs:attribute name="default-date-widget"/>
   <xs:attribute name="default-widget"/>
-
-
   <xs:attribute name="upload-mode">
     <xs:annotation>
       <xs:documentation>The upload mode for a file upload. Interruption refers to whether the base page sends a signal to the upload window to terminate the upload in the event of a module push or pop. Interruption can only be disabled when the upload target is a DOM in a storage location (i.e. root).</xs:documentation>
@@ -1495,11 +1436,9 @@
   <xs:attribute name="image-display-size" type="fox-xpath-type"/>
   <xs:attribute name="image-display-width" type="fox-xpath-type"/>
   <xs:attribute name="image-display-height" type="fox-xpath-type"/>
-
   <xs:attribute name="image"/>
   <xs:attribute name="image-xpath"/>
   <xs:attribute name="imageUrl"/>
-
   <xs:attribute name="file-storage-location">
     <xs:annotation>
       <xs:documentation>A storage location for any content that can be stored in a file.</xs:documentation>
@@ -1511,7 +1450,6 @@
       <xs:restriction base="xs:string"/>
     </xs:simpleType>
   </xs:attribute>
-
   <xs:attribute name="compare-id">
     <xs:annotation>
       <xs:documentation>Used with the fm:compare command</xs:documentation>
@@ -1527,5 +1465,15 @@
         <xs:enumeration value="print"/>
       </xs:restriction>
     </xs:simpleType>
+  </xs:attribute>
+  <xs:attribute name="fieldPrefix">
+    <xs:annotation>
+      <xs:documentation>Text to display read-only before the field. Only show for single-line input/input+ widgets</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="fieldSuffix">
+    <xs:annotation>
+      <xs:documentation>Text to display read-only after the field. Only show for single-line input/input+ widgets</xs:documentation>
+    </xs:annotation>
   </xs:attribute>
 </xs:schema>
