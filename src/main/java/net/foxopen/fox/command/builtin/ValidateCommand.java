@@ -1164,7 +1164,11 @@ public class ValidateCommand
                 // only add this error if the entry is not blank
                 // blank entries will be validated later on in the mandatory validation
                 if (!blankEntry) {
-                  addError(pDataToCheck, "Entry is in an incorrect format", pErrorCtx);
+                  String lValidatePatternMsg = dataDfn.getAttribute("fox", "validate-pattern-msg");
+                  if(!XFUtil.isNull(lValidatePatternMsg)){
+                    lValidatePatternMsg = pContextUElem.extendedStringOrXPathString(pDataToCheck.getParentOrSelf(), lValidatePatternMsg);
+                  }
+                  addError(pDataToCheck, XFUtil.nvl(lValidatePatternMsg, "Entry is in an incorrect format"), pErrorCtx);
                 }
               }
             }

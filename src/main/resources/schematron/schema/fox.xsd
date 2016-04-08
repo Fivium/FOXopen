@@ -115,7 +115,7 @@
     <xs:attribute ref="mandatoryDisplayMode"/>
     <xs:attribute ref="renderType"/>
     <xs:attribute ref="fieldPrefix"/>
-    <xs:attribute ref="fieldSuffix"/>    
+    <xs:attribute ref="fieldSuffix"/>
   </xs:attributeGroup>
   <xs:attributeGroup name="zzz-set-menu-attr-group">
     <xs:attribute ref="mode" use="optional"/>
@@ -253,6 +253,7 @@
     <xs:attribute ref="validate-xpath"/>
     <xs:attribute ref="validate-xpath-msg"/>
     <xs:attribute ref="validate-general-msg"/>
+    <xs:attribute ref="validate-pattern-msg"/>
     <xs:attribute ref="validate-when"/>
     <xs:attribute ref="widget"/>
     <xs:attribute ref="fieldMaxHeight"/>
@@ -883,6 +884,11 @@
   <xs:attribute name="validate-general-msg" type="fox-xpath-string">
     <xs:annotation>
       <xs:documentation>The prefix error text used for general validation violation occurs. "validate-map-set-msg" and "validate-xpath-msg" are used in preference for those types of error. Overrides system generated default of "Invalid {prompt}". </xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="validate-pattern-msg">
+    <xs:annotation>
+      <xs:documentation>The prefix error text used when pattern validation fails. Default is "Entry is in an incorrect format"</xs:documentation>
     </xs:annotation>
   </xs:attribute>
   <xs:attribute name="validate-when" type="fox-xpath-boolean">
