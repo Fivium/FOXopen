@@ -264,6 +264,7 @@
     <xs:attribute ref="validate-xpath"/>
     <xs:attribute ref="validate-xpath-msg"/>
     <xs:attribute ref="validate-general-msg"/>
+    <xs:attribute ref="validate-pattern-msg"/>
     <xs:attribute ref="validate-when"/>
     <xs:attribute ref="widget"/>
     <xs:attribute ref="fieldMaxHeight"/>
@@ -719,6 +720,11 @@
       <xs:documentation>The prefix error text used for general validation violation occurs. "validate-map-set-msg" and "validate-xpath-msg" are used in preference for those types of error. Overrides system generated default of "Invalid {prompt}". </xs:documentation>
     </xs:annotation>
   </xs:attribute>
+  <xs:attribute name="validate-pattern-msg">
+    <xs:annotation>
+      <xs:documentation>The prefix error text used when pattern validation fails. Default is "Entry is in an incorrect format"</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>  
   <xs:attribute name="validate-when">
     <xs:annotation>
       <xs:documentation>XPath boolean. If true, the node will be validated by XPath commands. Default is true if unspecified.</xs:documentation>
