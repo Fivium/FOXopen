@@ -2113,6 +2113,11 @@ If the fm:default element is reached, then its contents are evaluated.
               </xs:simpleType>
             </xs:attribute>
             <xs:attribute name="authentication-domain" use="optional"/>
+            <xs:attribute name="params-xml" type="fm:fox-xpath-type" use="optional">
+              <xs:annotation>
+                <xs:documentation>XPath to parameter XML that will be passed into authentication.create_session for implementation specific use</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
         <xs:element name="resume-login">

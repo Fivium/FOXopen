@@ -4,6 +4,7 @@ import net.foxopen.fox.auth.AuthenticationResult;
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.UConBindMap;
 import net.foxopen.fox.database.UConStatementResult;
+import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.entrypoint.FoxGlobals;
 import net.foxopen.fox.ex.ExDB;
 import net.foxopen.fox.ex.ExInternal;
@@ -16,11 +17,17 @@ public class StandardLoginBehaviour implements LoginBehaviour {
   private final String mUsername;
   private final String mPassword;
   private final String mClientInfo;
+  private final DOM mParamsXML;
 
   public StandardLoginBehaviour(String pUsername, String pPassword, String pClientInfo) {
+    this(pUsername, pPassword, pClientInfo, null);
+  }
+
+  public StandardLoginBehaviour(String pUsername, String pPassword, String pClientInfo, DOM pParamsXML) {
     mUsername = pUsername;
     mPassword = pPassword;
     mClientInfo = pClientInfo;
+    mParamsXML = pParamsXML;
   }
 
   @Override
@@ -32,6 +39,7 @@ public class StandardLoginBehaviour implements LoginBehaviour {
       .defineBind(":login_id", mUsername)
       .defineBind(":password", mPassword)
       .defineBind(":service_list", FoxGlobals.getInstance().getFoxBootConfig().getFoxServiceList())
+      .defineBind(":params_xml", mParamsXML)
       .defineBind(":status_code_out", UCon.bindOutString())
       .defineBind(":status_message_out", UCon.bindOutString());
 
