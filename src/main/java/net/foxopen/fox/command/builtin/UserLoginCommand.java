@@ -45,7 +45,7 @@ extends BuiltInCommand {
   public static final String STATUS_CODE_ATTRIBUTE = "status-code";
 
   /**
-   * Attribute containing XPath to the element where the status mesage should be written (element
+   * Attribute containing XPath to the element where the status message should be written (element
    * need not exist, will be created if necessary).
    */
   public static final String STATUS_MESSAGE_ATTRIBUTE = "status-message";
@@ -59,6 +59,12 @@ extends BuiltInCommand {
    * Attribute containing the authentication domain to use with the specified method.
    */
   public static final String AUTH_DOMAIN_ATTRIBUTE = "authentication-domain";
+
+  /**
+   * Attribute containing XPath to the element where the params XML can be found which will then
+   * be passed into authentication.create_session for implementation specific use
+   */
+  public static final String PARAMS_XML_ATTRIBUTE = "params-xml";
 
   /** An XPATH expression for the Web User Account ID of the user to log in. */
   private final String mWuaLoginIdExpr;
@@ -76,6 +82,9 @@ extends BuiltInCommand {
   private final String mAuthMethodExpr;
   private final String mAuthDomainExpr;
 
+  /** An XPATH expression for the params XML */
+  private final String mParamsXMLExpr;
+
   /**
    * Constructs the command from the XML element specified.
    *
@@ -91,6 +100,8 @@ extends BuiltInCommand {
 
     mAuthMethodExpr = pCommandElement.getAttrOrNull(AUTH_METHOD_ATTRIBUTE);
     mAuthDomainExpr = pCommandElement.getAttrOrNull(AUTH_DOMAIN_ATTRIBUTE);
+
+    mParamsXMLExpr = pCommandElement.getAttrOrNull(PARAMS_XML_ATTRIBUTE);
 
     if (mWuaLoginIdExpr == null) {
       throw new ExInternal("The "+getName()+" command has been used incorrectly in application \""+
@@ -138,6 +149,17 @@ extends BuiltInCommand {
         }
       }
 
+      // Evaluate the params XML element attribute
+      DOM lParamsXML = null;
+      if (mParamsXMLExpr != null) {
+        try {
+          lParamsXML = lContextUElem.getCreateXPath1E(mParamsXMLExpr, ContextUElem.ATTACH);
+        }
+        catch (ExCardinality e) {
+          throw new ExInternal("Failed to evaluate XPath when running UserLoginCommand", e);
+        }
+      }
+
       // Evaluate auth method/domain
       String lAuthMethod = null;
       String lAuthDomain = null;
@@ -158,7 +180,7 @@ extends BuiltInCommand {
         lLoginBehaviour = new LDAPLoginBehaviour(lUsername, lPassword, lClientInfo, lAuthDomain);
       }
       else {
-        lLoginBehaviour = new StandardLoginBehaviour(lUsername, lPassword, lClientInfo);
+        lLoginBehaviour = new StandardLoginBehaviour(lUsername, lPassword, lClientInfo, lParamsXML);
       }
 
       AuthenticationResult lAuthenticationResult = pRequestContext.getAuthenticationContext().login(pRequestContext, lLoginBehaviour);
