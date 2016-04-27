@@ -150,7 +150,7 @@ extends BuiltInCommand {
       }
 
       // Evaluate the params XML element attribute
-      DOM lParamsXML = null;
+      DOM lParamsXML;
       if (mParamsXMLExpr != null) {
         try {
           lParamsXML = lContextUElem.getCreateXPath1E(mParamsXMLExpr, ContextUElem.ATTACH);
@@ -158,6 +158,9 @@ extends BuiltInCommand {
         catch (ExCardinality e) {
           throw new ExInternal("Failed to evaluate XPath when running UserLoginCommand", e);
         }
+      }
+      else {
+        lParamsXML = DOM.createDocument("FOX_NULL_XML_BIND_WORKAROUND");
       }
 
       // Evaluate auth method/domain
