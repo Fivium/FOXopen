@@ -60,7 +60,9 @@ public class SingleWidgetBuildHelper {
           if (pShowError && pEvalNode.hasError()) {
             pSerialiser.append(" input-error");
           }
-          pSerialiser.append("\">");
+          pSerialiser.append("\" ");
+          HTMLSerialiser.serialiseDataAttributes(pSerialiser, pEvalNode);
+          pSerialiser.append(">");
         }
 
         if (pShowWidget && pShowHint && pEvalNode.hasHint() && pEvalNode.getWidgetBuilderType() != WidgetBuilderType.BUTTON) {
