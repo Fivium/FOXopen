@@ -27,11 +27,13 @@ public final class PragmaCommand {
   private static class PragmaSetHTMLResponse extends BuiltInCommand {
 
     private final String mTargetXPath;
+    private final String mDoctype;
 
     public PragmaSetHTMLResponse(DOM pCommandDOM)
     throws ExDoSyntax {
       super(pCommandDOM);
       mTargetXPath = getAttribute("target");
+      mDoctype = getAttribute("html-response-doctype", "HTML5");
 
       if(XFUtil.isNull(mTargetXPath)) {
         throw new ExDoSyntax("pragma set-xml-response must have a target attribute");
@@ -49,7 +51,16 @@ public final class PragmaCommand {
         throw new ExInternal("Error when locating target for HTML response", e);
       }
 
-      StringBuffer lHtmlStringBuffer = new StringBuffer(lHtml.outputNodeToString(false));
+      StringBuffer lHtmlStringBuffer;
+      if ("HTML5".equals(mDoctype)) {
+        lHtmlStringBuffer = new StringBuffer(lHtml.outputHTM5LNodeToString());
+      }
+      else if ("XHTML".equals(mDoctype)) {
+        lHtmlStringBuffer = new StringBuffer(lHtml.outputNodeToString(false));
+      }
+      else {
+        throw new ExInternal("Unknown doctype passed to fm:pragma set-html-response: " + mDoctype);
+      }
 
       //Set the override response as an XDoResult to be picked up before HTML gen
       FoxResponseCHAR lHTMLResponse = new FoxResponseCHAR("text/html; charset=UTF-8", lHtmlStringBuffer, -1);

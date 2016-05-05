@@ -818,6 +818,17 @@ implements FxpDOM<DOM> {
     return byteArrayOutputStreamToString(lBAOS);
   }
 
+
+  public String outputHTM5LNodeToString() {
+    ByteArrayOutputStream lBAOS = new ByteArrayOutputStream();
+    outputHTML5NodeContentsToOutputStream(lBAOS);
+    return byteArrayOutputStreamToString(lBAOS);
+  }
+
+  public void outputHTML5NodeContentsToOutputStream(OutputStream pOutputStream) {
+    DocControl.getDocControl(mXOMNode).mActuate.outputHTML5NodeAs(mXOMNode, pOutputStream);
+  }
+
   /**
    * Outputs this element and sub-tree as XML to a String without exceptions - for diagnostic logging only.
    * @return String representation of this node, or an error string if an error occurred.
