@@ -14,6 +14,7 @@ import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExTooFew;
 import net.foxopen.fox.ex.ExTooMany;
 import net.foxopen.fox.ex.ExValidation;
+import net.foxopen.fox.module.serialiser.components.HTMLComponentUtils;
 import nu.xom.Attribute;
 import nu.xom.Comment;
 import nu.xom.DocType;
@@ -25,6 +26,7 @@ import nu.xom.ParentNode;
 import nu.xom.ProcessingInstruction;
 import nu.xom.Serializer;
 import nu.xom.Text;
+import nu.xom.UnavailableCharacterException;
 import nu.xom.canonical.Canonicalizer;
 import nu.xom.converters.DOMConverter;
 import org.xml.sax.SAXException;
@@ -1187,6 +1189,138 @@ extends ActuateNoAccess
     }
   }
 
+  /**
+   * Basic serialiser for HTML5 nodes which cuts out foxid attributes and does HTML5 style self-closing of empty elements.
+   */
+  private static class HTML5XOMNodeSerializer
+  extends XOMNodeSerializer {
+    public HTML5XOMNodeSerializer(OutputStream pOut) {
+      super(pOut, false, false);
+
+      // Start off with a HTML5 doctype as we override and ignore any doctype/XML Declation from the DOM
+      try {
+        writeRaw("<!DOCTYPE html>\n");
+      }
+      catch (IOException e) {
+        throw new ExInternal("Failed to write HTML5 doctype when serialising DOM", e);
+      }
+    }
+
+    /**
+     * Overload the writeAttributes method with one that ignores the xml:base namespace and skips over foxids
+     *
+     * @param element the <code>Element</code> whose attributes are
+     *     written
+     * @throws IOException if the underlying output stream
+     *     encounters an I/O error
+     * @throws UnavailableCharacterException if the name of any of
+     *     the element's attributes contains a character that is not
+     *     available in the current encoding
+     */
+    @Override
+    protected void writeAttributes(Element element) throws IOException {
+      int attributeCount = element.getAttributeCount();
+      for (int i = 0; i < attributeCount; i++) {
+        Attribute attribute = element.getAttribute(i);
+
+        // Skip over foxid attributes
+        if ("foxid".equals(attribute.getQualifiedName())) {
+          continue;
+        }
+
+        writeRaw(" ");
+        write(attribute);
+      }
+    }
+
+    /**
+     * When writing an empty element only self-close if the element is a Void Element according to the HTML5 spec,
+     * otherwise write a full end tag.
+     *
+     * @param element the element whose empty-element tag is written
+     *
+     * @throws IOException if the underlying output stream
+     *     encounters an I/O error
+     * @throws UnavailableCharacterException if the name of the element or the name of
+     *     any of its attributes contains a character that is not
+     *     available in the current encoding
+     */
+    @Override
+    protected void writeEmptyElementTag(Element element) throws IOException {
+      writeRaw("<");
+      writeRaw(element.getQualifiedName());
+      writeAttributes(element);
+
+      if (HTMLComponentUtils.isVoidElement(element.getQualifiedName())) {
+        writeRaw("/>");
+      }
+      else {
+        writeRaw(">");
+        writeEndTag(element);
+      }
+    }
+
+    /**
+     * Override the start-tag writer to not do anything with namespaces
+     *
+     * @param element the element whose end-tag is written
+     *
+     * @throws IOException if the underlying output stream
+     *     encounters an I/O error
+     */
+    @Override
+    protected void writeStartTag(Element element) throws IOException {
+      writeRaw("<");
+      writeRaw(element.getQualifiedName());
+      writeAttributes(element);
+      writeRaw(">");
+    }
+
+    /**
+     * Override the end-tag writer to not do anything with namespaces
+     *
+     * @param element the element whose end-tag is written
+     *
+     * @throws IOException if the underlying output stream
+     *     encounters an I/O error
+     */
+    @Override
+    public void writeEndTag(Element element) throws IOException {
+      writeRaw("</");
+      writeRaw(element.getQualifiedName());
+      writeRaw(">");
+    }
+
+    /**
+     * Override the processing instruction writer to do nothing as the
+     * HTML5 output should not contain any processing instructions.
+     *
+     * @param instruction the <code>ProcessingInstruction</code>
+     *     to serialize
+     *
+     * @throws IOException if the underlying output stream
+     *     encounters an I/O error
+     * @throws UnavailableCharacterException if the comment contains a
+     *     character that is not available in the current encoding
+     */
+    @Override
+    protected void write(ProcessingInstruction instruction) {
+      // Ignore processing instructions
+    }
+
+    /**
+     * Override the XML Declaration writer as this serializer will always
+     * manually put in a HTML5 doctype.
+     *
+     * @throws IOException if the underlying output stream
+     *      encounters an I/O error
+     */
+    @Override
+    protected void writeXMLDeclaration() {
+      // Ignore XML Declaration writes
+    }
+  }
+
   @Override
   public void outputCanonicalDocument(Document pNode, OutputStream pOutputStream) {
     Canonicalizer lCanonicalizer = new Canonicalizer(pOutputStream, true);
@@ -1227,6 +1361,12 @@ extends ActuateNoAccess
   public void outputNodeContents(Node pNode, OutputStream pOutputStream, boolean pPrettyPrint, boolean pWriteXMLDeclaration) {
     XOMNodeSerializer lSerializer = new XOMNodeSerializer(pOutputStream, pPrettyPrint, pWriteXMLDeclaration);
     lSerializer.serializeNodeContents(pNode);
+  }
+
+  @Override
+  public void outputHTML5NodeAs(Node pNode, OutputStream pOutputStream) {
+    HTML5XOMNodeSerializer lSerializer = new HTML5XOMNodeSerializer(pOutputStream);
+    lSerializer.serializeNode(pNode);
   }
 
   /**

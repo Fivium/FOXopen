@@ -4486,6 +4486,17 @@ Mapsets can have the following structures:
               <xs:documentation>Action to run when resuming a hibernated thread.</xs:documentation>
             </xs:annotation>
           </xs:attribute>
+          <xs:attribute name="html-response-doctype" use="optional" default="HTML5">
+            <xs:annotation>
+              <xs:documentation>When using function=set-html-response the doctype will let you specify HTML5 style output (Default) or the legacy XHTML style output that returns raw XML content from the DOM like XHTML</xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+              <xs:restriction base="fm:entered-string">
+                <xs:enumeration value="HTML5"/>
+                <xs:enumeration value="XHTML"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
         </xs:complexType>
       </xs:element>
     </xs:sequence>

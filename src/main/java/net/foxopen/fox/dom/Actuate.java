@@ -247,6 +247,10 @@ abstract class Actuate
     throwAccessViolation(pNode);
   }
 
+  public void outputHTML5NodeAs(Node pNode, OutputStream pOutputStream) {
+    throwAccessViolation(pNode);
+  }
+
   public String value(Node pNode, boolean deep)
   throws ExInternal
   {
