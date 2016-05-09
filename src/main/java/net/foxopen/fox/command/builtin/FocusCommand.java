@@ -29,8 +29,6 @@ import net.foxopen.fox.track.Track;
 public class FocusCommand extends BuiltInCommand {
 
   private String mNodeXPath;
-  private String mStartPosStringOrXPath;
-  private String mEndPosStringOrXPath;
   private String mScrollYOffsetStringOrXPath;
 
   /**
@@ -52,8 +50,6 @@ public class FocusCommand extends BuiltInCommand {
   private void parseCommand(DOM commandElement)
   throws ExInternal {
     mNodeXPath = commandElement.getAttr("xpath");
-    mStartPosStringOrXPath = commandElement.getAttrOrNull("selectionStart");
-    mEndPosStringOrXPath = commandElement.getAttrOrNull("selectionEnd");
     mScrollYOffsetStringOrXPath = commandElement.getAttrOrNull("scrollYOffset");
   }
 
@@ -93,14 +89,8 @@ public class FocusCommand extends BuiltInCommand {
       return XDoControlFlowContinue.instance();
     }
 
-    String lStartPos  = null, lEndPos  = null, lYOffset = "0";
+    String lYOffset = "0";
     try {
-      if (!XFUtil.isNull(mStartPosStringOrXPath)) {
-        lStartPos = lContextUElem.extendedStringOrXPathString(lContextUElem.attachDOM(), mStartPosStringOrXPath);
-      }
-      if (!XFUtil.isNull(mEndPosStringOrXPath)) {
-        lEndPos =  lContextUElem.extendedStringOrXPathString(lContextUElem.attachDOM(), mEndPosStringOrXPath);
-      }
       if (!XFUtil.isNull(mScrollYOffsetStringOrXPath)) {
         lYOffset = lContextUElem.extendedStringOrXPathString(lContextUElem.attachDOM(), mScrollYOffsetStringOrXPath);
       }
@@ -109,7 +99,7 @@ public class FocusCommand extends BuiltInCommand {
       // Non-critical
     }
 
-    FocusResult lFocusResult = new FieldFocusResult(selectedNode.getRef(), lStartPos, lEndPos, lYOffset);
+    FocusResult lFocusResult = new FieldFocusResult(selectedNode.getRef(), lYOffset);
     pRequestContext.addXDoResult(lFocusResult);
 
     return XDoControlFlowContinue.instance();
