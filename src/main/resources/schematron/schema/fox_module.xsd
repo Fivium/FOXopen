@@ -1811,26 +1811,10 @@ Mapsets can have the following structures:
                   <xs:enumeration value="CSV"/>
                   <xs:enumeration value="XLS"/>
                   <xs:enumeration value="XML"/>
-                  <xs:enumeration value="SPATIAL-EMF"/>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
             <xs:attribute name="match" type="fm:fox-xpath-type" use="optional"/>
-            <xs:attribute name="spatial-definition" type="xs:string" use="optional">
-              <xs:annotation>
-                <xs:documentation>Spatial Definition to use when generating an emf from spatial</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="spatial-interface" type="xs:string" use="optional">
-              <xs:annotation>
-                <xs:documentation>Spatial Interface to use when generating an emf from spatial</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="canvas-cache-key" type="xs:string" use="optional">
-              <xs:annotation>
-                <xs:documentation>Canvas Cache Key to use when generating an emf from spatial</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
             <xs:attribute name="file-name" type="fm:entered-string">
               <xs:annotation>
                 <xs:documentation>A file name for the resultant file; does not need to include a file extension. This can be a static string, or string()ified XPath.</xs:documentation>

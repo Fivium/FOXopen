@@ -79,8 +79,6 @@ extends BuiltInCommand {
         case GenerateLegacySpreadsheetCommand.OUTPUT_TYPE_CSV:
         case GenerateLegacySpreadsheetCommand.OUTPUT_TYPE_XLS:
           return new GenerateLegacySpreadsheetCommand(pMarkupDOM);
-        case "SPATIAL-EMF":
-          return new GenerateSpatialEMFCommand(pMarkupDOM);
         default:
           return new GenerateCommand(pMarkupDOM);
       }
