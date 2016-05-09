@@ -2148,6 +2148,56 @@ If the fm:default element is reached, then its contents are evaluated.
               Portal Home page.</xs:documentation>
           </xs:annotation>
         </xs:element>
+        <xs:element name="saml-response">
+          <xs:annotation>
+            <xs:documentation>Return a SAML Response to the recipient with optional signing, attributes and conditions.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:attribute name="relay-state" type="fm:fox-xpath-type" use="optional">
+              <xs:annotation>
+                <xs:documentation>Data to post to the recipient in a RelayState parameters, this should have been posted
+                  to FOX from the Service Provider when it made the auth request.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="recipient" type="fm:fox-xpath-type" use="required">
+              <xs:annotation>
+                <xs:documentation>The URL of the service provider to post the SAML Response back to.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="audience" type="fm:fox-xpath-type" use="required">
+              <xs:annotation>
+                <xs:documentation>The root URL of the service provider.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="timeout" type="fm:fox-xpath-type" use="optional">
+              <xs:annotation>
+                <xs:documentation>Milliseconds this response will be valid for. Defaults to 1 minute.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="digital-certificate-name" type="fm:fox-xpath-type" use="optional">
+              <xs:annotation>
+                <xs:documentation>Name of an X509 certificate in DECMGR.DIGITAL_CERTIFICATES to use for signing.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="sign-response" type="fm:fox-xpath-type" use="optional" default=".">
+              <xs:annotation>
+                <xs:documentation>Boolean XPath to sign the SAML Response.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="sign-assertion" type="fm:fox-xpath-type" use="optional" default=".">
+              <xs:annotation>
+                <xs:documentation>Boolean XPath to sign the assertion part of the SAML Response.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="assertion-attributes" type="fm:fox-xpath-type" use="required">
+              <xs:annotation>
+                <xs:documentation>XPath to DOM containing attributes the SAML Response is asserting as valid. DOM should
+                  contain a series of elements where element names will be used as attribute names and text content will
+                  be used as attribute value.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
         <xs:element name="state-push">
           <xs:annotation>
             <xs:documentation>

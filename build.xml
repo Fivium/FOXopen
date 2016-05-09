@@ -8,6 +8,7 @@
   <property name="input.source_java" value="src/main/java"/>
   <property name="input.source_tests" value="src/test/java"/>
   <property name="input.source_sql" value="src/main/sql"/>
+  <property name="input.source_mustache" value="src/main/mustache"/>
   <property name="input.source_web" value="src/main/webapp"/>
   <property name="input.resources" value="src/main/resources"/>
 
@@ -92,6 +93,7 @@
     <copy todir="${output.classes_dir}">
       <fileset dir="${input.source_java}" includes="**/*.mustache, **/*.properties" />
       <fileset dir="${input.source_sql}" includes="**/*.sql" />
+      <fileset dir="${input.source_mustache}" includes="**/*.mustache" />
     </copy>
   </target>
 

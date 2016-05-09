@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv='pragma' content='no-cache'/>
+    <meta http-equiv='cache-control" content="no-cache'/>
+    <title>SAML 2.0 Response</title>
+  </head>
+  <body onLoad="document.forms[0].submit()">
+    <noscript>
+      Your browser does not support JavaScript.  Please click the 'Continue' button below to proceed.
+    </noscript>
+    <form method="post" action="{{RecipientURL}}">
+      <input type="hidden" name="SAMLResponse" value="{{Base64SamlResponse}}" />
+{{#RelayState}}      <input type="hidden" name="RelayState" value="{{RelayState}}" />{{/RelayState}}
+      <input type="submit" value="Continue" />
+    </form>
+   </body>
+</html>
