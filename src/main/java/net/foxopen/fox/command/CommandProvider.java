@@ -40,6 +40,7 @@ import net.foxopen.fox.command.builtin.RenameCommand;
 import net.foxopen.fox.command.builtin.ResumeLoginCommand;
 import net.foxopen.fox.command.builtin.RunApiCommand;
 import net.foxopen.fox.command.builtin.RunQueryCommand;
+import net.foxopen.fox.command.builtin.SAMLResponseCommand;
 import net.foxopen.fox.command.builtin.SecurityScopeCommand;
 import net.foxopen.fox.command.builtin.SetVariableCommand;
 import net.foxopen.fox.command.builtin.ShowPopoverCommand;
@@ -135,6 +136,7 @@ public class CommandProvider {
     registerCommandFactory(new ResumeLoginCommand.Factory());
     registerCommandFactory(new RunApiCommand.Factory());
     registerCommandFactory(new RunQueryCommand.Factory());
+    registerCommandFactory(new SAMLResponseCommand.Factory());
     registerCommandFactory(new SecurityScopeCommand.Factory());
     registerCommandFactory(new SetVariableCommand.Factory());
     registerCommandFactory(new ShowPopoverCommand.Factory());
