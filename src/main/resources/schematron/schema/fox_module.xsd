@@ -1600,10 +1600,16 @@ Mapsets can have the following structures:
         </xs:element>
         <xs:element name="focus">
           <xs:complexType>
-            <xs:attribute name="xpath" type="xs:string" use="required"/>
-            <xs:attribute name="selectionStart" type="xs:integer"/>
-            <xs:attribute name="selectionEnd" type="xs:integer"/>
-            <xs:attribute name="scrollYOffset" type="xs:integer"/>
+            <xs:attribute name="xpath" type="xs:string" use="required">
+              <xs:annotation>
+                <xs:documentation>The element in the set out DOM to focus on.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="scrollYOffset" type="xs:integer">
+              <xs:annotation>
+                <xs:documentation>Offset from the target element to scroll.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
         <xs:element name="rename">
