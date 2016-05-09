@@ -6,6 +6,7 @@ Library                                                                         
 ------------------------------------------------------------------------------------|-----------------------
 [Asm](http://asm.ow2.org/)                                                          | BSD 3-Clause
 [Apache Commons Codec](http://commons.apache.org/proper/commons-codec/)             | Apache-2.0
+[Apache Commons Collections](http://commons.apache.org/proper/commons-collections/) | Apache-2.0
 [Apache Commons File Upload](http://commons.apache.org/proper/commons-fileupload/)  | Apache-2.0
 [Apache Commons HTTP Client](http://hc.apache.org/httpclient-3.x/)                  | Apache-2.0
 [Apache HttpComponents](http://hc.apache.org/)                                      | Apache-2.0
@@ -16,6 +17,7 @@ Library                                                                         
 [CGLib](https://github.com/cglib/cglib)                                             | Apache-2.0
 [Mustache.java](https://github.com/spullara/mustache.java)                          | Apache-2.0
 [DOM4J](https://github.com/dom4j/dom4j)                                             | Apache License V1.1
+[ESAPI](https://www.owasp.org/index.php/Category:OWASP_Enterprise_Security_API)     | BSD 3-Clause
 [FreeHEP Vector Graphics](http://java.freehep.org/)                                 | LGPL-2.1
 [Guava](https://github.com/google/guava)                                            | Apache-2.0
 [Hikari CP](https://github.com/brettwooldridge/HikariCP)                            | Apache-2.0
@@ -25,6 +27,7 @@ Library                                                                         
 [JavaCC](https://javacc.java.net/)                                                  | BSD 2-Clause
 [Javassist](http://jboss-javassist.github.io/javassist/)                            | MPL-2.0
 [Jazzy](http://jazzy.sourceforge.net/)                                              | LGPL-2.1
+[Joda-Time](http://joda-time.sourceforge.net/)                                      | Apache-2.0
 [JPEGImageIO](http://www.randelshofer.ch/)                                          | CC BY 3.0 / LGPL-3.0
 [JSON Simple](https://github.com/fangyidong/json-simple)                            | Apache-2.0
 [Kryo](https://github.com/EsotericSoftware/kryo)                                    | BSD 3-Clause
@@ -32,6 +35,7 @@ Library                                                                         
 [Mime Util](http://sourceforge.net/projects/mime-util/)                             | Apache-2.0
 [Minlog SLF4J](https://github.com/EsotericSoftware/minlog/)                         | BSD 3-Clause
 [Objenesis](http://objenesis.org/)                                                  | Apache-2.0
+[OpenSAML](www.opensaml.org)                                                        | Apache-2.0
 [POI](http://poi.apache.org/)                                                       | Apache-2.0
 [Reflect ASM](https://github.com/EsotericSoftware/reflectasm)                       | BSD 3-Clause
 [Saxon](http://saxon.sourceforge.net/)                                              | MPL-1.0
@@ -39,6 +43,7 @@ Library                                                                         
 [XDB](http://www.oracle.com/technetwork/developer-tools/xmldevkit/index.html)       | Oracle Technology Network Development and Distribution License
 [XML Pull](http://www.xmlpull.org/)                                                 | Public Domain
 [XPP](http://www.xmlpull.org/)                                                      | Public Domain / Indiana University Extreme! Lab Software License, version 1.1.1
+[XML Sec](http://santuario.apache.org/)                                             | Apache-2.0
 [XML Worker](http://www.itextpdf.com/)                                              | AGPL-3.0
 [XOM](http://www.xom.nu/)                                                           | LGPL-2.1
 [XStream](http://x-stream.github.io/)                                               | BSD 3-Clause
