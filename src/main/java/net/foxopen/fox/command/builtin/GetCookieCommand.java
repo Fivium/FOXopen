@@ -43,15 +43,18 @@ extends BuiltInCommand {
 
       String lCookieValue = pRequestContext.getFoxRequest().getCookieValue(lName);
 
-      // Get/create the result node to store the value in and then store it
-      DOM lResultTargetNode = lContextUElem.getCreateXPath1E(mResultXPath);
-      lResultTargetNode.setText(lCookieValue);
+      // Only attempt to store a value if there is one
+      if (!XFUtil.isNull(lCookieValue)) {
+        // Get/create the result node to store the value in and then store it
+        DOM lResultTargetNode = lContextUElem.getCreateXPath1E(mResultXPath);
+        lResultTargetNode.setText(lCookieValue);
+      }
     }
     catch (ExActionFailed e) {
       throw new ExInternal("Failed to evaluate value attribute for fm:get-cookie", e);
     }
     catch (ExTooMany e) {
-      throw new ExInternal("Failed to evaluate value attribute for fm:get-cookie", e);
+      throw new ExInternal("Failed to evaluate value attribute for fm:get-cookie, result matched too many elements", e);
     }
 
     return XDoControlFlowContinue.instance();
