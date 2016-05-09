@@ -186,7 +186,6 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
   private String mBulkModuleErrorMessages = "";
   private String mBulkModuleWarningMessages = "";
 
-  private DOM mModuleRawDOM;
   private DOM mModuleMergeTargetDOM;
   private DOM mModuleTypeExpandedDOM;
 
@@ -241,10 +240,11 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
    * @param p_name The name of the application meta data
    * @param pInitialDOM Pointer to the root of the meta data DOM from a database clob
    * @param p_app Reference to the application class
+   * @param pDOMHash Hash of the module string being parsed
    */
-  public Mod(String p_name, DOM pInitialDOM, App p_app)
+  public Mod(String p_name, DOM pInitialDOM, App p_app, String pDOMHash)
   throws ExModule, ExDoSyntax, ExServiceUnavailable {
-    super(null);
+    super(pDOMHash);
     DOMList lParseDOMList;
 
     // Locate module element
@@ -301,8 +301,6 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
     try {
       processLibraries(pInitialDOM, lModuleDOM, mModuleName);
 
-      // Should not reference raw module dom again used mModuleMergeTargetDOM instead
-      mModuleRawDOM = pInitialDOM;
       pInitialDOM = null;
 
       // Relocate module element (this time from library merged xml)
@@ -689,11 +687,9 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
       // TODO - NP - This should be reimplemented properly when we have one prod/dev switch to rule them all
       // Clear module source - no longer required for production
       if(FoxGlobals.getInstance().getFoxBootConfig().isProduction()) {
-        mModuleRawDOM = null;
         // mModuleMergeTargetDOM = null;
         mModuleTypeExpandedDOM = null;
       }
-
       // Otherwise remove internal imported flag and set read only in case extracted by developers
       else {
         DOMList lAllImportedAttrsList;
@@ -2745,9 +2741,6 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
 
   } // end mergeTransferAttrs
 
-  public final DOM getModuleRawDOMOrNull() {
-    return mModuleRawDOM;
-  }
 
   public final DOM getModuleMergerDOMOrNull() {
     return mModuleMergeTargetDOM;

@@ -32,6 +32,7 @@ import net.foxopen.fox.ex.ExUserRequest;
 import net.foxopen.fox.filetransfer.VirusScanner;
 import net.foxopen.fox.filetransfer.VirusScannerDefinition;
 import net.foxopen.fox.image.ImageWidgetProcessing;
+import net.foxopen.fox.io.IOUtil;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.module.entrytheme.EntryTheme;
 import net.foxopen.fox.module.fieldset.transformer.html.HTMLWidgetConfig;
@@ -43,6 +44,7 @@ import net.foxopen.fox.track.Track;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.SQLException;
@@ -587,6 +589,51 @@ public class App {
     return null;
   }
 
+  private final UConStatementResult getComponentRow(String lComponentName) {
+    UCon lUCon = null;
+    try {
+      lUCon = ConnectionAgent.getConnection(mConnectionPoolName, "Get component");
+      UConStatementResult lRow = getComponentRowFromResourceTables(lComponentName, lUCon);
+      return lRow;
+    }
+    catch (ExServiceUnavailable exServiceUnavailable) {
+      exServiceUnavailable.printStackTrace();
+    }
+    finally {
+      if(lUCon != null) {
+        lUCon.closeForRecycle();
+      }
+    }
+    return null;
+  }
+
+  public final StringWriter getModuleComponentAsString(String pComponentPath) {
+    String lComponentName = getComponentName(pComponentPath);
+    UConStatementResult lRow = getComponentRow(lComponentName);
+    if(lRow != null)
+    {
+      if("module".equals(lRow.getString("TYPE"))) {
+        try {
+          Reader lReader = lRow.getClob("DATA").getCharacterStream();
+          StringWriter lStringWriter = new StringWriter();
+          IOUtil.transfer(lReader, lStringWriter);
+
+          return lStringWriter;
+        }
+        catch (SQLException e) {
+            throw new ExInternal("Error reading blob/clob", e);
+          }
+        catch (IOException e) {
+          throw new ExInternal("Error reading module clob for module " + pComponentPath, e);
+        }
+      }
+      else {
+        throw new ExInternal("Specified component '" + pComponentPath + "' is not of type 'module'");
+      }
+    }
+    throw new ExInternal("Null row returned when trying to retrieve component: " + pComponentPath);
+  }
+
   public final FoxComponent getComponent(String pComponentPath, boolean pUseCache)
   throws
     ExServiceUnavailable
@@ -603,7 +650,6 @@ public class App {
       lFullComponentPath = mDefaultModuleName;
     }
 
-    UCon lUCon = null;
     Track.pushInfo("GetComponent", pComponentPath);
     try {
       UConStatementResult lRow = null;
@@ -621,12 +667,7 @@ public class App {
           }
         }
 
-        // Get a connection if we didn't already ask for one above
-        if(lUCon == null) {
-          lUCon = ConnectionAgent.getConnection(mConnectionPoolName, "Get component");
-        }
-        //Check components tables
-        lRow = getComponentRowFromResourceTables(lComponentName, lUCon);
+        lRow = getComponentRow(lComponentName);
       }
 
       if (lRow != null) {
@@ -640,9 +681,6 @@ public class App {
       }
     }
     finally {
-      if(lUCon != null) {
-        lUCon.closeForRecycle();
-      }
       Track.pop("GetComponent");
     }
 

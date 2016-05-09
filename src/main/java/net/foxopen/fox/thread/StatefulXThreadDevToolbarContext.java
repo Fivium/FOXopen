@@ -1,13 +1,16 @@
 package net.foxopen.fox.thread;
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.Hashing;
 import net.foxopen.fox.ContextLabel;
 import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.FoxResponse;
 import net.foxopen.fox.FoxResponseCHAR;
 import net.foxopen.fox.XFUtil;
-import net.foxopen.fox.cache.CacheManager;
+import net.foxopen.fox.banghandler.FlushBangHandler;
 import net.foxopen.fox.cache.BuiltInCacheDefinition;
+import net.foxopen.fox.cache.CacheManager;
 import net.foxopen.fox.cache.FoxCache;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.XQueryUtil;
@@ -16,6 +19,7 @@ import net.foxopen.fox.dom.xpath.ContextualityLevel;
 import net.foxopen.fox.dom.xpath.XPathResult;
 import net.foxopen.fox.entrypoint.servlets.FoxMainServlet;
 import net.foxopen.fox.entrypoint.uri.RequestURIBuilder;
+import net.foxopen.fox.entrypoint.uri.RequestURIBuilderImpl;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExUserRequest;
 import net.foxopen.fox.module.Mod;
@@ -23,6 +27,7 @@ import net.foxopen.fox.thread.devtoolbar.DebugPage;
 import net.foxopen.fox.thread.devtoolbar.DevToolbarContext;
 
 import java.io.StringWriter;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Map;
@@ -81,13 +86,44 @@ implements DevToolbarContext {
     String lResponse = "";
 
     if (pPageType == DebugPage.MODULE) {
-      DOM lModuleDOM = lModule.getModuleRawDOMOrNull();
-      if (lModuleDOM != null) {
-        lResponse = lModuleDOM.outputNodeToString(true);
+      // Get specified module from the DB and compare hash with the last parsed version
+      StringWriter lDBModule =  pRequestContext.getRequestApp().getModuleComponentAsString(lModule.getName());
+      String lDBHash = Hashing.md5().hashString(lDBModule.getBuffer(), Charsets.UTF_16LE).toString();
+      String lModHash = lModule.getHashOrNull();
+
+      if (lDBHash.equals(lModHash)) {
+        lResponse = lDBModule.toString();
       }
       else {
-        lIsXML = false;
-        lResponse = "Module DOM not cached, only development app mnemonics cache this";
+        RequestURIBuilder lURIBuilder = RequestURIBuilderImpl.createFromRequestContext(pRequestContext, false);
+        String lFlushURL = lURIBuilder.buildBangHandlerURI(FlushBangHandler.instance());
+
+        SimpleDateFormat lDateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        StringBuffer lResp = new StringBuffer();
+        lResp.append("<!DOCTYPE html>\n" +
+                    "<html>\n" +
+                    "  <head>\n" +
+                    "    <title>FOX - View Module Definition</title>\n" +
+                    "  </head>\n" +
+                    "  <body>\n" +
+                    "    <pre>Fox module '");
+        lResp.append(lModule.getName());
+        lResp.append("' has changed since Fox last loaded it from the database.<br/><br/>" +
+                    "<a href=\"");
+        lResp.append(lFlushURL);
+        lResp.append("\">Flush the module cache</a> to load the latest module definition.\n" +
+                    "<br/>Module last parsed at: ");
+        lResp.append(lDateFormatter.format(lModule.getParseDateTime()));
+        lResp.append("    <br/>Parsed module hash: ");
+        lResp.append(lModHash);
+        lResp.append("    <br/>Database module hash:");
+        lResp.append(lDBHash);
+        lResp.append("  </pre>" +
+                    "  </body>\n" +
+                    "</html>\n");
+
+        return new FoxResponseCHAR("text/html", lResp, 0);
+
       }
     }
     else if (pPageType == DebugPage.PARSE_TREE) {

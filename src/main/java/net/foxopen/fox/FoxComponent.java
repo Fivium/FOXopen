@@ -18,14 +18,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.util.Date;
 
 
 public abstract class FoxComponent {
 
   private final String mOptionalHash;
+  private final Date mComponentParseDateTime;
 
   protected FoxComponent(String pOptionalHash) {
     mOptionalHash = pOptionalHash;
+    mComponentParseDateTime = new Date();
   }
 
   /**
@@ -33,6 +36,10 @@ public abstract class FoxComponent {
    */
   public String getHashOrNull() {
     return mOptionalHash;
+  }
+
+  public Date getParseDateTime() {
+    return mComponentParseDateTime;
   }
 
   public abstract String getName();
@@ -96,6 +103,9 @@ public abstract class FoxComponent {
             throw new ExInternal("Error reading module clob for module " + pName, e);
           }
 
+          // Always store a module hash. Unlike other component types, this is NOT used for cache invalidation.
+          String lHash = Hashing.md5().hashString(lStringWriter.getBuffer(), Charsets.UTF_16LE).toString();
+
           // Parse module to DOM
           DOM lUElem;
           try {
@@ -107,7 +117,7 @@ public abstract class FoxComponent {
 
           // Construct fox module
           try {
-            Mod mod = new Mod(pName, lUElem, pApp);
+            Mod mod = new Mod(pName, lUElem, pApp, lHash);
             mod.validate(mod);
             lFoxComponent = mod;
           }
