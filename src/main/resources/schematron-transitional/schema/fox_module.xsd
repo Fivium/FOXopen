@@ -2069,13 +2069,13 @@ If the fm:default element is reached, then its contents are evaluated.
                   must yield a numeric value.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="set-path" type="fm:fox-xpath-type" use="optional">
+            <xs:attribute name="set-path" type="fm:fox-xpath-type" use="optional" default="true()">
               <xs:annotation>
                 <xs:documentation>Boolean XPath controlling if the Path part of the cookie is set. By default this
                   is true.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="http-only" type="fm:fox-xpath-type" use="optional">
+            <xs:attribute name="http-only" type="fm:fox-xpath-type" use="optional" default="true()">
               <xs:annotation>
                 <xs:documentation>Boolean XPath controlling if the cookie is marked as http-only and therefore
                   unmodifiable from javascript. By default this is true.</xs:documentation>
