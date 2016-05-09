@@ -2049,11 +2049,59 @@ If the fm:default element is reached, then its contents are evaluated.
             <xs:attribute name="materialise-mapsets" type="fm:fox-xpath-type" use="optional" default="."/>
           </xs:complexType>
         </xs:element>
+        <xs:element name="set-cookie">
+          <xs:complexType>
+            <xs:attribute name="name" type="fm:fox-xpath-type" use="required">
+              <xs:annotation>
+                <xs:documentation>Name of the cookie to get a value from.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="value" type="fm:fox-xpath-type" use="optional">
+              <xs:annotation>
+                <xs:documentation>Value to set the cookie to. If this attribute is empty or omitted the cookie
+                  will be unset and removed.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="max-age" type="fm:fox-xpath-type" use="optional">
+              <xs:annotation>
+                <xs:documentation>The maximum age of the cookie, in seconds. By default this is set to not have a
+                  max age and instead timeout with the browser session. While this can be an XPath expression it
+                  must yield a numeric value.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="set-path" type="fm:fox-xpath-type" use="optional">
+              <xs:annotation>
+                <xs:documentation>Boolean XPath controlling if the Path part of the cookie is set. By default this
+                  is true.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="http-only" type="fm:fox-xpath-type" use="optional">
+              <xs:annotation>
+                <xs:documentation>Boolean XPath controlling if the cookie is marked as http-only and therefore
+                  unmodifiable from javascript. By default this is true.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="get-cookie">
+          <xs:complexType>
+            <xs:attribute name="name" type="fm:fox-xpath-type" use="required">
+              <xs:annotation>
+                <xs:documentation>Name of the cookie to get a value from.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="result" type="fm:fox-xpath-type" use="required">
+              <xs:annotation>
+                <xs:documentation>XPath pointing to a DOM element to store the cookie value in.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
         <xs:group ref="fm:server-side-include-cmd-grp"/>
         <xs:element name="security-scope">
           <xs:annotation>
-            <xs:documentation>Chamges the current user system-level and object-level privileges. The
-              defaul for system-level privileges is "*" (all); with the default for object-level
+            <xs:documentation>Changes the current user system-level and object-level privileges. The
+              default for system-level privileges is "*" (all); with the default for object-level
               privileges set to "" (none).</xs:documentation>
           </xs:annotation>
           <xs:complexType>
