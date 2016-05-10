@@ -242,20 +242,20 @@ public class SAMLResponseCommand extends BuiltInCommand {
    * @return XML version of the SAML Object in string form
    */
   private String marshall(XMLObject pXMLObject) {
-		try {
-			MarshallerFactory lMarshallerFactory = org.opensaml.xml.Configuration.getMarshallerFactory();
-			Marshaller lMarshaller = lMarshallerFactory.getMarshaller(pXMLObject);
-			Element lElement = lMarshaller.marshall(pXMLObject);
+    try {
+      MarshallerFactory lMarshallerFactory = org.opensaml.xml.Configuration.getMarshallerFactory();
+      Marshaller lMarshaller = lMarshallerFactory.getMarshaller(pXMLObject);
+      Element lElement = lMarshaller.marshall(pXMLObject);
 
-			DOMImplementationRegistry registry = DOMImplementationRegistry.newInstance();
-			DOMImplementationLS impl = (DOMImplementationLS) registry.getDOMImplementation("LS");
-			LSSerializer writer = impl.createLSSerializer();
-			return writer.writeToString(lElement);
-		}
+      DOMImplementationRegistry registry = DOMImplementationRegistry.newInstance();
+      DOMImplementationLS impl = (DOMImplementationLS) registry.getDOMImplementation("LS");
+      LSSerializer writer = impl.createLSSerializer();
+      return writer.writeToString(lElement);
+    }
     catch (Exception e) {
-			throw new ExInternal("Error Serializing the SAML Response", e);
-		}
-	}
+      throw new ExInternal("Error Serializing the SAML Response", e);
+    }
+  }
 
   /**
    * Build the SAML Response Object
@@ -310,11 +310,11 @@ public class SAMLResponseCommand extends BuiltInCommand {
    * @return SAML Issuer Object
    */
   private Issuer buildIssuer(String pIssuer) {
-		Issuer issuer = new IssuerBuilder().buildObject();
-		issuer.setValue(pIssuer);
-		issuer.setFormat(NameIDType.ENTITY);
-		return issuer;
-	}
+    Issuer issuer = new IssuerBuilder().buildObject();
+    issuer.setValue(pIssuer);
+    issuer.setFormat(NameIDType.ENTITY);
+    return issuer;
+  }
 
   /**
    * Build a SAML Status object
@@ -561,30 +561,20 @@ public class SAMLResponseCommand extends BuiltInCommand {
   }
 
   /**
-	 * Builds SAML Objects for a given QName
-	 *
-	 * @param pQName Element QName for the SAML Object
-	 * @return SAML Object
-	 */
-	private static XMLObject buildXMLObject(QName pQName) {
-		XMLObjectBuilder lObjectBuilder = org.opensaml.xml.Configuration.getBuilderFactory().getBuilder(pQName);
+   * Builds SAML Objects for a given QName
+   *
+   * @param pQName Element QName for the SAML Object
+   * @return SAML Object
+   */
+  private static XMLObject buildXMLObject(QName pQName) {
+    XMLObjectBuilder lObjectBuilder = org.opensaml.xml.Configuration.getBuilderFactory().getBuilder(pQName);
 
-		if (lObjectBuilder == null) {
-			throw new ExInternal("Cannot get builder for QName: " + pQName);
-		}
+    if (lObjectBuilder == null) {
+      throw new ExInternal("Cannot get builder for QName: " + pQName);
+    }
 
-		return lObjectBuilder.buildObject(pQName.getNamespaceURI(), pQName.getLocalPart(), pQName.getPrefix());
-	}
-
-
-
-
-
-
-
-
-
-
+    return lObjectBuilder.buildObject(pQName.getNamespaceURI(), pQName.getLocalPart(), pQName.getPrefix());
+  }
 
   @Override
   public boolean isCallTransition() {
