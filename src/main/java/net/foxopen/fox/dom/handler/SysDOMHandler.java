@@ -2,6 +2,7 @@ package net.foxopen.fox.dom.handler;
 
 import net.foxopen.fox.ContextLabel;
 import net.foxopen.fox.XFUtil;
+import net.foxopen.fox.auth.AuthUtil;
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.UConStatementResult;
 import net.foxopen.fox.database.parser.ParsedStatement;
@@ -20,6 +21,7 @@ import net.foxopen.fox.thread.StatefulXThread;
 import net.foxopen.fox.thread.stack.ModuleCallStack;
 import net.foxopen.fox.thread.stack.ModuleStateChangeListener;
 
+import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -100,11 +102,33 @@ implements DOMHandler, ModuleStateChangeListener {
     mSysDOM.getCreate1ENoCardinalityEx("portal_urls/engine_url").setText(pRequestURIBuilder.convertToAbsoluteURL(lEngineURL));
   }
 
+  /**
+   * Refreshes the DOM's client info element.
+   * @param pRequestContext For getting the client request object and finding client info.
+   */
+  private void refreshRequestInfo(RequestContext pRequestContext) {
+    HttpServletRequest lHttpRequest = pRequestContext.getFoxRequest().getHttpRequest();
+
+    mSysDOM.getCreate1ENoCardinalityEx("request_info/http_method").setText(lHttpRequest.getMethod());
+    mSysDOM.getCreate1ENoCardinalityEx("request_info/request_uri").setText(lHttpRequest.getRequestURI());
+    mSysDOM.getCreate1ENoCardinalityEx("request_info/remote_address").setText(lHttpRequest.getRemoteAddr());
+    mSysDOM.getCreate1ENoCardinalityEx("request_info/forwarded_for").setText(lHttpRequest.getHeader(AuthUtil.X_FORWARDED_FOR_HEADER_NAME));
+    mSysDOM.getCreate1ENoCardinalityEx("request_info/user_agent").setText(lHttpRequest.getHeader("user-agent"));
+    mSysDOM.getCreate1ENoCardinalityEx("request_info/referer").setText(lHttpRequest.getHeader("referer"));
+
+    String lQS = XFUtil.nvl(lHttpRequest.getQueryString());
+    String lQueryString = lQS.substring(0, Math.min(lQS.length(), 4000));
+    mSysDOM.getCreate1ENoCardinalityEx("request_info/query_string").setText(lQueryString);
+  }
+
   @Override
   public void open(ActionRequestContext pRequestContext) {
 
     //Engine access URL may change throughout a thread's life (i.e. if bootstrapped on a different app server) - refresh it every churn
     refreshEngineURL(pRequestContext.createURIBuilder());
+
+    // Refresh information about the request every churn
+    refreshRequestInfo(pRequestContext);
 
     //Refresh sysdate and sysdatetime components
     try {
