@@ -27,7 +27,7 @@ import java.util.Map;
 public class ThreadDownloadManager
 implements DownloadManager {
 
-  private static final int PARCEL_CACHE_MAX_SIZE = 30;
+  private static final int PARCEL_CACHE_MAX_SIZE = 50;
   private static final Iterator<String> gUniqueIterator = XFUtil.getUniqueIterator();
 
   private final StatefulXThread mXThread;
