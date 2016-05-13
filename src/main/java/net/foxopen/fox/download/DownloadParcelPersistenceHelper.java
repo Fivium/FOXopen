@@ -1,13 +1,13 @@
 package net.foxopen.fox.download;
 
-import java.util.Collection;
-import java.util.Collections;
-
 import net.foxopen.fox.thread.persistence.Persistable;
 import net.foxopen.fox.thread.persistence.PersistableType;
 import net.foxopen.fox.thread.persistence.PersistenceContext;
 import net.foxopen.fox.thread.persistence.PersistenceMethod;
 import net.foxopen.fox.thread.persistence.PersistenceResult;
+
+import java.util.Collection;
+import java.util.Collections;
 
 
 /**
@@ -48,4 +48,29 @@ implements Persistable {
   public PersistableType getPersistableType() {
     return PersistableType.DOWNLOAD_PARCEL;
   }
+
+
+  /*
+   * Override hashCode and equals to allow comparison of DownloadParcelPersistenceHelper objects based on the download parcel id
+   * Used in DownloadParcelPersistenceHelper.endPersistenceCycle() to check if this object has already been serialised - see FOXRD-880
+   */
+  @Override
+  public int hashCode() {
+    return getParcelId().hashCode();
+  }
+
+  @Override
+  public boolean equals(Object comparisonObject) {
+    if (!(comparisonObject instanceof DownloadParcelPersistenceHelper)) {
+      return false;
+    }
+    else {
+      return getParcelId().equals(((DownloadParcelPersistenceHelper) comparisonObject).getParcelId());
+    }
+  }
+
+  protected String getParcelId() {
+    return mDownloadParcel.getParcelId();
+  }
+
 }
