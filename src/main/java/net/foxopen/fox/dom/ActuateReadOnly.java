@@ -1194,15 +1194,17 @@ extends ActuateNoAccess
    */
   private static class HTML5XOMNodeSerializer
   extends XOMNodeSerializer {
-    public HTML5XOMNodeSerializer(OutputStream pOut) {
+    public HTML5XOMNodeSerializer(OutputStream pOut, boolean pWriteHTML5Doctype) {
       super(pOut, false, false);
 
-      // Start off with a HTML5 doctype as we override and ignore any doctype/XML Declation from the DOM
-      try {
-        writeRaw("<!DOCTYPE html>\n");
-      }
-      catch (IOException e) {
-        throw new ExInternal("Failed to write HTML5 doctype when serialising DOM", e);
+      // Start off with a HTML5 doctype, if required, as we override and ignore any doctype/XML Declaration from the DOM
+      if (pWriteHTML5Doctype) {
+        try {
+          writeRaw("<!DOCTYPE html>\n");
+        }
+        catch (IOException e) {
+          throw new ExInternal("Failed to write HTML5 doctype when serialising DOM", e);
+        }
       }
     }
 
@@ -1364,9 +1366,15 @@ extends ActuateNoAccess
   }
 
   @Override
-  public void outputHTML5NodeAs(Node pNode, OutputStream pOutputStream) {
-    HTML5XOMNodeSerializer lSerializer = new HTML5XOMNodeSerializer(pOutputStream);
+  public void outputHTML5Node(Node pNode, OutputStream pOutputStream, boolean pWriteHTML5Doctype) {
+    HTML5XOMNodeSerializer lSerializer = new HTML5XOMNodeSerializer(pOutputStream, pWriteHTML5Doctype);
     lSerializer.serializeNode(pNode);
+  }
+
+  @Override
+  public void outputHTML5NodeContents(Node pNode, OutputStream pOutputStream, boolean pWriteHTML5Doctype) {
+    HTML5XOMNodeSerializer lSerializer = new HTML5XOMNodeSerializer(pOutputStream, pWriteHTML5Doctype);
+    lSerializer.serializeNodeContents(pNode);
   }
 
   /**

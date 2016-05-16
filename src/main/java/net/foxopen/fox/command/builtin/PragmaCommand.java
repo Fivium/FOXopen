@@ -53,7 +53,7 @@ public final class PragmaCommand {
 
       StringBuffer lHtmlStringBuffer;
       if ("HTML5".equals(mDoctype)) {
-        lHtmlStringBuffer = new StringBuffer(lHtml.outputHTM5LNodeToString());
+        lHtmlStringBuffer = new StringBuffer(lHtml.outputHTM5LNodeToString(true));
       }
       else if ("XHTML".equals(mDoctype)) {
         lHtmlStringBuffer = new StringBuffer(lHtml.outputNodeToString(false));

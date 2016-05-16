@@ -57,7 +57,7 @@ extends DataFieldMgr {
 
   @Override
   public String getSingleTextValue() {
-    return getSingleXMLValue().outputNodeContentsToString(false);
+    return getSingleXMLValue().outputHTM5LNodeContentsToString(false);
   }
 
   @Override
