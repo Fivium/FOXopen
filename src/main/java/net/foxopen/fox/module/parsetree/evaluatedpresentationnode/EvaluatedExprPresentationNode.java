@@ -88,7 +88,7 @@ public class EvaluatedExprPresentationNode extends EvaluatedPresentationNode<Pre
           // Output raw HTML
           DOM lExprDOM = lXPathResult.asResultDOMOrNull();
           if (lExprDOM != null) {
-            mEvaluatedExpression = lExprDOM.outputNodeToString(false);
+            mEvaluatedExpression = lExprDOM.outputHTM5LNodeToString(false);
             mEscapingRequired = false; // Don't escape raw html
           }
           else {

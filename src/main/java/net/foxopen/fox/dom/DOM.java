@@ -819,14 +819,46 @@ implements FxpDOM<DOM> {
   }
 
 
-  public String outputHTM5LNodeToString() {
+  /**
+   * Outputs this node to String using a HTML5 aware XML serialiser. Do not use this method for large DOMs as the whole
+   * DOM string must be stored in memory.
+   *
+   * @return Document serialised to a HTML5 String
+   */
+  public String outputHTM5LNodeToString(boolean pWriteHTML5Doctype) {
     ByteArrayOutputStream lBAOS = new ByteArrayOutputStream();
-    outputHTML5NodeContentsToOutputStream(lBAOS);
+    outputHTML5NodeToOutputStream(lBAOS, pWriteHTML5Doctype);
     return byteArrayOutputStreamToString(lBAOS);
   }
 
-  public void outputHTML5NodeContentsToOutputStream(OutputStream pOutputStream) {
-    DocControl.getDocControl(mXOMNode).mActuate.outputHTML5NodeAs(mXOMNode, pOutputStream);
+  /**
+   * Recursively serialises this node to an OutputStream using a HTML5 aware XML serialiser.
+   *
+   * @param pOutputStream Destination for the serialisation.
+   */
+  public void outputHTML5NodeToOutputStream(OutputStream pOutputStream, boolean pWriteHTML5Doctype) {
+    DocControl.getDocControl(mXOMNode).mActuate.outputHTML5Node(mXOMNode, pOutputStream, pWriteHTML5Doctype);
+  }
+
+  /**
+   * Recursively serializes this node's contents to a String using a HTML5 aware XML serialiser. Note that the node itself is not serialised so the result
+   * of this method may not be a well-formed XML string.
+   *
+   * @return
+   */
+  public String outputHTM5LNodeContentsToString(boolean pWriteHTML5Doctype) {
+    ByteArrayOutputStream lBAOS = new ByteArrayOutputStream();
+    outputHTML5NodeContentsToOutputStream(lBAOS, pWriteHTML5Doctype);
+    return byteArrayOutputStreamToString(lBAOS);
+  }
+
+  /**
+   * Recursively serialises this node's contents to an OutputStream using a HTML5 aware XML serialiser.
+   *
+   * @param pOutputStream Destination for the serialisation.
+   */
+  public void outputHTML5NodeContentsToOutputStream(OutputStream pOutputStream, boolean pWriteHTML5Doctype) {
+    DocControl.getDocControl(mXOMNode).mActuate.outputHTML5NodeContents(mXOMNode, pOutputStream, pWriteHTML5Doctype);
   }
 
   /**

@@ -247,7 +247,11 @@ abstract class Actuate
     throwAccessViolation(pNode);
   }
 
-  public void outputHTML5NodeAs(Node pNode, OutputStream pOutputStream) {
+  public void outputHTML5Node(Node pNode, OutputStream pOutputStream, boolean pWriteHTML5Doctype) {
+    throwAccessViolation(pNode);
+  }
+
+  public void outputHTML5NodeContents(Node pNode, OutputStream pOutputStream, boolean pWriteHTML5Doctype) {
     throwAccessViolation(pNode);
   }
 
