@@ -1,8 +1,5 @@
 var gClientVisibilityConfig;
 
-//For IE6/7/8 - debug fix
-//if (!window.console) console = {log: function() {}};
-
 /*
  * Note the pattern of creating functions within other functions - this is done so closures are properly set when the
  * functions are created.
@@ -207,6 +204,14 @@ function createChangeEvent(pTargetSelector, pParsedRule, pToggleVisibility, pHid
 
     //Toggle the visibility or display property as required (also need to choose whether the targets' contents are hidden or the targets directly)
     lTargets.not(".clv-ignore").toggleClass("clv-hide-" + (pToggleVisibility ? "visibility" : "display") +  (pHideContents ? "-contents" : ""), !lRuleResult);
+
+    // If displaying this target and it has TinyMCE fields in it they need re-initialising to display properly
+    if (lRuleResult) {
+      lTargets.find('textarea[data-tinymce]').each(function () {
+        tinymce.EditorManager.execCommand('mceRemoveEditor', true, this.id);
+        tinymce.EditorManager.execCommand('mceAddEditor', true, this.id);
+      });
+    }
   };
 }
 
@@ -215,7 +220,7 @@ function createChangeEvent(pTargetSelector, pParsedRule, pToggleVisibility, pHid
  */
 function setupClientVisibility(){
 
-  //For each client visibiltity rule in the config
+  //For each client visibility rule in the config
   for(var i = 0; i < gClientVisibilityConfig.length; i++){
     var lRule = gClientVisibilityConfig[i];
     var lTriggerList = {};
@@ -224,7 +229,7 @@ function setupClientVisibility(){
     var lParsedRule = parseRule(lRule, lTriggerList)[0];
 
     //Establish a selector pattern to be used to identify target nodes
-    var lTargetSelector =  '*[data-xfid=' + lRule.target_xfid + ']'
+    var lTargetSelector =  '*[data-xfid=' + lRule.target_xfid + ']';
 
     //Quickly adding and removing a class to td elements that are descendents of the target_xfid
     //fixes a bug with IE where the elements are not rendered when a cvr hides them on page load
