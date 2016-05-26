@@ -75,7 +75,10 @@ public class ElementFactory {
    */
   public PdfPTable getTable(int pColumns) {
     PdfPTable lTable = new PdfPTable(pColumns);
-    //lTable.setSplitLate(false);
+    // Set split late to false so that tables will be split immediately if they don't fit on a page instead of moving
+    // them to the next page then attempting to split if they don't fit there. iText gets in an infinite loop with the
+    // latter option when content in nested table rows can't split (see EDU-3490 on JIRA).
+    lTable.setSplitLate(false);
     mElementAttributes.getTableAttributes().getWidthPercentage().ifPresent(pWidthPercentage -> {
       lTable.setWidthPercentage(pWidthPercentage);
       lTable.setLockedWidth(false);
