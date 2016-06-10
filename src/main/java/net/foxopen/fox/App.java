@@ -589,46 +589,42 @@ public class App {
     return null;
   }
 
-  private final UConStatementResult getComponentRow(String lComponentName) {
+  public final StringWriter getModuleComponentAsString(String pComponentPath) {
+    String lComponentName = getComponentName(pComponentPath);
     UCon lUCon = null;
+
     try {
       lUCon = ConnectionAgent.getConnection(mConnectionPoolName, "Get component");
       UConStatementResult lRow = getComponentRowFromResourceTables(lComponentName, lUCon);
-      return lRow;
+
+      if(lRow != null)
+      {
+        if("module".equals(lRow.getString("TYPE"))) {
+          try {
+            Reader lReader = lRow.getClob("DATA").getCharacterStream();
+            StringWriter lStringWriter = new StringWriter();
+            IOUtil.transfer(lReader, lStringWriter);
+
+            return lStringWriter;
+          }
+          catch (SQLException e) {
+            throw new ExInternal("Error reading blob/clob", e);
+          }
+          catch (IOException e) {
+            throw new ExInternal("Error reading module clob for module " + pComponentPath, e);
+          }
+        }
+        else {
+          throw new ExInternal("Specified component '" + pComponentPath + "' is not of type 'module'");
+        }
+      }
     }
-    catch (ExServiceUnavailable exServiceUnavailable) {
-      exServiceUnavailable.printStackTrace();
+    catch (ExServiceUnavailable e) {
+      throw new ExInternal("Error establishing database connection", e);
     }
     finally {
       if(lUCon != null) {
         lUCon.closeForRecycle();
-      }
-    }
-    return null;
-  }
-
-  public final StringWriter getModuleComponentAsString(String pComponentPath) {
-    String lComponentName = getComponentName(pComponentPath);
-    UConStatementResult lRow = getComponentRow(lComponentName);
-    if(lRow != null)
-    {
-      if("module".equals(lRow.getString("TYPE"))) {
-        try {
-          Reader lReader = lRow.getClob("DATA").getCharacterStream();
-          StringWriter lStringWriter = new StringWriter();
-          IOUtil.transfer(lReader, lStringWriter);
-
-          return lStringWriter;
-        }
-        catch (SQLException e) {
-            throw new ExInternal("Error reading blob/clob", e);
-          }
-        catch (IOException e) {
-          throw new ExInternal("Error reading module clob for module " + pComponentPath, e);
-        }
-      }
-      else {
-        throw new ExInternal("Specified component '" + pComponentPath + "' is not of type 'module'");
       }
     }
     throw new ExInternal("Null row returned when trying to retrieve component: " + pComponentPath);
@@ -650,6 +646,7 @@ public class App {
       lFullComponentPath = mDefaultModuleName;
     }
 
+    UCon lUCon = null;
     Track.pushInfo("GetComponent", pComponentPath);
     try {
       UConStatementResult lRow = null;
@@ -667,7 +664,8 @@ public class App {
           }
         }
 
-        lRow = getComponentRow(lComponentName);
+        lUCon = ConnectionAgent.getConnection(mConnectionPoolName, "Get component");
+        lRow = getComponentRowFromResourceTables(lComponentName, lUCon);
       }
 
       if (lRow != null) {
@@ -681,6 +679,9 @@ public class App {
       }
     }
     finally {
+      if(lUCon != null) {
+        lUCon.closeForRecycle();
+      }
       Track.pop("GetComponent");
     }
 
