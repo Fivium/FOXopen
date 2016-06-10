@@ -45,6 +45,7 @@ import org.opensaml.saml2.core.AuthnContextClassRef;
 import org.opensaml.saml2.core.AuthnStatement;
 import org.opensaml.saml2.core.Conditions;
 import org.opensaml.saml2.core.Issuer;
+import org.opensaml.saml2.core.NameID;
 import org.opensaml.saml2.core.NameIDType;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.Status;
@@ -62,6 +63,7 @@ import org.opensaml.saml2.core.impl.AuthnContextClassRefBuilder;
 import org.opensaml.saml2.core.impl.AuthnStatementBuilder;
 import org.opensaml.saml2.core.impl.ConditionsBuilder;
 import org.opensaml.saml2.core.impl.IssuerBuilder;
+import org.opensaml.saml2.core.impl.NameIDBuilder;
 import org.opensaml.saml2.core.impl.StatusBuilder;
 import org.opensaml.saml2.core.impl.StatusCodeBuilder;
 import org.opensaml.saml2.core.impl.SubjectBuilder;
@@ -81,10 +83,12 @@ import org.opensaml.xml.signature.X509Data;
 import org.w3c.dom.Element;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.w3c.dom.ls.DOMImplementationLS;
+import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
 
 import javax.xml.namespace.QName;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
@@ -202,7 +206,7 @@ public class SAMLResponseCommand extends BuiltInCommand {
 
       DOM lAssertionAttributesDOM = lContextUElem.extendedXPath1E(mAssertionAttributesXPath, false);
       for (DOM lAttribute : lAssertionAttributesDOM.getChildElements()) {
-        lAssertionAttributes.put(lAttribute.getName(), lAttribute.value());
+        lAssertionAttributes.put(lAttribute.hasAttr("saml-attr-name") ? lAttribute.getAttr("saml-attr-name") : lAttribute.getName(), lAttribute.value());
       }
     }
     catch (ExActionFailed | ExCardinality ex) {
@@ -247,10 +251,14 @@ public class SAMLResponseCommand extends BuiltInCommand {
       Marshaller lMarshaller = lMarshallerFactory.getMarshaller(pXMLObject);
       Element lElement = lMarshaller.marshall(pXMLObject);
 
-      DOMImplementationRegistry registry = DOMImplementationRegistry.newInstance();
-      DOMImplementationLS impl = (DOMImplementationLS) registry.getDOMImplementation("LS");
-      LSSerializer writer = impl.createLSSerializer();
-      return writer.writeToString(lElement);
+      DOMImplementationLS lDOMImplementationLS = (DOMImplementationLS) DOMImplementationRegistry.newInstance().getDOMImplementation("LS");
+      LSSerializer lSerializer = lDOMImplementationLS.createLSSerializer();
+      LSOutput lOutput =  lDOMImplementationLS.createLSOutput();
+      lOutput.setEncoding("UTF-8");
+      Writer lStringWriter = new StringWriter();
+      lOutput.setCharacterStream(lStringWriter);
+      lSerializer.write(lElement, lOutput);
+      return lStringWriter.toString();
     }
     catch (Exception e) {
       throw new ExInternal("Error Serializing the SAML Response", e);
@@ -371,6 +379,13 @@ public class SAMLResponseCommand extends BuiltInCommand {
     lSubjectConfirmationData.setNotOnOrAfter(pNotOnOrAfter);
     lSubjectConfirmation.setSubjectConfirmationData(lSubjectConfirmationData);
     lSubject.getSubjectConfirmations().add(lSubjectConfirmation);
+
+    NameIDBuilder lNameIDBuilder = new NameIDBuilder();
+    NameID lNameID = lNameIDBuilder.buildObject();
+    lNameID.setValue(RandomString.getString(64));
+    lNameID.setFormat(NameID.TRANSIENT);
+    lSubject.setNameID(lNameID);
+
     lAssertion.setSubject(lSubject);
 
     AuthnStatement lAuthnStatement = new AuthnStatementBuilder().buildObject();
