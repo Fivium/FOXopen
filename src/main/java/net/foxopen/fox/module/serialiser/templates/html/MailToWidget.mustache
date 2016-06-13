@@ -1,2 +1,2 @@
-{{^ImageURL}}<a href="{{MailToLink}}"{{> HintAttributes}}{{> ClassAttribute}}{{> StyleAttribute}}>{{{Prompt}}}</a>{{/ImageURL}}
-{{#ImageURL}}<a href="{{MailToLink}}"{{> HintAttributes}}{{> ClassAttribute}}{{> StyleAttribute}}><img src="{{ImageURL}}" alt="{{Prompt}}"/></a>{{/ImageURL}}
+{{^ImageURL}}<a {{#FieldName}}id="{{FieldName}}" name="{{FieldName}}" {{/FieldName}}href="{{MailToLink}}"{{> HintAttributes}}{{> ClassAttribute}}{{> StyleAttribute}}>{{{Prompt}}}</a>{{/ImageURL}}
+{{#ImageURL}}<a {{#FieldName}}id="{{FieldName}}" name="{{FieldName}}" {{/FieldName}}href="{{MailToLink}}"{{> HintAttributes}}{{> ClassAttribute}}{{> StyleAttribute}}><img src="{{ImageURL}}" alt="{{Prompt}}"/></a>{{/ImageURL}}
