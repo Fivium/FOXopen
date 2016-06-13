@@ -6,7 +6,6 @@ import net.foxopen.fox.entrypoint.ws.GenericWebServiceResponse;
 import net.foxopen.fox.entrypoint.ws.PathParamTemplate;
 import net.foxopen.fox.entrypoint.ws.WebService;
 import net.foxopen.fox.entrypoint.ws.WebServiceAuthDescriptor;
-import net.foxopen.fox.entrypoint.ws.WebServiceAuthType;
 import net.foxopen.fox.entrypoint.ws.WebServiceResponse;
 import net.foxopen.fox.thread.RequestContext;
 
@@ -23,7 +22,7 @@ implements WebService {
 
   @Override
   public WebServiceAuthDescriptor getAuthDescriptor() {
-    return new WebServiceAuthDescriptor(false, WebServiceAuthType.TOKEN);
+    return WebServiceAuthDescriptor.NO_AUTHENTICATION_REQUIRED;
   }
 
   @Override
