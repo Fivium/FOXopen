@@ -8,6 +8,7 @@ import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedPrese
 
 
 public class MailToPresentationNode extends PresentationNode {
+  private static final String MAILTO_PREFIX = "mailto:";
   private final String mEmailAddress;
   private final String mCarbonCopyCSVList;
   private final String mPrompt;
@@ -17,8 +18,8 @@ public class MailToPresentationNode extends PresentationNode {
 
   public MailToPresentationNode(DOM pCurrentNode) {
     String lEmailAddress = pCurrentNode.getAttr("email");
-    if (lEmailAddress.startsWith("mailto:")) {
-      mEmailAddress = lEmailAddress.substring(7, lEmailAddress.length());
+    if (lEmailAddress.startsWith(MAILTO_PREFIX)) {
+      mEmailAddress = lEmailAddress.substring(MAILTO_PREFIX.length(), lEmailAddress.length());
     }
     else {
       mEmailAddress = lEmailAddress;

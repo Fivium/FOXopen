@@ -4,6 +4,8 @@ import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExActionFailed;
 import net.foxopen.fox.ex.ExInternal;
+import net.foxopen.fox.module.OutputHint;
+import net.foxopen.fox.module.evaluatedattributeresult.FixedStringAttributeResult;
 import net.foxopen.fox.module.parsetree.EvaluatedParseTree;
 import net.foxopen.fox.module.parsetree.presentationnode.MailToPresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.PresentationNode;
@@ -14,7 +16,7 @@ public class EvaluatedMailToPresentationNode extends EvaluatedPresentationNode<P
   private final String mCarbonCopyCSVList;
   private final String mPrompt;
   private final String mSubject;
-  private final String mHint;
+  private final OutputHint mHint;
   private final String mImageURL;
 
   public EvaluatedMailToPresentationNode(EvaluatedPresentationNode<? extends PresentationNode> pParent, MailToPresentationNode pOriginalPresentationNode, EvaluatedParseTree pEvaluatedParseTree, DOM pEvalContext) {
@@ -64,7 +66,12 @@ public class EvaluatedMailToPresentationNode extends EvaluatedPresentationNode<P
     mCarbonCopyCSVList = lCarbonCopyCSVList;
     mPrompt = lPrompt;
     mSubject = lSubject;
-    mHint = lHint;
+    if (XFUtil.isNull(lHint)) {
+      mHint = null;
+    }
+    else {
+      mHint = new OutputHint("hint" + pEvaluatedParseTree.getFieldSet().getNextFieldSequence(), new FixedStringAttributeResult(lPrompt), new FixedStringAttributeResult(lHint), null, null, null);
+    }
     mImageURL = lImageURL;
   }
 
@@ -89,7 +96,7 @@ public class EvaluatedMailToPresentationNode extends EvaluatedPresentationNode<P
     return mCarbonCopyCSVList;
   }
 
-  public String getHint() {
+  public OutputHint getHint() {
     return mHint;
   }
 
