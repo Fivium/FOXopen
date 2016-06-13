@@ -158,6 +158,7 @@
     , MIDDLE: 2
     , RIGHT: 3
     },
+    ajaxRequestCount: 0,
 
     /**
      * Tagger widget constructor
@@ -761,6 +762,8 @@
       // Set a new pending Filter event to fire in this.options.typingTimeThreshold milliseconds
       this.pendingFilterEvent = setTimeout(
         function() {
+          var requestNumber = ++self.ajaxRequestCount;
+
           $.ajax({
             url: self.options.ajaxURL,
             type: "GET",
@@ -770,6 +773,11 @@
             },
             dataType: 'json',
             success: function (data) {
+              // If another AJAX search has been fired between this one being sent and the result being returned,
+              // don't carry on because we don't want to risk overwriting the results of the later request
+              if(requestNumber != self.ajaxRequestCount) {
+                return false;
+              }
               // Make sure any tags already displayed are overlaid on their counterparts in the new list
               $.each(self.tagsByID, function(key, tag){
                 if (self._isAlreadyDisplayingTag(key)) {
