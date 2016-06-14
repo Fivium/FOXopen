@@ -1,7 +1,5 @@
 package net.foxopen.fox.module.parsetree.presentationnode;
 
-import java.util.List;
-
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.dom.paging.PagerSetup;
@@ -12,6 +10,8 @@ import net.foxopen.fox.module.parsetree.PageControlsPosition;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedContainerPresentationNode;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedPresentationNode;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedSetOutPresentationNode;
+
+import java.util.List;
 
 
 /**
@@ -64,10 +64,7 @@ implements SetOutInfoProvider {
   @Override
   public EvaluatedContainerPresentationNode evaluate(EvaluatedPresentationNode<? extends PresentationNode> pParent, EvaluatedParseTree pEvaluatedParseTree, DOM pEvalContext) {
     List<EvaluatedPresentationNode<? extends PresentationNode>> lEvaluatedNodes = EvaluatedSetOutPresentationNode.evaluate(pParent, this, pEvaluatedParseTree, pEvalContext);
-
-    EvaluatedContainerPresentationNode lEvalContainer = new EvaluatedContainerPresentationNode(pParent, this, pEvaluatedParseTree, pEvalContext, lEvaluatedNodes);
-
-    return lEvalContainer;
+    return new EvaluatedContainerPresentationNode(pParent, this, pEvaluatedParseTree, pEvalContext, lEvaluatedNodes);
   }
 
   @Override

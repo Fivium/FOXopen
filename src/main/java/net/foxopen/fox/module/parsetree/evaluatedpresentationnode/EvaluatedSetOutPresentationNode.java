@@ -26,6 +26,7 @@ import net.foxopen.fox.track.Track;
 import net.foxopen.fox.track.TrackFlag;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -61,6 +62,12 @@ implements DOMPagerBehaviour {
       }
       catch(ExActionFailed x) {
        throw new ExInternal("Bad set-out match expression: " + lMatchXPath, x);
+      }
+
+      // Show a dev toolbar warning when a set-out matches no nodes
+      if (lMatchedDataList.size() < 1) {
+        Track.debug("SetOutMatchedNothing", "fm:set-out found with no matching elements, " + pOriginalPresentationNode.toString(), TrackFlag.PARSE_TREE_WARNING);
+        return Collections.emptyList();
       }
 
       List<EvaluatedPresentationNode<? extends PresentationNode>> lResultEvalNodes = new ArrayList<>(lMatchedDataList.size());
