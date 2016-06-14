@@ -1,8 +1,8 @@
 package net.foxopen.fox.module.parsetree.evaluatedpresentationnode;
 
 import net.foxopen.fox.dom.DOM;
+import net.foxopen.fox.dom.DOMList;
 import net.foxopen.fox.ex.ExActionFailed;
-import net.foxopen.fox.ex.ExCardinality;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.EvaluatedNodeFactory;
@@ -16,6 +16,11 @@ import net.foxopen.fox.module.parsetree.presentationnode.PresentationNode;
 import net.foxopen.fox.module.parsetree.presentationnode.WidgetOutPresentationNode;
 import net.foxopen.fox.module.serialiser.components.ComponentBuilderType;
 import net.foxopen.fox.track.Track;
+import net.foxopen.fox.track.TrackFlag;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 
 /**
@@ -29,77 +34,99 @@ public class EvaluatedWidgetOutPresentationNode extends GenericAttributesEvaluat
   private boolean mShowHint = false;
   private boolean mShowDescription = false;
 
-  /**
-   * Construct an EvaluatedNodeInfo object from the DOM node that the match attribute points to
-   *
-   * @see EvaluatedPresentationNode#EvaluatedPresentationNode
-   */
-  public EvaluatedWidgetOutPresentationNode(EvaluatedPresentationNode<? extends PresentationNode> pParent, WidgetOutPresentationNode pOriginalPresentationNode, EvaluatedParseTree pEvaluatedParseTree, DOM pEvalContext) {
-    super(pParent, pOriginalPresentationNode, pEvalContext);
+  public static List<EvaluatedPresentationNode<? extends PresentationNode>> evaluate(EvaluatedPresentationNode<? extends PresentationNode> pParent, WidgetOutPresentationNode pOriginalPresentationNode,
+                                                                                    EvaluatedParseTree pEvalParseTree, DOM pEvalContext) {
 
     String lMatchXPath = pOriginalPresentationNode.getMatch();
 
     Track.pushDebug("EvaluatedWidgetOutPresentationNode", lMatchXPath);
     try {
+      // Get a DOMList for the match attribute supplied
+      DOMList lMatchedDataList;
       try {
-        mShowPrompt = pEvaluatedParseTree.getContextUElem().extendedXPathBoolean(getEvalContext(), pOriginalPresentationNode.getShowPromptXPath());
-        mShowWidget = pEvaluatedParseTree.getContextUElem().extendedXPathBoolean(getEvalContext(), pOriginalPresentationNode.getShowWidgetXPath());
-        mShowError = pEvaluatedParseTree.getContextUElem().extendedXPathBoolean(getEvalContext(), pOriginalPresentationNode.getShowErrorXPath());
-        mShowHint = pEvaluatedParseTree.getContextUElem().extendedXPathBoolean(getEvalContext(), pOriginalPresentationNode.getShowHintXPath());
-        mShowDescription = pEvaluatedParseTree.getContextUElem().extendedXPathBoolean(getEvalContext(), pOriginalPresentationNode.getShowDescriptionXPath());
+        lMatchedDataList = pEvalParseTree.getContextUElem().extendedXPathUL(pEvalContext, lMatchXPath);
       }
-      catch (ExActionFailed e) {
-        throw e.toUnexpected("Running boolean XPath on fm:widget-out failed");
+      catch (ExActionFailed x) {
+        throw new ExInternal("Bad set-out match expression: " + lMatchXPath, x);
       }
 
-      if (!mShowPrompt && !mShowWidget && !mShowError && !mShowHint && !mShowDescription) {
-        throw new ExInternal("fm:widget-out found but no attributes to specify which facets to show: " + lMatchXPath);
+      // Show a dev toolbar warning when a set-out matches no nodes
+      if (lMatchedDataList.size() < 1) {
+        Track.debug("WidgetOutMatchedNothing", "fm:widget-out found with no matching elements, " + pOriginalPresentationNode.toString(), TrackFlag.PARSE_TREE_WARNING);
+        return Collections.emptyList();
+      }
+      else if (lMatchedDataList.size() > 1) {
+        throw new ExInternal("fm:widget-out match XPath should match only 1 element but matched " + lMatchedDataList.size() + " elements");
       }
 
-      DOM lMatchedDataItem = null;
-      try {
-        lMatchedDataItem = pEvaluatedParseTree.getContextUElem().extendedXPath1E(getEvalContext(), lMatchXPath);
-      }
-      catch (ExCardinality | ExActionFailed e) {
-        throw e.toUnexpected("fm:widget-out did not have a match attribute that matched one, and only one, element");
-      }
+      // Get the single matched item
+      DOM lMatchedDataItem = lMatchedDataList.get(0);
 
       // Locate node info for the current display item
-      NodeInfo lMatchedItemNodeInfo = pEvaluatedParseTree.getModule().getNodeInfo(lMatchedDataItem);
+      NodeInfo lMatchedItemNodeInfo = pEvalParseTree.getModule().getNodeInfo(lMatchedDataItem);
       if (lMatchedItemNodeInfo == null) {
         throw new ExInternal("fm:widget-out matched an element that doesn't appear in the schema: " + lMatchXPath);
       }
 
-      // Determine current nodes evaluate context - for COMPLEX elements this is self, for SIMPLE its immediate parent
-      DOM lEvaluateContextRuleItem;
-      if (lMatchedItemNodeInfo.getNodeType() == NodeType.ITEM) {
-        lEvaluateContextRuleItem = lMatchedDataItem.getParentOrNull();
-        if (lEvaluateContextRuleItem == null) {
-          throw new ExInternal("Error determining current nodes evaluate context: " + lMatchedDataItem.absolute());
-        }
-      }
-      else {
-        lEvaluateContextRuleItem = lMatchedDataItem;
-      }
+      ArrayList<EvaluatedPresentationNode<? extends PresentationNode>> lResultNode = new ArrayList<>(0);
+      lResultNode.add(new EvaluatedWidgetOutPresentationNode(pParent, pOriginalPresentationNode, pEvalParseTree, pEvalContext, lMatchedDataItem, lMatchedItemNodeInfo));
+      return lResultNode;
 
-      // Make the Evaluated Node Info object
-      Track.pushDebug("ConstructingEvalNodeInfo", lMatchedItemNodeInfo.getName());
-      EvaluatedNodeInfo lEvaluatedNodeInfo;
-      try {
-        NodeEvaluationContext lNodeInfoEvaluationContext = NodeEvaluationContext.createNodeInfoEvaluationContext(pEvaluatedParseTree, this, lMatchedDataItem, lEvaluateContextRuleItem, null, lMatchedItemNodeInfo.getNamespaceAttributeTable(), null);
-        lEvaluatedNodeInfo = EvaluatedNodeFactory.createEvaluatedNodeInfo(null, this, lNodeInfoEvaluationContext, lMatchedItemNodeInfo);
-      }
-      finally {
-        Track.pop("ConstructingEvalNodeInfo");
-      }
-
-      // Record it if it's visible
-      if (lEvaluatedNodeInfo != null && lEvaluatedNodeInfo.getFieldMgr().getVisibility() != NodeVisibility.DENIED) {
-        mEvaluatedNode = lEvaluatedNodeInfo;
-      }
     }
     finally {
       Track.pop("EvaluatedWidgetOutPresentationNode");
+    }
+  }
+
+  /**
+   * Construct an EvaluatedNodeInfo object from the DOM node that the match attribute points to
+   *
+   * @see EvaluatedPresentationNode#EvaluatedPresentationNode
+   */
+  private EvaluatedWidgetOutPresentationNode(EvaluatedPresentationNode<? extends PresentationNode> pParent, WidgetOutPresentationNode pOriginalPresentationNode, EvaluatedParseTree pEvaluatedParseTree, DOM pEvalContext
+  , DOM pMatchedDataItem, NodeInfo pMatchedItemNodeInfo) {
+    super(pParent, pOriginalPresentationNode, pEvalContext);
+    try {
+      mShowPrompt = pEvaluatedParseTree.getContextUElem().extendedXPathBoolean(getEvalContext(), pOriginalPresentationNode.getShowPromptXPath());
+      mShowWidget = pEvaluatedParseTree.getContextUElem().extendedXPathBoolean(getEvalContext(), pOriginalPresentationNode.getShowWidgetXPath());
+      mShowError = pEvaluatedParseTree.getContextUElem().extendedXPathBoolean(getEvalContext(), pOriginalPresentationNode.getShowErrorXPath());
+      mShowHint = pEvaluatedParseTree.getContextUElem().extendedXPathBoolean(getEvalContext(), pOriginalPresentationNode.getShowHintXPath());
+      mShowDescription = pEvaluatedParseTree.getContextUElem().extendedXPathBoolean(getEvalContext(), pOriginalPresentationNode.getShowDescriptionXPath());
+    }
+    catch (ExActionFailed e) {
+      throw e.toUnexpected("Running boolean XPath on fm:widget-out failed");
+    }
+
+    if (!mShowPrompt && !mShowWidget && !mShowError && !mShowHint && !mShowDescription) {
+      throw new ExInternal("fm:widget-out found but no attributes to specify which facets to show");
+    }
+
+    // Determine current nodes evaluate context - for COMPLEX elements this is self, for SIMPLE its immediate parent
+    DOM lEvaluateContextRuleItem;
+    if (pMatchedItemNodeInfo.getNodeType() == NodeType.ITEM) {
+      lEvaluateContextRuleItem = pMatchedDataItem.getParentOrNull();
+      if (lEvaluateContextRuleItem == null) {
+        throw new ExInternal("Error determining current nodes evaluate context: " + pMatchedDataItem.absolute());
+      }
+    }
+    else {
+      lEvaluateContextRuleItem = pMatchedDataItem;
+    }
+
+    // Make the Evaluated Node Info object
+    Track.pushDebug("ConstructingEvalNodeInfo", pMatchedItemNodeInfo.getName());
+    EvaluatedNodeInfo lEvaluatedNodeInfo;
+    try {
+      NodeEvaluationContext lNodeInfoEvaluationContext = NodeEvaluationContext.createNodeInfoEvaluationContext(pEvaluatedParseTree, this, pMatchedDataItem, lEvaluateContextRuleItem, null, pMatchedItemNodeInfo.getNamespaceAttributeTable(), null);
+      lEvaluatedNodeInfo = EvaluatedNodeFactory.createEvaluatedNodeInfo(null, this, lNodeInfoEvaluationContext, pMatchedItemNodeInfo);
+    }
+    finally {
+      Track.pop("ConstructingEvalNodeInfo");
+    }
+
+    // Record it if it's visible
+    if (lEvaluatedNodeInfo != null && lEvaluatedNodeInfo.getFieldMgr().getVisibility() != NodeVisibility.DENIED) {
+      mEvaluatedNode = lEvaluatedNodeInfo;
     }
   }
 

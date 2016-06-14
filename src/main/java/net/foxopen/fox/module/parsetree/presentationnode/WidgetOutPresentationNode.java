@@ -5,6 +5,7 @@ import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.parsetree.EvaluatedParseTree;
+import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedContainerPresentationNode;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedPresentationNode;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedWidgetOutPresentationNode;
 
@@ -40,8 +41,10 @@ public class WidgetOutPresentationNode extends GenericAttributesPresentationNode
     // This type of node has no children to process
   }
 
-  public EvaluatedWidgetOutPresentationNode evaluate(EvaluatedPresentationNode<? extends PresentationNode> pParent, EvaluatedParseTree pEvaluatedParseTree, DOM pEvalContext) {
-    return new EvaluatedWidgetOutPresentationNode(pParent, this, pEvaluatedParseTree, pEvalContext);
+  public EvaluatedContainerPresentationNode evaluate(EvaluatedPresentationNode<? extends PresentationNode> pParent, EvaluatedParseTree pEvaluatedParseTree, DOM pEvalContext) {
+    List<EvaluatedPresentationNode<? extends PresentationNode>> lEvaluatedNodes = EvaluatedWidgetOutPresentationNode.evaluate(pParent, this, pEvaluatedParseTree, pEvalContext);
+    return new EvaluatedContainerPresentationNode(pParent, this, pEvaluatedParseTree, pEvalContext, lEvaluatedNodes);
+//    return new EvaluatedWidgetOutPresentationNode(pParent, this, pEvaluatedParseTree, pEvalContext);
   }
 
   public String getMatch() {
