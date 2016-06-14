@@ -4357,11 +4357,12 @@ Mapsets can have the following structures:
     <xs:anyAttribute namespace="##other" processContents="skip"/>
   </xs:complexType>
   <xs:complexType name="widget-out-type" mixed="true">
-    <xs:attribute name="match" type="fm:fox-xpath-type"/>
-    <xs:attribute name="showPrompt" type="fm:fox-xpath-type" use="optional"/>
-    <xs:attribute name="showWidget" type="fm:fox-xpath-type" use="optional"/>
-    <xs:attribute name="showError" type="fm:fox-xpath-type" use="optional"/>
-    <xs:attribute name="showHint" type="fm:fox-xpath-type" use="optional"/>
+    <xs:attribute name="match" type="fm:fox-xpath-dom"/>
+    <xs:attribute name="showPrompt" type="fm:fox-xpath-boolean" use="optional"/>
+    <xs:attribute name="showWidget" type="fm:fox-xpath-boolean" use="optional"/>
+    <xs:attribute name="showError" type="fm:fox-xpath-boolean" use="optional"/>
+    <xs:attribute name="showHint" type="fm:fox-xpath-boolean" use="optional"/>
+    <xs:attribute name="showDescription" type="fm:fox-xpath-boolean" use="optional"/>
     <xs:attributeGroup ref="fox:zzz-set-out-attr-grp"/>
     <xs:anyAttribute namespace="##other" processContents="skip"/>
   </xs:complexType>
