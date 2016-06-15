@@ -5,6 +5,7 @@ import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.module.parsetree.EvaluatedParseTree;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedExternalURLPresentationNode;
 import net.foxopen.fox.module.parsetree.evaluatedpresentationnode.EvaluatedPresentationNode;
+import net.foxopen.fox.module.serialiser.components.html.ExternalURLComponentBuilder;
 
 
 public class ExternalURLPresentationNode extends PresentationNode {
@@ -40,7 +41,7 @@ public class ExternalURLPresentationNode extends PresentationNode {
 
   public String getType() {
     if (!XFUtil.exists(mType)) {
-      return "fullwin";
+      return ExternalURLComponentBuilder.NON_JS_LINK_TYPE;
     }
     return mType;
   }

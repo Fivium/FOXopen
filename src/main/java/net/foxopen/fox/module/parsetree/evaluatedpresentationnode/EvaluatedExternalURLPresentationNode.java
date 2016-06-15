@@ -49,12 +49,7 @@ public class EvaluatedExternalURLPresentationNode extends EvaluatedPresentationN
   }
 
   public String getType() {
-    if (!XFUtil.exists(mType)) {
-      return "fullwin";
-    }
-    else {
-      return mType;
-    }
+    return mType;
   }
 
   public String getTitle() {

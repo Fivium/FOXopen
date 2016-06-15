@@ -210,6 +210,7 @@
     <xs:attribute ref="hint"/>
     <xs:attribute ref="linkHint"/>
     <xs:attribute ref="linkTitle"/>
+    <xs:attribute ref="linkType"/>
     <xs:attribute ref="hintTitle"/>
     <xs:attribute ref="hint-url"/>
     <xs:attribute ref="hint-buffer"/>
@@ -597,6 +598,23 @@
       <xs:documentation>Value to use as the title attribute for the link</xs:documentation>
     </xs:annotation>
   </xs:attribute>
+  <xs:attribute name="linkType">
+    <xs:annotation>
+      <xs:documentation>What kind of link a url widget should have, either a regular pass through of the href attribute or a js wrapper to open it as a popup</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="entered-string">
+        <xs:enumeration value="non-js"/>
+        <xs:enumeration value="appwin"/>
+        <xs:enumeration value="searchwin"/>
+        <xs:enumeration value="filewin"/>
+        <xs:enumeration value="fullwin"/>
+        <xs:enumeration value="refwin"/>
+        <xs:enumeration value="helpwin"/>
+        <xs:enumeration value="flushwin"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:attribute>
   <xs:attribute name="hintTitle" type="fox-optional-xpath-string">
     <xs:annotation>
       <xs:documentation>Value to use as the hint title for this field in form set-out</xs:documentation>
@@ -724,7 +742,7 @@
     <xs:annotation>
       <xs:documentation>The prefix error text used when pattern validation fails. Default is "Entry is in an incorrect format"</xs:documentation>
     </xs:annotation>
-  </xs:attribute>  
+  </xs:attribute>
   <xs:attribute name="validate-when">
     <xs:annotation>
       <xs:documentation>XPath boolean. If true, the node will be validated by XPath commands. Default is true if unspecified.</xs:documentation>

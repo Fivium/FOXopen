@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
  */
 public class ExternalURLComponentBuilder extends ComponentBuilder<HTMLSerialiser, EvaluatedPresentationNode> {
   private static final ComponentBuilder<HTMLSerialiser, EvaluatedPresentationNode> INSTANCE = new ExternalURLComponentBuilder();
+  public static final String NON_JS_LINK_TYPE = "non-js";
 
   public static final ComponentBuilder<HTMLSerialiser, EvaluatedPresentationNode> getInstance() {
     return INSTANCE;
@@ -24,13 +25,28 @@ public class ExternalURLComponentBuilder extends ComponentBuilder<HTMLSerialiser
   public void buildComponent(SerialisationContext pSerialisationContext, HTMLSerialiser pSerialiser, EvaluatedPresentationNode pEvalNode) {
     EvaluatedExternalURLPresentationNode lExternalURLNode = (EvaluatedExternalURLPresentationNode)pEvalNode;
 
-    pSerialiser.append("<a href=\"#\" onclick=\"FOXjs.openwin({url:'");
-    pSerialiser.append(StringEscapeUtils.escapeEcmaScript(pSerialisationContext.getStaticResourceOrFixedURI(lExternalURLNode.getHRef())));
-    pSerialiser.append("',windowOptions:'");
-    pSerialiser.append(StringEscapeUtils.escapeEcmaScript(lExternalURLNode.getType()));
-    pSerialiser.append("'});return false;\" title=\"");
-    pSerialiser.append(StringEscapeUtils.escapeEcmaScript(lExternalURLNode.getTitle()));
-    pSerialiser.append("\">");
+    pSerialiser.append("<a ");
+
+    String lURI = pSerialisationContext.getStaticResourceOrFixedURI(lExternalURLNode.getHRef());
+    String lLinkType = lExternalURLNode.getType();
+
+    // Choose between a non-js link and a FOXjs.openwin() windowOptions string
+    if (NON_JS_LINK_TYPE.equals(lLinkType)) {
+      pSerialiser.append("href=\"");
+      pSerialiser.append(StringEscapeUtils.escapeHtml4(lURI));
+      pSerialiser.append("\" target=\"_blank\" rel=\"noopener noreferrer\"");
+    }
+    else {
+      pSerialiser.append("href=\"#\" onclick=\"FOXjs.openwin({url:'");
+      pSerialiser.append(StringEscapeUtils.escapeHtml4(lURI));
+      pSerialiser.append("',windowOptions:'");
+      pSerialiser.append(StringEscapeUtils.escapeHtml4(lLinkType));
+      pSerialiser.append("'});return false;\" title=\"");
+      pSerialiser.append(StringEscapeUtils.escapeHtml4(lExternalURLNode.getTitle()));
+      pSerialiser.append("\"");
+    }
+
+    pSerialiser.append(">");
     pSerialiser.append(StringEscapeUtils.escapeHtml4(lExternalURLNode.getLinkText()));
     pSerialiser.append("</a>");
   }
