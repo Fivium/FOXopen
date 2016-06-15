@@ -105,6 +105,7 @@ public enum NodeAttribute {
   KEY_UNRECOGNISED("key-unrecognised", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   LAYOUT_METHOD("layoutMethod", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   LINK_TITLE("linkTitle", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
+  LINK_TYPE("linkType", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   LIST_CLASS("listClass", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   LIST_STYLE("listStyle", ValueType.EVALUATABLE_XPATH, ResultType.STRING),
   LIST_CELL_CLASS("listCellClass", ValueType.EVALUATABLE_XPATH, ResultType.STRING),

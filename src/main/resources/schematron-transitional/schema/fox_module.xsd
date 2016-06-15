@@ -4039,9 +4039,13 @@ If the fm:default element is reached, then its contents are evaluated.
         <xs:complexType>
           <xs:attribute name="href" type="xs:string" use="required"/>
           <xs:attribute name="text" type="xs:string" use="required"/>
-          <xs:attribute name="type" use="optional" default="fullwin">
+          <xs:attribute name="type" use="optional" default="non-js">
+            <xs:annotation>
+              <xs:documentation>What kind of link a url widget should have, either a regular pass through of the href attribute or a js wrapper to open it as a popup</xs:documentation>
+            </xs:annotation>
             <xs:simpleType>
               <xs:restriction base="xs:string">
+                <xs:enumeration value="non-js"/>
                 <xs:enumeration value="appwin"/>
                 <xs:enumeration value="searchwin"/>
                 <xs:enumeration value="filewin"/>

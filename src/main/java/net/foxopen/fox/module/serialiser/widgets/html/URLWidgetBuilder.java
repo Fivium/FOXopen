@@ -4,6 +4,7 @@ import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.module.datanode.EvaluatedNode;
 import net.foxopen.fox.module.datanode.NodeAttribute;
 import net.foxopen.fox.module.serialiser.SerialisationContext;
+import net.foxopen.fox.module.serialiser.components.html.ExternalURLComponentBuilder;
 import net.foxopen.fox.module.serialiser.fragmentbuilder.MustacheFragmentBuilder;
 import net.foxopen.fox.module.serialiser.html.HTMLSerialiser;
 import net.foxopen.fox.module.serialiser.widgets.WidgetBuilder;
@@ -39,7 +40,17 @@ public class URLWidgetBuilder extends WidgetBuilderHTMLSerialiser<EvaluatedNode>
       lURL = pSerialisationContext.getStaticResourceOrFixedURI(lURL);
 
       Map<String, Object> lTemplateVars = super.getGenericTemplateVars(pSerialisationContext, pSerialiser, pEvalNode);
-      lTemplateVars.put("ActionJS", StringEscapeUtils.escapeHtml4(pSerialiser.buildFOXjsOpenWinJSON(lURL, "fullwin")));
+
+      // Choose between a non-js link and a FOXjs.openwin() windowOptions string
+      String lLinkType = pEvalNode.getStringAttribute(NodeAttribute.LINK_TYPE, ExternalURLComponentBuilder.NON_JS_LINK_TYPE);
+      if (ExternalURLComponentBuilder.NON_JS_LINK_TYPE.equals(lLinkType)) {
+        lTemplateVars.put("ActionHref", StringEscapeUtils.escapeHtml4(lURL));
+        lTemplateVars.put("TargetBlank", true);
+      }
+      else {
+        lTemplateVars.put("AttributeSafeActionJS", StringEscapeUtils.escapeHtml4(HTMLSerialiser.buildFOXjsOpenWinJSON(lURL, lLinkType)));
+      }
+
       lTemplateVars.put("PromptText", XFUtil.nvl(lTemplateVars.get("PromptText"), lURL));
       lTemplateVars.put("LinkTitle", XFUtil.nvl(XFUtil.nvl(pEvalNode.getStringAttribute(NodeAttribute.LINK_TITLE), lTemplateVars.get("PromptText")), lURL));
 

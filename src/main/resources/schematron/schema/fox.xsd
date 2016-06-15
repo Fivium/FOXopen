@@ -201,6 +201,7 @@
     <xs:attribute ref="file-storage-location"/>
     <xs:attribute ref="hint"/>
     <xs:attribute ref="linkTitle"/>
+    <xs:attribute ref="linkType"/>
     <xs:attribute ref="hintTitle"/>
     <xs:attribute ref="hint-url"/>
     <xs:attribute ref="hint-buffer"/>
@@ -645,6 +646,23 @@
     <xs:annotation>
       <xs:documentation>Value to use as the title attribute on a link when the field is using the link widget</xs:documentation>
     </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="linkType">
+    <xs:annotation>
+      <xs:documentation>What kind of link a url widget should have, either a regular pass through of the href attribute or a js wrapper to open it as a popup</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="entered-string">
+        <xs:enumeration value="non-js"/>
+        <xs:enumeration value="appwin"/>
+        <xs:enumeration value="searchwin"/>
+        <xs:enumeration value="filewin"/>
+        <xs:enumeration value="fullwin"/>
+        <xs:enumeration value="refwin"/>
+        <xs:enumeration value="helpwin"/>
+        <xs:enumeration value="flushwin"/>
+      </xs:restriction>
+    </xs:simpleType>
   </xs:attribute>
   <xs:attribute name="prompt" type="fox-optional-xpath-string">
     <xs:annotation>
