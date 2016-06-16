@@ -1,10 +1,13 @@
 package net.foxopen.fox.entrypoint.auth.saml;
 
+import net.foxopen.fox.FoxRequest;
 import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.database.UCon;
 import net.foxopen.fox.database.UConBindMap;
 import net.foxopen.fox.database.UConStatementResult;
 import net.foxopen.fox.dom.DOM;
+import net.foxopen.fox.entrypoint.servlets.FoxMainServlet;
+import net.foxopen.fox.entrypoint.uri.RequestURIBuilder;
 import net.foxopen.fox.ex.ExDB;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExTooFew;
@@ -99,16 +102,9 @@ public class SamlConfig {
    * @return Full Request URI
    */
   private String getFullRequestURI(RequestContext pRequestContext) {
-    String lScheme = pRequestContext.getFoxRequest().getHttpRequest().getScheme();
-    int lServerPort = pRequestContext.getFoxRequest().getHttpRequest().getServerPort();
-
-    //Only add a port suffix if it's not the standard port for the current scheme
-    String lPort = "";
-    if(!(("http".equals(lScheme) && lServerPort == 80) || ("https".equals(lScheme) && lServerPort == 443))) {
-      lPort = ":" + lServerPort;
-    }
-
-    return lScheme + "://" + pRequestContext.getFoxRequest().getHttpRequest().getServerName() + lPort + pRequestContext.getFoxRequest().getRequestURI();
+    RequestURIBuilder lURIBuilder = pRequestContext.createURIBuilder();
+    String lRelativePath = lURIBuilder.buildServletURI(FoxMainServlet.SERVLET_PATH) + pRequestContext.getFoxRequest().getRequestURI();
+    return lURIBuilder.convertToAbsoluteURL(lRelativePath);
   }
 
   public String getCertificateMnem() {
