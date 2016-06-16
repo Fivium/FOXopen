@@ -6,8 +6,11 @@ import net.foxopen.fox.auth.AuthenticationContext;
 import net.foxopen.fox.auth.SSOAuthenticatedInfo;
 import net.foxopen.fox.auth.StandardAuthenticationContext;
 import net.foxopen.fox.auth.loginbehaviours.SSOLoginBehaviour;
+import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.entrypoint.auth.saml.SamlCertificate;
 import net.foxopen.fox.entrypoint.auth.saml.SamlConfig;
+import net.foxopen.fox.entrypoint.servlets.FoxMainServlet;
+import net.foxopen.fox.entrypoint.uri.RequestURIBuilder;
 import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.ex.ExSessionTimeout;
 import net.foxopen.fox.thread.RequestContext;
@@ -119,8 +122,13 @@ public class AuthTypeSAML implements AuthType {
           // Create an Authenticated Info object with data from the assertions
           SSOAuthenticatedInfo lSSOAuthenticatedInfo = createSSOAuthenticatedInfo(lSamlConfig, lSamlResponse);
 
+          // Add the request URI into the AuthInfo DOM so securemgr.authentication.session_create_sso() can use it if needed
+          DOM lAuthInfoDOM = lSSOAuthenticatedInfo.getDOM();
+          RequestURIBuilder lURIBuilder = pRequestContext.createURIBuilder();
+          lAuthInfoDOM.getCreate1ENoCardinalityEx("REQUEST_URI").setText(lURIBuilder.convertToAbsoluteURL(lURIBuilder.buildServletURI(FoxMainServlet.SERVLET_PATH) + pRequestContext.getFoxRequest().getRequestURI()));
+
           // Attempt login
-          SSOLoginBehaviour lSSOLoginBehaviour = new SSOLoginBehaviour(lSSOAuthenticatedInfo.getLoginId(), AuthUtil.getClientInfoNVP(pRequestContext.getFoxRequest()), lSamlConfig.getAuthDomain(), lSamlConfig.getAuthScheme(), lSSOAuthenticatedInfo.getDOM());
+          SSOLoginBehaviour lSSOLoginBehaviour = new SSOLoginBehaviour(lSSOAuthenticatedInfo.getLoginId(), AuthUtil.getClientInfoNVP(pRequestContext.getFoxRequest()), lSamlConfig.getAuthDomain(), lSamlConfig.getAuthScheme(), lAuthInfoDOM);
           lSAC.login(pRequestContext, lSSOLoginBehaviour);
         }
       }
