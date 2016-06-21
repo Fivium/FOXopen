@@ -1,19 +1,5 @@
 package net.foxopen.fox.command.builtin;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Writer;
-
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import net.foxopen.fox.ContextUElem;
 import net.foxopen.fox.StringUtil;
 import net.foxopen.fox.XFUtil;
@@ -33,12 +19,25 @@ import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.Mod;
 import net.foxopen.fox.module.datanode.NodeInfo;
 import net.foxopen.fox.thread.ActionRequestContext;
-
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Writer;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class GenerateLegacySpreadsheetCommand extends BuiltInCommand {
 
@@ -218,9 +217,16 @@ public class GenerateLegacySpreadsheetCommand extends BuiltInCommand {
 
         try {
           HSSFWorkbook wb = new HSSFWorkbook();
+
+          // Build up a map of cell styles for each request, so we can reuse those styles
+          // POI seems to have a limit of 44 (?) that can be instantiated using the same
+          // details
+          HSSFCellStyleCache lHSSFCellStyleCache = new HSSFCellStyleCache(wb);
+
           for (int s = 0; s < mSheets.length; s++) {
             HSSFSheet sheet = wb.createSheet(pContextUElem.extendedStringOrXPathString(pContextUElem.attachDOM(), mSheets[s].getName()));
             boolean visibleColumns[] = new boolean[mSheets[s].getColumns().length];
+            Integer columnWidths[] = new Integer[mSheets[s].getColumns().length];
             boolean lShowHeaders;
             if (XFUtil.isNull(mSheets[s].getShowHeadersExpr())) {
               //default is hide for XLSs
@@ -268,9 +274,20 @@ public class GenerateLegacySpreadsheetCommand extends BuiltInCommand {
                 XPathResult cellValue = pContextUElem.extendedXPathResult(rowElem, column.getColumnExpression());
 
                 HSSFCell cell = row.createCell((short) visCols);
-                setXLSCellValue(pRequestContext.getCurrentModule(), wb, cell, cellValue, column);
+                // Take the largest returned column width
+                Integer lColumnWidth = setXLSCellValue(pRequestContext.getCurrentModule(), cell, cellValue, column, lHSSFCellStyleCache);
+                if (lColumnWidth != null && (columnWidths[c] == null || columnWidths[c] < lColumnWidth)) {
+                  columnWidths[c] = lColumnWidth;
+                }
                 visCols++;
-                //cell.setCellValue(cellValue);
+              }
+            }
+            // Now that all values have been set for all rows, loop through columns and set the widths
+            for (int asc = 0; asc < columnWidths.length; asc++) {
+              if (columnWidths[asc] != null) {
+                // Excel column widths are defined in 256ths of a character width
+                // 2 char grace, as an exact fit is represented as ###### in Excel
+                sheet.setColumnWidth(asc, (columnWidths[asc] + 2) * 256);
               }
             }
           }
@@ -409,10 +426,12 @@ public class GenerateLegacySpreadsheetCommand extends BuiltInCommand {
     return cellStrValue;
   }
 
-  private void setXLSCellValue(Mod pModule, HSSFWorkbook workBook, HSSFCell cell, XPathResult cellValue, Sheet.Column column) throws ExBadPath {
+  private Integer setXLSCellValue(Mod pModule, HSSFCell cell, XPathResult cellValue, Sheet.Column column,
+                                  HSSFCellStyleCache pHSSFCellStyleCache) throws ExBadPath {
     DOM resultDOM = cellValue.asResultDOMOrNull();
     NodeInfo nodeInfo = resultDOM != null ? pModule.getNodeInfo(resultDOM) : null;
     String columnDataType = column.getType();
+    Integer lSetColumnSize = null;
 
     //------------------------------------------------------------------------
     // If we don't have the data type specified directly for the column, try
@@ -444,9 +463,8 @@ public class GenerateLegacySpreadsheetCommand extends BuiltInCommand {
 
         // Parse format outgoing value
         String excelFormatPattern = XFUtil.nvl(column.getOutputFormatSpecification(), ("real".equalsIgnoreCase(columnDataType) ? "0.00" : "0"));
-        HSSFCellStyle cellStyle = workBook.createCellStyle();
-        cellStyle.setDataFormat(workBook.createDataFormat().getFormat(excelFormatPattern));
-        cell.setCellStyle(cellStyle);
+        HSSFCellStyle lCellStyle = pHSSFCellStyleCache.getOrCreateCellStyle(excelFormatPattern);
+        cell.setCellStyle(lCellStyle);
       }
       catch (Throwable ignoreTh) {
         cell.setCellValue(cellValue.asString());
@@ -462,24 +480,28 @@ public class GenerateLegacySpreadsheetCommand extends BuiltInCommand {
     }
     else if ("date".equalsIgnoreCase(columnDataType) || "time".equalsIgnoreCase(columnDataType) || "datetime".equalsIgnoreCase(columnDataType)) {
       try {
-        // Parse incoming value.
-        // This assumes an incoming XML date format.
-        String inputDateFormat = column.getInputFormatSpecification();
+        // Only bother parsing the incoming value if there is one, otherwise just set the format on the call
+        // with no value instead
+        if (XFUtil.exists(cellValue.asString())) {
+          // Parse incoming value.
+          // This assumes an incoming XML date format.
+          String inputDateFormat = column.getInputFormatSpecification();
 
-        if (inputDateFormat == null) {
-          if ("date".equalsIgnoreCase(columnDataType))
-            inputDateFormat = "yyyy-MM-dd";
-          else if ("time".equalsIgnoreCase(columnDataType))
-            inputDateFormat = "HH:mm:ss";
-          else if ("datetime".equalsIgnoreCase(columnDataType))
-            inputDateFormat = "yyyy-MM-dd'T'HH:mm:ss";
-          else
-            inputDateFormat = "yyyy-MM-dd";
+          if (inputDateFormat == null) {
+            if ("date".equalsIgnoreCase(columnDataType))
+              inputDateFormat = "yyyy-MM-dd";
+            else if ("time".equalsIgnoreCase(columnDataType))
+              inputDateFormat = "HH:mm:ss";
+            else if ("datetime".equalsIgnoreCase(columnDataType))
+              inputDateFormat = "yyyy-MM-dd'T'HH:mm:ss";
+            else
+              inputDateFormat = "yyyy-MM-dd";
+          }
+
+          SimpleDateFormat df = new SimpleDateFormat(inputDateFormat);
+
+          cell.setCellValue(df.parse(cellValue.asString()));
         }
-
-        SimpleDateFormat df = new SimpleDateFormat(inputDateFormat);
-
-        cell.setCellValue(df.parse(cellValue.asString()));
 
         // Parse format outgoing value
         String excelFormatPattern = column.getOutputFormatSpecification();
@@ -495,9 +517,9 @@ public class GenerateLegacySpreadsheetCommand extends BuiltInCommand {
             excelFormatPattern = "d-mmm-yyyy";
         }
 
-        HSSFCellStyle cellStyle = workBook.createCellStyle();
-        cellStyle.setDataFormat(workBook.createDataFormat().getFormat(excelFormatPattern));
-        cell.setCellStyle(cellStyle);
+        HSSFCellStyle lCellStyle = pHSSFCellStyleCache.getOrCreateCellStyle(excelFormatPattern);
+        cell.setCellStyle(lCellStyle);
+        lSetColumnSize = excelFormatPattern.length();
       }
       catch (Throwable ignoreTh) {
         cell.setCellValue(cellValue.asString());
@@ -507,6 +529,7 @@ public class GenerateLegacySpreadsheetCommand extends BuiltInCommand {
       // set it as a string, by default
       cell.setCellValue(cellValue.asString());
     }
+    return lSetColumnSize;
   }
 
   private static class Sheet {
@@ -612,6 +635,40 @@ public class GenerateLegacySpreadsheetCommand extends BuiltInCommand {
 
     public String getShowHeadersExpr() {
       return showHeadersExpr;
+    }
+  }
+
+  /**
+   * Basic cache for HSSFCellStyle objects.
+   */
+  private class HSSFCellStyleCache {
+
+    private Map<String, HSSFCellStyle> mCellStyleMap = new HashMap<>();
+    private HSSFWorkbook mWorkbook;
+
+    HSSFCellStyleCache (HSSFWorkbook pWorkbook) {
+      mWorkbook = pWorkbook;
+    }
+
+    /**
+    * Get or create the cell style objects - POI seemingly has a limit of 44 (?)
+    * so these are built and cached on a per-generate-command basis to ensure that
+    * all dates, numbers, etc get formatted correctly.
+    *
+    * @param pExcelFormatPattern the format pattern to use
+    * @return cell style instance
+    */
+    private HSSFCellStyle getOrCreateCellStyle (String pExcelFormatPattern) {
+      if (!mCellStyleMap.containsKey(pExcelFormatPattern)) {
+        HSSFCellStyle lCellStyle = mWorkbook.createCellStyle();
+        short lStyle = mWorkbook.createDataFormat().getFormat(pExcelFormatPattern);
+        lCellStyle.setDataFormat(lStyle);
+        mCellStyleMap.put(pExcelFormatPattern, lCellStyle);
+        return lCellStyle;
+      }
+      else {
+        return mCellStyleMap.get(pExcelFormatPattern);
+      }
     }
   }
 
