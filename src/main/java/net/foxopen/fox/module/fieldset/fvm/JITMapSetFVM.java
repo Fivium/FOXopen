@@ -74,9 +74,11 @@ extends FieldValueMapping {
     List<FieldSelectOption> lOptionList = new ArrayList<>();
 
     for (String lRef : pSelectedRefs) {
-      ActionRequestContext lRequestContext = pFieldMgr.getEvaluatedNodeInfoItem().getNodeEvaluationContext().getEvaluatedParseTree().getRequestContext();
-      MapSetEntry lMapSetEntry = MapSetEntry.createFromMapSetKey(mMapSet.getKeyForDataString(lRequestContext, pFieldMgr.getEvaluatedNodeInfoItem().getDataItem(), lRef));
-      lOptionList.add(new MapSetSelectOption(lMapSetEntry, true, lRef));
+      if(!XFUtil.isNull(lRef)) {
+        ActionRequestContext lRequestContext = pFieldMgr.getEvaluatedNodeInfoItem().getNodeEvaluationContext().getEvaluatedParseTree().getRequestContext();
+        MapSetEntry lMapSetEntry = MapSetEntry.createFromMapSetKey(mMapSet.getKeyForDataString(lRequestContext, pFieldMgr.getEvaluatedNodeInfoItem().getDataItem(), lRef));
+        lOptionList.add(new MapSetSelectOption(lMapSetEntry, true, lRef));
+      }
     }
 
     return lOptionList;
