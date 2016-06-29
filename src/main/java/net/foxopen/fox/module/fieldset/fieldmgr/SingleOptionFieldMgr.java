@@ -15,6 +15,7 @@ import net.foxopen.fox.module.fieldset.fvm.NullOptionType;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 public class SingleOptionFieldMgr
@@ -94,7 +95,7 @@ extends OptionFieldMgr {
   @Override
   public List<FieldSelectOption> getSelectOptions() {
 
-    List<FieldSelectOption> lSelectOptions = mFVM.getSelectOptions(this, mIsNull ? Collections.<String>emptySet() : Collections.singleton(mSelectedFVMOptionRef));
+    List<FieldSelectOption> lSelectOptions = mFVM.getSelectOptions(this, getSelectedRef());
 
     //If null, augment null entry
     augmentNullKeyIntoList(lSelectOptions, getEvaluatedNodeInfoItem());
@@ -127,4 +128,21 @@ extends OptionFieldMgr {
     //Selected ref could be null for null/unrecognised value
     return mSelectedFVMOptionRef != null && mSelectedFVMOptionRef.equals(pRef);
   }
+
+  /**
+   * Returns a set containing the ref of the selected item.
+   * If the selected item ref is null, or nothing has been selected, or free text being entered (the last 2 being the usual causes of the ref being null),
+   * then an empty set is returned as no valid ref exists.
+   *
+   * @return A set containing the selected ref if it exists, or an empty set if not.
+   */
+  private Set<String> getSelectedRef() {
+    if (mSelectedFVMOptionRef == null || mIsNull || mIsFreeText) {
+      return Collections.emptySet();
+    }
+    else {
+      return Collections.singleton(mSelectedFVMOptionRef);
+    }
+  }
+
 }
