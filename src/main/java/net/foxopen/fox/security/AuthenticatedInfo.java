@@ -88,7 +88,7 @@ public class AuthenticatedInfo {
    * @return DOM representation of info
    */
   public DOM getDOM() {
-    SSOAuthenticatedInfo lSSOAuthenticatedInfo = new SSOAuthenticatedInfo(mUID, mLoginId, mForename, mSurname, mPrimaryEmail);
+    SSOAuthenticatedInfo lSSOAuthenticatedInfo = new SSOAuthenticatedInfo(mUID, mLoginId, mForename, mSurname, mPrimaryEmail, null, null);
     return lSSOAuthenticatedInfo.getDOM();
   }
 

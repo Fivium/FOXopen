@@ -6,7 +6,6 @@ import net.foxopen.fox.auth.AuthenticationContext;
 import net.foxopen.fox.auth.SSOAuthenticatedInfo;
 import net.foxopen.fox.auth.StandardAuthenticationContext;
 import net.foxopen.fox.auth.loginbehaviours.SSOLoginBehaviour;
-import net.foxopen.fox.dom.DOM;
 import net.foxopen.fox.entrypoint.auth.saml.SamlCertificate;
 import net.foxopen.fox.entrypoint.auth.saml.SamlConfig;
 import net.foxopen.fox.entrypoint.servlets.FoxMainServlet;
@@ -40,16 +39,15 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
  * Look for a SAMLResponse parameter before entry, if one is found attempt to parse it into a SAML Response object and
  * validate it before attempting to log in a user using the attributes defined in the SAML Response.
  */
-public class AuthTypeSAML implements AuthType {
+class AuthTypeSAML implements AuthType {
 
   private static AuthType INSTANCE = new AuthTypeSAML();
   public static AuthType getInstance() {
@@ -120,15 +118,14 @@ public class AuthTypeSAML implements AuthType {
         }
         else {
           // Create an Authenticated Info object with data from the assertions
-          SSOAuthenticatedInfo lSSOAuthenticatedInfo = createSSOAuthenticatedInfo(lSamlConfig, lSamlResponse);
-
-          // Add the request URI into the AuthInfo DOM so securemgr.authentication.session_create_sso() can use it if needed
-          DOM lAuthInfoDOM = lSSOAuthenticatedInfo.getDOM();
-          RequestURIBuilder lURIBuilder = pRequestContext.createURIBuilder();
-          lAuthInfoDOM.getCreate1ENoCardinalityEx("REQUEST_URI").setText(lURIBuilder.convertToAbsoluteURL(lURIBuilder.buildServletURI(FoxMainServlet.SERVLET_PATH) + pRequestContext.getFoxRequest().getRequestURI()));
+          SSOAuthenticatedInfo lSSOAuthenticatedInfo = createSSOAuthenticatedInfo(pRequestContext, lSamlConfig, lSamlResponse);
 
           // Attempt login
-          SSOLoginBehaviour lSSOLoginBehaviour = new SSOLoginBehaviour(lSSOAuthenticatedInfo.getLoginId(), AuthUtil.getClientInfoNVP(pRequestContext.getFoxRequest()), lSamlConfig.getAuthDomain(), lSamlConfig.getAuthScheme(), lAuthInfoDOM);
+          SSOLoginBehaviour lSSOLoginBehaviour = new SSOLoginBehaviour(lSSOAuthenticatedInfo.getLoginId(),
+            AuthUtil.getClientInfoNVP(pRequestContext.getFoxRequest()),
+            lSamlConfig.getAuthDomain(),
+            lSamlConfig.getAuthScheme(),
+            lSSOAuthenticatedInfo.getDOM());
           lSAC.login(pRequestContext, lSSOLoginBehaviour);
         }
       }
@@ -254,32 +251,68 @@ public class AuthTypeSAML implements AuthType {
   }
 
   /**
-   * Create a map of assertion attributes using their names and the text content from the attributes.
+   * Get the attribute statement from a SAML response
    *
-   * @param pSamlResponse Response with one assertion in it containing 0 or more attributes
-   * @return Map of attribute names to text content
+   * @param pSamlResponse SAMl Response with 1 Assertion object in it
+   * @return List of SAML Attributes from the SAML Response
    */
-  private Map<String, String> getAssertionAttributes(Response pSamlResponse) {
+  private List<Attribute> getResponseAttributes(Response pSamlResponse) {
     List<AttributeStatement> lAttributeStatements = getResponseAssertion(pSamlResponse).getAttributeStatements();
+
     if (lAttributeStatements.size() != 1) {
       throw new ExInternal("Expected 1 attribute statement in the SAML assertion, found: " + lAttributeStatements.size());
     }
 
-    List<Attribute> lAttributesList = lAttributeStatements.get(0).getAttributes();
-    Map<String, String> lAttributesMap = new HashMap<>(lAttributesList.size());
-    for (Attribute lAttribute : lAttributesList) {
-      List<XMLObject> lAttributeValues = lAttribute.getAttributeValues();
-      if (lAttributeStatements.size() != 1) {
-        throw new ExInternal("Expected 1 attribute value in the SAML assertion for attribute '" + lAttribute.getName() + "', found: " + lAttributeValues.size());
-      }
-      XMLObject lXMLObject = lAttributeValues.get(0);
+    return lAttributeStatements.get(0).getAttributes();
+  }
 
-      // This could deserialise lXMLObject into a typed attribute but all attribute values we're interested in should just have plain text content
-      lAttributesMap.put(lAttribute.getName(), lXMLObject.getDOM().getTextContent());
+  /**
+   * Get a list of string values for each value under a named Attribute in an Assertion from the SAML Response
+   *
+   * @param pSamlResponse Response with one assertion in it containing 0 or more attributes
+   * @param pAttributeName Name of the attribute to get a list of values from
+   * @return List of values for SAMLResponse/Assertion/Attribute[name=pAttributeName]
+   */
+  private String getAssertionAttributeStringValue(Response pSamlResponse, String pAttributeName) {
+    List<Attribute> lAttributesList = getResponseAttributes(pSamlResponse);
+
+    for (Attribute lAttribute : lAttributesList) {
+      if (!pAttributeName.equals(lAttribute.getName())) {
+        continue;
+      }
+      List<XMLObject> lAttributeValues = lAttribute.getAttributeValues();
+
+      return lAttributeValues.get(0).getDOM().getTextContent();
     }
 
-    return Collections.unmodifiableMap(lAttributesMap);
+    return null;
   }
+
+  /**
+   * Get a list of string values for each value under a named Attribute in an Assertion from the SAML Response
+   *
+   * @param pSamlResponse Response with one assertion in it containing 0 or more attributes
+   * @param pAttributeName Name of the attribute to get a list of values from
+   * @return List of values for SAMLResponse/Assertion/Attribute[name=pAttributeName]
+   */
+  private List<String> getAssertionAttributeStringValueList(Response pSamlResponse, String pAttributeName) {
+    List<Attribute> lAttributesList = getResponseAttributes(pSamlResponse);
+
+    for (Attribute lAttribute : lAttributesList) {
+      if (!pAttributeName.equals(lAttribute.getName())) {
+        continue;
+      }
+      List<XMLObject> lAttributeValues = lAttribute.getAttributeValues();
+
+      return lAttributeValues.stream()
+        // This could deserialise lXMLObject into a typed attribute but all attribute values we're interested in should just have plain text content
+        .map(lAttrVal -> lAttrVal.getDOM().getTextContent())
+        .collect(Collectors.toList());
+    }
+
+    return Collections.emptyList();
+  }
+
 
   /**
    * Create an AuthenticatedInfo object to use for logging in with data taken from the SAML Response attributes
@@ -288,24 +321,28 @@ public class AuthTypeSAML implements AuthType {
    * @param pSamlResponse SAML Response object containing one Assertion with attributes that should match the values defined in the SAML config
    * @return SSO Authenticated Info object with all the values needed to login to FOX
    */
-  private SSOAuthenticatedInfo createSSOAuthenticatedInfo(SamlConfig pSamlConfig, Response pSamlResponse) {
-    // Read assertion attributes
-    Map<String, String> lAttributesMap = getAssertionAttributes(pSamlResponse);
-
+  private SSOAuthenticatedInfo createSSOAuthenticatedInfo(RequestContext pRequestContext, SamlConfig pSamlConfig, Response pSamlResponse) {
     // Map assertion attributes to Auth Info required attributes as specified in the config object
     String lUniqueID, lLoginID, lForename, lSurname, lPrimaryEmail;
+    List<String> lExternalPrivs = null;
 
     if (!XFUtil.isNull(pSamlConfig.getAttributeMap().get("unique-id"))) {
-      lUniqueID = lAttributesMap.get(pSamlConfig.getAttributeMap().get("unique-id"));
+      lUniqueID = getAssertionAttributeStringValue(pSamlResponse, pSamlConfig.getAttributeMap().get("unique-id"));
     }
     else {
       lUniqueID = getResponseAssertion(pSamlResponse).getSubject().getNameID().getValue();
     }
 
-    lLoginID = lAttributesMap.get(pSamlConfig.getAttributeMap().get("login-id"));
-    lForename = lAttributesMap.get(pSamlConfig.getAttributeMap().get("forename"));
-    lSurname = lAttributesMap.get(pSamlConfig.getAttributeMap().get("surname"));
-    lPrimaryEmail = lAttributesMap.get(pSamlConfig.getAttributeMap().get("email-address"));
+    lLoginID = getAssertionAttributeStringValue(pSamlResponse, pSamlConfig.getAttributeMap().get("login-id"));
+    lForename = getAssertionAttributeStringValue(pSamlResponse, pSamlConfig.getAttributeMap().get("forename"));
+    lSurname = getAssertionAttributeStringValue(pSamlResponse, pSamlConfig.getAttributeMap().get("surname"));
+    lPrimaryEmail = getAssertionAttributeStringValue(pSamlResponse, pSamlConfig.getAttributeMap().get("email-address"));
+
+    // Optional external-privs attribute should map to a list of elements
+    String lExternalPrivsAttributeName = pSamlConfig.getAttributeMap().get("external-privs");
+    if (!XFUtil.isNull(lExternalPrivsAttributeName)) {
+      lExternalPrivs = getAssertionAttributeStringValueList(pSamlResponse, lExternalPrivsAttributeName);
+    }
 
     // Check all the required attributes are there
     if ( XFUtil.isNull(lUniqueID)
@@ -313,9 +350,16 @@ public class AuthTypeSAML implements AuthType {
       || XFUtil.isNull(lForename)
       || XFUtil.isNull(lSurname)
       || XFUtil.isNull(lPrimaryEmail)) {
-      throw new ExInternal("Unable to map all SAML config attributes (" + pSamlConfig.getAttributeMap().toString() + ") to the attributes in the SAML Response (" + lAttributesMap.toString() + ")");
+      String lSAMLAttributeNames = getResponseAttributes(pSamlResponse).stream()
+        .map(attr -> attr.getName() + " => " + attr.getDOM().getTextContent())
+        .collect(Collectors.joining(", "));
+      throw new ExInternal("Unable to map all SAML config attributes (" + pSamlConfig.getAttributeMap().toString() + ") to the attributes in the SAML Response (" + lSAMLAttributeNames + ")");
     }
 
-    return new SSOAuthenticatedInfo(lUniqueID, lLoginID, lForename, lSurname, lPrimaryEmail);
+    // Add the request URI into the AuthInfo DOM so securemgr.authentication.session_create_sso() can use it if needed
+    RequestURIBuilder lURIBuilder = pRequestContext.createURIBuilder();
+    String lRequestURI = lURIBuilder.convertToAbsoluteURL(lURIBuilder.buildServletURI(FoxMainServlet.SERVLET_PATH) + pRequestContext.getFoxRequest().getRequestURI());
+
+    return new SSOAuthenticatedInfo(lUniqueID, lLoginID, lForename, lSurname, lPrimaryEmail, lRequestURI, lExternalPrivs);
   }
 }
