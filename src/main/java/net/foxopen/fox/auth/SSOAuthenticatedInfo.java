@@ -1,6 +1,9 @@
 package net.foxopen.fox.auth;
 
+import net.foxopen.fox.XFUtil;
 import net.foxopen.fox.dom.DOM;
+
+import java.util.List;
 
 /**
  * AuthenticatedInfo Is a mess with header and LDAP specific code and should be split up into several objects. The
@@ -13,13 +16,17 @@ public class SSOAuthenticatedInfo {
   private final String mForename;
   private final String mSurname;
   private final String mPrimaryEmail;
+  private final String mRequestURI;
+  private final List<String> mExternalPrivs;
 
-  public SSOAuthenticatedInfo(String pUID, String pLoginId, String pForename, String pSurname, String pPrimaryEmail) {
+  public SSOAuthenticatedInfo(String pUID, String pLoginId, String pForename, String pSurname, String pPrimaryEmail, String pRequestURI, List<String> pExternalPrivs) {
     mUID = pUID;
     mLoginId = pLoginId;
     mForename = pForename;
     mSurname = pSurname;
     mPrimaryEmail = pPrimaryEmail;
+    mRequestURI = pRequestURI;
+    mExternalPrivs = pExternalPrivs;
   }
 
   /**
@@ -33,6 +40,18 @@ public class SSOAuthenticatedInfo {
     lDOM.addElem("FORENAME", mForename);
     lDOM.addElem("SURNAME", mSurname);
     lDOM.addElem("PRIMARY_EMAIL_ADDRESS", mPrimaryEmail);
+
+    if (!XFUtil.isNull(mRequestURI)) {
+      lDOM.addElem("REQUEST_URI", mRequestURI);
+    }
+
+    if (mExternalPrivs != null && mExternalPrivs.size() > 0) {
+      DOM lExternalPrivsElem = lDOM.addElem("EXTERNAL_PRIVS");
+      for (String lExternalPriv : mExternalPrivs) {
+        lExternalPrivsElem.addElem("PRIV", lExternalPriv);
+      }
+    }
+
     return lDOM;
   }
 
