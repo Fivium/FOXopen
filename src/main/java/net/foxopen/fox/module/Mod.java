@@ -1789,6 +1789,7 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
       || lMergeChildNameIntern=="fm:pagination-definition"
       || lMergeChildNameIntern=="fm:client-visibility-rule"
       || lMergeChildNameIntern=="fm:namespace-group"
+      || lMergeChildNameIntern=="fm:data-definition"
       || lMergeChildNameIntern==PageDefinition.ELEMENT_NAME
       ) {
 
@@ -1934,6 +1935,7 @@ extends FoxComponent implements Validatable, NodeInfoProvider {
       || lMergeChildNameIntern=="fm:css-list"
       || lMergeChildNameIntern=="fm:xpath-list"
       || lMergeChildNameIntern=="fm:namespace-group-list"
+      || lMergeChildNameIntern=="fm:data-definition-list"
       ) {
 
         if(!pEnableModuleMetaMerging) {
