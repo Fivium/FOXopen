@@ -149,7 +149,7 @@ public class DataDefinition {
       else {
         String lTransformerString = lTransformerBlock.value();
         if (XFUtil.isNull(lTransformerString)) {
-          throw new ExInternal("Transformer from data-definition not defined or not 'object' or 'array': " + lTransformerString);
+          throw new ExInternal("Transformer from data-definition not defined or not 'object', 'array' or 'verbatim': " + lTransformerString);
         }
         if ("object".equalsIgnoreCase(lTransformerString) ) {
           lDataTransformer = TransformerEnum.OBJECT;
@@ -157,14 +157,17 @@ public class DataDefinition {
         else if ("array".equalsIgnoreCase(lTransformerString) ) {
           lDataTransformer = TransformerEnum.ARRAY;
         }
+        else if ("verbatim".equalsIgnoreCase(lTransformerString) ) {
+          lDataTransformer = TransformerEnum.VERBATIM;
+        }
         else {
-          throw new ExInternal("Transformer from data-definition not 'object' or 'array': " + lTransformerString);
+          throw new ExInternal("Transformer from data-definition not 'object', 'array' or 'verbatim': " + lTransformerString);
         }
       }
 
       // Get the data query definition
       DOM lColumnMappingBlock = lDefinitionTagNameMap.remove("column-mapping");
-      if(lColumnMappingBlock == null) {
+      if(lColumnMappingBlock == null && lDataTransformer != TransformerEnum.VERBATIM) {
         throw new ExInternal("Missing column-mapping from data-definition");
       }
 

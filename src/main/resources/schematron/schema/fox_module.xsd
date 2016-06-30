@@ -968,12 +968,13 @@ Mapsets can have the following structures:
                         <xs:restriction base="xs:string">
                           <xs:enumeration value="object"/>
                           <xs:enumeration value="array"/>
+                          <xs:enumeration value="verbatim"/>
                         </xs:restriction>
                       </xs:simpleType>
                     </xs:element>
                     <xs:element name="column-mapping" minOccurs="0">
                       <xs:annotation>
-                        <xs:documentation>Definition block describing how data should be queried and transformed for use client side</xs:documentation>
+                        <xs:documentation>Definition block describing how data should be queried and transformed for use client side. Only applicable to 'object' and 'array' transformers</xs:documentation>
                       </xs:annotation>
                       <xs:complexType>
                         <xs:sequence>
