@@ -11,6 +11,7 @@ import net.foxopen.fox.ex.ExInternal;
 import net.foxopen.fox.module.datadefinition.datatransformer.ArrayTransformerRecordDeliverer;
 import net.foxopen.fox.module.datadefinition.datatransformer.DataTransformerResultDeliverer;
 import net.foxopen.fox.module.datadefinition.datatransformer.ObjectTransformerRecordDeliverer;
+import net.foxopen.fox.module.datadefinition.datatransformer.VerbatimTransformerRecordDeliverer;
 import net.foxopen.fox.thread.ActionRequestContext;
 import org.json.simple.JSONArray;
 
@@ -40,14 +41,21 @@ public class EvaluatedDataDefinition {
     }
 
     // Get the column names
-    String lDefinedSeriesName = pDataDefinition.getColumnMapping().get1SNoEx("fm:series");
-    String lDefinedXColumnName = pDataDefinition.getColumnMapping().get1SNoEx("fm:x");
-    if (XFUtil.isNull(lDefinedXColumnName)) {
-      lDefinedXColumnName = "X";
-    }
-    String lDefinedYColumnName = pDataDefinition.getColumnMapping().get1SNoEx("fm:y");
-    if (XFUtil.isNull(lDefinedYColumnName)) {
-      lDefinedYColumnName = "Y";
+    DOM lColumnMapping = pDataDefinition.getColumnMapping();
+    String lDefinedSeriesName = new String();
+    String lDefinedXColumnName = new String();
+    String lDefinedYColumnName = new String();
+
+    if(lColumnMapping != null) {
+      lDefinedSeriesName = lColumnMapping.get1SNoEx("fm:series");
+      lDefinedXColumnName = lColumnMapping.get1SNoEx("fm:x");
+      if (XFUtil.isNull(lDefinedXColumnName)) {
+        lDefinedXColumnName = "X";
+      }
+      lDefinedYColumnName = lColumnMapping.get1SNoEx("fm:y");
+      if (XFUtil.isNull(lDefinedYColumnName)) {
+        lDefinedYColumnName = "Y";
+      }
     }
 
     // Run the query and transform the data
@@ -62,6 +70,9 @@ public class EvaluatedDataDefinition {
             break;
           case ARRAY:
             lDataTransformerResultDeliverer = new ArrayTransformerRecordDeliverer(lDefinedSeriesName, lDefinedXColumnName, lDefinedYColumnName);
+            break;
+          case VERBATIM:
+            lDataTransformerResultDeliverer = new VerbatimTransformerRecordDeliverer();
             break;
           default:
             throw new ExInternal("No data transformer implemented for defined transformer type: " + pDataDefinition.getDataTransformer());
