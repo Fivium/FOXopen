@@ -17,6 +17,7 @@
   <sch:let name="fox-attrs" value="$fox-attrs-doc/xs:schema/xs:attribute"/>
   <!-- fox namespace uri -->
   <sch:let name="fox_ns" value="'http://www.og.dti.gov/fox(_global)?/'"/>
+  <sch:let name="w3_ns" value="'http://www.w3.org/*'"/>
   <!-- asserts load of fox attributes document -->
   <sch:pattern id="document-load">
     <sch:rule context="xs:schema">
@@ -91,6 +92,14 @@
       <!-- crude enumeration checker, no support for extensions or restrictions -->
       <sch:report test="$fox-attr/xs:simpleType/xs:restriction/xs:enumeration and not(. = $fox-attr/xs:simpleType/xs:restriction/xs:enumeration/@value)">
         Illegal value for <sch:name/> - <sch:value-of select="."/>, expecting one of - <sch:value-of select="$fox-attr/xs:simpleType/xs:restriction/xs:enumeration/@value"/>
+      </sch:report>
+    </sch:rule>
+  </sch:pattern>
+  <sch:pattern id="namespace_declaration_has_fox">
+    <sch:title>Correct Namespace used</sch:title>
+    <sch:rule context="xs:schema">
+      <sch:report test="namespace::*[ not(matches( . ,$w3_ns)) and not(matches(.,concat($fox_ns, '*'))) ]">
+        Namespace is incorrect. Should Use <sch:value-of select="$fox_ns"/>  For NS:  <sch:value-of select="namespace::*[ not(matches( . ,$w3_ns)) and not(matches(.,concat($fox_ns, '*'))) ]"/>
       </sch:report>
     </sch:rule>
   </sch:pattern>
