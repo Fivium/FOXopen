@@ -12,9 +12,21 @@
         <xs:element name="header">
           <xs:complexType>
             <xs:sequence>
-              <xs:element name="name" type="fm:entered-string"/>
-              <xs:element name="title" type="fm:entered-string"/>
-              <xs:element name="application-title" type="fm:entered-string"/>
+              <xs:element name="name" type="fm:entered-string">
+                <xs:annotation>
+                  <xs:documentation>The name of the module, must match the filename, and its name in the fox componenets table</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name="title" type="fm:entered-string">
+                <xs:annotation>
+                  <xs:documentation>A user facing title of the module, can be accessed from the :{sys} DOM if this module is accessed directly</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name="application-title" type="fm:entered-string">
+                <xs:annotation>
+                  <xs:documentation>A user facing title of the application this module is being written for, can be accessed from the :{sys} DOM if this module is accessed directly</xs:documentation>
+                </xs:annotation>
+              </xs:element>
               <xs:element name="documentation" minOccurs="0">
                 <xs:complexType>
                   <xs:complexContent>
@@ -44,6 +56,9 @@
                 </xs:complexType>
               </xs:element>
               <xs:element name="version-no">
+                <xs:annotation>
+                  <xs:documentation>Managed automatically. Put "$Id$" if there's an issue</xs:documentation>
+                </xs:annotation>
                 <xs:simpleType>
                   <xs:restriction base="fm:entered-string">
                     <xs:pattern value="[$]Id(: .*)?[$]"/>
@@ -51,6 +66,9 @@
                 </xs:simpleType>
               </xs:element>
               <xs:element name="version-desc" minOccurs="0">
+                <xs:annotation>
+                  <xs:documentation>Managed automatically. Put "$Header$" if there's an issue</xs:documentation>
+                </xs:annotation>
                 <xs:simpleType>
                   <xs:restriction base="xs:string">
                     <xs:pattern value="([$]Header(: .*)?[$])?"/>
@@ -63,7 +81,10 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element name="control">
+        <xs:element name="control" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>Catch-all area for things that don't really fit elsewhere.</xs:documentation>
+          </xs:annotation>
           <xs:complexType>
             <xs:sequence>
               <xs:element name="transaction-mode" minOccurs="0">
@@ -156,6 +177,9 @@
           </xs:complexType>
         </xs:element>
         <xs:element name="namespace-group-list" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>Allows you to group namespaces together, for use in fm:set-out and fm:security-list commands</xs:documentation>
+          </xs:annotation>
           <xs:complexType>
             <xs:sequence>
               <xs:element name="namespace-group" minOccurs="0" maxOccurs="unbounded">
@@ -195,7 +219,10 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element name="security-list">
+        <xs:element name="security-list" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>A list of controls on the availability of namespaces, or how namespaces behave</xs:documentation>
+          </xs:annotation>
           <xs:complexType>
             <xs:sequence>
               <xs:element name="security-rule" minOccurs="0" maxOccurs="unbounded">
@@ -221,7 +248,10 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element name="library-list">
+        <xs:element name="library-list" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>A list of modules to load into this module's modmerge. Modules merged this way follow the module merging rules.</xs:documentation>
+          </xs:annotation>
           <xs:complexType>
             <xs:sequence>
               <xs:element name="schema" type="fm:entered-string" minOccurs="0">
@@ -246,12 +276,18 @@
           </xs:complexType>
         </xs:element>
         <xs:element name="xpath-list" minOccurs="0" type="fm:xpath-list-type">
+          <xs:annotation>
+            <xs:documentation>A list of stored, named xpath expressions for use in xpath expressions in this module</xs:documentation>
+          </xs:annotation>
           <xs:unique name="unique-xpath-name-within-module">
             <xs:selector xpath="./fm:xpath"/>
             <xs:field xpath="@name"/>
           </xs:unique>
         </xs:element>
-        <xs:element name="storage-location-list">
+        <xs:element name="storage-location-list" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>List of storage locations, DOMs mapped to a cache key. </xs:documentation>
+          </xs:annotation>
           <xs:complexType>
             <xs:sequence>
               <xs:element name="storage-location" minOccurs="0" maxOccurs="unbounded">
@@ -291,7 +327,10 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element name="entry-theme-list">
+        <xs:element name="entry-theme-list" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>List of entry points for a module</xs:documentation>
+          </xs:annotation>
           <xs:complexType>
             <xs:sequence>
               <xs:element name="entry-theme" minOccurs="0" maxOccurs="unbounded">
@@ -474,11 +513,14 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element name="action-list" type="fm:action-list-type"/>
-        <xs:element name="db-interface-list">
+        <xs:element name="action-list" type="fm:action-list-type" minOccurs="0">
           <xs:annotation>
-            <xs:documentation>Contains all interfaces for a module to describe how database selects,
-              inserts updates, locks and native API calls are processed</xs:documentation>
+            <xs:documentation>A list of FOX actions, actions typically mutate FOX DOMs through fox commands</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name="db-interface-list" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>A list of db-interfaces, containers and namespaces for lists of related queries/apis etc.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:sequence>
@@ -491,6 +533,9 @@
           </xs:key>
         </xs:element>
         <xs:element name="css-list" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>A list of text/css fox components to add to pages generated from modules that have this module in the modmerge</xs:documentation>
+          </xs:annotation>
           <xs:complexType>
             <xs:sequence>
               <xs:element name="css" minOccurs="0" maxOccurs="unbounded">
@@ -513,8 +558,15 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element name="presentation" type="fm:presentation-type"/>
-        <xs:element name="state-list">
+        <xs:element name="presentation" type="fm:presentation-type" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>Definitions for how responses to fox requests are generated</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name="state-list" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>Defines all the states that this module can exist in (states have their own presentation and action rules)</xs:documentation>
+          </xs:annotation>
           <xs:complexType>
             <xs:sequence>
               <xs:element name="state" minOccurs="0" maxOccurs="unbounded">
@@ -567,7 +619,10 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element name="template-list">
+        <xs:element name="template-list" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>List of different xml fragments for use elsewhere in the module (i.e. mapsets/init commands)</xs:documentation>
+          </xs:annotation>
           <xs:complexType>
             <xs:sequence>
               <xs:element name="template" minOccurs="0" maxOccurs="unbounded">
@@ -583,7 +638,10 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element name="map-set-list">
+        <xs:element name="map-set-list" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>List of map-sets the list of key-value mappings used for dereferencing and validation</xs:documentation>
+          </xs:annotation>
           <xs:complexType>
             <xs:sequence>
               <xs:element name="map-set" minOccurs="0" maxOccurs="unbounded">
@@ -928,7 +986,7 @@ Mapsets can have the following structures:
         </xs:element>
         <xs:element name="data-definition-list" minOccurs="0">
           <xs:annotation>
-            <xs:documentation>aaa</xs:documentation>
+            <xs:documentation>TODO: NP</xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:sequence>
