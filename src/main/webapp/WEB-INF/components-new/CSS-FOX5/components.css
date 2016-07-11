@@ -228,6 +228,14 @@ nav.menu-out a.current-nav-item {
   font-weight: 600;
 }
 
+.black-label,
+.button.black-label,
+.button.black-label:hover,
+.button.black-label:active,
+.button.black-label:visited  {
+  background: #000;
+}
+
 .link-button::before {
   color: #666;
 }
